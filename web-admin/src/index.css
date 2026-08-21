@@ -783,8 +783,8 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
 
 /* ============================================================ */
 body { background: var(--sampaguita); }
-.app-shell { min-height: 100vh; display: flex; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); }
-.app-main { flex: 1; min-width: 0; overflow: auto; padding: 0; }
+.app-shell { min-height: 100vh; width: 100%; display: flex; flex-direction: row; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); overflow-x: hidden; }
+.app-main { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 0; }
 .app-main--public { padding: 0; }
 .app-topbar { height: 68px; width: 100%; max-width: none; margin: 0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--sampaguita); }
 .app-crumbs, .app-topbar-actions, .app-status { display: flex; align-items: center; gap: 9px; }
