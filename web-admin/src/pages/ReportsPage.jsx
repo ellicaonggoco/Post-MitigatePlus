@@ -250,7 +250,7 @@ export default function ReportsPage() {
   return (
     <div className="page-container page-animate">
       {/* ── Page Header ── */}
-      <div className="workflow-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px', position: 'relative', zIndex: 1000 }}>
+      <div className="workflow-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px', position: 'relative', zIndex: 1000, overflow: 'visible' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             width: 48, height: 48, borderRadius: 'var(--radius-inner)',
