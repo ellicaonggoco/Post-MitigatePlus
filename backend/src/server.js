@@ -137,6 +137,16 @@ app.use('/api/warehouse', require('./routes/warehouseRoutes'));
 app.use('/api/recovery', require('./routes/recoveryRoutes'));
 app.use('/api/policy', require('./routes/policyRoutes'));
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'MitigatePlus Disaster Recovery API Server',
+    status: 'active',
+    version: '2.0.0',
+    healthCheck: '/api/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'online',
