@@ -39,29 +39,25 @@ const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()) 
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8081', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'];
 
+const checkOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+    callback(null, true);
+  } else {
+    callback(new Error('Not allowed by CORS'));
+  }
+};
+
 const io = socketIo(server, {
   cors: {
-    origin: function(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: checkOrigin,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-    credentials: true
+    credentials: true,
   },
 });
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+  origin: checkOrigin,
+  credentials: true,
 }));
 
 // Request Payload Body Size Limiter (Prevents DoS through large payload flooding)
@@ -142,11 +138,12 @@ app.use('/api/recovery', require('./routes/recoveryRoutes'));
 app.use('/api/policy', require('./routes/policyRoutes'));
 
 app.get('/api/health', (req, res) => {
-  res.json({
+  res.status(200).json({
     status: 'online',
     app: 'MitigatePlus Backend API',
     scope: 'Manila City Post-Disaster Recovery System',
-    timestamp: new Date(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
   });
 });
 
