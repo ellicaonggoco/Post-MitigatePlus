@@ -781,7 +781,7 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ============================================================
+/* ============================================================ */
 body { background: var(--sampaguita); }
 .app-shell { min-height: 100vh; display: flex; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); }
 .app-main { flex: 1; min-width: 0; overflow: auto; padding: 0; }
@@ -943,7 +943,7 @@ body { background: var(--sampaguita); }
   [data-theme="dark"] .dashboard-welcome { padding: 20px !important; }
 }
 
-/* ============================================================
+/* ============================================================ */
 html { background: var(--sampaguita); }
 body { min-width: 320px; font-size: 14px; }
 button, a, input, select, textarea { touch-action: manipulation; }
