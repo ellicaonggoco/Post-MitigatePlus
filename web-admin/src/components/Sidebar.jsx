@@ -231,29 +231,27 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   return (
     <aside
       aria-label="Main navigation"
-      className="desktop-sidebar"
-      style={{
-        width: isCollapsed ? '72px' : '256px',
-        minWidth: isCollapsed ? '72px' : '256px',
-        flexShrink: 0,
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        background: 'var(--sidebar-bg)',
-        color: 'var(--ink)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: isCollapsed ? '20px 10px' : '20px 14px',
-        transition: 'width 0.25s cubic-bezier(0.2, 0, 0, 1), min-width 0.25s cubic-bezier(0.2, 0, 0, 1), padding 0.25s cubic-bezier(0.2, 0, 0, 1)',
-        boxShadow: '2px 0 16px rgba(15, 23, 42, 0.04)',
-        zIndex: 100,
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        overflowX: 'hidden',
-        overflowY: 'auto',
-      }}
-    >
+        style={{
+          width: isCollapsed ? '72px' : '256px',
+          minWidth: isCollapsed ? '72px' : '256px',
+          height: '100vh',
+          position: 'sticky',
+          top: 0,
+          background: 'var(--sidebar-bg)',
+          color: 'var(--ink)',
+          borderRight: '1px solid var(--border)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: isCollapsed ? '20px 10px' : '20px 14px',
+          transition: 'width 0.25s cubic-bezier(0.2, 0, 0, 1), min-width 0.25s cubic-bezier(0.2, 0, 0, 1), padding 0.25s cubic-bezier(0.2, 0, 0, 1)',
+          boxShadow: '2px 0 16px rgba(15, 23, 42, 0.04)',
+          zIndex: 100,
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          overflowX: 'hidden',
+          overflowY: 'auto',
+        }}
+      >
       {/* ── TOP SECTION ── */}
       <div>
         {/* Logo + Collapse Toggle */}
