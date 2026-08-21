@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Image, Switch, Alert, ActivityIndicator, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+  Image,
+  Switch,
+  Alert,
+  ActivityIndicator,
+  Modal,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PhoneCallIcon, UsersIcon, ShieldCheckIcon, CameraIcon, CheckIcon, MapPinIcon, LockIcon, PlusIcon, TrashIcon, CloseIcon, DownloadIcon, RefreshIcon } from '../components/AppIcons';
+import {
+  PhoneCallIcon,
+  UsersIcon,
+  ShieldCheckIcon,
+  CameraIcon,
+  CheckIcon,
+  PlusIcon,
+  TrashIcon,
+  CloseIcon,
+  DownloadIcon,
+  RefreshIcon,
+} from '../components/AppIcons';
 import NeumorphicInput from '../components/NeumorphicInput';
 import QRCodeVisual from '../components/QRCodeVisual';
-import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
+import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
-import { MotionPressable, MotionPulseBadge } from '../components/motion';
+import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
 const EMERGENCY_HOTLINES = [
@@ -31,10 +54,87 @@ const CONDITION_PRESETS = [
   { key: 'medical', label: 'Maintenance Medicine', tag: 'Medical', color: '#059669', bg: '#ECFDF5' },
 ];
 
+function ProfileHeaderCard({ name, contact, barangayCode, photo, onToggleAvatar, lang }) {
+  const initials = name ? name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'HH';
+  return (
+    <View style={styles.profileCard}>
+      <View style={styles.avatarSection}>
+        <TouchableOpacity style={styles.avatarContainer} onPress={onToggleAvatar} activeOpacity={0.8}>
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarInitialsBox}>
+              <Text style={styles.avatarInitialsText}>{initials}</Text>
+            </View>
+          )}
+          <View style={styles.cameraIconBadge}>
+            <CameraIcon size={12} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onToggleAvatar}>
+          <Text style={styles.changePhotoText}>{lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={styles.profileName}>{name}</Text>
+          <View style={styles.verifiedTag}>
+            <ShieldCheckIcon size={10} color="#16A34A" />
+            <Text style={styles.verifiedTagText}>Verified</Text>
+          </View>
+        </View>
+        <Text style={styles.profileSub}>Barangay {barangayCode || '291'}, Manila District III</Text>
+        <Text style={styles.profileContactText}>{contact}</Text>
+      </View>
+    </View>
+  );
+}
+
+function OfflineDigitalPassCard({ downloadingPass, onSaveQRPass, lang }) {
+  return (
+    <View>
+      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'SINGPASS-STYLE OFFLINE DIGITAL PASS' : 'OFFLINE DIGITAL PASS'}</Text>
+      <View style={styles.offlinePassCard}>
+        <View style={styles.passCardHeaderRow}>
+          <View style={styles.passHeaderIconWell}>
+            <ShieldCheckIcon size={18} color="#D97706" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.passCardTitle}>Official Beneficiary QR Pass</Text>
+            <Text style={styles.passCardSub}>
+              {lang === 'tl'
+                ? 'I-save ang larawan sa Photo Gallery upang maipakita sa relief desk kahit walang internet.'
+                : 'Save pass image to Photo Gallery for offline presentation at relief distribution desks.'}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.downloadPassBtn, downloadingPass && { opacity: 0.7 }]}
+          onPress={onSaveQRPass}
+          disabled={downloadingPass}
+          activeOpacity={0.85}
+        >
+          {downloadingPass ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <DownloadIcon size={18} color="#FFFFFF" />
+              <Text style={styles.downloadPassBtnText}>
+                {lang === 'tl' ? 'I-save ang QR Pass sa Photo Gallery' : 'Save QR Pass to Photo Gallery'}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogout }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
-  // Profile State
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -43,7 +143,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [saveLoading, setSaveLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Household Members Management State (Loaded from user's live profile)
   const [members, setMembers] = useState(
     Array.isArray(user?.household?.members) && user.household.members.length > 0
       ? user.household.members
@@ -56,25 +155,21 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [newMemberConditions, setNewMemberConditions] = useState([]);
   const [rosterSavedSuccess, setRosterSavedSuccess] = useState(false);
 
-  // Singpass-Style QR Pass Offline Download State
   const [downloadingPass, setDownloadingPass] = useState(false);
   const [passSavedModal, setPassSavedModal] = useState(false);
 
-  // Security State
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [biometricEnabled, setBiometricEnabled] = useState(true);
 
-  // Notification & Offline Toggles
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Ngayong araw, 6:15 PM');
 
-  // Computed Metrics
-  const seniorCount = members.filter(m => m.conditions?.includes('Senior 60+') || parseInt(m.age) >= 60).length;
+  const seniorCount = members.filter(m => m.conditions?.includes('Senior 60+') || parseInt(m.age, 10) >= 60).length;
   const pwdCount = members.filter(m => m.conditions?.includes('PWD')).length;
   const infantCount = members.filter(m => m.conditions?.includes('Sanggol 0-5') || m.conditions?.includes('Buntis')).length;
   const computedScore = Math.min(100, 35 + members.length * 6 + seniorCount * 12 + pwdCount * 18 + infantCount * 14);
@@ -112,7 +207,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
   const handleRemoveMember = (id) => {
     if (members.length <= 1) {
-      Alert.alert(lang === 'tl' ? 'Paunawa' : 'Notice', lang === 'tl' ? 'Hindi maaaring alisin ang nag-iisang Punong-Pamilya.' : 'Cannot remove the primary Head of Household.');
+      Alert.alert(lang === 'tl' ? 'Paunawa' : 'Notice', lang === 'tl' ? 'Hindi maaaring alisin ang nag-iisang Punong-Pamilya.' : 'Cannot remove primary Head.');
       return;
     }
     setMembers(prev => prev.filter(m => m.id !== id));
@@ -122,7 +217,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
   const handleAddMemberSubmit = () => {
     if (!newMemberName.trim()) {
-      Alert.alert(lang === 'tl' ? 'Kailangan ang Pangalan' : 'Name Required', lang === 'tl' ? 'Pakilagay ang buong pangalan ng miyembro.' : 'Please enter member name.');
+      Alert.alert(lang === 'tl' ? 'Kailangan ang Pangalan' : 'Name Required', lang === 'tl' ? 'Pakilagay ang buong pangalan.' : 'Please enter member name.');
       return;
     }
     const newEntry = {
@@ -141,7 +236,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
     setRosterSavedSuccess(true);
     setTimeout(() => setRosterSavedSuccess(false), 2500);
 
-    // Sync to real backend
     try {
       (async () => {
         const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
@@ -165,19 +259,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   };
 
   const handleChangePassword = async () => {
-    if (!currentPass) {
-      Alert.alert(lang === 'tl' ? 'Kailangan ang Kasalukuyang Password' : 'Current Password Required', lang === 'tl' ? 'Pakilagay ang inyong kasalukuyang password.' : 'Please enter your current password.');
+    if (!currentPass || !newPass || newPass.length < 8 || newPass !== confirmPass) {
+      Alert.alert(lang === 'tl' ? 'Maling Input' : 'Invalid Input', lang === 'tl' ? 'Paki-tsek ang inyong mga password.' : 'Please verify password fields.');
       return;
     }
-    if (!newPass || newPass.length < 8) {
-      Alert.alert(lang === 'tl' ? 'Maling Password' : 'Invalid Password', lang === 'tl' ? 'Minimum 8 characters ang kailangan para sa bagong password.' : 'Minimum 8 characters required for new password.');
-      return;
-    }
-    if (newPass !== confirmPass) {
-      Alert.alert(lang === 'tl' ? 'Hindi Tugma' : 'Mismatch', lang === 'tl' ? 'Hindi pareho ang New Password at Confirm Password.' : 'Passwords do not match.');
-      return;
-    }
-
     try {
       const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
       const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
@@ -185,18 +270,17 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass }),
       });
-      const data = await res.json();
       if (res.ok) {
-        Alert.alert(lang === 'tl' ? 'Tagumpay' : 'Success', lang === 'tl' ? 'Matagumpay na nabago ang inyong password!' : 'Password updated successfully!');
+        Alert.alert(lang === 'tl' ? 'Tagumpay' : 'Success', lang === 'tl' ? 'Matagumpay na nabago ang password!' : 'Password updated!');
         setShowPasswordChange(false);
         setCurrentPass('');
         setNewPass('');
         setConfirmPass('');
       } else {
-        Alert.alert(lang === 'tl' ? 'Error sa Pagpapalit' : 'Update Error', data.message || (lang === 'tl' ? 'Maling kasalukuyang password.' : 'Incorrect current password.'));
+        Alert.alert('Error', lang === 'tl' ? 'Maling kasalukuyang password.' : 'Incorrect password.');
       }
     } catch (err) {
-      Alert.alert(lang === 'tl' ? 'Koneksyon' : 'Connection', lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Could not connect to server.');
+      Alert.alert('Error', lang === 'tl' ? 'Hindi makakonekta.' : 'Could not connect.');
     }
   };
 
@@ -218,15 +302,11 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
     } catch (e) {}
     setSyncing(false);
     setLastSyncTime(new Date().toLocaleTimeString());
-    Alert.alert(
-      lang === 'tl' ? 'Offline Cache Synced' : 'Offline Cache Synced',
-      lang === 'tl' ? 'Ligtas na na-sync sa storage ang inyong QR Pass at mga talaan ng ayuda para magamit kahit walang internet.' : 'Household QR Pass and assistance quota securely synced for offline usage.'
-    );
+    Alert.alert(lang === 'tl' ? 'Offline Cache Synced' : 'Offline Cache Synced', lang === 'tl' ? 'Ligtas na na-sync ang QR Pass.' : 'QR Pass synced.');
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>{t.settingsTitle}</Text>
         <Text style={styles.sub}>
@@ -236,48 +316,15 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         </Text>
       </View>
 
-      {/* 1. Profile Card with Editable Avatar */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatarSection}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={() => setShowAvatarPicker(!showAvatarPicker)}
-            activeOpacity={0.8}
-          >
-            {profilePhoto ? (
-              <Image source={{ uri: profilePhoto }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarInitialsBox}>
-                <Text style={styles.avatarInitialsText}>
-                  {name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                </Text>
-              </View>
-            )}
-            <View style={styles.cameraIconBadge}>
-              <CameraIcon size={12} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowAvatarPicker(!showAvatarPicker)}>
-            <Text style={styles.changePhotoText}>
-              {lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <ProfileHeaderCard
+        name={name}
+        contact={contact}
+        barangayCode={user?.barangayCode}
+        photo={profilePhoto}
+        onToggleAvatar={() => setShowAvatarPicker(!showAvatarPicker)}
+        lang={lang}
+      />
 
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.profileName}>{name}</Text>
-            <View style={styles.verifiedTag}>
-              <ShieldCheckIcon size={10} color="#16A34A" />
-              <Text style={styles.verifiedTagText}>Verified</Text>
-            </View>
-          </View>
-          <Text style={styles.profileSub}>Barangay {user?.barangayCode || '291'}, Manila District III</Text>
-          <Text style={styles.profileContactText}>{contact}</Text>
-        </View>
-      </View>
-
-      {/* Quick Avatar Preset Picker Tray */}
       {showAvatarPicker && (
         <View style={styles.avatarPickerBox}>
           <Text style={styles.avatarPickerTitle}>
@@ -309,43 +356,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         </View>
       )}
 
-      {/* 2. Singpass-Style Offline QR Pass Export Hub */}
-      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'SINGPASS-STYLE OFFLINE DIGITAL PASS' : 'OFFLINE DIGITAL PASS'}</Text>
-      <View style={styles.offlinePassCard}>
-        <View style={styles.passCardHeaderRow}>
-          <View style={styles.passHeaderIconWell}>
-            <ShieldCheckIcon size={18} color="#D97706" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.passCardTitle}>Official Beneficiary QR Pass</Text>
-            <Text style={styles.passCardSub}>
-              {lang === 'tl'
-                ? 'I-save ang larawan sa Photo Gallery upang maipakita sa relief desk kahit walang kuryente o internet.'
-                : 'Save pass image to Photo Gallery for offline presentation at relief distribution desks.'}
-            </Text>
-          </View>
-        </View>
+      <OfflineDigitalPassCard downloadingPass={downloadingPass} onSaveQRPass={handleSaveQRPassOffline} lang={lang} />
 
-        <TouchableOpacity
-          style={[styles.downloadPassBtn, downloadingPass && { opacity: 0.7 }]}
-          onPress={handleSaveQRPassOffline}
-          disabled={downloadingPass}
-          activeOpacity={0.85}
-        >
-          {downloadingPass ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <DownloadIcon size={18} color="#FFFFFF" />
-              <Text style={styles.downloadPassBtnText}>
-                {lang === 'tl' ? 'I-save ang QR Pass sa Photo Gallery' : 'Save QR Pass to Photo Gallery'}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* 3. Airbnb-Style Household Member Roster Management & Condition Switcher */}
       <View style={styles.sectionHeaderBetween}>
         <Text style={styles.sectionLabelNoMargin}>{lang === 'tl' ? 'TALAAN NG MIYEMBRO NG PAMILYA' : 'HOUSEHOLD MEMBERS ROSTER'}</Text>
         <TouchableOpacity style={styles.addMemberBtn} onPress={() => setShowAddMemberModal(true)} activeOpacity={0.8}>
@@ -354,7 +366,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         </TouchableOpacity>
       </View>
 
-      {/* Live Roster Metrics Summary Pill */}
       <View style={styles.rosterMetricPill}>
         <View style={styles.rosterMetricItem}>
           <Text style={styles.rosterMetricLabel}>HEADCOUNT</Text>
@@ -375,10 +386,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       </View>
 
       {rosterSavedSuccess && (
-        <Text style={styles.rosterSuccessToast}>✓ {lang === 'tl' ? 'Na-update ang talaan ng pamilya at priority quota.' : 'Household roster and quota updated.'}</Text>
+        <Text style={styles.rosterSuccessToast}>✓ {lang === 'tl' ? 'Na-update ang talaan ng pamilya.' : 'Household roster updated.'}</Text>
       )}
 
-      {/* Member Cards List */}
       <View style={styles.membersList}>
         {members.map((mem) => (
           <View key={mem.id} style={styles.memberCard}>
@@ -388,35 +398,24 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.memberName}>{mem.name}</Text>
-                <Text style={styles.memberRel}>{mem.relationship} • {mem.age} {lang === 'tl' ? 'taong gulang' : 'years old'}</Text>
+                <Text style={styles.memberRel}>{mem.relationship} • {mem.age} yrs</Text>
               </View>
               {mem.id !== 1 && (
-                <TouchableOpacity
-                  style={styles.removeMemberBtn}
-                  onPress={() => handleRemoveMember(mem.id)}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity style={styles.removeMemberBtn} onPress={() => handleRemoveMember(mem.id)}>
                   <TrashIcon size={14} color="#DC2626" />
                 </TouchableOpacity>
               )}
             </View>
 
-            {/* Condition Quick Toggles / Switcher */}
-            <Text style={styles.conditionPromptText}>
-              {lang === 'tl' ? 'Pindutin ang tag para i-update ang kalagayan (hal. nanganak o PWD):' : 'Tap tag to toggle special condition:'}
-            </Text>
+            <Text style={styles.conditionPromptText}>{lang === 'tl' ? 'Pindutin ang tag para i-update:' : 'Tap tag to toggle condition:'}</Text>
             <View style={styles.conditionTagsRow}>
               {CONDITION_PRESETS.map((preset) => {
                 const isActive = (mem.conditions || []).includes(preset.tag);
                 return (
                   <TouchableOpacity
                     key={preset.key}
-                    style={[
-                      styles.condTagBtn,
-                      isActive ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive,
-                    ]}
+                    style={[styles.condTagBtn, isActive ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive]}
                     onPress={() => handleToggleMemberCondition(mem.id, preset.tag)}
-                    activeOpacity={0.8}
                   >
                     <Text style={[styles.condTagText, isActive ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' }]}>
                       {isActive ? '✓ ' : '+ '}{preset.tag}
@@ -429,7 +428,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         ))}
       </View>
 
-      {/* 4. Personal & Contact Details Section */}
       <Text style={styles.sectionLabel}>{lang === 'tl' ? 'IMPORMASYON NG CONTACT' : 'CONTACT INFORMATION'}</Text>
       <View style={styles.settingCardGroup}>
         <View style={styles.settingRowItem}>
@@ -448,171 +446,97 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           <View style={{ flex: 1 }}>
             <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Mobile / Email' : 'Contact Mobile/Email'}</Text>
             {isEditingContact ? (
-              <NeumorphicInput
-                value={contact}
-                onChangeText={setContact}
-                placeholder="0917..."
-              />
+              <NeumorphicInput value={contact} onChangeText={setContact} placeholder="09XXXXXXXXX" />
             ) : (
               <Text style={styles.settingItemValue}>{contact}</Text>
             )}
           </View>
           <TouchableOpacity
             style={styles.editActionBtn}
-            onPress={() => {
-              if (isEditingContact) {
-                handleSaveContact();
-              } else {
-                setIsEditingContact(true);
-              }
-            }}
+            onPress={isEditingContact ? handleSaveContact : () => setIsEditingContact(true)}
           >
-            <Text style={styles.editActionText}>
-              {saveLoading ? 'Saving...' : isEditingContact ? (lang === 'tl' ? 'I-save' : 'Save') : (lang === 'tl' ? 'I-edit' : 'Edit')}
-            </Text>
+            <Text style={styles.editActionText}>{isEditingContact ? (lang === 'tl' ? 'I-save' : 'Save') : (lang === 'tl' ? 'Palitan' : 'Edit')}</Text>
           </TouchableOpacity>
         </View>
-        {savedSuccess && (
-          <Text style={styles.successInline}>✓ {lang === 'tl' ? 'Nai-save ang bagong contact number.' : 'Contact details updated.'}</Text>
-        )}
-
-        <View style={styles.divider} />
-
-        <View style={styles.settingRowItem}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Opisyal na Valid ID' : 'Verified ID'}</Text>
-            <Text style={styles.settingItemValue}>PhilID / National ID (4920-****-1029)</Text>
-          </View>
-          <ShieldCheckIcon size={16} color="#16A34A" />
-        </View>
+        {savedSuccess && <Text style={styles.successInline}>✓ {lang === 'tl' ? 'Na-save ang contact details.' : 'Contact saved.'}</Text>}
       </View>
 
-      {/* 5. Security & Biometrics Section */}
-      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'SEGURIDAD AT ACCESS' : 'SECURITY & AUTHENTICATION'}</Text>
+      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'SEGURIDAD AT PAG-LOGIN' : 'SECURITY & LOGIN'}</Text>
       <View style={styles.settingCardGroup}>
         <View style={styles.settingRowItem}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>Biometric Quick Unlock</Text>
-            <Text style={styles.settingItemSub}>
-              {lang === 'tl' ? 'Gamitin ang Fingerprint o Face ID sa pagbukas' : 'Use fingerprint or face recognition'}
-            </Text>
-          </View>
-          <Switch
-            value={biometricEnabled}
-            onValueChange={setBiometricEnabled}
-            trackColor={{ false: '#CBD5E1', true: '#1557B0' }}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        <TouchableOpacity
-          style={styles.settingRowItem}
-          onPress={() => setShowPasswordChange(!showPasswordChange)}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Palitan ang Password' : 'Change Password'}</Text>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Password ng Account' : 'Account Password'}</Text>
             <Text style={styles.settingItemSub}>••••••••••••</Text>
           </View>
-          <Text style={styles.changePassToggleText}>{showPasswordChange ? 'Isara ▲' : 'Baguhin ▼'}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowPasswordChange(!showPasswordChange)}>
+            <Text style={styles.changePassToggleText}>{showPasswordChange ? (lang === 'tl' ? 'Isara' : 'Close') : (lang === 'tl' ? 'Palitan' : 'Change')}</Text>
+          </TouchableOpacity>
+        </View>
 
         {showPasswordChange && (
           <View style={styles.passwordChangeBox}>
-            <NeumorphicInput
-              label={lang === 'tl' ? 'Kasalukuyang Password' : 'Current Password'}
-              value={currentPass}
-              onChangeText={setCurrentPass}
-              placeholder="••••••••"
-              secureTextEntry
-            />
-            <NeumorphicInput
-              label={lang === 'tl' ? 'Bagong Password' : 'New Password'}
-              value={newPass}
-              onChangeText={setNewPass}
-              placeholder="Minimum 6 characters"
-              secureTextEntry
-            />
-            <NeumorphicInput
-              label={lang === 'tl' ? 'Kumpirmahin ang Bagong Password' : 'Confirm New Password'}
-              value={confirmPass}
-              onChangeText={setConfirmPass}
-              placeholder="••••••••"
-              secureTextEntry
-            />
+            <NeumorphicInput label={lang === 'tl' ? 'Kasalukuyang Password' : 'Current Password'} value={currentPass} onChangeText={setCurrentPass} placeholder="••••••••" secureTextEntry />
+            <NeumorphicInput label={lang === 'tl' ? 'Bagong Password (min 8 chars)' : 'New Password (min 8 chars)'} value={newPass} onChangeText={setNewPass} placeholder="••••••••" secureTextEntry />
+            <NeumorphicInput label={lang === 'tl' ? 'Kumpirmahin ang Bagong Password' : 'Confirm New Password'} value={confirmPass} onChangeText={setConfirmPass} placeholder="••••••••" secureTextEntry />
             <TouchableOpacity style={styles.savePassBtn} onPress={handleChangePassword}>
               <Text style={styles.savePassBtnText}>{lang === 'tl' ? 'I-update ang Password' : 'Update Password'}</Text>
             </TouchableOpacity>
           </View>
         )}
+
+        <View style={styles.divider} />
+
+        <View style={styles.settingRowItem}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Biometric / Fingerprint Unlock' : 'Biometric / Fingerprint Unlock'}</Text>
+            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Mas mabilis na pag-login gamit ang FaceID o Fingerprint' : 'Quick sign-in with biometrics'}</Text>
+          </View>
+          <Switch value={biometricEnabled} onValueChange={setBiometricEnabled} trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }} thumbColor={biometricEnabled ? '#1557B0' : '#F1F5F9'} />
+        </View>
       </View>
 
-      {/* 6. Disaster Alerts & Offline Cache Storage */}
-      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'OFFLINE SYNC & ALERTS' : 'OFFLINE SYNC & EMERGENCY ALERTS'}</Text>
+      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'MGA NOTIFIKASYON AT ADVISORY' : 'NOTIFICATIONS & ALERTS'}</Text>
       <View style={styles.settingCardGroup}>
         <View style={styles.settingRowItem}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>Emergency SMS Broadcasts</Text>
-            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Makatanggap ng signal alert kahit walang WiFi' : 'Receive SMS warnings during storms'}</Text>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'SMS Ayuda Alerts' : 'SMS Relief Alerts'}</Text>
+            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Makatanggap ng libreng text sa oras ng relief distribution' : 'Receive text alerts for relief schedules'}</Text>
           </View>
-          <Switch
-            value={smsAlerts}
-            onValueChange={setSmsAlerts}
-            trackColor={{ false: '#CBD5E1', true: '#1557B0' }}
-          />
+          <Switch value={smsAlerts} onValueChange={setSmsAlerts} trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }} thumbColor={smsAlerts ? '#1557B0' : '#F1F5F9'} />
         </View>
-
         <View style={styles.divider} />
-
         <View style={styles.settingRowItem}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>Relief Ready Notifications</Text>
-            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Push alert kapag handa na ang ayuda sa covered court' : 'Alert when relief packs arrive'}</Text>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Push Notifications' : 'Push Notifications'}</Text>
+            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Mga anunsyo mula sa Barangay Kapitan at MDRRMO' : 'Official advisories from MDRRMO'}</Text>
           </View>
-          <Switch
-            value={pushAlerts}
-            onValueChange={setPushAlerts}
-            trackColor={{ false: '#CBD5E1', true: '#1557B0' }}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Offline Cache Sync Box */}
-        <View style={{ paddingVertical: 4 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <View>
-              <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Offline Storage Status' : 'Offline Cache Status'}</Text>
-              <Text style={styles.settingItemSub}>
-                {lang === 'tl' ? `Huling na-sync: ${lastSyncTime}` : `Last synced: ${lastSyncTime}`}
-              </Text>
-            </View>
-            <View style={styles.cachePill}>
-              <Text style={styles.cachePillText}>2.4 MB Cached</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.syncBtn, syncing && { opacity: 0.7 }]}
-            onPress={handleSyncOfflineData}
-            disabled={syncing}
-            activeOpacity={0.85}
-          >
-            {syncing ? (
-              <ActivityIndicator color="#1557B0" size="small" />
-            ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <RefreshIcon size={16} color="#1557B0" />
-                <Text style={styles.syncBtnText}>
-                  {lang === 'tl' ? 'I-sync ang QR Pass at Talaan Ngayon' : 'Sync QR Pass & Logs Now'}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <Switch value={pushAlerts} onValueChange={setPushAlerts} trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }} thumbColor={pushAlerts ? '#1557B0' : '#F1F5F9'} />
         </View>
       </View>
 
-      {/* 7. Language Preferences with MotionPressable */}
+      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'OFFLINE CACHE AT SYNC' : 'OFFLINE CACHE & SYNC'}</Text>
+      <View style={styles.settingCardGroup}>
+        <View style={styles.settingRowItem}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Offline Data Cache' : 'Offline Data Cache'}</Text>
+            <Text style={styles.settingItemSub}>{lang === 'tl' ? `Huling na-sync: ${lastSyncTime}` : `Last synced: ${lastSyncTime}`}</Text>
+          </View>
+          <View style={styles.cachePill}>
+            <Text style={styles.cachePillText}>{lang === 'tl' ? 'Aktibo' : 'Active'}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.syncBtn} onPress={handleSyncOfflineData} disabled={syncing}>
+          {syncing ? (
+            <ActivityIndicator color="#1557B0" size="small" />
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <RefreshIcon size={16} color="#1557B0" />
+              <Text style={styles.syncBtnText}>{lang === 'tl' ? 'I-sync ang QR Pass at Talaan Ngayon' : 'Sync QR Pass & Logs Now'}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.sectionLabel}>{t.languageSectionTitle}</Text>
       <View style={styles.langRow}>
         <MotionPressable
@@ -632,16 +556,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         </MotionPressable>
       </View>
 
-      {/* 8. Emergency Hotlines with MotionPressable */}
       <Text style={styles.sectionLabel}>{t.hotlinesSectionTitle}</Text>
       <View style={styles.hotlineList}>
         {EMERGENCY_HOTLINES.map((h, i) => (
-          <MotionPressable
-            key={i}
-            style={styles.hotlineCard}
-            onPress={() => handleCallHotline(h.phone)}
-            activeOpacity={0.85}
-          >
+          <MotionPressable key={i} style={styles.hotlineCard} onPress={() => handleCallHotline(h.phone)} activeOpacity={0.85}>
             <View style={styles.phoneIconWell}>
               <PhoneCallIcon size={16} color="#DC2626" />
             </View>
@@ -656,81 +574,47 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         ))}
       </View>
 
-      {/* 9. Logout CTA */}
       <TouchableOpacity style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.85}>
         <Text style={styles.logoutBtnText}>{t.signOutBtn}</Text>
       </TouchableOpacity>
 
-      {/* Official Trademark Footer */}
       <View style={styles.trademarkCard}>
-        <Image
-          source={require('../../assets/logo_primary.png')}
-          style={styles.trademarkLogoImg}
-          resizeMode="contain"
-        />
+        <Image source={require('../../assets/logo_primary.png')} style={styles.trademarkLogoImg} resizeMode="contain" />
         <Text style={styles.trademarkVersion}>{t.versionInfo}</Text>
         <Text style={styles.trademarkSub}>{t.officialCopyright}</Text>
         <Text style={styles.trademarkLegal}>{t.legalNotice}</Text>
       </View>
 
-      {/* Modal 1: Add Family Member Modal (Airbnb-Style) */}
       <Modal visible={showAddMemberModal} animationType="slide" transparent onRequestClose={() => setShowAddMemberModal(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContentCard}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>{lang === 'tl' ? 'Dagdag Miyembro ng Pamilya' : 'Add Household Member'}</Text>
-              <TouchableOpacity onPress={() => setShowAddMemberModal(false)} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => setShowAddMemberModal(false)}>
                 <CloseIcon size={18} color="#172B4D" />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <NeumorphicInput
-                label={lang === 'tl' ? 'Buong Pangalan' : 'Full Legal Name'}
-                value={newMemberName}
-                onChangeText={setNewMemberName}
-                placeholder={lang === 'tl' ? 'Hal. Juanito Santos' : 'e.g. Juanito Santos'}
-                required
-              />
-
-              <NeumorphicInput
-                label={lang === 'tl' ? 'Edad (Age)' : 'Age'}
-                value={newMemberAge}
-                onChangeText={setNewMemberAge}
-                placeholder={lang === 'tl' ? 'Hal. 8' : 'e.g. 8'}
-                keyboardType="numeric"
-                required
-              />
-
+              <NeumorphicInput label={lang === 'tl' ? 'Buong Pangalan' : 'Full Legal Name'} value={newMemberName} onChangeText={setNewMemberName} placeholder="e.g. Juanito Santos" required />
+              <NeumorphicInput label={lang === 'tl' ? 'Edad (Age)' : 'Age'} value={newMemberAge} onChangeText={setNewMemberAge} placeholder="e.g. 8" keyboardType="numeric" required />
               <Text style={styles.inputLabel}>{lang === 'tl' ? 'Relasyon sa Punong-Pamilya' : 'Relationship to Head'}</Text>
               <View style={styles.relChoicesRow}>
-                {(lang === 'tl'
-                  ? ['Asawa', 'Anak', 'Magulang', 'Kapatid', 'Apo']
-                  : ['Spouse', 'Child', 'Parent', 'Sibling', 'Grandchild']
-                ).map((rel) => (
-                  <TouchableOpacity
-                    key={rel}
-                    style={[styles.relChoiceBtn, newMemberRel === rel && styles.relChoiceBtnActive]}
-                    onPress={() => setNewMemberRel(rel)}
-                  >
+                {(lang === 'tl' ? ['Asawa', 'Anak', 'Magulang', 'Kapatid', 'Apo'] : ['Spouse', 'Child', 'Parent', 'Sibling', 'Grandchild']).map((rel) => (
+                  <TouchableOpacity key={rel} style={[styles.relChoiceBtn, newMemberRel === rel && styles.relChoiceBtnActive]} onPress={() => setNewMemberRel(rel)}>
                     <Text style={[styles.relChoiceText, newMemberRel === rel && styles.relChoiceTextActive]}>{rel}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={[styles.inputLabel, { marginTop: 12 }]}>
-                {lang === 'tl' ? 'Espesyal na Kalagayan (Pumili kung mayroon):' : 'Special Conditions:'}
-              </Text>
+              <Text style={[styles.inputLabel, { marginTop: 12 }]}>{lang === 'tl' ? 'Espesyal na Kalagayan:' : 'Special Conditions:'}</Text>
               <View style={styles.conditionTagsRow}>
                 {CONDITION_PRESETS.map((preset) => {
                   const isChecked = newMemberConditions.includes(preset.tag);
                   return (
                     <TouchableOpacity
                       key={preset.key}
-                      style={[
-                        styles.condTagBtn,
-                        isChecked ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive,
-                      ]}
+                      style={[styles.condTagBtn, isChecked ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive]}
                       onPress={() => {
                         if (isChecked) {
                           setNewMemberConditions(prev => prev.filter(c => c !== preset.tag));
@@ -747,7 +631,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 })}
               </View>
 
-              <TouchableOpacity style={styles.submitNewMemberBtn} onPress={handleAddMemberSubmit} activeOpacity={0.85}>
+              <TouchableOpacity style={styles.submitNewMemberBtn} onPress={handleAddMemberSubmit}>
                 <Text style={styles.submitNewMemberBtnText}>{lang === 'tl' ? 'I-save ang Miyembro' : 'Save Member'}</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -755,7 +639,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         </View>
       </Modal>
 
-      {/* Modal 2: Singpass-Style Pass Saved to Gallery Confirmation */}
       <Modal visible={passSavedModal} animationType="fade" transparent onRequestClose={() => setPassSavedModal(false)}>
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalContentCard, { alignItems: 'center', textAlign: 'center' }]}>
@@ -765,15 +648,13 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <Text style={styles.passSavedTitle}>{lang === 'tl' ? 'QR Pass Na-save sa Gallery!' : 'QR Pass Saved to Gallery!'}</Text>
             <Text style={styles.passSavedSub}>
               {lang === 'tl'
-                ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong device storage. Maaari mo itong ipakita sa relief distribution center kahit mawalan ng internet o signal.'
-                : 'Your official Household Beneficiary Pass has been saved to your photo gallery for offline physical presentation.'}
+                ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong device storage.'
+                : 'Your official Household Beneficiary Pass has been saved to your photo gallery.'}
             </Text>
-
             <View style={styles.miniQRFrame}>
               <QRCodeVisual value={`MNL-291-${name.split(' ')[0].toUpperCase()}-OFFLINE`} size={130} lang={lang} isCompact />
             </View>
-
-            <TouchableOpacity style={styles.passDoneBtn} onPress={() => setPassSavedModal(false)} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.passDoneBtn} onPress={() => setPassSavedModal(false)}>
               <Text style={styles.passDoneBtnText}>{lang === 'tl' ? 'Naiintindihan ko' : 'Got it'}</Text>
             </TouchableOpacity>
           </View>
@@ -805,9 +686,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     ...SHADOWS.sm,
   },
-  avatarSection: {
-    alignItems: 'center',
-  },
+  avatarSection: { alignItems: 'center' },
   avatarContainer: {
     width: 54,
     height: 54,
@@ -815,11 +694,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     ...SHADOWS.sm,
   },
-  avatarImage: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-  },
+  avatarImage: { width: 54, height: 54, borderRadius: 27 },
   avatarInitialsBox: {
     width: 54,
     height: 54,
@@ -830,11 +705,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitialsText: {
-    fontSize: 18,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#1557B0',
-  },
+  avatarInitialsText: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#1557B0' },
   cameraIconBadge: {
     position: 'absolute',
     bottom: -2,
@@ -848,12 +719,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
-  changePhotoText: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    color: '#1557B0',
-    marginTop: 4,
-  },
+  changePhotoText: { fontSize: 9.5, fontWeight: '700', color: '#1557B0', marginTop: 4 },
   profileName: { fontSize: 15, fontWeight: FONT_WEIGHT.black, color: '#172B4D' },
   profileSub: { fontSize: 11, color: '#64748B', marginTop: 1 },
   profileContactText: { fontSize: 11, color: '#1557B0', fontWeight: '700', marginTop: 2 },
@@ -877,551 +743,98 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
   },
-  avatarPickerTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#172B4D',
-    marginBottom: 8,
-  },
-  avatarPresetsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'center',
-  },
-  presetAvatarBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    overflow: 'hidden',
-  },
-  presetAvatarSelected: {
-    borderColor: '#1557B0',
-  },
-  presetAvatarImg: {
-    width: '100%',
-    height: '100%',
-  },
-  presetAvatarClearBtn: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  presetAvatarClearText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#172B4D',
-    letterSpacing: 0.8,
-    marginTop: 12,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  sectionHeaderBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  sectionLabelNoMargin: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#172B4D',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  addMemberBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  addMemberBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#1557B0',
-  },
-  // Singpass-Style Pass Card
-  offlinePassCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 14,
-    marginBottom: 14,
-    ...SHADOWS.sm,
-  },
-  passCardHeaderRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
-  },
-  passHeaderIconWell: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  passCardTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#172B4D',
-  },
-  passCardSub: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  downloadPassBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  downloadPassBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  // Airbnb-Style Household Management
-  rosterMetricPill: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    ...SHADOWS.sm,
-  },
-  rosterMetricItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rosterMetricDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#E2E8F0',
-  },
-  rosterMetricLabel: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.5,
-  },
-  rosterMetricValue: {
-    fontSize: 12,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
-    marginTop: 2,
-  },
-  rosterSuccessToast: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#16A34A',
-    marginBottom: 8,
-  },
-  membersList: {
-    gap: 8,
-    marginBottom: 14,
-  },
-  memberCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 12,
-    ...SHADOWS.sm,
-  },
-  memberCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
-  },
-  memberAvatarWell: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F2FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  memberName: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#172B4D',
-  },
-  memberRel: {
-    fontSize: 10.5,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  removeMemberBtn: {
-    padding: 6,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 6,
-  },
-  conditionPromptText: {
-    fontSize: 10,
-    color: '#64748B',
-    marginBottom: 6,
-    fontWeight: '500',
-  },
-  conditionTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  condTagBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  condTagBtnInactive: {
-    backgroundColor: '#F8F9F7',
-    borderColor: '#E2E8F0',
-  },
-  condTagText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  // Setting Card Groups
-  settingCardGroup: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 14,
-    ...SHADOWS.sm,
-  },
-  settingRowItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  settingItemLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#172B4D',
-  },
-  settingItemSub: {
-    fontSize: 10.5,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  settingItemValue: {
-    fontSize: 12,
-    color: '#475569',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  readOnlyBadge: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  readOnlyText: {
-    fontSize: 9.5,
-    color: '#64748B',
-    fontWeight: '700',
-  },
-  editActionBtn: {
-    backgroundColor: '#E8F2FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  editActionText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#1557B0',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 4,
-  },
-  successInline: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#16A34A',
-    marginTop: 4,
-  },
-  changePassToggleText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#1557B0',
-  },
-  passwordChangeBox: {
-    backgroundColor: '#F8F9F7',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  savePassBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  savePassBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  cachePill: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  cachePillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#16A34A',
-  },
-  syncBtn: {
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingVertical: 9,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  syncBtnText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#1557B0',
-  },
+  avatarPickerTitle: { fontSize: 11, fontWeight: '800', color: '#172B4D', marginBottom: 8 },
+  avatarPresetsRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  presetAvatarBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
+  presetAvatarSelected: { borderColor: '#1557B0' },
+  presetAvatarImg: { width: '100%', height: '100%' },
+  presetAvatarClearBtn: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 10, borderRadius: 8 },
+  presetAvatarClearText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: '#172B4D', letterSpacing: 0.8, marginTop: 12, marginBottom: 8, textTransform: 'uppercase' },
+  sectionHeaderBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 8 },
+  sectionLabelNoMargin: { fontSize: 11, fontWeight: '800', color: '#172B4D', letterSpacing: 0.8, textTransform: 'uppercase' },
+  addMemberBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E8F2FF', borderWidth: 1, borderColor: '#BFDBFE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  addMemberBtnText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
+  offlinePassCard: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#D9E2EC', padding: 14, marginBottom: 14, ...SHADOWS.sm },
+  passCardHeaderRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  passHeaderIconWell: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' },
+  passCardTitle: { fontSize: 13.5, fontWeight: '800', color: '#172B4D' },
+  passCardSub: { fontSize: 11, color: '#64748B', marginTop: 2, lineHeight: 15 },
+  downloadPassBtn: { backgroundColor: '#1557B0', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  downloadPassBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  rosterMetricPill: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D9E2EC', padding: 10, flexDirection: 'row', alignItems: 'center', marginBottom: 10, ...SHADOWS.sm },
+  rosterMetricItem: { flex: 1, alignItems: 'center' },
+  rosterMetricDivider: { width: 1, height: 24, backgroundColor: '#E2E8F0' },
+  rosterMetricLabel: { fontSize: 8.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
+  rosterMetricValue: { fontSize: 12, fontWeight: FONT_WEIGHT.black, color: '#172B4D', marginTop: 2 },
+  rosterSuccessToast: { fontSize: 11, fontWeight: '700', color: '#16A34A', marginBottom: 8 },
+  membersList: { gap: 8, marginBottom: 14 },
+  memberCard: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D9E2EC', padding: 12, ...SHADOWS.sm },
+  memberCardTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  memberAvatarWell: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#E8F2FF', alignItems: 'center', justifyContent: 'center' },
+  memberName: { fontSize: 13, fontWeight: '800', color: '#172B4D' },
+  memberRel: { fontSize: 10.5, color: '#64748B', marginTop: 1 },
+  removeMemberBtn: { padding: 6, backgroundColor: '#FEE2E2', borderRadius: 6 },
+  conditionPromptText: { fontSize: 10, color: '#64748B', marginBottom: 6, fontWeight: '500' },
+  conditionTagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  condTagBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1 },
+  condTagBtnInactive: { backgroundColor: '#F8F9F7', borderColor: '#E2E8F0' },
+  condTagText: { fontSize: 10, fontWeight: '600' },
+  settingCardGroup: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#D9E2EC', paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14, ...SHADOWS.sm },
+  settingRowItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
+  settingItemLabel: { fontSize: 13, fontWeight: '700', color: '#172B4D' },
+  settingItemSub: { fontSize: 10.5, color: '#64748B', marginTop: 1 },
+  settingItemValue: { fontSize: 12, color: '#475569', fontWeight: '600', marginTop: 2 },
+  readOnlyBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  readOnlyText: { fontSize: 9.5, color: '#64748B', fontWeight: '700' },
+  editActionBtn: { backgroundColor: '#E8F2FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  editActionText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
+  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
+  successInline: { fontSize: 11, fontWeight: '700', color: '#16A34A', marginTop: 4 },
+  changePassToggleText: { fontSize: 11.5, fontWeight: '700', color: '#1557B0' },
+  passwordChangeBox: { backgroundColor: '#F8F9F7', borderRadius: 10, padding: 10, marginTop: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+  savePassBtn: { backgroundColor: '#1557B0', paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 6 },
+  savePassBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  cachePill: { backgroundColor: '#ECFDF5', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: '#A7F3D0' },
+  cachePillText: { fontSize: 10, fontWeight: '800', color: '#16A34A' },
+  syncBtn: { backgroundColor: '#E8F2FF', borderWidth: 1, borderColor: '#BFDBFE', paddingVertical: 9, borderRadius: 8, alignItems: 'center', marginTop: 4 },
+  syncBtnText: { fontSize: 11.5, fontWeight: '800', color: '#1557B0' },
   langRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
-  langBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1.5,
-  },
-  langBtnActive: {
-    backgroundColor: '#E8F2FF',
-    borderColor: '#1557B0',
-  },
-  langBtnInactive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D9E2EC',
-  },
+  langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5 },
+  langBtnActive: { backgroundColor: '#E8F2FF', borderColor: '#1557B0' },
+  langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#D9E2EC' },
   langText: { fontSize: 12.5, fontWeight: '700', color: '#64748B' },
   langTextActive: { color: '#1557B0', fontWeight: '800' },
   hotlineList: { gap: 8, marginBottom: 14 },
-  hotlineCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    ...SHADOWS.sm,
-  },
-  phoneIconWell: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  hotlineCard: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D9E2EC', padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, ...SHADOWS.sm },
+  phoneIconWell: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' },
   hotlineName: { fontSize: 12.5, fontWeight: '700', color: '#172B4D' },
   hotlineTag: { fontSize: 10, color: '#64748B', marginTop: 1 },
-  hotlinePhone: { fontSize: 11.5, fontWeight: '800', color: '#1557B0', marginTop: 2 },
-  callBadge: {
-    backgroundColor: '#1557B0',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
+  callBadge: { backgroundColor: '#1557B0', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   callBadgeText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF' },
-  logoutBtn: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#FCA5A5',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
+  logoutBtn: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#FCA5A5', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginBottom: 16 },
   logoutBtnText: { color: '#DC2626', fontSize: 13, fontWeight: '800' },
-  trademarkCard: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-  },
-  trademarkLogoImg: {
-    width: 120,
-    height: 36,
-    marginBottom: 8,
-  },
-  trademarkVersion: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#1557B0',
-    marginBottom: 2,
-  },
-  trademarkSub: {
-    fontSize: 10,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  trademarkLegal: {
-    fontSize: 9,
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginTop: 4,
-    maxWidth: 280,
-  },
-  // Modals
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  modalContentCard: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    ...SHADOWS.lg,
-  },
-  modalHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
-  },
-  inputLabel: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#172B4D',
-    marginBottom: 6,
-  },
-  relChoicesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  relChoiceBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    backgroundColor: '#F8F9F7',
-  },
-  relChoiceBtnActive: {
-    backgroundColor: '#E8F2FF',
-    borderColor: '#1557B0',
-  },
-  relChoiceText: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '600',
-  },
-  relChoiceTextActive: {
-    color: '#1557B0',
-    fontWeight: '800',
-  },
-  submitNewMemberBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  submitNewMemberBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  passSavedCheckWell: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  passSavedTitle: {
-    fontSize: 17,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  passSavedSub: {
-    fontSize: 12,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 17,
-    marginBottom: 14,
-  },
-  miniQRFrame: {
-    backgroundColor: '#F8F9F7',
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 16,
-  },
-  passDoneBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-  },
-  passDoneBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
+  trademarkCard: { alignItems: 'center', paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
+  trademarkLogoImg: { width: 120, height: 36, marginBottom: 8 },
+  trademarkVersion: { fontSize: 10.5, fontWeight: '800', color: '#1557B0', marginBottom: 2 },
+  trademarkSub: { fontSize: 10, color: '#64748B', textAlign: 'center' },
+  trademarkLegal: { fontSize: 9, color: '#94A3B8', textAlign: 'center', marginTop: 4, maxWidth: 280 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'center', alignItems: 'center', padding: 16 },
+  modalContentCard: { width: '100%', maxWidth: 420, backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18, ...SHADOWS.lg },
+  modalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  modalTitle: { fontSize: 16, fontWeight: FONT_WEIGHT.black, color: '#172B4D' },
+  inputLabel: { fontSize: 11.5, fontWeight: '800', color: '#172B4D', marginBottom: 6 },
+  relChoicesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  relChoiceBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#D9E2EC', backgroundColor: '#F8F9F7' },
+  relChoiceBtnActive: { backgroundColor: '#E8F2FF', borderColor: '#1557B0' },
+  relChoiceText: { fontSize: 11, color: '#64748B', fontWeight: '600' },
+  relChoiceTextActive: { color: '#1557B0', fontWeight: '800' },
+  submitNewMemberBtn: { backgroundColor: '#1557B0', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginTop: 14 },
+  submitNewMemberBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  passSavedCheckWell: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  passSavedTitle: { fontSize: 17, fontWeight: FONT_WEIGHT.black, color: '#172B4D', marginBottom: 6, textAlign: 'center' },
+  passSavedSub: { fontSize: 12, color: '#64748B', textAlign: 'center', lineHeight: 17, marginBottom: 14 },
+  miniQRFrame: { backgroundColor: '#F8F9F7', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 },
+  passDoneBtn: { backgroundColor: '#1557B0', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 10, width: '100%', alignItems: 'center' },
+  passDoneBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 });
