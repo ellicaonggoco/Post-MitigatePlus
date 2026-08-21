@@ -1,17 +1,26 @@
 {
   "expo": {
-    "name": "MitigatePlus Mobile",
+    "name": "MitigatePlus",
     "slug": "mitigateplus-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mitigateplus.app"
     },
     "android": {
+      "package": "com.mitigateplus.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#F7F9F5"
-      }
+        "backgroundColor": "#090154"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro"
