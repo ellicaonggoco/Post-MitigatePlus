@@ -261,44 +261,6 @@ export default function SystemAuditLogs() {
             </tbody>
           </table>
         </div>
-
-        {/* ── Page Numbers Pagination ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
-            Showing Page {currentPage} of {totalPages} ({filteredLogs.length} total logs)
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="clay-button-secondary"
-              style={{ padding: '6px 12px', fontSize: 12, opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
-            >
-              <ChevronLeft size={14} /> Previous
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={currentPage === page ? 'clay-button-primary' : 'clay-button-ghost'}
-                style={{ padding: '5px 11px', fontSize: 12, minWidth: 32, justifyContent: 'center' }}
-              >
-                {page}
-              </button>
-            ))}
-
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="clay-button-secondary"
-              style={{ padding: '6px 12px', fontSize: 12, opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
-            >
-              Next <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
