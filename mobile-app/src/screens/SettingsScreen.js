@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Image, Switch, Alert, ActivityIndicator, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PhoneCallIcon, UsersIcon, ShieldCheckIcon, CameraIcon, CheckIcon, MapPinIcon, LockIcon, PlusIcon, TrashIcon, CloseIcon, DownloadIcon, RefreshIcon } from '../components/AppIcons';
 import NeumorphicInput from '../components/NeumorphicInput';
 import QRCodeVisual from '../components/QRCodeVisual';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionPressable, MotionPulseBadge } from '../components/motion';
+import { API_BASE_URL } from '../config';
 
 const EMERGENCY_HOTLINES = [
   { name: 'Manila LGU Disaster Risk Reduction (MDRRMO)', phone: '(02) 8527-5174', tag: '24/7 Emergency Dispatch' },
@@ -28,9 +30,6 @@ const CONDITION_PRESETS = [
   { key: 'infant', label: 'Infant / Toddler (0-5)', tag: 'Infant (0-5)', color: '#0284C7', bg: '#E0F2FE' },
   { key: 'medical', label: 'Maintenance Medicine', tag: 'Medical', color: '#059669', bg: '#ECFDF5' },
 ];
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config';
 
 export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogout }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
