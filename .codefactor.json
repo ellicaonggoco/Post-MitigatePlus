@@ -1,0 +1,14 @@
+{
+  "engines": {
+    "eslint": {
+      "enabled": true
+    },
+    "stylelint": {
+      "enabled": false
+    }
+  },
+  "ignore": [
+    "web-admin/src/index.css",
+    "web-admin/src/data/manila-barangays.topo.json"
+  ]
+}

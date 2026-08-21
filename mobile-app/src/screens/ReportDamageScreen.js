@@ -18,7 +18,7 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Mapcn Automatic Geolocation Coordinates State
+  // Manila City Command Center GPS Geolocation Coordinates State
   const [geoCoords, setGeoCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(true);
   const [locationPinned, setLocationPinned] = useState(false);
