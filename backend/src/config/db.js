@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const connStr = process.env.MONGODB_URI;
+    const connStr = process.env.MONGODB_URI || process.env.MONGO_URI;
     if (!connStr) {
       if (process.env.NODE_ENV === 'production') {
         console.error('FATAL: MONGODB_URI environment variable is required in production!');
