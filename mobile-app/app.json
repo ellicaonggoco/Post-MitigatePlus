@@ -4,10 +4,10 @@
     "slug": "mitigateplus-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-mark.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
@@ -19,8 +19,8 @@
       "package": "com.mitigateplus.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-mark.png",
-        "backgroundColor": "#090154"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FBF9EE"
       },
       "permissions": [
         "CAMERA",
