@@ -760,7 +760,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
       <View style={styles.trademarkCard}>
         <Image source={require('../../assets/logo_primary.png')} style={styles.trademarkLogoImg} resizeMode="contain" />
-        <Text style={styles.trademarkVersion}>{t.versionInfo}</Text>
         <Text style={styles.trademarkSub}>{t.officialCopyright}</Text>
         <Text style={styles.trademarkLegal}>{t.legalNotice}</Text>
       </View>

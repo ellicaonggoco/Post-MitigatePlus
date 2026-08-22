@@ -72,7 +72,6 @@ export const TRANSLATIONS = {
     hotlinesSectionTitle: 'OFFICIAL 24/7 EMERGENCY HOTLINES',
     callBtn: 'Call Now',
     signOutBtn: 'Sign Out Account',
-    versionInfo: 'MitigatePlus Mobile v2.4.0 (Production Release)',
     officialCopyright: 'Official Disaster Operations Platform of the City of Manila',
     legalNotice: '© 2026 Manila MDRRMO & Barangay 291. All Rights Reserved.',
 
@@ -209,7 +208,6 @@ export const TRANSLATIONS = {
     hotlinesSectionTitle: 'MGA OPISYAL NA 24/7 EMERGENCY HOTLINES',
     callBtn: 'Tawagan',
     signOutBtn: 'Mag-Sign Out ng Account',
-    versionInfo: 'MitigatePlus Mobile v2.4.0 (Production Release)',
     officialCopyright: 'Opisyal na Disaster Operations Platform ng Lungsod ng Maynila',
     legalNotice: '© 2026 Manila MDRRMO & Barangay 291. All Rights Reserved.',
 
