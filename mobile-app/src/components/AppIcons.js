@@ -8,73 +8,75 @@ import Svg, { Path, Rect, Circle, Line, Polyline, Polygon } from 'react-native-s
 // - Scalable, crisp rendering with customizable size and color tokens
 // ============================================================================
 
-export function HomeIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path d="M3 10.25L12 3.5l9 6.75V20a2 2 0 0 1-2 2h-4a1 1 0 0 1-1-1v-5a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v5a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V10.25z" fill={color} />
-      </Svg>
-    );
-  }
+export function HomeIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <Polyline points="9 22 9 12 15 12 15 22" />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+        stroke={color}
+        strokeWidth={filled ? 2.5 : 2.0}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={filled ? color : 'none'}
+      />
+      <Polyline
+        points="9 22 9 12 15 12 15 22"
+        stroke={filled ? '#FFFFFF' : color}
+        strokeWidth={filled ? 2.5 : 2.0}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
 
-export function DamageIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path d="M12 2.5L1.5 20.5a1.5 1.5 0 0 0 1.3 2.25h18.4a1.5 1.5 0 0 0 1.3-2.25L12 2.5z" fill={color} />
-        <Line x1="12" y1="9" x2="12" y2="14" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-        <Circle cx="12" cy="18" r="1.2" fill="#FFFFFF" />
-      </Svg>
-    );
-  }
+export function DamageIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-      <Line x1="12" y1="9" x2="12" y2="13" />
-      <Line x1="12" y1="17" x2="12.01" y2="17" />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+        stroke={color}
+        strokeWidth={filled ? 2.5 : 2.0}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={filled ? color : 'none'}
+      />
+      <Line
+        x1="12"
+        y1="9"
+        x2="12"
+        y2="13"
+        stroke={filled ? '#FFFFFF' : color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="12"
+        y1="17"
+        x2="12.01"
+        y2="17"
+        stroke={filled ? '#FFFFFF' : color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
 
-export function CategoryIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Rect x="3" y="3" width="7.5" height="7.5" rx="3" fill={color} />
-        <Rect x="13.5" y="3" width="7.5" height="7.5" rx="3" fill={color} />
-        <Rect x="3" y="13.5" width="7.5" height="7.5" rx="3" fill={color} />
-        <Rect x="13.5" y="13.5" width="7.5" height="7.5" rx="3" fill={color} />
-      </Svg>
-    );
-  }
+export function CategoryIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="3" y="3" width="7.5" height="7.5" rx="2.5" />
-      <Rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" />
-      <Rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" />
-      <Rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="3" y="3" width="7.5" height="7.5" rx="2.5" fill={filled ? color : 'none'} />
+      <Rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" fill={filled ? color : 'none'} />
+      <Rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" fill={filled ? color : 'none'} />
+      <Rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" fill={filled ? color : 'none'} />
     </Svg>
   );
 }
 
-export function PackageIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Path d="M12 2.5L21 7.2v9.6L12 21.5 3 16.8V7.2L12 2.5z" fill={color} />
-        <Path d="M12 2.5v9.5M21 7.2l-9 4.8M3 7.2l9 4.8" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </Svg>
-    );
-  }
+export function PackageIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
       <Polyline points="3.27 6.96 12 12.01 20.73 6.96" />
       <Line x1="12" y1="22.08" x2="12" y2="12" />
@@ -82,35 +84,19 @@ export function PackageIcon({ size = 22, color = '#0F172A', filled = false }) {
   );
 }
 
-export function HistoryIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Circle cx="12" cy="12" r="10" fill={color} />
-        <Polyline points="12 6 12 12 16 14" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </Svg>
-    );
-  }
+export function HistoryIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="12" cy="12" r="10" />
       <Polyline points="12 6 12 12 16 14" />
     </Svg>
   );
 }
 
-export function SettingsIcon({ size = 22, color = '#0F172A', filled = false }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Circle cx="12" cy="7" r="4.5" fill={color} />
-        <Path d="M20 21a8 8 0 0 0-16 0" fill={color} />
-      </Svg>
-    );
-  }
+export function SettingsIcon({ size = 22, color = '#1557B0', filled = false }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <Circle cx="12" cy="7" r="4" />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx="12" cy="7" r="4" fill={filled ? color : 'none'} stroke={color} />
       <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     </Svg>
   );

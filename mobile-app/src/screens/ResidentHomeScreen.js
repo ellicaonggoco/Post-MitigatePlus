@@ -142,7 +142,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const headcount = householdData?.memberCount || householdData?.familyHeadcount || 1;
   const priorityScore = householdData?.priorityScore || 50;
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas (High)' : 'High Priority');
-  const isVerified = (householdData?.verificationStatus || 'verified') === 'verified';
+  const isVerified = householdData?.verificationStatus === 'verified';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
 
   const basePacks = Math.max(1, Math.floor(headcount / 4));
@@ -182,7 +182,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           <MotionPulseBadge color={isVerified ? '#10B981' : '#F59E0B'}>
             <View style={[styles.verifBadge, isVerified ? styles.verifBadgeSuccess : styles.verifBadgePending]}>
               <Text style={[styles.verifBadgeText, isVerified ? { color: '#047857' } : { color: '#B45309' }]}>
-                {isVerified ? t.verifiedBadge : t.pendingBadge}
+                {isVerified ? t.verifiedBadge : (lang === 'tl' ? 'Hindi Pa Aprubado' : 'Not Approved')}
               </Text>
             </View>
           </MotionPulseBadge>
@@ -196,17 +196,25 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             {/* Familiar Digital ID / Relief QR Pass Hero Card with Motion Shimmer */}
             <MotionShimmerCard style={styles.qrHeroCard}>
               <View style={styles.qrHeaderRow}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.qrTitle}>{t.reliefPassTitle}</Text>
                   <Text style={styles.qrSubText}>{householdName} • Barangay {brgyCode}</Text>
                 </View>
-                <MotionPressable
-                  style={styles.expandQRBtn}
-                  onPress={() => setShowQRModal(true)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.expandQRText}>{t.enlargeBtn}</Text>
-                </MotionPressable>
+                {isVerified ? (
+                  <MotionPressable
+                    style={styles.expandQRBtn}
+                    onPress={() => setShowQRModal(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.expandQRText}>{t.enlargeBtn}</Text>
+                  </MotionPressable>
+                ) : (
+                  <View style={styles.pendingTagHeaderPill}>
+                    <Text style={styles.pendingTagHeaderText}>
+                      {lang === 'tl' ? '⏳ HINDI PA APPRUBADO' : '⏳ PENDING APPROVAL'}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {/* 3-Column Metrics Grid */}
@@ -228,17 +236,80 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               </View>
 
-              {/* High-Contrast Interactive QR Block */}
-              <MotionPressable
-                style={styles.qrInteractiveFrame}
-                onPress={() => setShowQRModal(true)}
-                activeOpacity={0.92}
-              >
-                <QRCodeVisual value={qrCodeString} size={150} lang={lang} isCompact />
-                <View style={styles.tapToEnlargeRow}>
-                  <Text style={styles.tapToEnlargeHint}>{t.tapToInspectPass}</Text>
+              {/* High-Contrast Interactive QR Block or Pending Approval Banner */}
+              {!isVerified ? (
+                <View style={styles.pendingVerificationFrame}>
+                  <View style={styles.pendingIconWell}>
+                    <ShieldCheckIcon size={30} color="#D97706" />
+                  </View>
+                  <Text style={styles.pendingNoticeTitle}>
+                    {lang === 'tl'
+                      ? 'HINDI PA NA-APRUBAHAN NG BARANGAY ADMIN'
+                      : 'NOT YET APPROVED BY BARANGAY ADMIN'}
+                  </Text>
+                  <Text style={styles.pendingNoticeSub}>
+                    {lang === 'tl'
+                      ? 'Kasalukuyang nasa Verification Queue ng Barangay 291 / LGU ang inyong rehistrasyon. Lalabas lamang ang inyong Opisyal na QR Relief Pass kapag na-verify at na-aprubahan na ng Barangay Official sa Web Admin.'
+                      : 'Your household registration is currently in the Barangay 291 Verification Queue. Your official QR Relief Pass will automatically appear here once approved by the Barangay Administrator.'}
+                  </Text>
+
+                  <View style={styles.pendingStatusBadgeRow}>
+                    <Text style={styles.pendingStatusBadgeText}>
+                      {lang === 'tl' ? '⏳ KATAYUAN: NAKABINBIN SA VERIFICATION QUEUE' : '⏳ STATUS: PENDING VERIFICATION QUEUE'}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.refreshStatusBtn}
+                    onPress={async () => {
+                      setLoadingProfile(true);
+                      try {
+                        const profile = await fetchHouseholdProfile(token);
+                        if (profile?.household) {
+                          setHouseholdData(profile.household);
+                          if (profile.household.verificationStatus === 'verified') {
+                            Alert.alert(
+                              lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
+                              lang === 'tl'
+                                ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong QR Relief Pass ay aktibo na.'
+                                : 'Your account has been verified by the Barangay Admin! Your Relief QR Pass is now active.'
+                            );
+                          } else {
+                            Alert.alert(
+                              lang === 'tl' ? 'Kasalukuyang Nakabinbin' : 'Still Pending Approval',
+                              lang === 'tl'
+                                ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Pakihintay ang pag-apruba ng Barangay Official sa Web Admin.'
+                                : 'Your registration is still pending review in the Barangay Verification Queue.'
+                            );
+                          }
+                        }
+                      } catch (err) {
+                        Alert.alert('Notice', 'Unable to sync status. Please check your network connection.');
+                      } finally {
+                        setLoadingProfile(false);
+                      }
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.refreshStatusBtnText}>
+                      {loadingProfile
+                        ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
+                        : (lang === 'tl' ? '🔄 Muling I-check ang Katayuan' : '🔄 Refresh Approval Status')}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </MotionPressable>
+              ) : (
+                <MotionPressable
+                  style={styles.qrInteractiveFrame}
+                  onPress={() => setShowQRModal(true)}
+                  activeOpacity={0.92}
+                >
+                  <QRCodeVisual value={qrCodeString} size={150} lang={lang} isCompact />
+                  <View style={styles.tapToEnlargeRow}>
+                    <Text style={styles.tapToEnlargeHint}>{t.tapToInspectPass}</Text>
+                  </View>
+                </MotionPressable>
+              )}
             </MotionShimmerCard>
 
             {/* Quick Action Tiles Grid (2x2) with MotionPressable Spring Physics */}
@@ -459,7 +530,21 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               </View>
 
               <View style={styles.modalQRContainer}>
-                <QRCodeVisual value={qrCodeString} size={180} lang={lang} />
+                {isVerified ? (
+                  <QRCodeVisual value={qrCodeString} size={180} lang={lang} />
+                ) : (
+                  <View style={{ alignItems: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
+                    <ShieldCheckIcon size={48} color="#D97706" />
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#92400E', marginTop: 12, textAlign: 'center' }}>
+                      {lang === 'tl' ? 'HINDI PA NA-APRUBAHAN NG BARANGAY' : 'NOT YET APPROVED BY BARANGAY'}
+                    </Text>
+                    <Text style={{ fontSize: 11.5, color: '#78350F', textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+                      {lang === 'tl'
+                        ? 'Kasalukuyang sinusuri ng Barangay 291 Admin ang inyong mga dokumento sa Verification Queue. Lalabas ang inyong QR Pass pagka-apruba.'
+                        : 'Your documents are currently under review in the Barangay 291 Verification Queue. Your official QR pass will appear once approved.'}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.modalDetails}>
@@ -474,26 +559,28 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </View>
                 </View>
 
-                {/* Singpass-Style Save to Device / Gallery Action */}
-                <TouchableOpacity
-                  style={styles.modalSavePassBtn}
-                  onPress={() => {
-                    Alert.alert(
-                      lang === 'tl' ? 'QR Pass Na-save!' : 'QR Pass Saved!',
-                      lang === 'tl'
-                        ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong Photo Gallery para sa offline presentation.'
-                        : 'Beneficiary Pass saved to photo gallery for offline physical presentation.'
-                    );
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <DownloadIcon size={18} color="#FFFFFF" />
-                    <Text style={styles.modalSavePassBtnText}>
-                      {lang === 'tl' ? 'I-save ang Pass sa Photo Gallery' : 'Save Pass to Gallery'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                {/* Singpass-Style Save to Device / Gallery Action (Only when verified) */}
+                {isVerified && (
+                  <TouchableOpacity
+                    style={styles.modalSavePassBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        lang === 'tl' ? 'QR Pass Na-save!' : 'QR Pass Saved!',
+                        lang === 'tl'
+                          ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong Photo Gallery para sa offline presentation.'
+                          : 'Beneficiary Pass saved to photo gallery for offline physical presentation.'
+                      );
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <DownloadIcon size={18} color="#FFFFFF" />
+                      <Text style={styles.modalSavePassBtnText}>
+                        {lang === 'tl' ? 'I-save ang Pass sa Photo Gallery' : 'Save Pass to Gallery'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
               </View>
             </ScrollView>
           </View>
@@ -713,6 +800,77 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D9E2EC',
     padding: 12,
+  },
+  pendingTagHeaderPill: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  pendingTagHeaderText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  pendingVerificationFrame: {
+    alignItems: 'center',
+    backgroundColor: '#FFFDF5',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+    padding: 16,
+  },
+  pendingIconWell: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  pendingNoticeTitle: {
+    fontSize: 13,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#92400E',
+    textAlign: 'center',
+    letterSpacing: -0.2,
+  },
+  pendingNoticeSub: {
+    fontSize: 11,
+    color: '#78350F',
+    textAlign: 'center',
+    lineHeight: 15,
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  pendingStatusBadgeRow: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 12,
+  },
+  pendingStatusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  refreshStatusBtn: {
+    backgroundColor: '#1557B0',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    ...SHADOWS.sm,
+  },
+  refreshStatusBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   tapToEnlargeRow: {
     marginTop: 8,
