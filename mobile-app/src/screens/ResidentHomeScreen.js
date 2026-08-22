@@ -103,6 +103,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         const profile = await fetchHouseholdProfile(token);
         if (profile?.household) {
           setHouseholdData(profile.household);
+          initSocket(profile.household._id, profile.household.barangayCode || '291');
+        } else {
+          initSocket(null, user?.barangayCode || '291');
         }
         const currentBrgy = profile?.household?.barangayCode || user?.barangayCode || '291';
         const liveAnnouncements = await fetchAnnouncements(currentBrgy);
@@ -119,14 +122,23 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     loadData();
 
     try {
-      const socket = initSocket(token);
+      const socket = initSocket(household?._id, household?.barangayCode || user?.barangayCode || '291');
       if (socket) {
         onNewAnnouncement((newAnn) => {
           setAnnouncements((prev) => [newAnn, ...prev]);
           setHasUnreadNotifs(true);
         });
-        onVerificationUpdated((status) => {
-          setHouseholdData((prev) => (prev ? { ...prev, verificationStatus: status } : prev));
+        onVerificationUpdated((payload) => {
+          const newStatus = typeof payload === 'string' ? payload : (payload?.verificationStatus || 'verified');
+          setHouseholdData((prev) => (prev ? { ...prev, verificationStatus: newStatus } : prev));
+          if (newStatus === 'verified') {
+            Alert.alert(
+              lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
+              lang === 'tl'
+                ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong QR Relief Pass ay aktibo na.'
+                : 'Your account has been verified by the Barangay Admin! Your Relief QR Pass is now active.'
+            );
+          }
         });
         onRecoveryStatusUpdated((status) => {
           setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: status } : prev));
