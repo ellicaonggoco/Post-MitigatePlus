@@ -10,20 +10,37 @@ import { MotionSeverityTile, MotionPressable } from '../components/motion';
 function SeveritySelectorTray({ severities, currentLevel, onSelect }) {
   return (
     <View style={styles.severityGrid}>
-      {severities.map((s) => (
-        <MotionSeverityTile
-          key={s.level}
-          style={[styles.severityTile, currentLevel === s.level && styles.severityTileActive]}
-          onPress={() => onSelect(s.level)}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.severityDot, { backgroundColor: s.color }]} />
-          <Text style={[styles.severityLabel, currentLevel === s.level && { color: s.color, fontWeight: '800' }]}>
-            {s.label}
-          </Text>
-          <Text style={styles.severitySub}>{s.sub}</Text>
-        </MotionSeverityTile>
-      ))}
+      {severities.map((s) => {
+        const isSelected = currentLevel === s.level;
+        return (
+          <MotionPressable
+            key={s.level}
+            style={[
+              styles.severityTile,
+              isSelected && {
+                borderColor: s.color,
+                backgroundColor: s.badgeBg || '#EFF6FF',
+                borderWidth: 2,
+              },
+            ]}
+            onPress={() => onSelect(s.level)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.severityHeaderRow}>
+              <View style={[styles.severityDot, { backgroundColor: s.color }]} />
+              {isSelected && (
+                <View style={[styles.severityCheckBadge, { backgroundColor: s.color }]}>
+                  <CheckIcon size={10} color="#FFFFFF" />
+                </View>
+              )}
+            </View>
+            <Text style={[styles.severityLabel, isSelected && { color: s.color, fontWeight: '800' }]}>
+              {s.label}
+            </Text>
+            <Text style={[styles.severitySub, isSelected && { color: s.color + 'DD' }]}>{s.sub}</Text>
+          </MotionPressable>
+        );
+      })}
     </View>
   );
 }
@@ -275,12 +292,33 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11.5, color: '#64748B', marginTop: 2, marginBottom: 16 },
   sectionHeader: { marginBottom: 8 },
   sectionLabel: { fontSize: 10.5, fontWeight: '800', color: '#172B4D', letterSpacing: 0.5 },
-  severityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  severityTile: { flex: 1, minWidth: '45%', backgroundColor: '#FFFFFF', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#D9E2EC', ...SHADOWS.sm },
-  severityTileActive: { borderColor: '#1557B0', backgroundColor: '#E8F2FF' },
-  severityDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 4 },
-  severityLabel: { fontSize: 12, fontWeight: '700', color: '#172B4D' },
-  severitySub: { fontSize: 9.5, color: '#64748B', marginTop: 2 },
+  severityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  severityTile: {
+    flex: 1,
+    minWidth: '47%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: '#D9E2EC',
+    ...SHADOWS.sm,
+  },
+  severityHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  severityDot: { width: 9, height: 9, borderRadius: 4.5 },
+  severityCheckBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  severityLabel: { fontSize: 13, fontWeight: '700', color: '#172B4D', marginBottom: 2 },
+  severitySub: { fontSize: 10, color: '#64748B', lineHeight: 14 },
   uploadCard: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D9E2EC', padding: 12, marginBottom: 16 },
   fieldLabel: { fontSize: 10.5, fontWeight: '800', color: '#172B4D', marginBottom: 8 },
   uploadActionsRow: { flexDirection: 'row', gap: 8 },
