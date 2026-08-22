@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
 import NotificationModal from '../components/NotificationModal';
@@ -193,20 +194,28 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       <View style={styles.body}>
         {activeTab === 'home' ? (
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Familiar Digital ID / Relief QR Pass Hero Card with Motion Shimmer */}
-            <MotionShimmerCard style={styles.qrHeroCard}>
+            {/* Familiar Digital ID / Relief QR Pass Hero Card with Modern SingPass-Style Gradient */}
+            <LinearGradient
+              colors={isVerified ? ['#071D3A', '#0D3C75', '#154A8A'] : ['#1E293B', '#0F172A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.qrHeroCardGradient}
+            >
               <View style={styles.qrHeaderRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.qrTitle}>{t.reliefPassTitle}</Text>
-                  <Text style={styles.qrSubText}>{householdName} • Barangay {brgyCode}</Text>
+                  <Text style={styles.qrKickerText}>
+                    {lang === 'tl' ? 'OPISYAL NA CITIZEN RELIEF PASS' : 'OFFICIAL CITIZEN RELIEF PASS'}
+                  </Text>
+                  <Text style={styles.qrTitleWhite}>{t.reliefPassTitle}</Text>
+                  <Text style={styles.qrSubTextWhite}>{householdName} • Barangay {brgyCode}</Text>
                 </View>
                 {isVerified ? (
                   <MotionPressable
-                    style={styles.expandQRBtn}
+                    style={styles.expandQRBtnGlass}
                     onPress={() => setShowQRModal(true)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.expandQRText}>{t.enlargeBtn}</Text>
+                    <Text style={styles.expandQRTextWhite}>{t.enlargeBtn}</Text>
                   </MotionPressable>
                 ) : (
                   <View style={styles.pendingTagHeaderPill}>
@@ -217,22 +226,22 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 )}
               </View>
 
-              {/* 3-Column Metrics Grid */}
+              {/* 3-Column Metrics Grid in Translucent Glass */}
               <View style={styles.metricsGridRow}>
-                <View style={styles.metricGridCard}>
-                  <Text style={styles.metricGridLabel}>{t.headcountLabel}</Text>
-                  <Text style={styles.metricGridValue}>{headcount}</Text>
-                  <Text style={styles.metricGridSub}>{t.headcountUnit}</Text>
+                <View style={styles.metricGridCardGlass}>
+                  <Text style={styles.metricGridLabelGlass}>{t.headcountLabel}</Text>
+                  <Text style={styles.metricGridValueWhite}>{headcount}</Text>
+                  <Text style={styles.metricGridSubGlass}>{t.headcountUnit}</Text>
                 </View>
-                <View style={styles.metricGridCard}>
-                  <Text style={styles.metricGridLabel}>{t.priorityIndexLabel}</Text>
-                  <Text style={[styles.metricGridValue, { color: '#D97706' }]}>{priorityScore} pts</Text>
-                  <Text style={[styles.metricGridSub, { color: '#B45309' }]} numberOfLines={1}>{priorityLevel}</Text>
+                <View style={styles.metricGridCardGlass}>
+                  <Text style={styles.metricGridLabelGlass}>{t.priorityIndexLabel}</Text>
+                  <Text style={[styles.metricGridValueWhite, { color: '#FCD34D' }]}>{priorityScore} pts</Text>
+                  <Text style={[styles.metricGridSubGlass, { color: '#FDE68A' }]} numberOfLines={1}>{priorityLevel}</Text>
                 </View>
-                <View style={styles.metricGridCard}>
-                  <Text style={styles.metricGridLabel}>{t.reliefQuotaLabel}</Text>
-                  <Text style={[styles.metricGridValue, { color: '#1557B0' }]}>{basePacks}x Base</Text>
-                  <Text style={styles.metricGridSub}>{topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit}` : t.basePackUnit}</Text>
+                <View style={styles.metricGridCardGlass}>
+                  <Text style={styles.metricGridLabelGlass}>{t.reliefQuotaLabel}</Text>
+                  <Text style={[styles.metricGridValueWhite, { color: '#93C5FD' }]}>{basePacks}x Base</Text>
+                  <Text style={[styles.metricGridSubGlass, { color: '#BFDBFE' }]}>{topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit}` : t.basePackUnit}</Text>
                 </View>
               </View>
 
@@ -300,7 +309,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               ) : (
                 <MotionPressable
-                  style={styles.qrInteractiveFrame}
+                  style={styles.qrInteractiveFrameWhite}
                   onPress={() => setShowQRModal(true)}
                   activeOpacity={0.92}
                 >
@@ -310,62 +319,62 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </View>
                 </MotionPressable>
               )}
-            </MotionShimmerCard>
+            </LinearGradient>
 
             {/* Quick Action Tiles Grid (2x2) with MotionPressable Spring Physics */}
             <View style={styles.quickActionGrid}>
               <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFFFFF' }]}
+                style={[styles.actionTile, { backgroundColor: '#FFF5F5', borderColor: '#FECACA' }]}
                 onPress={() => setActiveTab('damage')}
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#FEE2E2' }]}>
                   <DamageIcon size={18} color="#DC2626" />
                 </View>
-                <Text style={styles.actionTileTitle}>{t.navDamage}</Text>
-                <Text style={styles.actionTileSub}>
+                <Text style={[styles.actionTileTitle, { color: '#991B1B' }]}>{t.navDamage}</Text>
+                <Text style={[styles.actionTileSub, { color: '#B91C1C' }]}>
                   {lang === 'tl' ? 'Mag-ulat ng pinsala' : 'Report house damage'}
                 </Text>
               </MotionPressable>
 
               <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFFFFF' }]}
+                style={[styles.actionTile, { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }]}
                 onPress={() => setActiveTab('request')}
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#E0F2FE' }]}>
                   <PackageIcon size={18} color="#0284C7" />
                 </View>
-                <Text style={styles.actionTileTitle}>{t.navAssistance}</Text>
-                <Text style={styles.actionTileSub}>
+                <Text style={[styles.actionTileTitle, { color: '#075985' }]}>{t.navAssistance}</Text>
+                <Text style={[styles.actionTileSub, { color: '#0284C7' }]}>
                   {lang === 'tl' ? 'Humiling ng ayuda' : 'Request relief quota'}
                 </Text>
               </MotionPressable>
 
               <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFFFFF' }]}
+                style={[styles.actionTile, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}
                 onPress={() => setActiveTab('history')}
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#FEF3C7' }]}>
                   <HistoryIcon size={18} color="#D97706" />
                 </View>
-                <Text style={styles.actionTileTitle}>{t.navHistory}</Text>
-                <Text style={styles.actionTileSub}>
+                <Text style={[styles.actionTileTitle, { color: '#92400E' }]}>{t.navHistory}</Text>
+                <Text style={[styles.actionTileSub, { color: '#B45309' }]}>
                   {lang === 'tl' ? 'Talaan ng ayuda' : 'View claims timeline'}
                 </Text>
               </MotionPressable>
 
               <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFFFFF' }]}
+                style={[styles.actionTile, { backgroundColor: '#FAF5FF', borderColor: '#E9D5FF' }]}
                 onPress={() => setActiveTab('settings')}
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#F3E8FF' }]}>
                   <SettingsIcon size={18} color="#7C3AED" />
                 </View>
-                <Text style={styles.actionTileTitle}>{lang === 'tl' ? 'Profile at Settings' : 'Profile & Settings'}</Text>
-                <Text style={styles.actionTileSub}>
+                <Text style={[styles.actionTileTitle, { color: '#581C87' }]}>{lang === 'tl' ? 'Profile at Settings' : 'Profile & Settings'}</Text>
+                <Text style={[styles.actionTileSub, { color: '#7C3AED' }]}>
                   {lang === 'tl' ? 'Roster at seguridad' : 'Household & security'}
                 </Text>
               </MotionPressable>
@@ -719,11 +728,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: hp(12),
   },
-  qrHeroCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
+  qrHeroCardGradient: {
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     padding: 16,
     marginBottom: 16,
     ...SHADOWS.md,
@@ -734,64 +742,78 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  qrTitle: {
-    fontSize: 16.5,
+  qrKickerText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#FDE68A',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+  qrTitleWhite: {
+    fontSize: 17,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
-  qrSubText: {
+  qrSubTextWhite: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#E2E8F0',
     marginTop: 2,
     fontWeight: '600',
   },
-  expandQRBtn: {
-    backgroundColor: '#E8F2FF',
+  expandQRBtnGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
   },
-  expandQRText: {
+  expandQRTextWhite: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#FFFFFF',
   },
   metricsGridRow: {
     flexDirection: 'row',
     gap: 8,
     marginBottom: 14,
   },
-  metricGridCard: {
+  metricGridCardGlass: {
     flex: 1,
-    backgroundColor: '#F8F9F7',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
     paddingVertical: 9,
     paddingHorizontal: 6,
     alignItems: 'center',
   },
-  metricGridLabel: {
+  metricGridLabelGlass: {
     fontSize: 8.5,
     fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.4,
+    color: '#BFDBFE',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  metricGridValue: {
+  metricGridValueWhite: {
     fontSize: 13.5,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#FFFFFF',
     marginTop: 2,
   },
-  metricGridSub: {
+  metricGridSubGlass: {
     fontSize: 9,
-    color: '#64748B',
+    color: '#E2E8F0',
     fontWeight: '700',
     marginTop: 1,
+  },
+  qrInteractiveFrameWhite: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    ...SHADOWS.sm,
   },
   qrInteractiveFrame: {
     alignItems: 'center',
