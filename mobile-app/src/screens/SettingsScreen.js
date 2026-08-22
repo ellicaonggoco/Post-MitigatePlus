@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,16 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import {
   PhoneCallIcon,
   UsersIcon,
   ShieldCheckIcon,
   CameraIcon,
+  ImageIcon,
   CheckIcon,
   PlusIcon,
   TrashIcon,
@@ -37,13 +40,6 @@ const EMERGENCY_HOTLINES = [
   { name: 'Manila Emergency Medical Services / Ambulance', phone: '(02) 8527-5175', tag: 'Medical Response' },
   { name: 'Manila Police District (MPD Central)', phone: '117 / (02) 8523-8371', tag: 'Police Response' },
   { name: 'Bureau of Fire Protection Manila (BFP)', phone: '(02) 8527-3627', tag: 'Fire Rescue' },
-];
-
-const SAMPLE_AVATARS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
 ];
 
 const CONDITION_PRESETS = [
@@ -141,11 +137,132 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [photoPickingLoading, setPhotoPickingLoading] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [contact, setContact] = useState(user?.emailOrPhone || '');
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem('mitigateplus_profile_photo');
+        if (saved) setProfilePhoto(saved);
+      } catch (e) {}
+    })();
+  }, []);
+
+  const handlePickFromCamera = async () => {
+    try {
+      setShowAvatarPicker(false);
+      setPhotoPickingLoading(true);
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Camera' : 'Camera Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa camera upang kumuha ng larawan.' : 'Camera permission is required to take a profile photo.'
+          );
+          setPhotoPickingLoading(false);
+          return;
+        }
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+          base64: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const uri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+          setProfilePhoto(uri);
+          await AsyncStorage.setItem('mitigateplus_profile_photo', uri);
+        }
+      } else if (typeof document !== 'undefined') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'user';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+              const uri = ev.target.result;
+              setProfilePhoto(uri);
+              await AsyncStorage.setItem('mitigateplus_profile_photo', uri);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    } catch (err) {
+      console.warn('Camera photo error:', err);
+    } finally {
+      setPhotoPickingLoading(false);
+    }
+  };
+
+  const handlePickFromGallery = async () => {
+    try {
+      setShowAvatarPicker(false);
+      setPhotoPickingLoading(true);
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Gallery' : 'Gallery Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa photo gallery.' : 'Photo gallery permission is required.'
+          );
+          setPhotoPickingLoading(false);
+          return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+          base64: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const uri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+          setProfilePhoto(uri);
+          await AsyncStorage.setItem('mitigateplus_profile_photo', uri);
+        }
+      } else if (typeof document !== 'undefined') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+              const uri = ev.target.result;
+              setProfilePhoto(uri);
+              await AsyncStorage.setItem('mitigateplus_profile_photo', uri);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    } catch (err) {
+      console.warn('Gallery photo error:', err);
+    } finally {
+      setPhotoPickingLoading(false);
+    }
+  };
+
+  const handleResetToInitials = async () => {
+    setProfilePhoto(null);
+    setShowAvatarPicker(false);
+    await AsyncStorage.removeItem('mitigateplus_profile_photo');
+  };
 
   const [members, setMembers] = useState(
     Array.isArray(user?.household?.members) && user.household.members.length > 0
@@ -364,36 +481,63 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         lang={lang}
       />
 
-      {showAvatarPicker && (
-        <View style={styles.avatarPickerBox}>
-          <Text style={styles.avatarPickerTitle}>
-            {lang === 'tl' ? 'Pumili ng Profile Photo o Avatar:' : 'Select Profile Photo / Avatar:'}
-          </Text>
-          <View style={styles.avatarPresetsRow}>
-            {SAMPLE_AVATARS.map((url, i) => (
-              <TouchableOpacity
-                key={i}
-                style={[styles.presetAvatarBtn, profilePhoto === url && styles.presetAvatarSelected]}
-                onPress={() => {
-                  setProfilePhoto(url);
-                  setShowAvatarPicker(false);
-                }}
-              >
-                <Image source={{ uri: url }} style={styles.presetAvatarImg} />
+      {/* Profile Photo Source Action Sheet Modal */}
+      <Modal visible={showAvatarPicker} animationType="fade" transparent onRequestClose={() => setShowAvatarPicker(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.avatarActionSheet}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>{lang === 'tl' ? 'Palitan ang Profile Photo' : 'Update Profile Photo'}</Text>
+              <TouchableOpacity onPress={() => setShowAvatarPicker(false)}>
+                <CloseIcon size={18} color="#172B4D" />
               </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.presetAvatarClearBtn}
-              onPress={() => {
-                setProfilePhoto(null);
-                setShowAvatarPicker(false);
-              }}
-            >
-              <Text style={styles.presetAvatarClearText}>Initials</Text>
+            </View>
+
+            <Text style={styles.avatarSheetSub}>
+              {lang === 'tl'
+                ? 'Pumili kung paano kukunin ang inyong larawan para sa opisyal na rekord ng pamilya.'
+                : 'Select source to update your official household representative photo.'}
+            </Text>
+
+            <View style={styles.avatarOptionList}>
+              <TouchableOpacity style={styles.avatarOptionBtn} onPress={handlePickFromCamera} activeOpacity={0.85}>
+                <View style={[styles.avatarOptionIconWell, { backgroundColor: '#E0F2FE' }]}>
+                  <CameraIcon size={20} color="#0284C7" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.avatarOptionTitle}>{lang === 'tl' ? 'Kumuha gamit ang Camera' : 'Take Photo with Camera'}</Text>
+                  <Text style={styles.avatarOptionSub}>{lang === 'tl' ? 'Buksan ang camera ng telepono' : 'Snap a fresh photo using your camera'}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.avatarOptionBtn} onPress={handlePickFromGallery} activeOpacity={0.85}>
+                <View style={[styles.avatarOptionIconWell, { backgroundColor: '#FEF3C7' }]}>
+                  <ImageIcon size={20} color="#D97706" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.avatarOptionTitle}>{lang === 'tl' ? 'Pumili mula sa Gallery' : 'Choose from Photo Gallery'}</Text>
+                  <Text style={styles.avatarOptionSub}>{lang === 'tl' ? 'Mag-upload ng litrato mula sa cellphone' : 'Select an existing photo from storage'}</Text>
+                </View>
+              </TouchableOpacity>
+
+              {profilePhoto && (
+                <TouchableOpacity style={styles.avatarOptionBtn} onPress={handleResetToInitials} activeOpacity={0.85}>
+                  <View style={[styles.avatarOptionIconWell, { backgroundColor: '#F1F5F9' }]}>
+                    <TrashIcon size={18} color="#DC2626" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.avatarOptionTitle, { color: '#DC2626' }]}>{lang === 'tl' ? 'Alisin ang Litrato (Gamitin ang Initials)' : 'Remove Photo (Use Initials)'}</Text>
+                    <Text style={styles.avatarOptionSub}>{lang === 'tl' ? 'Ibalik sa default letter badge' : 'Reset to household initial badge'}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <TouchableOpacity style={styles.cancelSheetBtn} onPress={() => setShowAvatarPicker(false)} activeOpacity={0.85}>
+              <Text style={styles.cancelSheetBtnText}>{lang === 'tl' ? 'Kanselahin' : 'Cancel'}</Text>
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
 
       <OfflineDigitalPassCard downloadingPass={downloadingPass} onSaveQRPass={handleSaveQRPassOffline} lang={lang} />
 
@@ -793,21 +937,62 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   verifiedTagText: { fontSize: 9, fontWeight: '800', color: '#16A34A' },
-  avatarPickerBox: {
+  avatarActionSheet: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 12,
+    borderRadius: 20,
+    padding: 20,
+    width: '92%',
+    maxWidth: 420,
+    ...SHADOWS.lg,
+  },
+  avatarSheetSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginBottom: 16,
+    lineHeight: 16,
+  },
+  avatarOptionList: {
+    gap: 10,
     marginBottom: 16,
   },
-  avatarPickerTitle: { fontSize: 11, fontWeight: '800', color: '#172B4D', marginBottom: 8 },
-  avatarPresetsRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  presetAvatarBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
-  presetAvatarSelected: { borderColor: '#1557B0' },
-  presetAvatarImg: { width: '100%', height: '100%' },
-  presetAvatarClearBtn: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 10, borderRadius: 8 },
-  presetAvatarClearText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  avatarOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+  },
+  avatarOptionIconWell: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarOptionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#172B4D',
+  },
+  avatarOptionSub: {
+    fontSize: 10.5,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cancelSheetBtn: {
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cancelSheetBtnText: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#64748B',
+  },
   sectionLabel: { fontSize: 11, fontWeight: '800', color: '#172B4D', letterSpacing: 0.8, marginTop: 12, marginBottom: 8, textTransform: 'uppercase' },
   sectionHeaderBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 8 },
   sectionLabelNoMargin: { fontSize: 11, fontWeight: '800', color: '#172B4D', letterSpacing: 0.8, textTransform: 'uppercase' },
