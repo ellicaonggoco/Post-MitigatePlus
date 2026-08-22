@@ -243,7 +243,7 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9F7' },
-  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 6, paddingBottom: hp(8) },
+  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: 14, paddingBottom: hp(14) },
   backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
   backBtnText: { fontSize: 12.5, fontWeight: '800', color: '#1557B0' },
   headerTitle: { fontSize: 20, fontWeight: FONT_WEIGHT.black, color: '#172B4D' },

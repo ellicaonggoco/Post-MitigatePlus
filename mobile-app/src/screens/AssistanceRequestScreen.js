@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9F7' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 6,
-    paddingBottom: hp(8),
+    paddingTop: 14,
+    paddingBottom: hp(14),
   },
   header: { marginBottom: 16 },
   backBtn: {
