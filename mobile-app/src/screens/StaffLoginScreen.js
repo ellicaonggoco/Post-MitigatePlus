@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import { ArrowLeftIcon } from '../components/AppIcons';
-import { COLORS, RADIUS, TOUCH_TARGET, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, wp, hp } from '../theme';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeftIcon, ShieldCheckIcon, LockIcon } from '../components/AppIcons';
+import { COLORS, RADIUS, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, hp } from '../theme';
+import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
 export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
@@ -12,7 +14,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
 
   const handleStaffLogin = async () => {
     if (!emailOrPhone || !password) {
-      setErrorMsg('Please enter staff credentials.');
+      setErrorMsg('Pakilagay ang inyong staff credentials.');
       return;
     }
 
@@ -44,140 +46,176 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
-        <ArrowLeftIcon size={16} color="#1557B0" />
-        <Text style={styles.backText}>Change User Portal</Text>
-      </TouchableOpacity>
-
-      <View style={styles.header}>
-        <Image
-          source={require('../../assets/logo.png')}
-          style={{ width: 180, height: 75, resizeMode: 'contain', marginBottom: SPACING.sm }}
-        />
-        <Text style={styles.title}>LGU Field Staff Sign In</Text>
-        <Text style={styles.sub}>Authorized access portal for relief distribution & QR scanning staff</Text>
-      </View>
-
-      {errorMsg ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{errorMsg}</Text>
-        </View>
-      ) : null}
-
-      <View style={[styles.card, SHADOWS.card]}>
-        <Text style={styles.label}>Field Staff Email or Username:</Text>
-        <TextInput
-          style={styles.input}
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
-          placeholder="Enter your staff email"
-          placeholderTextColor={COLORS.inkFaint}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <Text style={[styles.label, { marginTop: SPACING.md }]}>Staff Security Password:</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Enter staff password"
-          placeholderTextColor={COLORS.inkFaint}
-          secureTextEntry
-        />
-
-        <TouchableOpacity
-          style={[styles.loginBtn, SHADOWS.button]}
-          onPress={handleStaffLogin}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.loginBtnText}>
-            {loading ? 'Authenticating...' : 'Access Staff QR Dispatcher'}
-          </Text>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#071D3A', '#0D3C75', '#154A8A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.gradientHeader}
+      >
+        <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
+          <ArrowLeftIcon size={14} color="#FFFFFF" />
+          <Text style={styles.backText}>Pumili ng Portal</Text>
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.noticeBox}>
-        <Text style={styles.noticeText}>
-          Notice: Field Staff accounts are provisioned exclusively by LGU Admins. Self-registration is disabled for security compliance.
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={styles.header}>
+          <View style={styles.badgePill}>
+            <ShieldCheckIcon size={12} color="#FCD34D" />
+            <Text style={styles.badgeText}>OPISYAL NA DISPATCH PORTAL</Text>
+          </View>
+          <Text style={styles.title}>LGU Field Staff Portal</Text>
+          <Text style={styles.sub}>Para sa mga awtorisadong kawani ng Pamahalaang Lungsod ng Maynila sa pamamahagi ng ayuda</Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView style={styles.scrollBody} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {errorMsg ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>⚠️ {errorMsg}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.card}>
+          <Text style={styles.label}>Field Staff Email o Username:</Text>
+          <TextInput
+            style={styles.input}
+            value={emailOrPhone}
+            onChangeText={setEmailOrPhone}
+            placeholder="hal. staff291@manila.gov.ph"
+            placeholderTextColor="#94A3B8"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <Text style={[styles.label, { marginTop: 14 }]}>Password ng Kawani:</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••••••"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry
+          />
+
+          <MotionPressable
+            style={[styles.loginBtn, loading && { opacity: 0.75 }]}
+            onPress={handleStaffLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.loginBtnText}>Mag-Log In sa Staff Scanner ➔</Text>
+            )}
+          </MotionPressable>
+        </View>
+
+        <View style={styles.noticeBox}>
+          <Text style={styles.noticeText}>
+            🔒 <Text style={{ fontWeight: '800' }}>Paunawa sa Seguridad:</Text> Ang mga Field Staff accounts ay direktang nililikha ng LGU Admin. Walang public self-registration upang matiyak ang integridad ng pamamahagi.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.sampaguita },
-  content: {
+  container: { flex: 1, backgroundColor: '#F8F9F7' },
+  gradientHeader: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 6,
-    paddingBottom: hp(8),
+    paddingTop: RESPONSIVE.topSafe + 4,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    ...SHADOWS.md,
   },
   backBtn: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginBottom: SPACING.md,
-    ...SHADOWS.sm,
-  },
-  backText: { fontSize: 12.5, fontWeight: FONT_WEIGHT.bold, color: '#1557B0' },
-  header: { marginBottom: SPACING.lg },
-  title: { fontSize: 22, fontWeight: FONT_WEIGHT.black, color: COLORS.manilaBlue },
-  sub: { fontSize: 13, color: COLORS.inkSoft, marginTop: 4 },
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.card,
-    padding: SPACING.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 14,
   },
-  label: { fontSize: 13, fontWeight: FONT_WEIGHT.bold, color: COLORS.ink, marginBottom: SPACING.xs },
+  backText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
+  header: { marginTop: 4 },
+  badgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(252, 211, 77, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(252, 211, 77, 0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  badgeText: { fontSize: 9.5, fontWeight: '800', color: '#FCD34D', letterSpacing: 0.5 },
+  title: { fontSize: 24, fontWeight: FONT_WEIGHT.black, color: '#FFFFFF', letterSpacing: -0.3 },
+  sub: { fontSize: 12, color: '#E2E8F0', marginTop: 4, lineHeight: 17 },
+  scrollBody: { flex: 1 },
+  content: {
+    paddingHorizontal: RESPONSIVE.padding,
+    paddingTop: 20,
+    paddingBottom: hp(8),
+    maxWidth: 480,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...SHADOWS.md,
+  },
+  label: { fontSize: 12, fontWeight: '800', color: '#172B4D', marginBottom: 6 },
   input: {
-    backgroundColor: COLORS.sampaguita,
-    borderRadius: RADIUS.inner,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    backgroundColor: '#F8F9F7',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.border,
-    fontSize: 14,
-    color: COLORS.ink,
-    minHeight: TOUCH_TARGET,
+    borderColor: '#D9E2EC',
+    fontSize: 13.5,
+    color: '#172B4D',
   },
   loginBtn: {
-    backgroundColor: COLORS.manilaBlue,
-    borderRadius: RADIUS.inner,
-    paddingVertical: SPACING.md,
+    backgroundColor: '#1557B0',
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SPACING.xl,
-    minHeight: TOUCH_TARGET,
+    marginTop: 20,
+    ...SHADOWS.sm,
   },
-  loginBtnText: { color: '#FFF', fontWeight: FONT_WEIGHT.bold, fontSize: 15 },
+  loginBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   errorBox: {
-    backgroundColor: COLORS.dangerLight,
-    padding: SPACING.md,
-    borderRadius: RADIUS.inner,
-    marginBottom: SPACING.md,
+    backgroundColor: '#FEE2E2',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(198,86,75,0.3)',
+    borderColor: '#FCA5A5',
   },
-  errorText: { color: COLORS.danger, fontSize: 13, fontWeight: FONT_WEIGHT.medium },
+  errorText: { color: '#DC2626', fontSize: 12, fontWeight: '700' },
   noticeBox: {
-    marginTop: SPACING.xl,
-    backgroundColor: COLORS.manilaBlueLight,
-    padding: SPACING.md,
-    borderRadius: RADIUS.inner,
+    marginTop: 18,
+    backgroundColor: '#E8F2FF',
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(23, 63, 86, 0.2)',
+    borderColor: '#BFDBFE',
   },
-  noticeText: { fontSize: 12, color: COLORS.manilaBlue, textAlign: 'center', lineHeight: 17 },
+  noticeText: { fontSize: 11.5, color: '#1557B0', lineHeight: 17 },
 });
