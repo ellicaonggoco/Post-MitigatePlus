@@ -731,18 +731,26 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       <Text style={styles.sectionLabel}>{t.hotlinesSectionTitle}</Text>
       <View style={styles.hotlineList} onLayout={(e) => setHotlineY(e.nativeEvent.layout.y)}>
         {EMERGENCY_HOTLINES.map((h, i) => (
-          <MotionPressable key={i} style={styles.hotlineCard} onPress={() => handleCallHotline(h.phone)} activeOpacity={0.85}>
+          <View key={i} style={styles.hotlineCard}>
             <View style={styles.phoneIconWell}>
-              <PhoneCallIcon size={16} color="#DC2626" />
+              <PhoneCallIcon size={18} color="#DC2626" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.hotlineName}>{h.name}</Text>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={styles.hotlineName} numberOfLines={2}>{h.name}</Text>
               <Text style={styles.hotlineTag}>{h.tag}</Text>
+              <Text style={styles.hotlineNumberText}>{h.phone}</Text>
             </View>
-            <View style={styles.callBadge}>
-              <Text style={styles.callBadgeText}>{h.phone}</Text>
-            </View>
-          </MotionPressable>
+            <TouchableOpacity
+              style={styles.hotlineCallBtn}
+              onPress={() => handleCallHotline(h.phone)}
+              activeOpacity={0.8}
+            >
+              <PhoneCallIcon size={13} color="#FFFFFF" />
+              <Text style={styles.hotlineCallBtnText}>
+                {lang === 'tl' ? 'Tawagan' : 'Call'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         ))}
       </View>
 
@@ -1037,15 +1045,52 @@ const styles = StyleSheet.create({
   langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#D9E2EC' },
   langText: { fontSize: 12.5, fontWeight: '700', color: '#64748B' },
   langTextActive: { color: '#1557B0', fontWeight: '800' },
-  hotlineList: { gap: 8, marginBottom: 14 },
-  hotlineCard: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D9E2EC', padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, ...SHADOWS.sm },
-  phoneIconWell: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' },
-  hotlineName: { fontSize: 12.5, fontWeight: '700', color: '#172B4D' },
-  hotlineTag: { fontSize: 10, color: '#64748B', marginTop: 1 },
-  callBadge: { backgroundColor: '#1557B0', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
-  callBadgeText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF' },
-  logoutBtn: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#FCA5A5', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginBottom: 16 },
-  logoutBtnText: { color: '#DC2626', fontSize: 13, fontWeight: '800' },
+  hotlineList: { gap: 10, marginBottom: 16 },
+  hotlineCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D9E2EC',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...SHADOWS.sm,
+  },
+  phoneIconWell: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+  },
+  hotlineName: { fontSize: 12.5, fontWeight: '800', color: '#172B4D', lineHeight: 17 },
+  hotlineTag: { fontSize: 10, color: '#64748B', marginTop: 2 },
+  hotlineNumberText: { fontSize: 11.5, fontWeight: '800', color: '#1557B0', marginTop: 3 },
+  hotlineCallBtn: {
+    backgroundColor: '#16A34A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 20,
+    ...SHADOWS.sm,
+  },
+  hotlineCallBtnText: { fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' },
+  logoutBtn: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    paddingVertical: 13,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 20,
+  },
+  logoutBtnText: { color: '#DC2626', fontSize: 13.5, fontWeight: '800', letterSpacing: 0.2 },
   trademarkCard: { alignItems: 'center', paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
   trademarkLogoImg: { width: 120, height: 36, marginBottom: 8 },
   trademarkVersion: { fontSize: 10.5, fontWeight: '800', color: '#1557B0', marginBottom: 2 },
