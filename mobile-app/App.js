@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, SafeAreaView, Animated } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -9,6 +9,40 @@ import ResidentRegisterScreen from './src/screens/ResidentRegisterScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ResidentHomeScreen from './src/screens/ResidentHomeScreen';
 import StaffScannerScreen from './src/screens/StaffScannerScreen';
+
+function ScreenTransition({ children, transitionKey }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(8)).current;
+
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    translateYAnim.setValue(8);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [transitionKey]);
+
+  return (
+    <Animated.View
+      style={{
+        flex: 1,
+        opacity: fadeAnim,
+        transform: [{ translateY: translateYAnim }],
+      }}
+    >
+      {children}
+    </Animated.View>
+  );
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -58,6 +92,8 @@ export default function App() {
     } catch (e) {}
   };
 
+  const activeKey = userSession ? (userSession.role === 'staff' ? 'staff' : 'resident') : currentScreen;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -67,48 +103,50 @@ export default function App() {
         <SplashScreen onFinish={() => setShowSplash(false)} />
       )}
 
-      {/* 2. Main Authenticated / Unauthenticated App Routing */}
-      {userSession ? (
-        // Role-Based Operations Portal
-        userSession.role === 'staff' ? (
-          <StaffScannerScreen
-            token={userSession.token}
+      {/* 2. Main Authenticated / Unauthenticated App Routing with Smooth Transitions */}
+      <ScreenTransition transitionKey={activeKey}>
+        {userSession ? (
+          // Role-Based Operations Portal
+          userSession.role === 'staff' ? (
+            <StaffScannerScreen
+              token={userSession.token}
+              lang={lang}
+              onSelectLang={handleSelectLang}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <ResidentHomeScreen
+              household={userSession.household}
+              token={userSession.token}
+              lang={lang}
+              onSelectLang={handleSelectLang}
+              onLogout={handleLogout}
+            />
+          )
+        ) : currentScreen === 'login' ? (
+          <ResidentLoginScreen
             lang={lang}
             onSelectLang={handleSelectLang}
-            onLogout={handleLogout}
+            onLoginSuccess={handleAuthSuccess}
+            onNavigateRegister={() => setCurrentScreen('register')}
+            onNavigateForgot={() => setCurrentScreen('forgot')}
+          />
+        ) : currentScreen === 'register' ? (
+          <ResidentRegisterScreen
+            lang={lang}
+            onSelectLang={handleSelectLang}
+            onRegisterSuccess={handleAuthSuccess}
+            onBack={() => setCurrentScreen('login')}
           />
         ) : (
-          <ResidentHomeScreen
-            household={userSession.household}
-            token={userSession.token}
+          <ForgotPasswordScreen
             lang={lang}
             onSelectLang={handleSelectLang}
-            onLogout={handleLogout}
+            onBack={() => setCurrentScreen('login')}
+            onResetComplete={() => setCurrentScreen('login')}
           />
-        )
-      ) : currentScreen === 'login' ? (
-        <ResidentLoginScreen
-          lang={lang}
-          onSelectLang={handleSelectLang}
-          onLoginSuccess={handleAuthSuccess}
-          onNavigateRegister={() => setCurrentScreen('register')}
-          onNavigateForgot={() => setCurrentScreen('forgot')}
-        />
-      ) : currentScreen === 'register' ? (
-        <ResidentRegisterScreen
-          lang={lang}
-          onSelectLang={handleSelectLang}
-          onRegisterSuccess={handleAuthSuccess}
-          onBack={() => setCurrentScreen('login')}
-        />
-      ) : (
-        <ForgotPasswordScreen
-          lang={lang}
-          onSelectLang={handleSelectLang}
-          onBack={() => setCurrentScreen('login')}
-          onResetComplete={() => setCurrentScreen('login')}
-        />
-      )}
+        )}
+      </ScreenTransition>
     </SafeAreaView>
   );
 }

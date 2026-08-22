@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView } from 'react-native';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, NEUMORPHIC, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
@@ -93,7 +93,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Back Button */}
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
@@ -238,7 +242,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
           </View>
         )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

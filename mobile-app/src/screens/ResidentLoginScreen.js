@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView } from 'react-native';
 import { loginUser } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, UsersIcon, ArrowRightIcon } from '../components/AppIcons';
@@ -153,7 +153,11 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -255,7 +259,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             : 'City of Manila • Department of Resilience & MDRRMO Operations'}
         </Text>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
