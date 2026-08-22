@@ -6,40 +6,61 @@ import { ShieldCheckIcon } from './AppIcons';
 import { MotionProgressTrack } from './motion';
 
 const STAGES_EN = [
-  { key: 'verified', label: '1. Verified', shortLabel: 'Verified', desc: 'Household profile officially verified by LGU' },
-  { key: 'assessed', label: '2. Assessed', shortLabel: 'Assessed', desc: 'Damage survey & structural evaluation recorded' },
+  { key: 'verification', label: '1. Verification', shortLabel: 'Verification', desc: 'Household document review by Barangay Admin in Queue' },
+  { key: 'assessed', label: '2. Assessed', shortLabel: 'Assessed', desc: 'Damage survey & vulnerability priority calculated' },
   { key: 'allocated', label: '3. Allocated', shortLabel: 'Allocated', desc: 'Relief pack right-sized quota prepared' },
   { key: 'ready', label: '4. Ready', shortLabel: 'Ready', desc: 'Available for immediate on-site claiming' },
   { key: 'recovered', label: '5. Recovered', shortLabel: 'Recovered', desc: 'Assistance claimed & recovery case closed' },
 ];
 
 const STAGES_TL = [
-  { key: 'verified', label: '1. Beripikado', shortLabel: 'Beripikado', desc: 'Opisyal na naberipika ng LGU ang pamilya' },
-  { key: 'assessed', label: '2. Na-Assessed', shortLabel: 'Na-Assessed', desc: 'Nasuri ang pinsala sa bahay at lokasyon' },
+  { key: 'verification', label: '1. Beripikasyon', shortLabel: 'Beripikasyon', desc: 'Pagsusuri ng dokumento ng Barangay Admin sa Queue' },
+  { key: 'assessed', label: '2. Na-Assessed', shortLabel: 'Na-Assessed', desc: 'Nasuri ang priority index at antas ng tulong' },
   { key: 'allocated', label: '3. Naka-Aloka', shortLabel: 'Naka-Aloka', desc: 'Inihanda ang tamang dami ng relief packs' },
   { key: 'ready', label: '4. Handa na', shortLabel: 'Handa na', desc: 'Pwedeng i-claim sa covered court gamit ang QR' },
   { key: 'recovered', label: '5. Naka-Recover', shortLabel: 'Natapos', desc: 'Natanggap ang ayuda at naitala sa database' },
 ];
 
-export default function RecoveryPhaseStepper({ currentStatus = 'allocated', percentage = 65, lang = 'en' }) {
+export default function RecoveryPhaseStepper({
+  currentStatus,
+  isVerified = true,
+  percentage: customPercentage,
+  lang = 'en',
+}) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
   const stages = lang === 'tl' ? STAGES_TL : STAGES_EN;
 
-  let activeIndex = 2;
-  const statusLower = (currentStatus || '').toLowerCase();
-  if (statusLower.includes('register') || statusLower.includes('pending') || statusLower === 'waiting') {
+  let activeIndex = 0;
+  let calculatedPercent = 15;
+
+  if (!isVerified) {
     activeIndex = 0;
-  } else if (statusLower.includes('assess') || statusLower.includes('damage')) {
-    activeIndex = 1;
-  } else if (statusLower.includes('aloka') || statusLower.includes('allocated')) {
-    activeIndex = 2;
-  } else if (statusLower.includes('transit') || statusLower.includes('ready') || statusLower.includes('claiming')) {
-    activeIndex = 3;
-  } else if (statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing')) {
-    activeIndex = 4;
+    calculatedPercent = 15;
+  } else {
+    const statusLower = (currentStatus || 'allocated').toLowerCase();
+    if (statusLower.includes('register') || statusLower.includes('pending') || statusLower === 'waiting') {
+      activeIndex = 0;
+      calculatedPercent = 20;
+    } else if (statusLower.includes('assess') || statusLower.includes('damage')) {
+      activeIndex = 1;
+      calculatedPercent = 40;
+    } else if (statusLower.includes('aloka') || statusLower.includes('allocated')) {
+      activeIndex = 2;
+      calculatedPercent = 65;
+    } else if (statusLower.includes('transit') || statusLower.includes('ready') || statusLower.includes('claiming')) {
+      activeIndex = 3;
+      calculatedPercent = 85;
+    } else if (statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing')) {
+      activeIndex = 4;
+      calculatedPercent = 100;
+    } else {
+      activeIndex = 1;
+      calculatedPercent = 35;
+    }
   }
 
-  const currentStage = stages[activeIndex] || stages[2];
+  const percentage = customPercentage !== undefined ? customPercentage : calculatedPercent;
+  const currentStage = stages[activeIndex] || stages[0];
 
   return (
     <View style={styles.container}>
@@ -50,18 +71,25 @@ export default function RecoveryPhaseStepper({ currentStatus = 'allocated', perc
           <Text style={styles.subTitle}>{t.stepperKicker}</Text>
         </View>
 
-        <View style={styles.percentBadge}>
-          <Text style={styles.percentText}>{percentage}% {lang === 'tl' ? 'Natapos' : 'Done'}</Text>
+        <View style={[styles.percentBadge, !isVerified && { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+          <Text style={[styles.percentText, !isVerified && { color: '#B45309' }]}>
+            {percentage}% {lang === 'tl' ? 'Natapos' : 'Done'}
+          </Text>
         </View>
       </View>
 
       {/* Progress Track (Motion Primitive Liquid Fill) */}
-      <MotionProgressTrack percentage={percentage} height={8} color="#1557B0" style={{ marginVertical: 14 }} />
+      <MotionProgressTrack
+        percentage={percentage}
+        height={8}
+        color={!isVerified ? '#D97706' : '#1557B0'}
+        style={{ marginVertical: 14 }}
+      />
 
       {/* 5-Step Segmented Markers */}
       <View style={styles.stepsRow}>
         {stages.map((stage, idx) => {
-          const isCompleted = idx < activeIndex;
+          const isCompleted = isVerified && idx < activeIndex;
           const isCurrent = idx === activeIndex;
 
           return (
@@ -70,13 +98,14 @@ export default function RecoveryPhaseStepper({ currentStatus = 'allocated', perc
                 style={[
                   styles.stepNode,
                   isCompleted && styles.stepNodeCompleted,
-                  isCurrent && styles.stepNodeCurrent,
+                  isCurrent && (isVerified ? styles.stepNodeCurrent : styles.stepNodePending),
                 ]}
               >
                 <Text
                   style={[
                     styles.stepNumber,
                     (isCompleted || isCurrent) && styles.stepNumberActive,
+                    !isVerified && isCurrent && { color: '#B45309' },
                   ]}
                 >
                   {isCompleted ? '✓' : idx + 1}
@@ -87,6 +116,7 @@ export default function RecoveryPhaseStepper({ currentStatus = 'allocated', perc
                 style={[
                   styles.stepLabel,
                   (isCompleted || isCurrent) && styles.stepLabelActive,
+                  !isVerified && isCurrent && { color: '#B45309', fontWeight: '800' },
                 ]}
                 numberOfLines={1}
               >
@@ -98,14 +128,20 @@ export default function RecoveryPhaseStepper({ currentStatus = 'allocated', perc
       </View>
 
       {/* Current Active Stage Description Callout */}
-      <View style={styles.activeCallout}>
+      <View style={[styles.activeCallout, !isVerified && { backgroundColor: '#FFFDF5', borderColor: '#FDE68A' }]}>
         <View style={styles.activeCalloutHeader}>
-          <ShieldCheckIcon size={14} color="#D97706" />
-          <Text style={styles.activeCalloutTitle}>
-            {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'} {currentStage.label}
+          <ShieldCheckIcon size={14} color={!isVerified ? '#D97706' : '#1557B0'} />
+          <Text style={[styles.activeCalloutTitle, !isVerified && { color: '#92400E' }]}>
+            {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'} {!isVerified ? (lang === 'tl' ? '1. Beripikasyon (Nakabinbin)' : '1. Verification (Pending)') : currentStage.label}
           </Text>
         </View>
-        <Text style={styles.activeCalloutDesc}>{currentStage.desc}</Text>
+        <Text style={[styles.activeCalloutDesc, !isVerified && { color: '#78350F' }]}>
+          {!isVerified
+            ? (lang === 'tl'
+                ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
+                : 'Your registration is currently in the Barangay 291 Verification Queue. Progress will advance once approved by the Barangay Official.')
+            : currentStage.desc}
+        </Text>
       </View>
     </View>
   );
@@ -192,6 +228,11 @@ const styles = StyleSheet.create({
   },
   stepNodeCurrent: {
     backgroundColor: '#1557B0',
+    borderColor: '#D97706',
+    borderWidth: 2.5,
+  },
+  stepNodePending: {
+    backgroundColor: '#FEF3C7',
     borderColor: '#D97706',
     borderWidth: 2.5,
   },

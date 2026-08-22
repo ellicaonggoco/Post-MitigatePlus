@@ -373,8 +373,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
             {/* 5-Phase Linear Disaster Recovery Status Stepper */}
             <RecoveryPhaseStepper
-              currentStatus={householdData?.recoveryStatus || 'allocated'}
-              percentage={65}
+              currentStatus={isVerified ? (householdData?.recoveryStatus || 'allocated') : 'pending'}
+              isVerified={isVerified}
               lang={lang}
             />
 
