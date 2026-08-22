@@ -4,7 +4,13 @@
     "slug": "mitigateplus-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/logo-mark.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mitigateplus.app"
@@ -13,6 +19,7 @@
       "package": "com.mitigateplus.app",
       "versionCode": 1,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/logo-mark.png",
         "backgroundColor": "#090154"
       },
       "permissions": [

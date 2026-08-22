@@ -46,16 +46,18 @@ export default function MotionShimmerCard({ children, style, intervalMs = 6000 }
         style={[
           styles.shimmerLayer,
           {
-            transform: [{ translateX: transX }, { skewX: '-20deg' }],
+            transform: [{ translateX: transX }],
           },
         ]}
       >
-        <LinearGradient
-          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)', 'rgba(255,255,255,0.22)', 'rgba(255,255,255,0.09)', 'rgba(255,255,255,0)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradient}
-        />
+        <View style={{ transform: [{ rotate: '-20deg' }], flex: 1 }}>
+          <LinearGradient
+            colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.09)', 'rgba(255,255,255,0.22)', 'rgba(255,255,255,0.09)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradient}
+          />
+        </View>
       </Animated.View>
     </View>
   );

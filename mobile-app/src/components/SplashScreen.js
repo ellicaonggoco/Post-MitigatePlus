@@ -175,17 +175,17 @@ export default function SplashScreen({ onFinish }) {
                 opacity: logo2Opacity,
                 transform: [
                   { scale: logo2Scale },
-                  { scale: slowPumpScale },
-                  { rotate: '-4deg' }, // Stylized Slant Angle
                 ],
               },
             ]}
           >
-            <Image
-              source={require('../../assets/logo_secondary.png')}
-              style={styles.slantedLogoImg}
-              resizeMode="contain"
-            />
+            <View style={{ transform: [{ rotate: '-4deg' }] }}>
+              <Image
+                source={require('../../assets/logo_secondary.png')}
+                style={styles.slantedLogoImg}
+                resizeMode="contain"
+              />
+            </View>
           </Animated.View>
         </View>
 

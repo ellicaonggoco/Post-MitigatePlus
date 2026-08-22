@@ -1,4 +1,4 @@
-import { io } from 'socket.io-client/dist/socket.io.js';
+import { io } from 'socket.io-client';
 import { API_BASE_URL } from '../config.js';
 
 // Extract base server URL (without /api path)
