@@ -283,7 +283,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
 
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
@@ -666,16 +665,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             </TouchableOpacity>
           </View>
         )}
-
-        <View style={styles.divider} />
-
-        <View style={styles.settingRowItem}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Biometric / Fingerprint Unlock' : 'Biometric / Fingerprint Unlock'}</Text>
-            <Text style={styles.settingItemSub}>{lang === 'tl' ? 'Mas mabilis na pag-login gamit ang FaceID o Fingerprint' : 'Quick sign-in with biometrics'}</Text>
-          </View>
-          <Switch value={biometricEnabled} onValueChange={setBiometricEnabled} trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }} thumbColor={biometricEnabled ? '#1557B0' : '#F1F5F9'} />
-        </View>
       </View>
 
       <Text style={styles.sectionLabel}>{lang === 'tl' ? 'MGA NOTIFIKASYON AT ADVISORY' : 'NOTIFICATIONS & ALERTS'}</Text>
