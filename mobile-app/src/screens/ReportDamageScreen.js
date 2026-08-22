@@ -191,10 +191,12 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-        <ArrowLeftIcon size={16} color="#1557B0" />
+      <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
+        <View style={styles.backIconCircle}>
+          <ArrowLeftIcon size={14} color="#1557B0" />
+        </View>
         <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
-      </TouchableOpacity>
+      </MotionPressable>
 
       <Text style={styles.headerTitle}>{lang === 'tl' ? 'I-ulat ang Pinsala ng Bahay' : 'Report Structural Damage'}</Text>
       <Text style={styles.headerSub}>
@@ -244,8 +246,31 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9F7' },
   content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: 14, paddingBottom: hp(14) },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  backBtnText: { fontSize: 12.5, fontWeight: '800', color: '#1557B0' },
+  backBtnPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 12,
+    ...SHADOWS.sm,
+  },
+  backIconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  backBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0', letterSpacing: 0.2 },
   headerTitle: { fontSize: 20, fontWeight: FONT_WEIGHT.black, color: '#172B4D' },
   headerSub: { fontSize: 11.5, color: '#64748B', marginTop: 2, marginBottom: 16 },
   sectionHeader: { marginBottom: 8 },

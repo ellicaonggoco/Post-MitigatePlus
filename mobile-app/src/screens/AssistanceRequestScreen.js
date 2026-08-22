@@ -78,9 +78,11 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Back Button with MotionPressable */}
-      <MotionPressable style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
-        <ArrowLeftIcon size={16} color="#1557B0" />
-        <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Tahanan' : 'Back to Home'}</Text>
+      <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
+        <View style={styles.backIconCircle}>
+          <ArrowLeftIcon size={14} color="#1557B0" />
+        </View>
+        <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
       </MotionPressable>
 
       <View style={styles.header}>
@@ -178,21 +180,31 @@ const styles = StyleSheet.create({
     paddingBottom: hp(14),
   },
   header: { marginBottom: 16 },
-  backBtn: {
+  backBtnPill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    gap: 7,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     marginBottom: 12,
     ...SHADOWS.sm,
   },
-  backBtnText: { fontSize: 12.5, fontWeight: '800', color: '#1557B0' },
+  backIconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  backBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0', letterSpacing: 0.2 },
   kicker: {
     fontSize: 9.5,
     fontWeight: '800',
