@@ -134,6 +134,10 @@ function OfflineDigitalPassCard({ downloadingPass, onSaveQRPass, lang }) {
 
 export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogout }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  const scrollRef = React.useRef(null);
+  const [hotlineY, setHotlineY] = useState(600);
+  const [rosterY, setRosterY] = useState(250);
+  const [securityY, setSecurityY] = useState(800);
 
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -306,7 +310,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <Text style={styles.title}>{t.settingsTitle}</Text>
         <Text style={styles.sub}>
@@ -314,6 +318,41 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             ? 'Pamahalaan ang profile, talaan ng pamilya, offline pass, at seguridad.'
             : 'Manage household profile, family members, offline pass, and security.'}
         </Text>
+
+        {/* Quick Section Jump Navigation Chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.jumpChipsRow} contentContainerStyle={{ gap: 8, paddingVertical: 6 }}>
+          <TouchableOpacity
+            style={styles.jumpChip}
+            onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.jumpChipText}>👤 {lang === 'tl' ? 'Profile' : 'Profile'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.jumpChip}
+            onPress={() => scrollRef.current?.scrollTo({ y: rosterY - 10, animated: true })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.jumpChipText}>👥 {lang === 'tl' ? 'Pamilya' : 'Roster'} ({members.length})</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.jumpChip, { backgroundColor: '#FEE2E2', borderColor: '#FECACA' }]}
+            onPress={() => scrollRef.current?.scrollTo({ y: hotlineY - 10, animated: true })}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.jumpChipText, { color: '#DC2626' }]}>🚨 {lang === 'tl' ? 'Hotlines' : 'Hotlines'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.jumpChip}
+            onPress={() => scrollRef.current?.scrollTo({ y: securityY - 10, animated: true })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.jumpChipText}>🔒 {lang === 'tl' ? 'Seguridad' : 'Security'}</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       <ProfileHeaderCard
@@ -358,7 +397,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
       <OfflineDigitalPassCard downloadingPass={downloadingPass} onSaveQRPass={handleSaveQRPassOffline} lang={lang} />
 
-      <View style={styles.sectionHeaderBetween}>
+      <View style={styles.sectionHeaderBetween} onLayout={(e) => setRosterY(e.nativeEvent.layout.y)}>
         <Text style={styles.sectionLabelNoMargin}>{lang === 'tl' ? 'TALAAN NG MIYEMBRO NG PAMILYA' : 'HOUSEHOLD MEMBERS ROSTER'}</Text>
         <TouchableOpacity style={styles.addMemberBtn} onPress={() => setShowAddMemberModal(true)} activeOpacity={0.8}>
           <PlusIcon size={13} color="#1557B0" />
@@ -461,7 +500,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         {savedSuccess && <Text style={styles.successInline}>✓ {lang === 'tl' ? 'Na-save ang contact details.' : 'Contact saved.'}</Text>}
       </View>
 
-      <Text style={styles.sectionLabel}>{lang === 'tl' ? 'SEGURIDAD AT PAG-LOGIN' : 'SECURITY & LOGIN'}</Text>
+      <Text style={styles.sectionLabel} onLayout={(e) => setSecurityY(e.nativeEvent.layout.y)}>{lang === 'tl' ? 'SEGURIDAD AT PAG-LOGIN' : 'SECURITY & LOGIN'}</Text>
       <View style={styles.settingCardGroup}>
         <View style={styles.settingRowItem}>
           <View style={{ flex: 1 }}>
@@ -557,7 +596,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       </View>
 
       <Text style={styles.sectionLabel}>{t.hotlinesSectionTitle}</Text>
-      <View style={styles.hotlineList}>
+      <View style={styles.hotlineList} onLayout={(e) => setHotlineY(e.nativeEvent.layout.y)}>
         {EMERGENCY_HOTLINES.map((h, i) => (
           <MotionPressable key={i} style={styles.hotlineCard} onPress={() => handleCallHotline(h.phone)} activeOpacity={0.85}>
             <View style={styles.phoneIconWell}>
@@ -671,9 +710,28 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: hp(14),
   },
-  header: { marginBottom: 16 },
+  header: { marginBottom: 14 },
   title: { fontSize: 22, fontWeight: FONT_WEIGHT.black, color: '#172B4D', letterSpacing: -0.3 },
-  sub: { fontSize: 12, color: '#64748B', marginTop: 4, lineHeight: 17 },
+  sub: { fontSize: 12, color: '#64748B', marginTop: 4, lineHeight: 17, marginBottom: 8 },
+  jumpChipsRow: {
+    flexDirection: 'row',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  jumpChip: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 5.5,
+    borderRadius: 16,
+    ...SHADOWS.sm,
+  },
+  jumpChipText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#1557B0',
+  },
   profileCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,

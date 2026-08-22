@@ -362,11 +362,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#F3E8FF' }]}>
-                  <PhoneCallIcon size={18} color="#7C3AED" />
+                  <SettingsIcon size={18} color="#7C3AED" />
                 </View>
-                <Text style={styles.actionTileTitle}>{t.navHotlines}</Text>
+                <Text style={styles.actionTileTitle}>{lang === 'tl' ? 'Profile at Settings' : 'Profile & Settings'}</Text>
                 <Text style={styles.actionTileSub}>
-                  {lang === 'tl' ? 'Emergency & Roster' : 'Hotlines & Settings'}
+                  {lang === 'tl' ? 'Roster at seguridad' : 'Household & security'}
                 </Text>
               </MotionPressable>
             </View>
