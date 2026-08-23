@@ -24,9 +24,11 @@ import {
   ImageIcon,
   TrashIcon,
   SearchIcon,
+  ShieldCheckIcon,
 } from '../components/AppIcons';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { registerUser } from '../services/api';
+import { API_BASE_URL } from '../config';
 import { MotionPressable } from '../components/motion';
 import { ALL_MANILA_BARANGAYS } from '../data/manilaBarangays';
 
@@ -126,6 +128,31 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   const [certified, setCertified] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // OTP Phone Verification Modal states
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpTimer, setOtpTimer] = useState(60);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [canResend, setCanResend] = useState(false);
+  const otpInputRefs = React.useRef([]);
+
+  React.useEffect(() => {
+    let timer;
+    if (showOtpModal && otpTimer > 0) {
+      timer = setInterval(() => {
+        setOtpTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [showOtpModal, otpTimer]);
 
   const filteredBarangays = useMemo(() => {
     const q = brgySearch.trim().toLowerCase();
@@ -232,6 +259,16 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     if (!idType.trim()) {
       errs.idType = lang === 'tl' ? 'Pumili ng uri ng valid ID.' : 'Please select a valid ID type.';
     }
+    // STRICT VALIDATION: ID PHOTO IS MANDATORY BEFORE PROCEEDING TO STEP 2
+    if (!idPhoto) {
+      errs.idPhoto = lang === 'tl'
+        ? 'Kailangang mag-attach ng litrato ng inyong Valid Government ID bago magpatuloy sa Hakbang 2.'
+        : 'You must attach a clear photo of your Valid Government ID before proceeding to Step 2.';
+      Alert.alert(
+        lang === 'tl' ? 'Kailangan ang Litrato ng ID' : 'ID Photo Required',
+        errs.idPhoto
+      );
+    }
     setErrors(errs);
     const isValid = Object.keys(errs).length === 0;
     if (isValid) {
@@ -303,10 +340,97 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     setShowAddMemberModal(false);
   };
 
-  const handleRegister = async () => {
+  // 1. Trigger OTP dispatch to mobile/email
+  const handleInitiateRegistration = async () => {
     if (!validateStep2()) return;
     setLoading(true);
     try {
+      const res = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneOrEmail: emailOrPhone.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setOtpDigits(['', '', '', '', '', '']);
+        setOtpError('');
+        setOtpTimer(60);
+        setCanResend(false);
+        setShowOtpModal(true);
+      } else {
+        Alert.alert(
+          lang === 'tl' ? 'Hindi Maipadala ang OTP' : 'OTP Dispatch Failed',
+          data.message || (lang === 'tl' ? 'Hindi maipadala ang verification code. Pakisuri ang inyong numero.' : 'Could not send verification OTP. Please check your phone/email.')
+        );
+      }
+    } catch (err) {
+      console.error('Send OTP error:', err);
+      Alert.alert(
+        lang === 'tl' ? 'Koneksyon sa Server' : 'Connection Notice',
+        lang === 'tl' ? 'Hindi makakonekta sa authentication server. Pakisuri ang inyong internet.' : 'Could not connect to authentication server.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2. Resend OTP code with countdown
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneOrEmail: emailOrPhone.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setOtpTimer(60);
+        setCanResend(false);
+        Alert.alert(
+          lang === 'tl' ? 'Naipadala ang OTP' : 'OTP Resent',
+          lang === 'tl' ? `Naipadala muli ang 6-digit verification code sa ${emailOrPhone.trim()}.` : `6-digit verification code resent to ${emailOrPhone.trim()}.`
+        );
+      } else {
+        setOtpError(data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP.' : 'Failed to resend OTP.'));
+      }
+    } catch (err) {
+      setOtpError(lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // 3. Verify OTP & finalize full registration
+  const handleVerifyOtpAndComplete = async () => {
+    const enteredOtp = otpDigits.join('').trim();
+    if (enteredOtp.length !== 6) {
+      setOtpError(lang === 'tl' ? 'Pakilagay ang kumpletong 6-digit verification code.' : 'Please enter the complete 6-digit code.');
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      // Step A: Verify OTP with server
+      const verifyRes = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneOrEmail: emailOrPhone.trim(),
+          otpCode: enteredOtp,
+        }),
+      });
+      const verifyData = await verifyRes.json().catch(() => ({}));
+      if (!verifyRes.ok) {
+        setOtpError(verifyData.message || (lang === 'tl' ? 'Maling OTP code o paso na. Pakisubukang muli.' : 'Invalid or expired OTP code.'));
+        setOtpLoading(false);
+        return;
+      }
+
+      // Step B: Submit full registration payload to create Household & Account
       const formattedMembers = membersList.map(m => ({
         name: m.name,
         age: parseInt(m.age, 10) || 0,
@@ -335,6 +459,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
       const res = await registerUser(payload);
       if (res && res.token) {
+        setShowOtpModal(false);
         const userObj = res.user || {
           _id: res._id,
           name: res.name,
@@ -342,6 +467,12 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           role: res.role || 'resident',
           barangayCode: res.barangayCode,
         };
+        Alert.alert(
+          lang === 'tl' ? '🎉 Rehistrasyon Naisumite!' : '🎉 Registration Submitted!',
+          lang === 'tl'
+            ? 'Na-verify na ang inyong mobile number! Ang inyong aplikasyon ay nakabinbin sa Verification Queue ng Barangay para sa opisyal na pagsusuri.'
+            : 'Your mobile number is verified! Your application is now in the Barangay Verification Queue awaiting official review.'
+        );
         onRegisterSuccess({
           token: res.token,
           user: userObj,
@@ -351,17 +482,13 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           barangayCode: userObj.barangayCode || res.barangayCode,
         });
       } else {
-        Alert.alert(
-          lang === 'tl' ? 'Paunawa sa Rehistrasyon' : 'Registration Notice',
-          res?.message || (lang === 'tl' ? 'Hindi makapag-register. Pakisubukang muli.' : 'Registration failed. Please try again.')
-        );
+        setOtpError(res?.message || (lang === 'tl' ? 'Hindi makumpleto ang rehistrasyon.' : 'Registration failed.'));
       }
     } catch (err) {
-      console.error('Registration submission error:', err);
-      const errorMsg = err.data?.message || err.message || (lang === 'tl' ? 'Hindi makapag-register. Pakisubukang muli.' : 'Registration failed. Please try again.');
-      Alert.alert(lang === 'tl' ? 'Paunawa sa Rehistrasyon' : 'Registration Notice', errorMsg);
+      console.error('Verify & Register error:', err);
+      setOtpError(err.data?.message || err.message || (lang === 'tl' ? 'Hindi makumpleto ang rehistrasyon.' : 'Registration failed.'));
     } finally {
-      setLoading(false);
+      setOtpLoading(false);
     }
   };
 
@@ -554,12 +681,20 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   <Text style={styles.idUploadLabel}>
                     {lang === 'tl' ? 'LITRATO NG VALID GOVERNMENT ID *' : 'VALID GOVERNMENT ID PHOTO *'}
                   </Text>
-                  <Text style={styles.idUploadRequiredTag}>
-                    {idPhoto ? (lang === 'tl' ? 'NA-UPLOAD NA ✓' : 'UPLOADED ✓') : (lang === 'tl' ? 'OPSYONAL' : 'OPTIONAL')}
-                  </Text>
+                  <View style={[
+                    styles.idUploadBadge,
+                    idPhoto ? styles.idUploadSuccessBadge : styles.idUploadRequiredBadge
+                  ]}>
+                    <Text style={[
+                      styles.idUploadBadgeText,
+                      idPhoto ? styles.idUploadSuccessBadgeText : styles.idUploadRequiredBadgeText
+                    ]}>
+                      {idPhoto ? (lang === 'tl' ? 'NA-UPLOAD NA ✓' : 'UPLOADED ✓') : (lang === 'tl' ? 'KAILANGAN *' : 'REQUIRED *')}
+                    </Text>
+                  </View>
                 </View>
                 <Text style={styles.idUploadSub}>
-                  {lang === 'tl' ? 'Kumuha o mag-attach ng litrato ng inyong ID para mas mabilis ang verification.' : 'Attach clear photo of your ID for rapid verification.'}
+                  {lang === 'tl' ? 'Kumuha o mag-attach ng malinaw na litrato ng inyong ID bago makapagpatuloy sa Hakbang 2.' : 'Attach clear photo of your ID before you can proceed to Step 2.'}
                 </Text>
 
                 {idPhoto ? (
@@ -585,6 +720,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Pumili sa Gallery' : 'Choose from Gallery'}</Text>
                     </TouchableOpacity>
                   </View>
+                )}
+                {errors.idPhoto && (
+                  <Text style={styles.idErrorText}>{errors.idPhoto}</Text>
                 )}
               </View>
 
@@ -777,7 +915,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
               <MotionPressable
                 style={[styles.submitBtn, loading && { opacity: 0.7 }]}
-                onPress={handleRegister}
+                onPress={handleInitiateRegistration}
                 disabled={loading}
                 activeOpacity={0.85}
               >
@@ -944,6 +1082,136 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 </TouchableOpacity>
               </View>
             </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* OTP AUTHENTICATION & PHONE VERIFICATION MODAL */}
+      <Modal
+        visible={showOtpModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!otpLoading) setShowOtpModal(false);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.otpModalBox}
+          >
+            <View style={styles.otpModalHeader}>
+              <View style={styles.otpIconBadge}>
+                <ShieldCheckIcon size={26} color="#1557B0" />
+              </View>
+              <Text style={styles.otpModalTitle}>
+                {lang === 'tl' ? 'Kumpirmasyon ng Numero / Email' : 'Phone & Email OTP Verification'}
+              </Text>
+              <Text style={styles.otpModalSub}>
+                {lang === 'tl'
+                  ? 'Ipinadala namin ang 6-digit verification code sa: '
+                  : 'We sent a 6-digit verification code to: '}
+                <Text style={{ fontWeight: '800', color: '#1557B0' }}>{emailOrPhone}</Text>
+              </Text>
+            </View>
+
+            {/* 6 OTP DIGIT INPUT BOXES */}
+            <View style={styles.otpInputsContainer}>
+              {otpDigits.map((digit, idx) => (
+                <TextInput
+                  key={idx}
+                  ref={(ref) => (otpInputRefs.current[idx] = ref)}
+                  style={[
+                    styles.otpBoxInput,
+                    digit ? styles.otpBoxInputFilled : null,
+                    otpError ? styles.otpBoxInputError : null,
+                  ]}
+                  value={digit}
+                  onChangeText={(val) => {
+                    const cleanVal = val.replace(/[^0-9]/g, '');
+                    if (cleanVal.length > 1) {
+                      // Handle paste of full 6-digit code
+                      const pastedDigits = cleanVal.slice(0, 6).split('');
+                      const newArr = [...otpDigits];
+                      pastedDigits.forEach((d, dIdx) => {
+                        newArr[dIdx] = d;
+                      });
+                      setOtpDigits(newArr);
+                      const nextFocus = Math.min(5, pastedDigits.length - 1);
+                      otpInputRefs.current[nextFocus]?.focus();
+                      return;
+                    }
+                    const newDigits = [...otpDigits];
+                    newDigits[idx] = cleanVal;
+                    setOtpDigits(newDigits);
+                    if (cleanVal && idx < 5) {
+                      otpInputRefs.current[idx + 1]?.focus();
+                    }
+                  }}
+                  onKeyPress={({ nativeEvent }) => {
+                    if (nativeEvent.key === 'Backspace' && !digit && idx > 0) {
+                      otpInputRefs.current[idx - 1]?.focus();
+                    }
+                  }}
+                  keyboardType="numeric"
+                  maxLength={6}
+                  textAlign="center"
+                  selectTextOnFocus
+                />
+              ))}
+            </View>
+
+            {/* ERROR MESSAGE IF ANY */}
+            {otpError ? (
+              <View style={styles.otpErrorBox}>
+                <Text style={styles.otpErrorText}>⚠️ {otpError}</Text>
+              </View>
+            ) : null}
+
+            {/* RESEND TIMER & ACTION */}
+            <View style={styles.otpResendRow}>
+              {canResend ? (
+                <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading}>
+                  <Text style={styles.otpResendActiveText}>
+                    {lang === 'tl' ? '🔄 Magpadala Muli ng Code' : '🔄 Resend Verification Code'}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.otpTimerText}>
+                  {lang === 'tl'
+                    ? `Maaaring magpadala muli sa loob ng ${otpTimer}s`
+                    : `Resend code available in ${otpTimer}s`}
+                </Text>
+              )}
+            </View>
+
+            {/* ACTION BUTTONS */}
+            <View style={styles.otpActionBtnGroup}>
+              <MotionPressable
+                style={[styles.verifyOtpBtn, otpLoading && { opacity: 0.7 }]}
+                onPress={handleVerifyOtpAndComplete}
+                disabled={otpLoading}
+                activeOpacity={0.85}
+              >
+                {otpLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.verifyOtpBtnText}>
+                    {lang === 'tl' ? '✓ I-verify at Tapusin ang Rehistrasyon' : '✓ Verify & Complete Registration'}
+                  </Text>
+                )}
+              </MotionPressable>
+
+              <TouchableOpacity
+                style={styles.cancelOtpBtn}
+                onPress={() => setShowOtpModal(false)}
+                disabled={otpLoading}
+              >
+                <Text style={styles.cancelOtpBtnText}>
+                  {lang === 'tl' ? 'Kanselahin / Baguhin ang Numero' : 'Cancel / Change Number'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </KeyboardAvoidingView>
         </View>
       </Modal>
@@ -1626,5 +1894,160 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
+  },
+  idUploadBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  idUploadRequiredBadge: {
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  idUploadSuccessBadge: {
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  idUploadBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  idUploadRequiredBadgeText: {
+    color: '#DC2626',
+  },
+  idUploadSuccessBadgeText: {
+    color: '#16A34A',
+  },
+  idErrorText: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  // OTP Modal Styles
+  otpModalBox: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 28,
+    width: '100%',
+    maxWidth: 480,
+    ...SHADOWS.lg,
+  },
+  otpModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  otpIconBadge: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: '#BAE6FD',
+  },
+  otpModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  otpModalSub: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 10,
+  },
+  otpInputsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  otpBoxInput: {
+    width: 44,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  otpBoxInputFilled: {
+    borderColor: '#1557B0',
+    backgroundColor: '#EFF6FF',
+  },
+  otpBoxInputError: {
+    borderColor: '#DC2626',
+    backgroundColor: '#FEF2F2',
+  },
+  otpErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 14,
+  },
+  otpErrorText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  otpResendRow: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  otpTimerText: {
+    fontSize: 12.5,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  otpResendActiveText: {
+    fontSize: 13,
+    color: '#1557B0',
+    fontWeight: '800',
+    textDecorationLine: 'underline',
+  },
+  otpActionBtnGroup: {
+    gap: 10,
+  },
+  verifyOtpBtn: {
+    backgroundColor: '#1557B0',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.md,
+  },
+  verifyOtpBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  cancelOtpBtn: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  cancelOtpBtnText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

@@ -26,12 +26,12 @@ const { sendEmailOTP } = require('../services/emailService');
 // @desc    Send a 6-digit OTP code for registration or password reset
 router.post('/send-otp', async (req, res) => {
   try {
-    const { phoneOrEmail } = req.body;
-    if (!phoneOrEmail) {
+    const rawTarget = req.body.phoneOrEmail || req.body.emailOrPhone || req.body.identifier || req.body.phone || req.body.email;
+    if (!rawTarget) {
       return res.status(400).json({ message: 'Phone number or email is required.' });
     }
 
-    const key = phoneOrEmail.trim().toLowerCase();
+    const key = rawTarget.trim().toLowerCase();
     const isEmail = key.includes('@');
 
     // Generate secure 6-digit random OTP code
@@ -51,15 +51,17 @@ router.post('/send-otp', async (req, res) => {
     } else {
       // Send SMS via Semaphore API service
       dispatchResult = await sendSMS(
-        phoneOrEmail.trim(),
+        rawTarget.trim(),
         `[MitigatePlus Manila] Your verification OTP code is ${code}. Valid for 10 minutes. Do not share.`
       );
     }
 
     res.json({
       success: true,
-      message: `OTP verification code sent to ${phoneOrEmail}.`,
+      message: `OTP verification code sent to ${rawTarget}.`,
       dispatchResult,
+      // For local/offline testing fallback
+      debugOtp: process.env.NODE_ENV === 'development' ? code : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send OTP code', error: error.message });
@@ -70,16 +72,18 @@ router.post('/send-otp', async (req, res) => {
 // @desc    Verify 6-digit OTP code
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { phoneOrEmail, otpCode } = req.body;
-    if (!phoneOrEmail || !otpCode) {
+    const rawTarget = req.body.phoneOrEmail || req.body.emailOrPhone || req.body.identifier || req.body.phone || req.body.email;
+    const rawOtp = req.body.otpCode || req.body.otp || req.body.code;
+    if (!rawTarget || !rawOtp) {
       return res.status(400).json({ message: 'Phone/email and OTP code are required.' });
     }
 
-    const key = phoneOrEmail.trim().toLowerCase();
-    const dbRecord = await OtpToken.findOne({ phoneOrEmail: key, code: otpCode.trim() });
+    const key = rawTarget.trim().toLowerCase();
+    const otpString = String(rawOtp).trim();
+    const dbRecord = await OtpToken.findOne({ phoneOrEmail: key, code: otpString });
     const memoryRecord = otpStore.get(key);
 
-    const isValid = dbRecord || (memoryRecord && memoryRecord.code === otpCode.trim());
+    const isValid = dbRecord || (memoryRecord && memoryRecord.code === otpString);
 
     if (!isValid) {
       return res.status(400).json({ message: 'Invalid or expired OTP verification code. Please check and try again.' });
