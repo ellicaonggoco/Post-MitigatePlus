@@ -39,9 +39,9 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
       setSubmitted(true);
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (err) {
-      console.warn('Assistance request submit note:', err);
-      setSubmitted(true);
-      if (onSubmitSuccess) onSubmitSuccess();
+      console.error('Assistance request submission error:', err);
+      const msg = err.data?.message || err.message || (lang === 'tl' ? 'Hindi naipadala ang kahilingan sa ayuda. Pakisubukang muli.' : 'Failed to submit assistance request. Please try again.');
+      Alert.alert(lang === 'tl' ? 'Hindi Naipadala ang Kahilingan' : 'Request Failed', msg);
     } finally {
       setLoading(false);
     }

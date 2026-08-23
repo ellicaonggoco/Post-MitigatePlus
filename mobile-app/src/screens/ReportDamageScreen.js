@@ -182,8 +182,9 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
       setSubmitted(true);
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (err) {
-      setSubmitted(true);
-      if (onSubmitSuccess) onSubmitSuccess();
+      console.error('Damage report submission error:', err);
+      const msg = err.data?.message || err.message || (lang === 'tl' ? 'Hindi naipadala ang ulat. Pakisubukang muli.' : 'Failed to submit report. Please try again.');
+      Alert.alert(lang === 'tl' ? 'Hindi Naipadala ang Ulat' : 'Submission Failed', msg);
     } finally {
       setLoading(false);
     }

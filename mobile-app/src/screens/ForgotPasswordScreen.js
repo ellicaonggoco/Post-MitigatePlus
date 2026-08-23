@@ -32,10 +32,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim() }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) setStage(2);
-      else setErrors({ identifier: lang === 'tl' ? 'Failed to send OTP.' : 'Failed to send OTP.' });
+      else setErrors({ identifier: data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP. Pakisuri ang email o numero.' : 'Failed to send OTP. Please check email or phone.') });
     } catch (err) {
-      setErrors({ identifier: lang === 'tl' ? 'Network error.' : 'Network error.' });
+      setErrors({ identifier: lang === 'tl' ? 'Hindi makakonekta sa server. Pakisuri ang internet.' : 'Network connection error. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -49,10 +50,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim(), otp: otpCode.join('') }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) setStage(3);
-      else setErrors({ otp: lang === 'tl' ? 'Invalid OTP.' : 'Invalid OTP.' });
+      else setErrors({ otp: data.message || (lang === 'tl' ? 'Maling OTP code o paso na. Pakisubukang muli.' : 'Invalid or expired OTP code.') });
     } catch (err) {
-      setErrors({ otp: lang === 'tl' ? 'Network error.' : 'Network error.' });
+      setErrors({ otp: lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.' });
     } finally {
       setLoading(false);
     }
@@ -83,10 +85,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim(), otp: otpCode.join(''), newPassword }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) onResetComplete();
-      else setErrors({ newPassword: lang === 'tl' ? 'Failed to reset password.' : 'Failed to reset password.' });
+      else setErrors({ newPassword: data.message || (lang === 'tl' ? 'Hindi napalitan ang password. Pakisubukang muli.' : 'Failed to reset password. Please try again.') });
     } catch (err) {
-      setErrors({ newPassword: lang === 'tl' ? 'Network error.' : 'Network error.' });
+      setErrors({ newPassword: lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.' });
     } finally {
       setLoading(false);
     }

@@ -379,8 +379,16 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   };
 
   const handleChangePassword = async () => {
-    if (!currentPass || !newPass || newPass.length < 8 || newPass !== confirmPass) {
-      Alert.alert(lang === 'tl' ? 'Maling Input' : 'Invalid Input', lang === 'tl' ? 'Paki-tsek ang inyong mga password.' : 'Please verify password fields.');
+    if (!currentPass) {
+      Alert.alert(lang === 'tl' ? 'Kulang na Impormasyon' : 'Missing Information', lang === 'tl' ? 'Pakilagay ang inyong kasalukuyang password.' : 'Please enter your current password.');
+      return;
+    }
+    if (!newPass || newPass.length < 8) {
+      Alert.alert(lang === 'tl' ? 'Maikling Password' : 'Password Too Short', lang === 'tl' ? 'Kailangang may minimum 8 characters ang bagong password.' : 'New password must be at least 8 characters.');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      Alert.alert(lang === 'tl' ? 'Hindi Magkatugma' : 'Passwords Do Not Match', lang === 'tl' ? 'Hindi magkatugma ang bagong password at kumpirmasyon.' : 'New password and confirmation do not match.');
       return;
     }
     try {
@@ -390,17 +398,18 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        Alert.alert(lang === 'tl' ? 'Tagumpay' : 'Success', lang === 'tl' ? 'Matagumpay na nabago ang password!' : 'Password updated!');
+        Alert.alert(lang === 'tl' ? 'Tagumpay' : 'Success', lang === 'tl' ? 'Matagumpay na nabago ang inyong password!' : 'Password successfully updated!');
         setShowPasswordChange(false);
         setCurrentPass('');
         setNewPass('');
         setConfirmPass('');
       } else {
-        Alert.alert('Error', lang === 'tl' ? 'Maling kasalukuyang password.' : 'Incorrect password.');
+        Alert.alert(lang === 'tl' ? 'Hindi Nabago ang Password' : 'Change Password Failed', data.message || (lang === 'tl' ? 'Maling kasalukuyang password. Pakisubukang muli.' : 'Incorrect current password. Please try again.'));
       }
     } catch (err) {
-      Alert.alert('Error', lang === 'tl' ? 'Hindi makakonekta.' : 'Could not connect.');
+      Alert.alert(lang === 'tl' ? 'Koneksyon' : 'Connection Error', lang === 'tl' ? 'Hindi makakonekta sa server. Pakisuri ang inyong internet.' : 'Could not connect to server. Please check your internet connection.');
     }
   };
 
