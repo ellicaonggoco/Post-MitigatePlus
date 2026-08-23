@@ -97,6 +97,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
   // Step 1: Head of Household info & ID
   const [name, setName] = useState('');
+  const [headAge, setHeadAge] = useState('');
+  const [headCondition, setHeadCondition] = useState('none');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -113,10 +115,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   const [showBrgyList, setShowBrgyList] = useState(false);
   const [brgySearch, setBrgySearch] = useState('');
 
-  // Dynamic Family Members Roster List
-  const [membersList, setMembersList] = useState([
-    { id: 'head_1', name: 'Head of Household (You)', age: '35', relationship: 'Head of Household', condition: 'none' },
-  ]);
+  // Dynamic Family Members Roster List (Populated from Head of Household + Added Members)
+  const [membersList, setMembersList] = useState([]);
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberAge, setNewMemberAge] = useState('');
   const [newMemberRel, setNewMemberRel] = useState('Child');
@@ -216,6 +216,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     if (!name.trim() || name.trim().length < 3) {
       errs.name = lang === 'tl' ? 'Kailangang may minimum 3 characters ang pangalan.' : 'Full name must be at least 3 characters.';
     }
+    const parsedHeadAge = parseInt(headAge, 10);
+    if (!headAge.trim() || isNaN(parsedHeadAge) || parsedHeadAge < 18 || parsedHeadAge > 120) {
+      errs.headAge = lang === 'tl' ? 'Pakilagay ang wastong edad ng Punong-Pamilya (18-120 taon).' : 'Please enter valid head of household age (18-120).';
+    }
     if (!emailOrPhone.trim()) {
       errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang email o mobile number.' : 'Please enter email or mobile number.';
     }
@@ -229,7 +233,22 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       errs.idType = lang === 'tl' ? 'Pumili ng uri ng valid ID.' : 'Please select a valid ID type.';
     }
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const isValid = Object.keys(errs).length === 0;
+    if (isValid) {
+      const finalHeadCondition = headCondition !== 'none' ? headCondition : (parsedHeadAge >= 60 ? 'senior' : 'none');
+      const headEntry = {
+        id: 'head_1',
+        name: `${name.trim()} (${lang === 'tl' ? 'Ikaw / Punong-Pamilya' : 'You / Head of Household'})`,
+        age: String(parsedHeadAge),
+        relationship: 'Head of Household',
+        condition: finalHeadCondition,
+      };
+      setMembersList(prev => {
+        const others = prev.filter(m => m.id !== 'head_1');
+        return [headEntry, ...others];
+      });
+    }
+    return isValid;
   };
 
   const validateStep2 = () => {
@@ -418,6 +437,53 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 errorText={errors.name}
                 required
               />
+
+              <NeumorphicInput
+                label={lang === 'tl' ? 'Edad ng Punong-Pamilya (18+ Taong Gulang)' : 'Age of Head of Household (18+)'}
+                value={headAge}
+                onChangeText={(val) => {
+                  setHeadAge(val);
+                  const num = parseInt(val, 10);
+                  if (num >= 60 && headCondition === 'none') {
+                    setHeadCondition('senior');
+                  }
+                }}
+                placeholder={lang === 'tl' ? 'hal. 42' : 'e.g. 42'}
+                keyboardType="numeric"
+                errorText={errors.headAge}
+                required
+              />
+
+              {/* HEAD OF HOUSEHOLD CLASSIFICATION CHIPS */}
+              <View style={styles.fieldBlock}>
+                <Text style={styles.fieldLabelText}>
+                  {lang === 'tl' ? 'KATAYUAN NG PUNONG-PAMILYA *' : 'HEAD OF HOUSEHOLD CLASSIFICATION *'}
+                </Text>
+                <View style={styles.conditionGrid}>
+                  {[
+                    { id: 'none', label: lang === 'tl' ? '👨 Regular Adult' : '👨 Regular Adult', sub: '18-59 yrs' },
+                    { id: 'senior', label: lang === 'tl' ? '🧓 Senior Citizen' : '🧓 Senior Citizen', sub: '60+ yrs' },
+                    { id: 'pwd', label: lang === 'tl' ? '♿ PWD (May Kapansanan)' : '♿ Person with Disability', sub: 'Special care' },
+                    { id: 'pregnant', label: lang === 'tl' ? '🤰 Buntis / Nagpapasuso' : '🤰 Pregnant / Nursing', sub: 'Maternal' },
+                  ].map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={[styles.conditionChip, headCondition === c.id && styles.conditionChipActive]}
+                      onPress={() => {
+                        setHeadCondition(c.id);
+                        if (c.id === 'senior' && (!headAge || parseInt(headAge, 10) < 60)) {
+                          setHeadAge('60');
+                        }
+                      }}
+                    >
+                      <Text style={[styles.conditionChipTitle, headCondition === c.id && styles.conditionChipTitleActive]}>
+                        {c.label}
+                      </Text>
+                      <Text style={styles.conditionChipSub}>{c.sub}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
 
               <NeumorphicInput
                 label={lang === 'tl' ? 'Email o 11-Digit Mobile Number' : 'Email Address or Mobile Number'}
