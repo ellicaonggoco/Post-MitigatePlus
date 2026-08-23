@@ -59,4 +59,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload v2.4.2-apk mobile-app/dist/app-release.apk --clobber || gh release create v2.4.2-apk mobile-app/dist/app-release.apk --title "MitigatePlus v2.4.2 Standalone Android APK" --notes "Official Standalone Release APK with embedded offline bundle"
+          gh release delete v2.4.2-apk --yes || true
+          gh release create v2.4.2-apk mobile-app/dist/app-release.apk --title "MitigatePlus v2.4.2 Standalone Release APK" --notes "Official standalone release APK with embedded offline bundle, mandatory ID photo validation, and OTP phone verification."
