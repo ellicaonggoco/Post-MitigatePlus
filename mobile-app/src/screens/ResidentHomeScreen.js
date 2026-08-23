@@ -157,9 +157,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas (High)' : 'High Priority');
   const isVerified = householdData?.verificationStatus === 'verified';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
-
-  const basePacks = Math.max(1, Math.floor(headcount / 4));
-  const topUpUnits = headcount % 4 > 0 ? headcount % 4 : 0;
+  const baseCoverage = 4; // 1 Base pack covers up to 4 members
+  const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
+  const topUpUnits = headcount > baseCoverage ? (headcount - (basePacks * baseCoverage)) : 0;
 
   return (
     <View style={styles.container}>
@@ -424,10 +424,19 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     ]}
                   >
                     <View style={styles.annTopRow}>
-                      <View style={styles.annTagBadge}>
-                        <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <View style={styles.annTagBadge}>
+                          <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
+                        </View>
+                        {ann.edited ? (
+                          <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+                            <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
+                              {lang === 'tl' ? '(Nai-edit)' : '(Edited)'}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
-                      <Text style={styles.annTime}>{ann.timestamp}</Text>
+                      <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
                     </View>
                     <Text style={styles.annTitle}>{ann.title}</Text>
                     <Text style={styles.annBody}>{ann.body}</Text>

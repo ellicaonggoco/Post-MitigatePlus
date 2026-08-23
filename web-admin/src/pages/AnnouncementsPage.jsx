@@ -3,7 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ROLES } from '../utils/roleUtils';
 import ConfirmModal from '../components/ConfirmModal';
 import { Megaphone, Plus, Send, Clock, Users, Globe, Edit3, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import io from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton, MotionBadge } from '../components/motion';
 
 const MANILA_BARANGAYS = Array.from({ length: 897 }, (_, i) => ({
@@ -42,6 +43,19 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     fetchAnnouncements();
+
+    const socket = io(SOCKET_URL);
+    socket.on('new_announcement', () => {
+      fetchAnnouncements();
+    });
+    socket.on('announcement_updated', () => {
+      fetchAnnouncements();
+    });
+    socket.on('announcement_deleted', () => {
+      fetchAnnouncements();
+    });
+
+    return () => socket.disconnect();
   }, [token]);
 
   const [showForm, setShowForm] = useState(false);
@@ -138,14 +152,14 @@ export default function AnnouncementsPage() {
 
   // ── Edit Announcement with confirmation ──────────────────────
   const startEdit = (ann) => {
-    setEditingId(ann.id);
+    setEditingId(ann._id || ann.id);
     setForm({
       title: ann.title,
       body: ann.body,
-      scope: ann.scope,
+      scope: ann.scope || (ann.barangayCode === 'City-Wide' || ann.barangay === 'City-Wide' ? 'city-wide' : 'barangay'),
       category: ann.category || 'relief',
       isUrgent: !!ann.isUrgent,
-      targetBarangay: ann.barangay === 'City-Wide' ? '291' : ann.barangay,
+      targetBarangay: ann.barangay === 'City-Wide' ? '291' : (ann.barangayCode || ann.barangay || '291'),
     });
     setShowForm(true);
   };
