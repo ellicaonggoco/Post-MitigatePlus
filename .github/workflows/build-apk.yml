@@ -44,12 +44,16 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --parallel --build-cache
+          mkdir -p ../dist
+          cp $(find app/build/outputs/apk -name "*.apk" | head -n 1) ../dist/app-release.apk
+          find app/build/outputs/apk -name "*.apk" -exec cp {} ../dist/ \;
+          ls -la ../dist/
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MitigatePlus-Android-Release-APK
-          path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
+          path: mobile-app/dist/app-release.apk
 
       - name: Release APK to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -61,6 +65,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            mobile-app/android/app/build/outputs/apk/release/app-release.apk
+            mobile-app/dist/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
