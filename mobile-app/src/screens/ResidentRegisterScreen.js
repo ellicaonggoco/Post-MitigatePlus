@@ -163,7 +163,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         const result = await ImagePicker.launchCameraAsync({
           mediaTypes: ['images'],
           allowsEditing: true,
-          quality: 0.7,
+          quality: 0.35,
+          maxWidth: 800,
+          maxHeight: 800,
           base64: true,
         });
         if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -192,7 +194,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsEditing: true,
-          quality: 0.7,
+          quality: 0.35,
+          maxWidth: 800,
+          maxHeight: 800,
           base64: true,
         });
         if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -328,10 +332,15 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           barangayCode: userObj.barangayCode || res.barangayCode,
         });
       } else {
-        Alert.alert('Error', res?.message || (lang === 'tl' ? 'Hindi makapag-register.' : 'Registration failed.'));
+        Alert.alert(
+          lang === 'tl' ? 'Paunawa sa Rehistrasyon' : 'Registration Notice',
+          res?.message || (lang === 'tl' ? 'Hindi makapag-register. Pakisubukang muli.' : 'Registration failed. Please try again.')
+        );
       }
     } catch (err) {
-      Alert.alert('Error', lang === 'tl' ? 'Hindi makapag-register.' : 'Registration failed.');
+      console.error('Registration submission error:', err);
+      const errorMsg = err.data?.message || err.message || (lang === 'tl' ? 'Hindi makapag-register. Pakisubukang muli.' : 'Registration failed. Please try again.');
+      Alert.alert(lang === 'tl' ? 'Paunawa sa Rehistrasyon' : 'Registration Notice', errorMsg);
     } finally {
       setLoading(false);
     }

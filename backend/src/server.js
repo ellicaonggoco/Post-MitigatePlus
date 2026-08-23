@@ -60,9 +60,9 @@ app.use(cors({
   credentials: true,
 }));
 
-// Request Payload Body Size Limiter (Prevents DoS through large payload flooding)
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ limit: '2mb', extended: true }));
+// Request Payload Body Size Limiter (Allows high-res citizen ID & damage photo attachments up to 50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // NoSQL Injection Sanitization (Strips $ and . operators from requests)
 app.use(mongoSanitize());
