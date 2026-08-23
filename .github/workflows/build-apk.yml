@@ -40,15 +40,15 @@ jobs:
         working-directory: mobile-app
         run: npx expo prebuild --platform android --clean
 
-      - name: Build Android Installable APK
+      - name: Build Standalone Release APK with Offline Bundle
         working-directory: mobile-app/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APK Artifact
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MitigatePlus-Android-Installable-APK
-          path: mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
+          name: MitigatePlus-Android-Release-APK
+          path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
 
       - name: Release APK to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -56,10 +56,10 @@ jobs:
         with:
           tag_name: v2.4.2-apk
           name: "MitigatePlus v2.4.2 Standalone Android APK (Live Build)"
-          body: "Official standalone Android APK release containing Mandatory ID Photo Validation, 6-Digit SMS/Email OTP Phone Verification Modal, and Real-Time WebSocket Approval Sync."
+          body: "Official standalone Android Release APK containing embedded offline bundle, Mandatory ID Photo Validation, 6-Digit SMS/Email OTP Phone Verification Modal, and Real-Time WebSocket Approval Sync."
           draft: false
           prerelease: false
           files: |
-            mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
+            mobile-app/android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
