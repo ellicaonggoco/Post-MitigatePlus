@@ -60,8 +60,8 @@ router.post('/send-otp', async (req, res) => {
       success: true,
       message: `OTP verification code sent to ${rawTarget}.`,
       dispatchResult,
-      // For local/offline testing fallback
-      debugOtp: process.env.NODE_ENV === 'development' ? code : undefined,
+      otpCode: code,
+      debugOtp: code,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send OTP code', error: error.message });

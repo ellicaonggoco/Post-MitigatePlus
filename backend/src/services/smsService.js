@@ -12,12 +12,16 @@ const sendSMS = async (recipientNumber, message) => {
   }
 
   try {
-    const params = new URLSearchParams({
+    const postBody = {
       apikey: apiKey,
       number: recipientNumber,
       message: message,
-      sendername: process.env.SEMAPHORE_SENDER_NAME || 'MitigatePlus',
-    });
+    };
+    if (process.env.SEMAPHORE_SENDER_NAME) {
+      postBody.sendername = process.env.SEMAPHORE_SENDER_NAME;
+    }
+
+    const params = new URLSearchParams(postBody);
 
     const response = await fetch('https://api.semaphore.co/api/v4/messages', {
       method: 'POST',
@@ -25,7 +29,13 @@ const sendSMS = async (recipientNumber, message) => {
       body: params.toString(),
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = { raw: rawText };
+    }
 
     if (response.ok) {
       console.log(`[SMS SENT] Successfully dispatched to ${recipientNumber}:`, data);

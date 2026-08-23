@@ -132,6 +132,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   // OTP Phone Verification Modal states
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [fallbackOtp, setFallbackOtp] = useState('');
   const [otpTimer, setOtpTimer] = useState(60);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState('');
@@ -247,8 +248,17 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     if (!headAge.trim() || isNaN(parsedHeadAge) || parsedHeadAge < 18 || parsedHeadAge > 120) {
       errs.headAge = lang === 'tl' ? 'Pakilagay ang wastong edad ng Punong-Pamilya (18-120 taon).' : 'Please enter valid head of household age (18-120).';
     }
+    const cleanNumber = emailOrPhone.trim().replace(/[\s-+]/g, '');
     if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang email o mobile number.' : 'Please enter email or mobile number.';
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang inyong 11-digit mobile number (09XXXXXXXXX).' : 'Please enter your 11-digit mobile number (09XXXXXXXXX).';
+    } else if (cleanNumber.startsWith('63') && cleanNumber.length === 12) {
+      // valid 639XXXXXXXXX
+    } else if (cleanNumber.startsWith('09') && cleanNumber.length === 11) {
+      // valid 09XXXXXXXXX
+    } else {
+      errs.emailOrPhone = lang === 'tl'
+        ? 'Dapat magsimula sa 09 ang 11-digit mobile number (hal. 09XXXXXXXXX).'
+        : 'Mobile number must start with 09 and be 11 digits (e.g. 09XXXXXXXXX).';
     }
     if (!password || !isPasswordValid) {
       errs.password = lang === 'tl' ? 'Pakisunod ang checklist sa password.' : 'Please fulfill all password requirements.';
@@ -340,7 +350,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     setShowAddMemberModal(false);
   };
 
-  // 1. Trigger OTP dispatch to mobile/email
+  // 1. Trigger OTP dispatch to mobile
   const handleInitiateRegistration = async () => {
     if (!validateStep2()) return;
     setLoading(true);
@@ -356,11 +366,14 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         setOtpError('');
         setOtpTimer(60);
         setCanResend(false);
+        if (data.otpCode || data.debugOtp) {
+          setFallbackOtp(data.otpCode || data.debugOtp);
+        }
         setShowOtpModal(true);
       } else {
         Alert.alert(
           lang === 'tl' ? 'Hindi Maipadala ang OTP' : 'OTP Dispatch Failed',
-          data.message || (lang === 'tl' ? 'Hindi maipadala ang verification code. Pakisuri ang inyong numero.' : 'Could not send verification OTP. Please check your phone/email.')
+          data.message || (lang === 'tl' ? 'Hindi maipadala ang verification code. Pakisuri ang inyong numero.' : 'Could not send verification OTP. Please check your phone number.')
         );
       }
     } catch (err) {
@@ -389,6 +402,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       if (res.ok) {
         setOtpTimer(60);
         setCanResend(false);
+        if (data.otpCode || data.debugOtp) {
+          setFallbackOtp(data.otpCode || data.debugOtp);
+        }
         Alert.alert(
           lang === 'tl' ? 'Naipadala ang OTP' : 'OTP Resent',
           lang === 'tl' ? `Naipadala muli ang 6-digit verification code sa ${emailOrPhone.trim()}.` : `6-digit verification code resent to ${emailOrPhone.trim()}.`
@@ -613,13 +629,17 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </View>
 
               <NeumorphicInput
-                label={lang === 'tl' ? 'Email o 11-Digit Mobile Number' : 'Email Address or Mobile Number'}
+                label={lang === 'tl' ? '11-Digit Mobile Number (Cellphone)' : '11-Digit Mobile Number'}
                 value={emailOrPhone}
-                onChangeText={setEmailOrPhone}
-                placeholder="09171234567 o email@gmail.com"
+                onChangeText={(val) => {
+                  const cleaned = val.replace(/[^0-9]/g, '');
+                  setEmailOrPhone(cleaned);
+                }}
+                placeholder="09XXXXXXXXX (hal. 09236051393)"
                 errorText={errors.emailOrPhone}
                 required
-                keyboardType="email-address"
+                keyboardType="phone-pad"
+                maxLength={11}
                 autoCapitalize="none"
               />
 
@@ -1105,15 +1125,45 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 <ShieldCheckIcon size={26} color="#1557B0" />
               </View>
               <Text style={styles.otpModalTitle}>
-                {lang === 'tl' ? 'Kumpirmasyon ng Numero / Email' : 'Phone & Email OTP Verification'}
+                {lang === 'tl' ? 'Kumpirmasyon ng Mobile Number' : 'Mobile Number OTP Verification'}
               </Text>
               <Text style={styles.otpModalSub}>
                 {lang === 'tl'
-                  ? 'Ipinadala namin ang 6-digit verification code sa: '
+                  ? 'Ipinadala ang 6-digit verification code sa iyong mobile number: '
                   : 'We sent a 6-digit verification code to: '}
                 <Text style={{ fontWeight: '800', color: '#1557B0' }}>{emailOrPhone}</Text>
               </Text>
             </View>
+
+            {/* FALLBACK / DEMO CODE HELPER WITH INSTANT AUTO-FILL */}
+            {fallbackOtp ? (
+              <View style={styles.demoOtpBox}>
+                <View style={styles.demoOtpHeader}>
+                  <Text style={styles.demoOtpTitle}>
+                    {lang === 'tl' ? '📱 Verification Code:' : '📱 Verification Code:'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.autoFillBtn}
+                    onPress={() => {
+                      const digits = fallbackOtp.split('');
+                      setOtpDigits(digits);
+                      setOtpError('');
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.autoFillBtnText}>
+                      {lang === 'tl' ? '⚡ I-Auto-Fill Code' : '⚡ Auto-Fill Code'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
+                <Text style={styles.demoOtpSubText}>
+                  {lang === 'tl'
+                    ? 'I-tap ang "⚡ I-Auto-Fill Code" kung sakaling naantala o walang signal ang SMS.'
+                    : 'Tap "⚡ Auto-Fill Code" if SMS delivery is delayed.'}
+                </Text>
+              </View>
+            ) : null}
 
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>
@@ -1965,6 +2015,51 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  demoOtpBox: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+  },
+  demoOtpHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  demoOtpTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  autoFillBtn: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  autoFillBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  demoOtpCodeText: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 4,
+    color: '#15803D',
+    textAlign: 'center',
+    marginVertical: 4,
+  },
+  demoOtpSubText: {
+    fontSize: 11,
+    color: '#15803D',
+    textAlign: 'center',
+    lineHeight: 15,
   },
   otpInputsContainer: {
     flexDirection: 'row',

@@ -191,15 +191,15 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </Text>
           </View>
 
-          {/* Email or Phone Input without cluttered helper text */}
+          {/* Mobile Number or Email Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Email Address o Mobile Number' : 'Email Address or Mobile Number'}
+            label={lang === 'tl' ? '11-Digit Mobile Number (o Email)' : '11-Digit Mobile Number (or Email)'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder="youremail@gmail.com"
+            placeholder="09XXXXXXXXX (hal. 09236051393)"
             errorText={errors.emailOrPhone}
             required
-            keyboardType="email-address"
+            keyboardType="default"
             autoCapitalize="none"
           />
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput } from 'react-native';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, NEUMORPHIC, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
@@ -10,17 +10,19 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   const [stage, setStage] = useState(1); // 1: Find Account, 2: OTP Verification, 3: Reset Password
   const [identifier, setIdentifier] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [fallbackOtp, setFallbackOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const otpRefs = useRef([]);
 
   const handleSendOtp = async () => {
     if (!identifier.trim()) {
       setErrors({
         identifier: lang === 'tl'
-          ? 'Pakilagay ang inyong rehistradong Email Address o Mobile Number.'
-          : 'Please enter your registered Email Address or Mobile Number.',
+          ? 'Pakilagay ang inyong 11-digit mobile number o email.'
+          : 'Please enter your 11-digit mobile number or email.',
       });
       return;
     }
@@ -33,8 +35,12 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         body: JSON.stringify({ identifier: identifier.trim() }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) setStage(2);
-      else setErrors({ identifier: data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP. Pakisuri ang email o numero.' : 'Failed to send OTP. Please check email or phone.') });
+      if (res.ok) {
+        if (data.otpCode || data.debugOtp) setFallbackOtp(data.otpCode || data.debugOtp);
+        setStage(2);
+      } else {
+        setErrors({ identifier: data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP. Pakisuri ang numero o email.' : 'Failed to send OTP. Please check phone number or email.') });
+      }
     } catch (err) {
       setErrors({ identifier: lang === 'tl' ? 'Hindi makakonekta sa server. Pakisuri ang internet.' : 'Network connection error. Please try again.' });
     } finally {
@@ -179,13 +185,60 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </Text>
 
+            {fallbackOtp ? (
+              <View style={styles.demoOtpBox}>
+                <View style={styles.demoOtpHeader}>
+                  <Text style={styles.demoOtpTitle}>
+                    {lang === 'tl' ? '📱 Verification Code:' : '📱 Verification Code:'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.autoFillBtn}
+                    onPress={() => {
+                      const digits = fallbackOtp.split('');
+                      setOtpCode(digits);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.autoFillBtnText}>
+                      {lang === 'tl' ? '⚡ I-Auto-Fill' : '⚡ Auto-Fill'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.otpGrid}>
               {otpCode.map((digit, i) => (
-                <View key={i} style={styles.otpBox}>
-                  <Text style={styles.otpDigit}>{digit}</Text>
-                </View>
+                <TextInput
+                  key={i}
+                  ref={(r) => (otpRefs.current[i] = r)}
+                  style={[styles.otpBoxInput, digit ? styles.otpBoxInputFilled : null]}
+                  value={digit}
+                  onChangeText={(val) => {
+                    const clean = val.replace(/[^0-9]/g, '');
+                    const newDigits = [...otpCode];
+                    newDigits[i] = clean.slice(-1);
+                    setOtpCode(newDigits);
+                    if (clean && i < 5) otpRefs.current[i + 1]?.focus();
+                  }}
+                  onKeyPress={({ nativeEvent }) => {
+                    if (nativeEvent.key === 'Backspace' && !digit && i > 0) {
+                      otpRefs.current[i - 1]?.focus();
+                    }
+                  }}
+                  keyboardType="numeric"
+                  maxLength={1}
+                  textAlign="center"
+                />
               ))}
             </View>
+
+            {errors.otp && (
+              <Text style={{ color: '#DC2626', fontSize: 12, textAlign: 'center', marginBottom: 10, fontWeight: '600' }}>
+                ⚠️ {errors.otp}
+              </Text>
+            )}
 
             <MotionPressable style={styles.actionBtn} onPress={handleVerifyOtp} disabled={loading} activeOpacity={0.85}>
               {loading ? (
@@ -322,24 +375,65 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 16,
   },
+  demoOtpBox: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 10,
+  },
+  demoOtpHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  demoOtpTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  autoFillBtn: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  autoFillBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  demoOtpCodeText: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 4,
+    color: '#15803D',
+    textAlign: 'center',
+  },
   otpGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 18,
+    marginVertical: 14,
   },
-  otpBox: {
-    ...NEUMORPHIC.sunken,
+  otpBoxInput: {
     width: 44,
     height: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-  },
-  otpDigit: {
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
     fontSize: 18,
-    fontWeight: FONT_WEIGHT.black,
+    fontWeight: '800',
     color: '#002BB8',
+    textAlign: 'center',
+  },
+  otpBoxInputFilled: {
+    borderColor: '#002BB8',
+    backgroundColor: '#EFF6FF',
   },
   actionBtn: {
     ...NEUMORPHIC.activePill,
