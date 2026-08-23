@@ -249,16 +249,21 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       errs.headAge = lang === 'tl' ? 'Pakilagay ang wastong edad ng Punong-Pamilya (18-120 taon).' : 'Please enter valid head of household age (18-120).';
     }
     const cleanNumber = emailOrPhone.trim().replace(/[\s-+]/g, '');
+    const isEmail = emailOrPhone.trim().includes('@');
     if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang inyong 11-digit mobile number (09XXXXXXXXX).' : 'Please enter your 11-digit mobile number (09XXXXXXXXX).';
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang 11-digit mobile number (09XXXXXXXXX) o email address.' : 'Please enter 11-digit mobile number (09XXXXXXXXX) or email address.';
+    } else if (isEmail) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrPhone.trim())) {
+        errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email (hal. name@gmail.com).' : 'Please enter a valid email address.';
+      }
     } else if (cleanNumber.startsWith('63') && cleanNumber.length === 12) {
       // valid 639XXXXXXXXX
     } else if (cleanNumber.startsWith('09') && cleanNumber.length === 11) {
       // valid 09XXXXXXXXX
     } else {
       errs.emailOrPhone = lang === 'tl'
-        ? 'Dapat magsimula sa 09 ang 11-digit mobile number (hal. 09XXXXXXXXX).'
-        : 'Mobile number must start with 09 and be 11 digits (e.g. 09XXXXXXXXX).';
+        ? 'Dapat magsimula sa 09 ang 11-digit mobile number (09XXXXXXXXX) o maglagay ng valid email.'
+        : 'Please enter a valid 11-digit mobile number starting with 09 (e.g. 09XXXXXXXXX) or email.';
     }
     if (!password || !isPasswordValid) {
       errs.password = lang === 'tl' ? 'Pakisunod ang checklist sa password.' : 'Please fulfill all password requirements.';
@@ -629,17 +634,15 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </View>
 
               <NeumorphicInput
-                label={lang === 'tl' ? '11-Digit Mobile Number (Cellphone)' : '11-Digit Mobile Number'}
+                label={lang === 'tl' ? '11-Digit Mobile Number (o Email)' : '11-Digit Mobile Number (or Email)'}
                 value={emailOrPhone}
                 onChangeText={(val) => {
-                  const cleaned = val.replace(/[^0-9]/g, '');
-                  setEmailOrPhone(cleaned);
+                  setEmailOrPhone(val);
                 }}
-                placeholder="09XXXXXXXXX (hal. 09236051393)"
+                placeholder="09XXXXXXXXX o youremail@gmail.com"
                 errorText={errors.emailOrPhone}
                 required
-                keyboardType="phone-pad"
-                maxLength={11}
+                keyboardType="default"
                 autoCapitalize="none"
               />
 
