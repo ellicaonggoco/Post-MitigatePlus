@@ -26,6 +26,10 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
         "INTERNET"
       ]
     },
@@ -36,6 +40,12 @@
       "eas": {
         "projectId": "ca1506c5-36f2-4961-a9b1-9b321ce9b813"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ca1506c5-36f2-4961-a9b1-9b321ce9b813"
     }
   }
 }
