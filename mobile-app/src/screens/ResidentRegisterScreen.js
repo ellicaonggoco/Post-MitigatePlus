@@ -1016,9 +1016,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
             <ScrollView
               style={{ maxHeight: hp(58) }}
-              contentContainerStyle={{ paddingBottom: 30 }}
-              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 140 }}
+              showsVerticalScrollIndicator={true}
               keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
             >
               {/* MEMBER CLASSIFICATION CHIPS */}
               <Text style={styles.inputSectionLabel}>

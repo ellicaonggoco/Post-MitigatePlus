@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 import { submitAssistanceRequest } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { CheckIcon, ShieldCheckIcon, FoodIcon, BabyIcon, MedicineIcon, HygieneIcon, WaterDropIcon, ArrowLeftIcon } from '../components/AppIcons';
@@ -76,7 +76,12 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       {/* Back Button with MotionPressable */}
       <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
         <View style={styles.backIconCircle}>
@@ -169,6 +174,7 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
         )}
       </MotionPressable>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
