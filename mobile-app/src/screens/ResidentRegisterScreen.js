@@ -993,18 +993,18 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         </View>
       </Modal>
 
-      {/* ADD MEMBER MODAL (RESTORED SENIOR, PWD, AND INFANT WITHOUT AGE) */}
+      {/* ADD MEMBER MODAL */}
       <Modal
         visible={showAddMemberModal}
         transparent
         animationType="slide"
         onRequestClose={() => setShowAddMemberModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.addMemberModalBox}
-          >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.addMemberModalBox, { maxHeight: hp(78) }]}>
             <View style={styles.idModalHeader}>
               <Text style={styles.idModalTitle}>
                 {lang === 'tl' ? 'Magdagdag ng Miyembro ng Pamilya' : 'Add Household Member'}
@@ -1014,7 +1014,12 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              style={{ maxHeight: hp(58) }}
+              contentContainerStyle={{ paddingBottom: 30 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {/* MEMBER CLASSIFICATION CHIPS */}
               <Text style={styles.inputSectionLabel}>
                 {lang === 'tl' ? 'KATEGORYA NG MIYEMBRO *' : 'MEMBER CLASSIFICATION *'}
@@ -1105,8 +1110,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* OTP AUTHENTICATION & PHONE VERIFICATION MODAL */}

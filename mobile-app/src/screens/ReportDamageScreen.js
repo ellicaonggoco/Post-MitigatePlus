@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { submitDamageReport } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon } from '../components/AppIcons';
@@ -128,23 +129,104 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
     { level: 'Total', label: t.sevTotal, sub: t.sevTotalSub, color: '#7F1D1D', badgeBg: '#F3E8FF' },
   ];
 
-  const triggerImagePicker = (source) => {
-    if (typeof document !== 'undefined') {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      if (source === 'camera') input.capture = 'environment';
-      input.onchange = (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            setSelectedPhoto({ uri: event.target.result, source, name: file.name || 'damage.jpg' });
-          };
-          reader.readAsDataURL(file);
+  const handlePickCamera = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Camera' : 'Camera Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa camera upang kumuha ng litrato ng pinsala.' : 'Camera permission is required.'
+          );
+          return;
         }
-      };
-      input.click();
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          quality: 0.35,
+          maxWidth: 900,
+          maxHeight: 900,
+          base64: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          setSelectedPhoto({
+            uri: asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri,
+            source: 'camera',
+            name: 'camera_damage.jpg',
+          });
+          setErrors((prev) => ({ ...prev, photo: '' }));
+        }
+      } else if (typeof document !== 'undefined') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              setSelectedPhoto({ uri: event.target.result, source: 'camera', name: file.name || 'damage.jpg' });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    } catch (e) {
+      console.warn('Camera error:', e);
+      Alert.alert(lang === 'tl' ? 'Pansin' : 'Notice', lang === 'tl' ? 'Hindi mabuksan ang camera.' : 'Unable to open camera.');
+    }
+  };
+
+  const handlePickLibrary = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Gallery' : 'Gallery Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa gallery upang pumili ng litrato ng pinsala.' : 'Gallery permission is required.'
+          );
+          return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          quality: 0.35,
+          maxWidth: 900,
+          maxHeight: 900,
+          base64: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          setSelectedPhoto({
+            uri: asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri,
+            source: 'gallery',
+            name: asset.fileName || 'gallery_damage.jpg',
+          });
+          setErrors((prev) => ({ ...prev, photo: '' }));
+        }
+      } else if (typeof document !== 'undefined') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              setSelectedPhoto({ uri: event.target.result, source: 'gallery', name: file.name || 'damage.jpg' });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    } catch (e) {
+      console.warn('Gallery error:', e);
+      Alert.alert(lang === 'tl' ? 'Pansin' : 'Notice', lang === 'tl' ? 'Hindi mabuksan ang gallery.' : 'Unable to open gallery.');
     }
   };
 
@@ -208,56 +290,62 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
-        <View style={styles.backIconCircle}>
-          <ArrowLeftIcon size={14} color="#1557B0" />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
+          <View style={styles.backIconCircle}>
+            <ArrowLeftIcon size={14} color="#1557B0" />
+          </View>
+          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
+        </MotionPressable>
+
+        <Text style={styles.headerTitle}>{lang === 'tl' ? 'I-ulat ang Pinsala ng Bahay' : 'Report Structural Damage'}</Text>
+        <Text style={styles.headerSub}>
+          {lang === 'tl' ? 'Mabilisang pagsusuri ng pinsala para sa agarang tulong.' : 'Rapid damage assessment for emergency response.'}
+        </Text>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
         </View>
-        <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
-      </MotionPressable>
+        <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
 
-      <Text style={styles.headerTitle}>{lang === 'tl' ? 'I-ulat ang Pinsala ng Bahay' : 'Report Structural Damage'}</Text>
-      <Text style={styles.headerSub}>
-        {lang === 'tl' ? 'Mabilisang pagsusuri ng pinsala para sa agarang tulong.' : 'Rapid damage assessment for emergency response.'}
-      </Text>
+        <NeumorphicInput
+          label={lang === 'tl' ? 'Lokasyon / Landmark' : 'Location / Landmark'}
+          value={addressLandmark}
+          onChangeText={setAddressLandmark}
+          placeholder="e.g. 123 Calle Real, Manila"
+          errorText={errors.addressLandmark}
+          required
+        />
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
-      </View>
-      <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
+        <NeumorphicInput
+          label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
+          value={description}
+          onChangeText={setDescription}
+          placeholder={lang === 'tl' ? 'Ilarawan ang nangyari...' : 'Describe the damage...'}
+          errorText={errors.description}
+          multiline
+          numberOfLines={3}
+          required
+        />
 
-      <NeumorphicInput
-        label={lang === 'tl' ? 'Lokasyon / Landmark' : 'Location / Landmark'}
-        value={addressLandmark}
-        onChangeText={setAddressLandmark}
-        placeholder="e.g. 123 Calle Real, Manila"
-        errorText={errors.addressLandmark}
-        required
-      />
+        <PhotoAttachmentSection
+          selectedPhoto={selectedPhoto}
+          onPickCamera={handlePickCamera}
+          onPickLibrary={handlePickLibrary}
+          onRemove={() => setSelectedPhoto(null)}
+          lang={lang}
+        />
 
-      <NeumorphicInput
-        label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
-        value={description}
-        onChangeText={setDescription}
-        placeholder={lang === 'tl' ? 'Ilarawan ang nangyari...' : 'Describe the damage...'}
-        errorText={errors.description}
-        multiline
-        numberOfLines={3}
-        required
-      />
-
-      <PhotoAttachmentSection
-        selectedPhoto={selectedPhoto}
-        onPickCamera={() => triggerImagePicker('camera')}
-        onPickLibrary={() => triggerImagePicker('library')}
-        onRemove={() => setSelectedPhoto(null)}
-        lang={lang}
-      />
-
-      <MotionPressable style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmitReport} disabled={loading}>
-        {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
-      </MotionPressable>
-    </ScrollView>
+        <MotionPressable style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmitReport} disabled={loading}>
+          {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
+        </MotionPressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
