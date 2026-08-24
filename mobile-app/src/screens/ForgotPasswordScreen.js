@@ -185,28 +185,8 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </Text>
 
-            {fallbackOtp ? (
-              <View style={styles.demoOtpBox}>
-                <View style={styles.demoOtpHeader}>
-                  <Text style={styles.demoOtpTitle}>
-                    {lang === 'tl' ? '📱 Verification Code:' : '📱 Verification Code:'}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.autoFillBtn}
-                    onPress={() => {
-                      const digits = fallbackOtp.split('');
-                      setOtpCode(digits);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.autoFillBtnText}>
-                      {lang === 'tl' ? '⚡ I-Auto-Fill' : '⚡ Auto-Fill'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
-              </View>
-            ) : null}
+
+
 
             <View style={styles.otpGrid}>
               {otpCode.map((digit, i) => (

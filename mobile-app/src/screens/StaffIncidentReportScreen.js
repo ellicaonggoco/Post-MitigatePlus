@@ -27,12 +27,12 @@ export default function StaffIncidentReportScreen({ token }) {
 
     setLoading(true);
     try {
-      const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+      const storedToken = token || (await AsyncStorage.getItem('mitigateplus_token'));
       const res = await fetch(`${API_BASE_URL}/incidents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
+          Authorization: storedToken ? `Bearer ${storedToken}` : '',
         },
         body: JSON.stringify({
           incidentType,

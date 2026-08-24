@@ -1144,35 +1144,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
             </View>
 
-            {/* FALLBACK / DEMO CODE HELPER WITH INSTANT AUTO-FILL */}
-            {fallbackOtp ? (
-              <View style={styles.demoOtpBox}>
-                <View style={styles.demoOtpHeader}>
-                  <Text style={styles.demoOtpTitle}>
-                    {lang === 'tl' ? '📱 Verification Code:' : '📱 Verification Code:'}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.autoFillBtn}
-                    onPress={() => {
-                      const digits = fallbackOtp.split('');
-                      setOtpDigits(digits);
-                      setOtpError('');
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.autoFillBtnText}>
-                      {lang === 'tl' ? '⚡ I-Auto-Fill Code' : '⚡ Auto-Fill Code'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
-                <Text style={styles.demoOtpSubText}>
-                  {lang === 'tl'
-                    ? 'I-tap ang "⚡ I-Auto-Fill Code" kung sakaling naantala o walang signal ang SMS.'
-                    : 'Tap "⚡ Auto-Fill Code" if SMS delivery is delayed.'}
-                </Text>
-              </View>
-            ) : null}
+
+
 
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>

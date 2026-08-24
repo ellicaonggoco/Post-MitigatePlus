@@ -86,7 +86,7 @@ export default function SpecialRequestRelief() {
   };
 
   const requestApproveModal = (req) => {
-    const chosenStaff = assignStaff[req.id || req._id] || staffList[0]?.name || 'Field Officer Mark (Brgy 291)';
+    const chosenStaff = assignStaff[req.id || req._id] || staffList[0]?.name || 'Unassigned';
     setConfirmModal({
       isOpen: true,
       reqId: req.id || req._id,

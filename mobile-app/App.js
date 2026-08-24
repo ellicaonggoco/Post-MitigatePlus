@@ -63,9 +63,6 @@ export default function App() {
     setLang(newLang);
     try {
       await AsyncStorage.setItem('mitigateplus_user_lang', newLang);
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem('mitigateplus_user_lang', newLang);
-      }
     } catch (e) {}
   };
 
@@ -74,21 +71,14 @@ export default function App() {
     if (session?.token) {
       try {
         await AsyncStorage.setItem('mitigateplus_token', session.token);
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem('mitigateplus_token', session.token);
-        }
       } catch (e) {}
     }
-  };
 
   const handleLogout = async () => {
     setUserSession(null);
     setCurrentScreen('login');
     try {
       await AsyncStorage.removeItem('mitigateplus_token');
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem('mitigateplus_token');
-      }
     } catch (e) {}
   };
 

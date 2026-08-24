@@ -246,17 +246,8 @@ export default function BarangayHeatmap() {
     return map;
   }, []);
 
-  // Map incident damage dots
   const incidentDots = useMemo(() => {
-    const rawList = households.length > 0 ? households : [
-      { _id: 'd1', barangayCode: '291', address: '78 Rizal St, Purok 3', damageLevel: 'Severe', headName: 'Lola Aling', priorityScore: 92 },
-      { _id: 'd2', barangayCode: '292', address: '34 Luna Ave', damageLevel: 'Totally Damaged', headName: 'Dela Cruz Family', priorityScore: 98 },
-      { _id: 'd3', barangayCode: '291', address: 'Purok 4', damageLevel: 'Moderate', headName: 'Mang Ben', priorityScore: 64 },
-      { _id: 'd4', barangayCode: '293', address: '12 Taft Ave Ext', damageLevel: 'Severe', headName: 'Santos Household', priorityScore: 88 },
-      { _id: 'd5', barangayCode: '294', address: '45 Escolta St', damageLevel: 'Minor', headName: 'Reyes Family', priorityScore: 45 },
-      { _id: 'd6', barangayCode: '304', address: '742 Soler Street, Purok 1', damageLevel: 'Totally Damaged', headName: 'Aling Maria (Critical Evacuee)', priorityScore: 99 },
-      { _id: 'd7', barangayCode: '303', address: '128 Ongpin Street', damageLevel: 'Severe', headName: 'Bautista Family', priorityScore: 91 },
-    ];
+    const rawList = households;
 
     const dots = [];
     rawList.forEach((hh, index) => {

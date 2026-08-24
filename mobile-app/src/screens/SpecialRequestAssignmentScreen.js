@@ -14,7 +14,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+      const token = await AsyncStorage.getItem('mitigateplus_token');
       const res = await fetch(`${API_BASE_URL}/assistance-requests`, {
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
           text: lang === 'tl' ? 'Oo, Naihatid na' : 'Yes, Delivered',
           onPress: async () => {
             try {
-              const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+              const token = await AsyncStorage.getItem('mitigateplus_token');
               await fetch(`${API_BASE_URL}/assistance-requests/${taskId}`, {
                 method: 'PATCH',
                 headers: {

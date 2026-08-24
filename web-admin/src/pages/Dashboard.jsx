@@ -62,14 +62,16 @@ function SuperAdminDashboard({ token, user }) {
     { label: 'Executive Audit Flags', value: summary?.duplicateAttemptsCount ?? 0, icon: AlertTriangle, color: '#B91C1C', bg: '#FEF2F2' },
   ];
 
-  const cityChartData = [
-    { district: 'District 1', Beneficiaries: 1420, Relief: 980 },
-    { district: 'District 2', Beneficiaries: 1850, Relief: 1340 },
-    { district: 'District 3', Beneficiaries: 1100, Relief: 780 },
-    { district: 'District 4', Beneficiaries: 2100, Relief: 1650 },
-    { district: 'District 5', Beneficiaries: 960, Relief: 710 },
-    { district: 'District 6', Beneficiaries: 1700, Relief: 1200 },
+  // Derive chart data from real API summary — fallback to empty bars (no fake values)
+  const cityChartData = summary?.districtBreakdown ?? [
+    { district: 'District 1', Beneficiaries: 0, Relief: 0 },
+    { district: 'District 2', Beneficiaries: 0, Relief: 0 },
+    { district: 'District 3', Beneficiaries: 0, Relief: 0 },
+    { district: 'District 4', Beneficiaries: 0, Relief: 0 },
+    { district: 'District 5', Beneficiaries: 0, Relief: 0 },
+    { district: 'District 6', Beneficiaries: 0, Relief: 0 },
   ];
+
 
   return (
     <div className="page-container page-animate">
@@ -141,13 +143,16 @@ function LguAdminDashboard({ token, user }) {
     { label: 'Total Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/relief-allocation' },
   ];
 
-  const reliefData = [
-    { name: 'Food Packs', Target: 1200, Distributed: 850 },
-    { name: 'Water', Target: 1500, Distributed: 1100 },
-    { name: 'Medical Kits', Target: 650, Distributed: 420 },
-    { name: 'Hygiene Kits', Target: 900, Distributed: 680 },
-    { name: 'Shelter Tents', Target: 400, Distributed: 290 },
+  // Derive relief chart from real API summary — fallback shows 0 targets (no fake values)
+  const reliefData = summary?.reliefBreakdown ?? [
+    { name: 'Food Packs', Target: 0, Distributed: 0 },
+    { name: 'Water', Target: 0, Distributed: 0 },
+    { name: 'Medical Kits', Target: 0, Distributed: 0 },
+    { name: 'Hygiene Kits', Target: 0, Distributed: 0 },
+    { name: 'Shelter Tents', Target: 0, Distributed: 0 },
   ];
+
+
 
   return (
     <div className="page-container page-animate">
@@ -222,11 +227,11 @@ function BarangayDashboard({ token, user }) {
   ];
 
   const recoveryStageData = [
-    { name: 'Waiting for Ayuda', value: summary?.waitingAyuda ?? 12, color: '#B91C1C' },
-    { name: 'Assistance Received', value: summary?.assistanceReceived ?? 28, color: '#B45309' },
-    { name: 'Ongoing Pagbangon', value: summary?.ongoingRecovery ?? 18, color: '#1D4ED8' },
-    { name: 'Partially Recovered', value: summary?.partiallyRecovered ?? 22, color: '#6D28D9' },
-    { name: 'Fully Recovered', value: summary?.fullyRecovered ?? 8, color: '#0F6B4E' },
+    { name: 'Waiting for Ayuda', value: summary?.waitingAyuda ?? 0, color: '#B91C1C' },
+    { name: 'Assistance Received', value: summary?.assistanceReceived ?? 0, color: '#B45309' },
+    { name: 'Ongoing Pagbangon', value: summary?.ongoingRecovery ?? 0, color: '#1D4ED8' },
+    { name: 'Partially Recovered', value: summary?.partiallyRecovered ?? 0, color: '#6D28D9' },
+    { name: 'Fully Recovered', value: summary?.fullyRecovered ?? 0, color: '#0F6B4E' },
   ];
 
   return (
