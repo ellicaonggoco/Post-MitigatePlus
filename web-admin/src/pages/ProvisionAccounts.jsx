@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
 import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
@@ -282,9 +283,27 @@ export default function ProvisionAccounts() {
       />
 
       {/* ── Pop-Up Card Modal for Creating Account ── */}
-      {isCreateModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 42, 58, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 99999, padding: '40px 16px', overflowY: 'auto' }}>
-          <div className="clay-card page-animate" style={{ maxWidth: 540, width: '100%', padding: 28, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', margin: 'auto 0' }}>
+      {isCreateModalOpen && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999999,
+          padding: '24px 16px',
+          boxSizing: 'border-box',
+          overflowY: 'auto',
+        }}>
+          <div className="clay-card page-animate" style={{ maxWidth: 560, width: '100%', padding: 28, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: '0 25px 60px rgba(0,0,0,0.45)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {editingAccount ? <Edit3 size={22} color="var(--manila-blue)" /> : <UserPlus size={22} color="var(--manila-blue)" />}
@@ -465,7 +484,8 @@ export default function ProvisionAccounts() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Page Header ── */}

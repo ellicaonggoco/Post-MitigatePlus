@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Package, ShieldAlert, Shield, Plus, Calculator, Info, CheckCircle2, Zap } from 'lucide-react';
 import { IconlyPackage } from '../components/Sidebar';
@@ -212,9 +213,26 @@ export default function ReliefAllocationPage() {
       />
 
       {/* ── Triple Confirmation Step 1: Warning Modal ── */}
-      {policyModalStep === 1 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 42, 58, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: 16 }}>
-          <div className="clay-card page-animate" style={{ maxWidth: 500, width: '100%', padding: 28, borderLeft: '5px solid #D97706', background: 'var(--card)' }}>
+      {policyModalStep === 1 && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999999,
+          padding: 16,
+          boxSizing: 'border-box',
+        }}>
+          <div className="clay-card page-animate" style={{ maxWidth: 500, width: '100%', padding: 28, borderLeft: '5px solid #D97706', background: 'var(--card)', boxShadow: '0 25px 60px rgba(0,0,0,0.45)', borderRadius: 'var(--radius-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#D97706', marginBottom: 12 }}>
               <ShieldAlert size={28} />
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ink)' }}>Babala: I-update ang Relief Policy?</h3>
@@ -230,13 +248,31 @@ export default function ReliefAllocationPage() {
               <button onClick={handleProceedToStep2} className="clay-button-danger" style={{ fontSize: 13 }}>Magpatuloy sa Executive Passcode</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Triple Confirmation Step 2: Security PIN Modal ── */}
-      {policyModalStep === 2 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 42, 58, 0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: 16 }}>
-          <div className="clay-card page-animate" style={{ maxWidth: 480, width: '100%', padding: 28, borderLeft: '5px solid var(--manila-blue)', background: 'var(--card)' }}>
+      {policyModalStep === 2 && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999999,
+          padding: 16,
+          boxSizing: 'border-box',
+        }}>
+          <div className="clay-card page-animate" style={{ maxWidth: 480, width: '100%', padding: 28, borderLeft: '5px solid var(--manila-blue)', background: 'var(--card)', boxShadow: '0 25px 60px rgba(0,0,0,0.45)', borderRadius: 'var(--radius-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--manila-blue)', marginBottom: 12 }}>
               <Zap size={26} />
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ink)' }}>Executive Authorization Required</h3>
@@ -256,7 +292,8 @@ export default function ReliefAllocationPage() {
               <button onClick={handleExecutePolicySave} className="clay-button-approve" style={{ fontSize: 13 }}>Pinal na I-apply ang Policy</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 

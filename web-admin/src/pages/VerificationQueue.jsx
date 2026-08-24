@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
 import { UserCheck, AlertTriangle, CheckCircle2, XCircle, Info, RefreshCw, Filter, ClipboardList, Eye, Maximize2, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { IconlyVerification, IconlyShield, IconlyUserPlus } from '../components/Sidebar';
@@ -516,19 +517,26 @@ export default function VerificationQueue() {
       )}
 
       {/* ── High-Definition Government ID Lightbox Modal ── */}
-      {previewImage.isOpen && (
+      {previewImage.isOpen && ReactDOM.createPortal(
         <div
           onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '' })}
           style={{
             position: 'fixed',
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
             backgroundColor: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(6px)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 9999,
+            zIndex: 99999999,
             padding: 24,
+            boxSizing: 'border-box',
           }}
         >
           <div
@@ -539,9 +547,10 @@ export default function VerificationQueue() {
               maxWidth: 720,
               width: '100%',
               overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
               display: 'flex',
               flexDirection: 'column',
+              animation: 'card-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <div style={{
@@ -615,7 +624,8 @@ export default function VerificationQueue() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

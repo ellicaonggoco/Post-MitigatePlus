@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, GeoJSON, CircleMarker, Marker, Tooltip, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -877,9 +878,26 @@ export default function BarangayHeatmap() {
       </div>
 
       {/* ── Popup Modal for Barangay Beneficiary Directory (> 5 Items) ── */}
-      {isModalOpen && selected && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 42, 58, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: 16 }}>
-          <div className="clay-card page-animate" style={{ width: '100%', maxWidth: '600px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '24px', background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+      {isModalOpen && selected && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999999,
+          padding: 16,
+          boxSizing: 'border-box',
+        }}>
+          <div className="clay-card page-animate" style={{ width: '100%', maxWidth: '600px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '24px', background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: '0 25px 60px rgba(0,0,0,0.45)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>Barangay {selected.code} • Beneficiary Directory</h2>
@@ -921,7 +939,8 @@ export default function BarangayHeatmap() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
