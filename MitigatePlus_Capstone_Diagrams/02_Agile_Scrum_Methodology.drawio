@@ -1,0 +1,71 @@
+<mxfile host="app.diagrams.net" modified="2026-08-25T06:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="agile_002" name="02. Agile / Scrum Methodology">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="MitigatePlus — Project Development Methodology: Agile / Scrum Framework" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;fontColor=#090154;" vertex="1" parent="1">
+          <mxGeometry x="80" y="15" width="1480" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p1" value="&amp;lt;b&amp;gt;PRODUCT BACKLOG&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;All system requirements collected from&amp;lt;br/&amp;gt;LGU stakeholders: Registration, QR Distribution,&amp;lt;br/&amp;gt;Heatmap, Fraud Detection, Reporting, etc.&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="110" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="&amp;lt;b&amp;gt;SPRINT PLANNING&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;Team selects requirements from backlog.&amp;lt;br/&amp;gt;Defines 2-week sprint goals and&amp;lt;br/&amp;gt;commits to deliverable features.&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="110" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="&amp;lt;b&amp;gt;SPRINT BACKLOG&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;User stories broken into specific&amp;lt;br/&amp;gt;development tasks (design, code,&amp;lt;br/&amp;gt;test, deploy per feature).&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="720" y="110" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="&amp;lt;b&amp;gt;SPRINT EXECUTION
+(2 Weeks)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;Design → Code → Test → Deploy&amp;lt;br/&amp;gt;Daily standups within the team.&amp;lt;br/&amp;gt;Continuous GitHub CI/CD integration&amp;lt;br/&amp;gt;via Vercel and Render.&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="110" width="280" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="&amp;lt;b&amp;gt;SPRINT REVIEW&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;Present working features to stakeholders&amp;lt;br/&amp;gt;(LGU officials, panelists).&amp;lt;br/&amp;gt;Collect feedback for backlog refinement.&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="380" width="280" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p6" value="&amp;lt;b&amp;gt;SPRINT RETROSPECTIVE&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;Team reflects on process improvements.&amp;lt;br/&amp;gt;Identify blockers and adjust workflow&amp;lt;br/&amp;gt;for next sprint cycle.&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="720" y="380" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p7" value="&amp;lt;b&amp;gt;DAILY SCRUM
+(15-min Standup)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;&quot;&amp;gt;What did I do yesterday?&amp;lt;br/&amp;gt;What will I do today?&amp;lt;br/&amp;gt;Any blockers or impediments?&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=12;fontStyle=1;shadow=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="380" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="p1" target="p2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="p2" target="p3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e45" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="p4" target="p5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e56" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="p5" target="p6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e67" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#475569;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="p6" target="p7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e71" value="Next Sprint" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#DC2626;exitX=0.5;exitY=0;entryX=0.5;entryY=1;curved=1;" edge="1" parent="1" source="p7" target="p2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="roles" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;SCRUM TEAM ROLES&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Product Owner:&amp;lt;/b&amp;gt; Manages the product backlog, prioritizes features, and represents LGU/DSWD stakeholder needs.&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Scrum Master:&amp;lt;/b&amp;gt; Facilitates sprint ceremonies, removes blockers, ensures team follows Agile principles.&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Dev Team:&amp;lt;/b&amp;gt; Full-stack developers designing, coding, testing, and deploying system increments." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffacd;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="580" width="560" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="why" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;WHY AGILE / SCRUM WAS CHOSEN FOR MitigatePlus&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+1. &amp;lt;b&amp;gt;Evolving Requirements:&amp;lt;/b&amp;gt; LGU disaster protocols and stakeholder needs changed iteratively through consultations.&amp;lt;br/&amp;gt;
+2. &amp;lt;b&amp;gt;Risk Reduction:&amp;lt;/b&amp;gt; 2-week sprints allowed early detection and correction of architectural issues (e.g., QR anti-duplicate logic).&amp;lt;br/&amp;gt;
+3. &amp;lt;b&amp;gt;Continuous Deployment:&amp;lt;/b&amp;gt; GitHub → Vercel (web) and Render (backend) enabled automated deployment after each sprint.&amp;lt;br/&amp;gt;
+4. &amp;lt;b&amp;gt;Stakeholder Alignment:&amp;lt;/b&amp;gt; Sprint reviews with LGU officials ensured each feature met real disaster response workflows.&amp;lt;br/&amp;gt;
+5. &amp;lt;b&amp;gt;Working Software:&amp;lt;/b&amp;gt; Agile prioritizes delivering a working, testable product at the end of every sprint — critical for capstone demonstration." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffacd;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="720" y="580" width="840" height="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

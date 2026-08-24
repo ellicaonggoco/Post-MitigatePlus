@@ -1,0 +1,72 @@
+<mxfile host="app.diagrams.net" modified="2026-08-25T06:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="arch_001" name="01. 3-Tier System Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="MitigatePlus — 3-Tier Layered System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;fontColor=#090154;" vertex="1" parent="1">
+          <mxGeometry x="80" y="20" width="1480" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="tier1" value="TIER 1 — Presentation Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=50;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="90" width="1480" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_web" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;Web Admin Portal&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;i&amp;gt;React 18 + Vite → Deployed on Vercel CDN&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Roles:&amp;lt;/b&amp;gt; LGU SuperAdmin, LGU Admin, Barangay Official&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Pages:&amp;lt;/b&amp;gt; Dashboard, Verification Queue, Distribution Events,&amp;lt;br/&amp;gt;
+Barangay Heatmap (GIS), Relief Allocation, Warehouse Inventory,&amp;lt;br/&amp;gt;
+Fraud Interception, System Audit Logs, Policy Config, Announcements" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;shadow=1;" vertex="1" parent="tier1">
+          <mxGeometry x="120" y="50" width="580" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_mob" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;Mobile Application&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;i&amp;gt;React Native + Expo → Android APK &amp;amp; iOS&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Resident Role:&amp;lt;/b&amp;gt; Register, OTP Verify, QR Pass, Claims History,&amp;lt;br/&amp;gt;
+Damage Report (GPS + Photo), Special Assistance Request, Settings&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Field Staff Role:&amp;lt;/b&amp;gt; QR Scanner, Anti-Fraud Detection,&amp;lt;br/&amp;gt;
+Task Management, Incident Reporting, Door-to-Door Delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;shadow=1;" vertex="1" parent="tier1">
+          <mxGeometry x="750" y="50" width="580" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="tier2" value="TIER 2 — Application / Business Logic Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;startSize=50;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="430" width="1480" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_api" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;Node.js + Express REST API Server&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;i&amp;gt;Hosted on Render Cloud&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Routes:&amp;lt;/b&amp;gt; /auth, /households, /distributions,&amp;lt;br/&amp;gt;
+/damage-reports, /incidents, /assistance-requests,&amp;lt;br/&amp;gt;
+/announcements, /warehouse, /audit-logs, /policy, /reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;shadow=1;" vertex="1" parent="tier2">
+          <mxGeometry x="60" y="50" width="380" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_mw" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;Security Middleware&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+• JWT Token Verification&amp;lt;br/&amp;gt;
+• Role-Based Access Control (RBAC)&amp;lt;br/&amp;gt;
+&amp;lt;i&amp;gt;lgu_superadmin &amp;gt; lgu_admin &amp;gt;&amp;lt;br/&amp;gt;barangay_official &amp;gt; field_staff &amp;gt; resident&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;
+• Rate Limiting&amp;lt;br/&amp;gt;
+• CORS Policy Enforcement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;shadow=1;" vertex="1" parent="tier2">
+          <mxGeometry x="500" y="50" width="340" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_ext" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;External Services&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+• &amp;lt;b&amp;gt;Semaphore SMS:&amp;lt;/b&amp;gt; OTP Dispatch&amp;lt;br/&amp;gt;
+• &amp;lt;b&amp;gt;Cloudinary CDN:&amp;lt;/b&amp;gt; Damage Photo Storage&amp;lt;br/&amp;gt;
+• &amp;lt;b&amp;gt;Socket.io:&amp;lt;/b&amp;gt; Real-time Fraud Alerts &amp;amp; Event Broadcasts&amp;lt;br/&amp;gt;
+• &amp;lt;b&amp;gt;MongoDB Compound Index:&amp;lt;/b&amp;gt; Anti-Duplicate Guard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;shadow=1;" vertex="1" parent="tier2">
+          <mxGeometry x="900" y="50" width="430" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="tier3" value="TIER 3 — Data Storage Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;startSize=50;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="770" width="1480" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_db" value="&amp;lt;b style=&quot;font-size:14px;&quot;&amp;gt;MongoDB Atlas (Multi-Region Cloud Cluster)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;i&amp;gt;Accessed via Mongoose ODM over TLS / MongoDB Wire Protocol&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;br/&amp;gt;
+&amp;lt;b&amp;gt;Collections:&amp;lt;/b&amp;gt; Users • Households • DistributionEvents • Distributions (Compound Unique Index: eventId+householdId)&amp;lt;br/&amp;gt;
+DamageReports • Incidents • AssistanceRequests • Announcements • AuditLogs • PolicyConfig • WarehouseItems • WarehouseLogs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#82b366;align=center;fontSize=12;shadow=1;" vertex="1" parent="tier3">
+          <mxGeometry x="250" y="40" width="950" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="HTTPS REST / WebSocket (WSS)" style="endArrow=classic;startArrow=classic;html=1;fontSize=13;fontStyle=1;strokeWidth=3;strokeColor=#1557b0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="tier1" target="tier2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="Mongoose ODM / Wire Protocol (TLS)" style="endArrow=classic;startArrow=classic;html=1;fontSize=13;fontStyle=1;strokeWidth=3;strokeColor=#059669;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="tier2" target="tier3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
