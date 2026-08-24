@@ -71,7 +71,7 @@ export default function SearchableBarangaySelect({ value, onChange, style }) {
         position: 'relative',
         minWidth: '240px',
         maxWidth: '320px',
-        zIndex: isOpen ? 999999 : 50,
+        zIndex: isOpen ? 9999999 : 50,
         ...style,
       }}
     >

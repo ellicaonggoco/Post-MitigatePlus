@@ -392,7 +392,7 @@ export default function BarangayHeatmap() {
       `}</style>
 
       {/* ── Page Header ── */}
-      <div className="map-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="map-page-header workflow-header" style={{ position: 'relative', zIndex: 1000, overflow: 'visible', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--manila-blue)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
             <MapPin size={24} color="var(--manila-blue)" /> Manila City GIS Command Map & Risk Heatmap
@@ -402,7 +402,7 @@ export default function BarangayHeatmap() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1050, overflow: 'visible' }}>
           {(user?.role === 'lgu_admin' || user?.role === 'lgu_superadmin') && (
             <SearchableBarangaySelect
               value={selectedBarangayFilter === 'ALL' ? 'all' : selectedBarangayFilter}
@@ -432,6 +432,8 @@ export default function BarangayHeatmap() {
       <div
         className="clay-card map-layer-toolbar"
         style={{
+          position: 'relative',
+          zIndex: 10,
           borderRadius: '12px',
           padding: '12px 18px',
           marginBottom: '16px',
@@ -512,8 +514,8 @@ export default function BarangayHeatmap() {
         </div>
       </div>
 
-      <div className="map-command-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
-        <div className="clay-card map-canvas-card" style={{ padding: '16px' }}>
+      <div className="map-command-grid" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
+        <div className="clay-card map-canvas-card" style={{ padding: '16px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
             <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--manila-blue)' }}>897 Manila City Barangays — Designated Numbers & Damage Indicators</span>
             <div style={{ display: 'flex', gap: '14px', fontSize: '12px', fontWeight: 700, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -537,7 +539,7 @@ export default function BarangayHeatmap() {
           </div>
 
           {/* High-Resolution GIS Map Canvas with CartoDB Voyager Tiles */}
-          <div className="manila-map-shell" style={{ height: '560px', borderRadius: 'var(--radius-inner)', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)' }}>
+          <div className="manila-map-shell" style={{ position: 'relative', zIndex: 1, height: '560px', borderRadius: 'var(--radius-inner)', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)' }}>
             <MapContainer
               center={[14.5995, 120.9842]}
               zoom={14}

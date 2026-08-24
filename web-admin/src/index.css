@@ -1407,12 +1407,31 @@ table.clay-table tbody tr:focus-within td { background: var(--manila-blue-light)
 /* ============================================================
    Searchable Barangay Select & Global Dropdown Top-Layer Stacking
    ============================================================ */
+.map-page-header,
+.workflow-header,
+.page-header,
+.filter-toolbar,
+.search-toolbar {
+  position: relative !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+}
+
+.map-page-header:has(.searchable-select-root.is-open),
+.map-page-header:focus-within,
+.workflow-header:has(.searchable-select-root.is-open),
+.workflow-header:focus-within,
+.page-header:has(.searchable-select-root.is-open),
+.page-header:focus-within {
+  z-index: 100000 !important;
+}
+
 .searchable-select-root {
   position: relative !important;
   z-index: 50 !important;
 }
 .searchable-select-root.is-open {
-  z-index: 999999 !important;
+  z-index: 100000 !important;
 }
 .searchable-select-popover {
   position: absolute !important;
@@ -1422,19 +1441,35 @@ table.clay-table tbody tr:focus-within td { background: var(--manila-blue-light)
   max-height: 280px !important;
   overflow-y: auto !important;
   background: var(--card) !important;
-  border: 1px solid var(--border) !important;
+  border: 1.5px solid var(--manila-blue) !important;
   border-radius: 12px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2) !important;
   z-index: 9999999 !important;
   padding: 6px !important;
 }
-.workflow-header {
-  position: relative !important;
-  z-index: 100 !important;
+
+/* Ensure all select elements, dropdowns, popovers, and tooltips are ALWAYS on the front layer */
+.dropdown-menu,
+.popover-menu,
+.action-dropdown,
+.custom-dropdown,
+[role="listbox"],
+[role="menu"],
+.custom-select-popover {
+  position: absolute !important;
+  z-index: 9999999 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.2) !important;
 }
-.workflow-header:has(.searchable-select-root.is-open),
-.workflow-header:focus-within {
-  z-index: 999999 !important;
+
+.map-layer-toolbar {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.map-command-grid,
+.manila-map-shell {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 /* ============================================================
