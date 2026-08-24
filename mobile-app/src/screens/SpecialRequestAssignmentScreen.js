@@ -124,7 +124,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
           style={{ backgroundColor: '#158A64', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 10, alignItems: 'center', marginBottom: 8 }}
           onPress={async () => {
             try {
-              const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+              const token = await AsyncStorage.getItem('mitigateplus_token');
               const eventsRes = await fetch(`${API_BASE_URL}/distributions/events`, {
                 headers: { Authorization: token ? `Bearer ${token}` : '' },
               });

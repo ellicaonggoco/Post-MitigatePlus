@@ -358,7 +358,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
     try {
       (async () => {
-        const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+        const token = await AsyncStorage.getItem('mitigateplus_token');
         if (token) {
           await fetch(`${API_BASE_URL}/households/me/members`, {
             method: 'PUT',
@@ -392,7 +392,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       return;
     }
     try {
-      const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+      const token = await AsyncStorage.getItem('mitigateplus_token');
       const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -416,15 +416,15 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const handleSyncOfflineData = async () => {
     setSyncing(true);
     try {
-      const token = (await AsyncStorage.getItem('mitigateplus_token')) || (typeof window !== 'undefined' && window.localStorage?.getItem('mitigateplus_token'));
+      const token = await AsyncStorage.getItem('mitigateplus_token');
       if (token) {
         const res = await fetch(`${API_BASE_URL}/households/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const profile = await res.json();
-          if (profile && typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem('mitigateplus_household_cache', JSON.stringify(profile));
+          if (profile) {
+            await AsyncStorage.setItem('mitigateplus_household_cache', JSON.stringify(profile));
           }
         }
       }
