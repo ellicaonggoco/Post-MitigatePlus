@@ -8,7 +8,7 @@ import io from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 8;
 
 export default function VerificationQueue() {
   const { token, user } = useContext(AuthContext);

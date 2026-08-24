@@ -598,9 +598,13 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
    Page Layout
    ============================================================ */
 .page-container {
-  max-width: 1280px;
+  max-width: 1600px;
+  width: 100%;
   margin: 0 auto;
-  padding: 28px 24px 48px;
+  padding: 24px 32px 48px;
+  min-height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: column;
 }
 
 .page-header {
@@ -954,7 +958,7 @@ body { background: var(--sampaguita); }
 .app-crumbs strong { color: var(--ink); }
 .app-menu-button, .app-notification { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink-soft); cursor: pointer; }
 .app-menu-button { display: none; }.app-status { color: var(--ink-soft); font-size: 12px; font-weight: 600; }.app-status i { display: block; width: 7px; height: 7px; border-radius: 99px; background: var(--bay-teal); box-shadow: 0 0 0 4px var(--bay-teal-light); }
-.page-container { max-width: 1400px; margin: 0 auto; padding: 24px 32px 48px; }
+.page-container { max-width: 1600px; width: 100%; margin: 0 auto; padding: 24px 32px 48px; min-height: calc(100vh - 72px); flex: 1; display: flex; flex-direction: column; }
 .clay-card { border-color: var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }.clay-card:hover { transform: translateY(-3px); }
 .kpi-card { border-radius: var(--radius-card); border-left-width: 3px; padding: 20px; box-shadow: var(--shadow-card); }
 .section-header { border-bottom: none; padding-bottom: 0; margin-top: 4px; }.section-header::before { width: 3px; height: 25px; background: linear-gradient(180deg, var(--manila-blue), var(--bay-teal)); }
@@ -1045,7 +1049,7 @@ body { background: var(--sampaguita); }
 [data-theme="dark"] aside[aria-label="Main navigation"] .sidebar-item.active-pop svg { color: #ff9147 !important; }
 [data-theme="dark"] aside[aria-label="Main navigation"] .sidebar-collapse-btn { background: #202625 !important; border-color: #3b4746 !important; color: #afc0c2 !important; box-shadow: none !important; }
 
-[data-theme="dark"] .page-container { max-width: 1440px !important; padding-top: 24px !important; }
+[data-theme="dark"] .page-container { max-width: 1600px !important; width: 100% !important; padding-top: 24px !important; min-height: calc(100vh - 72px) !important; flex: 1 !important; display: flex !important; flex-direction: column !important; }
 [data-theme="dark"] .dashboard-welcome {
   min-height: 164px !important;
   padding: 24px 28px !important;
