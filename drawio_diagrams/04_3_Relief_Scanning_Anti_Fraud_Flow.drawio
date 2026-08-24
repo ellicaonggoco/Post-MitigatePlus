@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-08-24T01:50:00.000Z" agent="5.0" version="21.0.0" type="device">
+  <diagram id="tab-p3" name="4.3 QR Relief Scanning Flow">
+
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p3_hdr" value="&lt;b style=&quot;font-size:16px; color:#0F172A;&quot;&gt;WORKFLOW 4.3: CHECKPOINT QR RELIEF SCANNING &amp;amp; REAL-TIME ANTI-DUPLICATE INTERCEPTION&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1.5;align=center;" vertex="1" parent="1"><mxGeometry x="60" y="20" width="1080" height="40" as="geometry"/></mxCell>
+        <mxCell id="p3_start" value="&lt;b&gt;Start: Resident Presents QR Pass at Distribution Booth&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#0F172A;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1"><mxGeometry x="425" y="80" width="350" height="45" as="geometry"/></mxCell>
+        <mxCell id="p3_scan" value="&lt;b&gt;Field Staff Scans QR Pass&lt;/b&gt;&lt;br&gt;Native Hardware Camera Scanner captures QR string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="430" y="150" width="340" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3_req" value="&lt;b&gt;Dispatch Verification Request&lt;/b&gt;&lt;br&gt;POST /api/distributions/claim (eventId, qrCode, staffId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="430" y="225" width="340" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3_dec" value="&lt;b&gt;Does Claim Record Exist for (qrCode + eventId)?&lt;/b&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="460" y="300" width="280" height="85" as="geometry"/></mxCell>
+        <mxCell id="p3_fraud" value="&lt;b style=&quot;color:#991B1B;&quot;&gt;TRIGGER FRAUD INTERCEPTION ALERT&lt;/b&gt;&lt;br&gt;1. Block Package Handover (Screen Alert)&lt;br&gt;2. Log Duplicate Attempt in Incidents Collection&lt;br&gt;3. Emit Warning to LGU Command Center" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;strokeWidth=2;fontSize=10.5;color:#991B1B;align=left;padding=6;" vertex="1" parent="1"><mxGeometry x="120" y="300" width="290" height="85" as="geometry"/></mxCell>
+        <mxCell id="p3_quota" value="&lt;b style=&quot;color:#065F46;&quot;&gt;Display Entitled Right-Sized Quota&lt;/b&gt;&lt;br&gt;e.g. 1x Base Pack + 1x Top-Up + Infant Diapers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontSize=11;color:#065F46;" vertex="1" parent="1"><mxGeometry x="430" y="420" width="340" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3_rel" value="&lt;b&gt;Staff Hands Over Physical Items &amp;amp; Confirms Release&lt;/b&gt;&lt;br&gt;Insert into Distributions &amp;amp; Decrement WarehouseStock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="430" y="495" width="340" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3_sock" value="&lt;b&gt;Socket.IO Broadcast Event&lt;/b&gt;&lt;br&gt;Emits &lt;i&gt;relief_claimed&lt;/i&gt; to Live Dashboard and Resident History" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1D4ED8;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="430" y="570" width="340" height="50" as="geometry"/></mxCell>
+        <mxCell id="p3_end" value="&lt;b&gt;End: Relief Successfully Dispatched &amp;amp; Logged&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#059669;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1"><mxGeometry x="460" y="645" width="280" height="45" as="geometry"/></mxCell>
+        <mxCell id="p3_a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1D4ED8;strokeWidth=2;" edge="1" parent="1" source="p3_start" target="p3_scan"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1D4ED8;strokeWidth=2;" edge="1" parent="1" source="p3_scan" target="p3_req"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1D4ED8;strokeWidth=2;" edge="1" parent="1" source="p3_req" target="p3_dec"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a4" value="&lt;b&gt;Yes (Already Claimed)&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=10;fontColor=#DC2626;" edge="1" parent="1" source="p3_dec" target="p3_fraud"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a5" value="&lt;b&gt;No (First Time Claim)&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#059669;strokeWidth=2;fontSize=11;fontColor=#059669;" edge="1" parent="1" source="p3_dec" target="p3_quota"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#059669;strokeWidth=2;" edge="1" parent="1" source="p3_quota" target="p3_rel"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="1" source="p3_rel" target="p3_sock"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_a8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#059669;strokeWidth=2;" edge="1" parent="1" source="p3_sock" target="p3_end"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  
+  </diagram>
+</mxfile>

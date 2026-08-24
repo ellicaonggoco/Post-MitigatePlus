@@ -1,0 +1,38 @@
+flowchart TD
+    classDef phase fill:#EBF3FB,stroke:#1D4ED8,stroke-width:2px,color:#0F172A;
+    classDef action fill:#FFFFFF,stroke:#64748B,stroke-width:1.5px,color:#1E293B;
+    classDef decision fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A;
+    classDef finish fill:#ECFDF5,stroke:#059669,stroke-width:2px,color:#065F46;
+
+    subgraph PHASE1 ["Phase 1: Product Backlog & LGU Requirements"]
+        P1_1["Interview Disaster Officials & Analyze DSWD Quota Policies"]:::action
+        P1_2["Define User Personas: SuperAdmin, Barangay, Staff, Resident"]:::action
+        P1_3["Formulate User Stories in Prioritized Backlog"]:::action
+    end
+
+    subgraph SPRINT_CYCLE ["Phase 2: Agile Scrum Execution (2-Week Sprints)"]
+        S_PLAN["1. Sprint Planning & Task Allocation"]:::action
+        S_DES["2. UI/UX Wireframing & Schema Design"]:::action
+        S_DEV["3. Iterative Full-Stack Development"]:::action
+        S_TEST["4. Unit Testing & Anti-Fraud Stress Tests"]:::action
+        S_REV["5. Sprint Review & Stakeholder Demo"]:::action
+        S_RET["6. Sprint Retrospective & Backlog Refinement"]:::action
+    end
+
+    subgraph EVALUATION ["Phase 3: Final Verification & Deployment"]
+        EVAL_1["Field Simulation (QR Scanning & SMS OTP)"]:::action
+        EVAL_2{"Meets Defense Standards?"}:::decision
+        EVAL_3["Production Cloud Deployment (Vercel, Render, Atlas, APK)"]:::finish
+    end
+
+    P1_1 --> P1_2 --> P1_3 --> S_PLAN
+    S_PLAN --> S_DES --> S_DEV --> S_TEST --> S_REV --> S_RET
+    S_RET -->|Next Sprint Cycle| S_PLAN
+    S_RET -->|All Sprints Complete| EVAL_1
+    EVAL_1 --> EVAL_2
+    EVAL_2 -- "Adjustments Needed" --> S_PLAN
+    EVAL_2 -- "Approved" --> EVAL_3
+
+    class PHASE1 phase;
+    class SPRINT_CYCLE phase;
+    class EVALUATION phase;

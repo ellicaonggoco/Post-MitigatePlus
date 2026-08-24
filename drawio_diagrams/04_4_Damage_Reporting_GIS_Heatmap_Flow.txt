@@ -1,0 +1,19 @@
+flowchart TD
+    classDef startEnd fill:#0F172A,stroke:#0F172A,stroke-width:2px,color:#FFFFFF;
+    classDef process fill:#FFFFFF,stroke:#1D4ED8,stroke-width:1.5px,color:#0F172A;
+    classDef decision fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A;
+    classDef db fill:#F1F5F9,stroke:#0D9488,stroke-width:1.5px,color:#0F172A;
+
+    START(["Start: Resident Reports House Damage"]):::startEnd
+    SEV["Select Damage Level: Minor, Moderate, Severe, Total"]:::process
+    GPS["1-Tap GPS Geolocation Capture (Lat/Lng)"]:::process
+    CAM["Capture Photo via Native Camera / Gallery"]:::process
+    DESC["Enter Landmark & Damage Notes"]:::process
+    POST["POST /api/damage-reports"]:::process
+    DB[("Save Damage Report to MongoDB Atlas")]:::db
+    AGG["Compute Barangay Structural Damage Score"]:::process
+    SOCK["Socket.IO Broadcasts Spatial Update to Admin"]:::process
+    GIS["LGU Admin Views Interactive Leaflet GIS Heatmap"]:::process
+    END(["End: Report Recorded in City Assessment"]):::startEnd
+
+    START --> SEV --> GPS --> CAM --> DESC --> POST --> DB --> AGG --> SOCK --> GIS --> END

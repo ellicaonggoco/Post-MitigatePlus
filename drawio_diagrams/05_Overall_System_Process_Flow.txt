@@ -1,0 +1,52 @@
+flowchart TD
+    classDef userLayer fill:#EBF3FB,stroke:#1D4ED8,stroke-width:2px,color:#0F172A;
+    classDef adminLayer fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A;
+    classDef staffLayer fill:#F5F3FF,stroke:#6D28D9,stroke-width:2px,color:#0F172A;
+    classDef backendLayer fill:#F1F5F9,stroke:#0D9488,stroke-width:2px,color:#0F172A;
+
+    subgraph CITIZEN ["1. CITIZEN / RESIDENT"]
+        R1["Register Household Head & Family Roster"]
+        R2["Verify Mobile Number via 6-Digit OTP"]
+        R3["Access Active Digital QR Relief Pass"]
+        R4["Report House Damage (GPS + Photo)"]
+    end
+
+    subgraph BARANGAY ["2. BARANGAY OFFICIAL"]
+        B1["Inspect Registration Queue & ID Attachment"]
+        B2["Approve Household & Calculate Priority Index"]
+        B3["Post & Edit Real-Time Barangay Advisories"]
+    end
+
+    subgraph ADMIN ["3. LGU SUPERADMIN / DISASTER COMMAND"]
+        A1["Schedule Distribution Events & Policies"]
+        A2["Monitor Live Risk Heatmap & GIS Damage"]
+        A3["Supervise Warehouse Stock & Intercept Fraud"]
+    end
+
+    subgraph FIELD ["4. FIELD DISTRIBUTION STAFF"]
+        F1["Scan Resident QR Code at Relief Booth"]
+        F2["Anti-Duplicate Verification & Quota Check"]
+        F3["Release Package & Confirm Handover"]
+    end
+
+    subgraph BACKEND ["5. CORE BACKEND & MONGODB CLUSTER"]
+        S1["Express API Gateway & Security Guard"]
+        S2["Algorithmic Priority, Quota & Fraud Engines"]
+        S3["Socket.IO Live Multi-Room Broadcaster"]
+        S4[("MongoDB Atlas Cloud: 15 Schema Collections")]
+        S5["External Gateways: Semaphore SMS, Gmail, OpenStreetMap"]
+    end
+
+    R1 --> R2 --> S1 --> S5
+    S1 --> S4 --> B1 --> B2 --> S2 --> S3 --> R3
+    A1 --> S1
+    R4 --> S1 --> A2
+    A3 --> S4
+    R3 --> F1 --> S1 --> S2 --> F2
+    F2 -- "Approved" --> F3 --> S4 --> S3 --> A2
+
+    class CITIZEN userLayer;
+    class BARANGAY adminLayer;
+    class ADMIN adminLayer;
+    class FIELD staffLayer;
+    class BACKEND backendLayer;

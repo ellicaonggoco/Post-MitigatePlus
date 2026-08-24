@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Household = require('../models/Household');
 const Distribution = require('../models/Distribution');
+const RecoveryStatus = require('../models/RecoveryStatus');
 const AuditLog = require('../models/AuditLog');
 const AssistanceRequest = require('../models/AssistanceRequest');
 const { protect, requireRole, requireBarangayScope } = require('../middleware/auth');
@@ -18,6 +19,12 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
 
     const isUnfiltered = Object.keys(query).length === 0;
 
+    // Scoped household ids are needed to count Distributions/AuditLogs correctly,
+    // since those collections reference householdId rather than storing barangayCode directly.
+    const scopedHouseholdIds = brgy
+      ? (await Household.find(query).select('_id')).map(h => h._id)
+      : null;
+
     const [
       totalHouseholds,
       pendingVerifications,
@@ -25,6 +32,9 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
       highPriorityHouseholds,
       membersAgg,
       recoveryStages,
+      duplicateAttemptsCount,
+      totalDistributions,
+      activeEvents,
     ] = await Promise.all([
       isUnfiltered ? Household.estimatedDocumentCount() : Household.countDocuments(query),
       Household.countDocuments({ ...query, verificationStatus: 'pending' }),
@@ -35,9 +45,19 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
         { $group: { _id: null, totalMembers: { $sum: '$memberCount' } } }
       ]),
       RecoveryStatus.aggregate([
-        ...(brgy ? [{ $match: { barangayCode: brgy } }] : []),
-        { $group: { _id: '$currentStage', count: { $sum: 1 } } }
+        ...(scopedHouseholdIds ? [{ $match: { householdId: { $in: scopedHouseholdIds } } }] : []),
+        { $group: { _id: '$status', count: { $sum: 1 } } }
       ]).catch(() => []),
+      // Real count, not hardcoded — matches the same action name /duplicate-attempts already queries
+      AuditLog.countDocuments({
+        action: 'DUPLICATE_CLAIM_BLOCKED',
+        ...(scopedHouseholdIds ? { targetId: { $in: scopedHouseholdIds.map(id => id.toString()) } } : {}),
+      }),
+      Distribution.countDocuments(scopedHouseholdIds ? { householdId: { $in: scopedHouseholdIds } } : {}),
+      require('../models/DistributionEvent').countDocuments({
+        isActive: true,
+        ...(brgy ? { barangayCode: brgy } : {}),
+      }),
     ]);
 
     const totalMembers = membersAgg[0]?.totalMembers || (totalHouseholds * 4);
@@ -54,14 +74,14 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
       highPriorityHouseholds,
       totalMembers,
       totalBarangays: 897,
-      duplicateAttemptsCount: 0,
-      totalDistributions: verifiedHouseholds > 0 ? Math.round(verifiedHouseholds * 0.8) : 0,
-      activeEvents: 3,
-      waitingAyuda: stageMap['Waiting for Ayuda'] || Math.max(0, pendingVerifications),
-      assistanceReceived: stageMap['Assistance Received'] || Math.max(0, verifiedHouseholds),
-      ongoingRecovery: stageMap['Ongoing Pagbangon'] || 5,
-      partiallyRecovered: stageMap['Partially Recovered'] || 3,
-      fullyRecovered: stageMap['Fully Recovered'] || 2,
+      duplicateAttemptsCount,
+      totalDistributions,
+      activeEvents,
+      waitingAyuda: stageMap['waiting'] || 0,
+      assistanceReceived: stageMap['assistance_received'] || 0,
+      ongoingRecovery: stageMap['ongoing'] || 0,
+      partiallyRecovered: stageMap['partially_recovered'] || 0,
+      fullyRecovered: stageMap['fully_recovered'] || 0,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching report summary', error: error.message });

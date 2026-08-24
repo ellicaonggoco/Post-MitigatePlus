@@ -1,0 +1,24 @@
+flowchart TD
+    classDef startEnd fill:#0F172A,stroke:#0F172A,stroke-width:2px,color:#FFFFFF;
+    classDef process fill:#FFFFFF,stroke:#1D4ED8,stroke-width:1.5px,color:#0F172A;
+    classDef decision fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A;
+    classDef db fill:#F1F5F9,stroke:#0D9488,stroke-width:1.5px,color:#0F172A;
+
+    START(["Start: Resident Registration"]):::startEnd
+    S1["Enter Head Information & Password"]:::process
+    S2["Attach Valid ID Photo (Camera / Gallery)"]:::process
+    S3["Add Family Members (Senior, PWD, Pregnant, Infant)"]:::process
+    S4["Tap 'Proceed to OTP Verification'"]:::process
+    REQ["Backend Generates 6-Digit Cryptographic OTP"]:::process
+    GATE{"Dispatch via Semaphore SMS or Gmail SMTP"}:::decision
+    MOD["App Opens OTP Verification Modal"]:::process
+    INP["Resident Enters 6-Digit OTP Code"]:::process
+    VAL{"Is OTP Code Valid & Unexpired?"}:::decision
+    ERR["Display Error & Allow Resend"]:::process
+    DB[("Save Household & User to MongoDB (Status: Pending)")]:::db
+    SOCK["Socket.IO Emits 'new_registration' to Barangay"]:::process
+    END(["End: Registration Submitted"]):::startEnd
+
+    START --> S1 --> S2 --> S3 --> S4 --> REQ --> GATE --> MOD --> INP --> VAL
+    VAL -- "No" --> ERR --> INP
+    VAL -- "Yes" --> DB --> SOCK --> END

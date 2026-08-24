@@ -1,0 +1,70 @@
+graph TB
+    classDef presLayer fill:#EBF3FB,stroke:#1D4ED8,stroke-width:2px,color:#0F172A;
+    classDef appLayer fill:#F1F5F9,stroke:#0F766E,stroke-width:2px,color:#0F172A;
+    classDef dataLayer fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#0F172A;
+    classDef subBox fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px,color:#1E293B;
+
+    subgraph TIER1 ["1. PRESENTATION LAYER (CLIENT INTERFACES)"]
+        subgraph WEB_ADMIN ["Web Admin Command Portal"]
+            WA_UI["Dashboard UI (React 18 + Vite)"]:::subBox
+            WA_MAP["GIS Heatmap (Leaflet + OpenStreetMap)"]:::subBox
+            WA_ANL["Analytics (Recharts + Motion)"]:::subBox
+            WA_SOCK["Socket.IO Client (Live Listener)"]:::subBox
+        end
+        subgraph MOBILE_APP ["Mobile Application (Cross-Platform)"]
+            MA_RES["Resident Portal (QR Pass & Damage)"]:::subBox
+            MA_STF["Field Staff Portal (QR Scanner)"]:::subBox
+            MA_NTV["Hardware (Camera, GPS, Picker)"]:::subBox
+            MA_STO["AsyncStorage (Offline Session)"]:::subBox
+        end
+    end
+    class TIER1 presLayer;
+
+    subgraph TIER2 ["2. APPLICATION & BUSINESS LOGIC LAYER (NODE.JS + EXPRESS SERVER)"]
+        subgraph GATEWAY ["Security & Ingress Gateway"]
+            SEC_HELM["Helmet TLS & Sanitization"]:::subBox
+            SEC_RATE["Rate Limiters (Auth, OTP, API)"]:::subBox
+            SEC_JWT["JWT Verification & RBAC Guard"]:::subBox
+        end
+        subgraph ROUTE_ENGINES ["REST API Route Handlers"]
+            R_AUTH["/api/auth (Login, Register, OTP)"]:::subBox
+            R_HH["/api/households (Profiling, QR)"]:::subBox
+            R_DIST["/api/distributions & /api/events"]:::subBox
+            R_DMG["/api/damage-reports & /api/incidents"]:::subBox
+            R_ASST["/api/assistance-requests"]:::subBox
+            R_WAR["/api/warehouse & /api/audit-logs"]:::subBox
+            R_POL["/api/policy & /api/recovery"]:::subBox
+        end
+        subgraph LOGIC_ENGINES ["Core Algorithmic Engines"]
+            ALG_PRIO["Smart Priority Index Engine"]:::subBox
+            ALG_QUOTA["Right-Sized Relief Allocation Engine"]:::subBox
+            ALG_FRAUD["Anti-Duplicate Fraud Guard"]:::subBox
+            ENG_SOCK["Socket.IO Multi-Room Engine"]:::subBox
+        end
+    end
+    class TIER2 appLayer;
+
+    subgraph TIER3 ["3. DATA & EXTERNAL SERVICES LAYER"]
+        subgraph DATABASE ["Database Tier (MongoDB Atlas Cloud Cluster)"]
+            DB_COLL["15 Relational Collections (Users, Households, Distributions, etc.)"]:::subBox
+            DB_INDX["Compound Unique Indexes (qrCode + eventId)"]:::subBox
+        end
+        subgraph EXTERNAL_SERVICES ["External Cloud Gateways"]
+            EXT_SMS["Semaphore SMS Gateway (Mobile OTP)"]:::subBox
+            EXT_MAIL["Gmail SMTP / Nodemailer (Email OTP)"]:::subBox
+            EXT_MAPS["OpenStreetMap Tile Servers (GIS Maps)"]:::subBox
+        end
+    end
+    class TIER3 dataLayer;
+
+    WA_UI -->|HTTPS REST| GATEWAY
+    MA_RES -->|HTTPS REST| GATEWAY
+    MA_STF -->|HTTPS REST| GATEWAY
+    WA_SOCK <-->|WSS WebSockets| ENG_SOCK
+    MA_RES <-->|WSS WebSockets| ENG_SOCK
+    GATEWAY --> ROUTE_ENGINES --> LOGIC_ENGINES
+    LOGIC_ENGINES -->|Mongoose ODM| DB_COLL
+    DB_COLL --- DB_INDX
+    ROUTE_ENGINES -->|HTTPS REST| EXT_SMS
+    ROUTE_ENGINES -->|Encrypted SMTP| EXT_MAIL
+    WA_MAP -->|Tile Fetch| EXT_MAPS

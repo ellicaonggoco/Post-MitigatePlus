@@ -1,0 +1,63 @@
+graph TD
+    classDef root fill:#0F172A,stroke:#0F172A,stroke-width:2px,color:#FFFFFF;
+    classDef role fill:#1E40AF,stroke:#1E40AF,stroke-width:2px,color:#FFFFFF;
+    classDef module fill:#0D9488,stroke:#0D9488,stroke-width:1.5px,color:#FFFFFF;
+    classDef func fill:#F8FAFC,stroke:#64748B,stroke-width:1px,color:#0F172A;
+
+    ROOT["MITIGATEPLUS SYSTEM"]:::root
+
+    R1["1. LGU SuperAdmin / Head"]:::role
+    R2["2. Barangay Official"]:::role
+    R3["3. Field Distribution Staff"]:::role
+    R4["4. Registered Resident"]:::role
+
+    ROOT --> R1
+    ROOT --> R2
+    ROOT --> R3
+    ROOT --> R4
+
+    R1_M1["GIS Heatmap & Analytics"]:::module
+    R1_M2["Relief Operations & Policy"]:::module
+    R1_M3["Warehouse & Logs"]:::module
+    R1 --> R1_M1
+    R1 --> R1_M2
+    R1 --> R1_M3
+    R1_M1 --> F1_1["View Real-Time Manila Dashboard"]:::func
+    R1_M1 --> F1_2["Analyze Risk & Damage Heatmap"]:::func
+    R1_M2 --> F1_3["Create Distribution Events"]:::func
+    R1_M2 --> F1_4["Configure Right-Sized Quota Policies"]:::func
+    R1_M3 --> F1_5["Track Warehouse Stock In/Out"]:::func
+    R1_M3 --> F1_6["Review Audit Trail & Fraud Attempts"]:::func
+
+    R2_M1["Household Verification"]:::module
+    R2_M2["Priority Ranking"]:::module
+    R2_M3["Advisories"]:::module
+    R2 --> R2_M1
+    R2 --> R2_M2
+    R2 --> R2_M3
+    R2_M1 --> F2_1["Inspect Registration Queue & ID"]:::func
+    R2_M1 --> F2_2["Approve / Reject Household"]:::func
+    R2_M2 --> F2_3["View Vulnerability Priority Score"]:::func
+    R2_M3 --> F2_4["Post & In-Place Edit Advisories"]:::func
+
+    R3_M1["QR Checkpoint Scanner"]:::module
+    R3_M2["Package Release"]:::module
+    R3 --> R3_M1
+    R3 --> R3_M2
+    R3_M1 --> F3_1["Scan Resident QR Code with Camera"]:::func
+    R3_M1 --> F3_2["Real-Time Anti-Duplicate Check"]:::func
+    R3_M2 --> F3_3["Inspect Right-Sized Quota"]:::func
+    R3_M2 --> F3_4["Confirm Package Release in Database"]:::func
+
+    R4_M1["Profiling & OTP"]:::module
+    R4_M2["Digital QR Pass"]:::module
+    R4_M3["Emergency & Damage"]:::module
+    R4 --> R4_M1
+    R4 --> R4_M2
+    R4 --> R4_M3
+    R4_M1 --> F4_1["Register Household & Members"]:::func
+    R4_M1 --> F4_2["Verify Mobile Number via OTP"]:::func
+    R4_M2 --> F4_3["Access Digital QR Relief Pass"]:::func
+    R4_M2 --> F4_4["View Entitled Relief Quota"]:::func
+    R4_M3 --> F4_5["Submit House Damage (GPS + Photo)"]:::func
+    R4_M3 --> F4_6["Request Special Medical/Infant Kits"]:::func
