@@ -1,149 +1,749 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="app.diagrams.net" modified="2026-08-24T01:45:00.000Z" agent="5.0" version="21.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="2026-08-24T15:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="tab_01" name="01. 3-Tier System Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    
+    <!-- Title -->
+    <mxCell id="title" value="MitigatePlus — 3-Tier System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#000033;" vertex="1" parent="1">
+      <mxGeometry x="100" y="30" width="1454" height="50" as="geometry" />
+    </mxCell>
 
-  <!-- ========================================================= -->
-  <!-- TAB 1: THREE-TIER SYSTEM ARCHITECTURE                     -->
-  <!-- ========================================================= -->
-  <diagram id="tab-arch" name="1. System Architecture">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="860" background="#FFFFFF">
+    <!-- TIER 1: Presentation Layer -->
+    <mxCell id="tier1_band" value="TIER 1 — Presentation Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;startSize=50;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="100" width="1454" height="300" as="geometry" />
+    </mxCell>
+    
+    <mxCell id="t1_web" value="&lt;b style=&quot;font-size:16px;&quot;&gt;Web Admin Portal (React + Vite)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;Deployed on Vercel&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Role:&lt;/b&gt; LGU SuperAdmin, LGU Admin, Barangay Official&lt;br/&gt;&lt;b&gt;Pages:&lt;/b&gt; Dashboard, Verification Queue, Distribution Events, Heatmap, Relief Allocation, Warehouse, Fraud Interception, Audit Logs, Policy Config, Announcements" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6C8EBF;shadow=1;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="tier1_band">
+      <mxGeometry x="100" y="40" width="550" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="t1_mobile" value="&lt;b style=&quot;font-size:16px;&quot;&gt;Mobile Application (React Native + Expo)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;Platforms: Android / iOS&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Role:&lt;/b&gt; Resident/Citizen, Field Staff&lt;br/&gt;&lt;b&gt;Screens:&lt;/b&gt; Registration, QR Pass, Scanner, Damage Report, Assistance Request, Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6C8EBF;shadow=1;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="tier1_band">
+      <mxGeometry x="800" y="40" width="550" height="220" as="geometry" />
+    </mxCell>
+
+    <!-- TIER 2: Application / Business Logic Layer -->
+    <mxCell id="tier2_band" value="TIER 2 — Application / Business Logic Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;startSize=50;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="480" width="1454" height="300" as="geometry" />
+    </mxCell>
+
+    <mxCell id="t2_api" value="&lt;b style=&quot;font-size:16px;&quot;&gt;REST API Server (Node.js + Express)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;Hosted on Render&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Endpoints:&lt;/b&gt; /auth, /households, /distributions, /damage-reports, /incidents, /assistance-requests, /announcements, /warehouse, /audit-logs, /policy, /reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#D79B00;shadow=1;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="tier2_band">
+      <mxGeometry x="100" y="40" width="380" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="t2_middleware" value="&lt;b style=&quot;font-size:16px;&quot;&gt;Middleware&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;- JWT Authentication&lt;br/&gt;- Role-Based Access Control&lt;br/&gt;&lt;i&gt;(lgu_superadmin &gt; lgu_admin &gt; barangay_official &gt; field_staff &gt; resident)&lt;/i&gt;&lt;br/&gt;- Rate Limiting&lt;br/&gt;- CORS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#D79B00;shadow=1;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="tier2_band">
+      <mxGeometry x="530" y="40" width="380" height="220" as="geometry" />
+    </mxCell>
+
+    <mxCell id="t2_external" value="&lt;b style=&quot;font-size:16px;&quot;&gt;External Services&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;- &lt;b&gt;SEMAPHORE SMS:&lt;/b&gt; OTP &amp; Notifications&lt;br/&gt;- &lt;b&gt;Cloudinary CDN:&lt;/b&gt; Image uploads&lt;br/&gt;- &lt;b&gt;Socket.io:&lt;/b&gt; Real-time events &amp; live updates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#D79B00;shadow=1;align=left;spacing=10;verticalAlign=top;" vertex="1" parent="tier2_band">
+      <mxGeometry x="960" y="40" width="390" height="220" as="geometry" />
+    </mxCell>
+
+    <!-- TIER 3: Data Layer -->
+    <mxCell id="tier3_band" value="TIER 3 — Data Layer" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;startSize=50;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="860" width="1454" height="250" as="geometry" />
+    </mxCell>
+
+    <mxCell id="t3_db" value="&lt;b style=&quot;font-size:16px;&quot;&gt;MongoDB Atlas (Cloud Database)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;Mongoose ODM&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Collections:&lt;/b&gt; Users, Households, DistributionEvents, Distributions, DamageReports, Incidents, AssistanceRequests, Announcements, AuditLogs, PolicyConfig, WarehouseItems, WarehouseLogs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#82B366;shadow=1;align=center;spacing=10;" vertex="1" parent="tier3_band">
+      <mxGeometry x="400" y="30" width="700" height="180" as="geometry" />
+    </mxCell>
+
+    <!-- Connectors -->
+    <mxCell id="edge_t1_t2" value="HTTPS REST API Calls / WebSocket" style="endArrow=classic;startArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=16;fontStyle=1;" edge="1" parent="1" source="tier1_band" target="tier2_band">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <mxPoint x="827" y="420" as="sourcePoint" />
+        <mxPoint x="827" y="470" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    
+    <mxCell id="edge_t2_t3" value="Mongoose ODM Queries / MongoDB Wire Protocol" style="endArrow=classic;startArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=16;fontStyle=1;" edge="1" parent="1" source="tier2_band" target="tier3_band">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <mxPoint x="827" y="790" as="sourcePoint" />
+        <mxPoint x="827" y="850" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
+  </diagram>
+  <diagram id="tab_02" name="02. Agile Scrum Methodology">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    
+    <!-- Title -->
+    <mxCell id="title" value="MitigatePlus — Agile/Scrum Development Methodology" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#000033;" vertex="1" parent="1">
+      <mxGeometry x="100" y="50" width="1454" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- Scrum Cycle Elements -->
+    <mxCell id="scrum_1" value="&lt;b style=&quot;font-size:16px;&quot;&gt;1. PRODUCT BACKLOG&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;All system requirements: User registration, QR distribution, Heatmap, Fraud detection, etc." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="200" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_2" value="&lt;b style=&quot;font-size:16px;&quot;&gt;2. SPRINT PLANNING&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Team selects items from backlog for 2-week sprint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="550" y="200" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_3" value="&lt;b style=&quot;font-size:16px;&quot;&gt;3. SPRINT BACKLOG&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Sprint tasks broken into daily items" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="950" y="200" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_4" value="&lt;b style=&quot;font-size:16px;&quot;&gt;4. SPRINT EXECUTION&lt;/b&gt;&lt;br/&gt;(2 weeks)&lt;br/&gt;&lt;br/&gt;Inner cycle:&lt;br/&gt;Design → Code → Test → Deploy" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="1300" y="325" width="250" height="250" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_5" value="&lt;b style=&quot;font-size:16px;&quot;&gt;5. DAILY SCRUM&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Daily 15-min standup:&lt;br/&gt;What did, what will do, blockers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="950" y="550" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_6" value="&lt;b style=&quot;font-size:16px;&quot;&gt;6. SPRINT REVIEW&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Demo working features to stakeholders (LGU officials)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="550" y="550" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <mxCell id="scrum_7" value="&lt;b style=&quot;font-size:16px;&quot;&gt;7. SPRINT RETROSPECTIVE&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Team improves process for next sprint" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;shadow=1;spacing=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="550" width="280" height="150" as="geometry" />
+    </mxCell>
+
+    <!-- Connectors -->
+    <mxCell id="edge_1_2" style="endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=3;" edge="1" parent="1" source="scrum_1" target="scrum_2">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+    
+    <mxCell id="edge_2_3" style="endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=3;" edge="1" parent="1" source="scrum_2" target="scrum_3">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+    
+    <mxCell id="edge_3_4" style="endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;strokeWidth=3;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="scrum_3" target="scrum_4">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="edge_4_5" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;strokeWidth=3;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="scrum_4" target="scrum_5">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+    
+    <mxCell id="edge_5_6" style="endArrow=classic;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=3;" edge="1" parent="1" source="scrum_5" target="scrum_6">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="edge_6_7" style="endArrow=classic;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=3;" edge="1" parent="1" source="scrum_6" target="scrum_7">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="edge_7_2" style="endArrow=classic;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=3;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="scrum_7" target="scrum_2">
+      <mxGeometry width="50" height="50" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Additional Info Boxes -->
+    <mxCell id="roles_box" value="&lt;b style=&quot;font-size:18px;&quot;&gt;TEAM ROLES&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;- &lt;b&gt;Product Owner:&lt;/b&gt; Manages product backlog, represents LGU stakeholders&lt;br/&gt;- &lt;b&gt;Scrum Master:&lt;/b&gt; Facilitates sprints, removes blockers&lt;br/&gt;- &lt;b&gt;Development Team:&lt;/b&gt; Designs, codes, tests, and deploys" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;shadow=1;align=left;spacing=15;" vertex="1" parent="1">
+      <mxGeometry x="150" y="800" width="680" height="180" as="geometry" />
+    </mxCell>
+
+    <mxCell id="why_agile_box" value="&lt;b style=&quot;font-size:18px;&quot;&gt;WHY AGILE/SCRUM FOR MITIGATEPLUS?&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;1. Requirements evolved progressively from LGU stakeholder feedback&lt;br/&gt;2. Iterative sprints allowed features to be tested and adjusted early&lt;br/&gt;3. Frequent reviews ensured alignment with government disaster response needs&lt;br/&gt;4. Continuous GitHub → Vercel/Render integration enabled rapid deployment&lt;br/&gt;5. Flexibility to respond to regulatory and compliance changes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFACD;strokeColor=#D6B656;shadow=1;align=left;spacing=15;" vertex="1" parent="1">
+      <mxGeometry x="880" y="800" width="670" height="180" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
+  </diagram>
+  <diagram id="tab_03_1" name="03.1 FDD - LGU SuperAdmin">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="a_hdr" value="&lt;b style=&quot;font-size:18px; color:#0F172A;&quot;&gt;MITIGATEPLUS: THREE-TIER SYSTEM ARCHITECTURE&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px; color:#475569;&quot;&gt;Post-Disaster Mitigation, Household Profiling, and Real-Time Relief Distribution Management Platform&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1.5;align=center;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="60" y="20" width="1080" height="50" as="geometry"/>
+        
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+  
+    <mxCell id="root" value="&lt;b&gt;1.0 LGU SUPERADMIN MODULES&lt;/b&gt;&lt;br/&gt;&lt;font style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;Executive Master Control &amp; Strategic Oversight (Web Admin)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;strokeColor=#040035;strokeWidth=2;fontColor=#FFFFFF;fontSize=14;fontFamily=Helvetica;arcSize=14;shadow=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="40" width="320" height="70" as="geometry" />
+    </mxCell>
+  
+      <mxCell id="mod_0" value="&lt;b&gt;1.1 Executive Analytics&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1D4ED8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="40" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_0">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_0_0" value="1.1.1 View City-Wide KPIs (897 Barangays)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_t1_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="60" y="90" width="1080" height="155" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_0" target="func_0_0">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_t1_lbl" value="&lt;b style=&quot;color:#1E40AF; font-size:13px;&quot;&gt;1. PRESENTATION LAYER (CLIENT APPLICATIONS &amp;amp; USER INTERFACES)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="80" y="96" width="600" height="24" as="geometry"/>
+      
+        <mxCell id="func_0_1" value="1.1.2 District-Level Relief vs Need Chart" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_web" value="&lt;b style=&quot;font-size:13px; color:#0F172A;&quot;&gt;Web Admin &amp;amp; Command Center Portal&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10.5px; color:#1D4ED8; font-weight:700;&quot;&gt;React 18 • Vite • Leaflet GIS • Recharts&lt;/span&gt;&lt;hr style=&quot;margin:4px 0; border:0; border-top:1px solid #CBD5E1;&quot;&gt;&lt;div style=&quot;font-size:11px; text-align:left; color:#334155;&quot;&gt;• Real-Time Manila Disaster Dashboard&lt;br&gt;• Spatial Risk &amp;amp; Damage Heatmap&lt;br&gt;• Household Verification Queue &amp;amp; Priority Index&lt;br&gt;• Relief Allocation &amp;amp; Warehouse Inventory&lt;br&gt;• Real-Time Socket.IO Notification Panel&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="80" y="125" width="340" height="105" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_0" target="func_0_1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_mob_res" value="&lt;b style=&quot;font-size:13px; color:#0F172A;&quot;&gt;Resident Mobile Portal&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10.5px; color:#1D4ED8; font-weight:700;&quot;&gt;React Native • Expo • AsyncStorage&lt;/span&gt;&lt;hr style=&quot;margin:4px 0; border:0; border-top:1px solid #CBD5E1;&quot;&gt;&lt;div style=&quot;font-size:11px; text-align:left; color:#334155;&quot;&gt;• Digital Encrypted QR Relief Pass&lt;br&gt;• Structural Damage Report (GPS + Camera)&lt;br&gt;• Special Care &amp;amp; Medical Requests&lt;br&gt;• Real-Time Claim History &amp;amp; Advisories&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="450" y="125" width="310" height="105" as="geometry"/>
+      
+        <mxCell id="func_0_2" value="1.1.3 Master Anti-Duplicate Audit Log View" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="362" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_mob_stf" value="&lt;b style=&quot;font-size:13px; color:#0F172A;&quot;&gt;Field Staff Scanner Portal&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10.5px; color:#1D4ED8; font-weight:700;&quot;&gt;Expo-Camera • Native Sensors&lt;/span&gt;&lt;hr style=&quot;margin:4px 0; border:0; border-top:1px solid #CBD5E1;&quot;&gt;&lt;div style=&quot;font-size:11px; text-align:left; color:#334155;&quot;&gt;• Hardware Camera QR Code Scanner&lt;br&gt;• Instant Entitled Quota Verification&lt;br&gt;• Anti-Duplicate Claim Interception&lt;br&gt;• 1-Tap Relief Release &amp;amp; Audit Logger&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="790" y="125" width="330" height="105" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_1" target="func_0_2">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_t2_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="60" y="295" width="1080" height="235" as="geometry"/>
+      
+        <mxCell id="func_0_3" value="1.1.4 Export Official PDF Executive Reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="418" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_t2_lbl" value="&lt;b style=&quot;color:#0F766E; font-size:13px;&quot;&gt;2. APPLICATION &amp;amp; BUSINESS LOGIC LAYER (NODE.JS &amp;amp; EXPRESS.JS SERVER)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="80" y="301" width="600" height="24" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_2" target="func_0_3">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_sec" value="&lt;b style=&quot;font-size:12px; color:#0F172A;&quot;&gt;Security &amp;amp; Ingress Gateway&lt;/b&gt;&lt;br&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155; margin-top:4px;&quot;&gt;• JWT Auth &amp;amp; 5-Role RBAC Guard&lt;br&gt;• Helmet Strict TLS Headers&lt;br&gt;• Multi-Tier Rate Limiters (Auth, OTP)&lt;br&gt;• express-mongo-sanitize (NoSQL)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=6;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="80" y="330" width="220" height="185" as="geometry"/>
+      
+      <mxCell id="mod_1" value="&lt;b&gt;1.2 Allocation Policy Config&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#047857;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="290" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_1_0" value="1.2.1 Configure Base Family Threshold (5 pax)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_api" value="&lt;b style=&quot;font-size:12px; color:#0F172A;&quot;&gt;REST API Controllers (12 Routes)&lt;/b&gt;&lt;br&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155; margin-top:4px;&quot;&gt;• &lt;b&gt;/auth&lt;/b&gt; (Login, Register, 6-Digit OTP)&lt;br&gt;• &lt;b&gt;/households&lt;/b&gt; (Profiling &amp;amp; Approvals)&lt;br&gt;• &lt;b&gt;/distributions&lt;/b&gt; (Events &amp;amp; Claiming)&lt;br&gt;• &lt;b&gt;/damage-reports&lt;/b&gt; (GIS Data &amp;amp; Photos)&lt;br&gt;• &lt;b&gt;/assistance-requests&lt;/b&gt; (Special Care)&lt;br&gt;• &lt;b&gt;/warehouse&lt;/b&gt; (Inventory In/Out Logs)&lt;br&gt;• &lt;b&gt;/audit-logs&lt;/b&gt; &amp;amp; &lt;b&gt;/policy&lt;/b&gt; (Governance)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=6;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="320" y="330" width="250" height="185" as="geometry"/>
+        <mxCell id="edge_mod_1_func_1_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_1" target="func_1_0">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_eng" value="&lt;b style=&quot;font-size:12px; color:#0F172A;&quot;&gt;Core Computational Engines&lt;/b&gt;&lt;br&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155; margin-top:4px;&quot;&gt;• &lt;b&gt;Smart Priority Index Engine&lt;/b&gt;&lt;br&gt;  (+5 pts Senior/PWD/Infant + Damage)&lt;br&gt;• &lt;b&gt;Right-Sized Relief Allocation&lt;/b&gt;&lt;br&gt;  (1-4 pax = 1 Base, 5+ = Base + Top-Up)&lt;br&gt;• &lt;b&gt;Anti-Duplicate Fraud Guard&lt;/b&gt;&lt;br&gt;  (Compound Index Clamping)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=6;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="590" y="330" width="250" height="185" as="geometry"/>
+      
+        <mxCell id="func_1_1" value="1.2.2 Set Vulnerability Top-Up Multipliers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="306" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_sock" value="&lt;b style=&quot;font-size:12px; color:#0F172A;&quot;&gt;Socket.IO Event Engine&lt;/b&gt;&lt;br&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155; margin-top:4px;&quot;&gt;• Full-Duplex WebSockets&lt;br&gt;• Multi-Room Multiplexing:&lt;br&gt;  - &lt;i&gt;barangay:{code}&lt;/i&gt;&lt;br&gt;  - &lt;i&gt;household:{id}&lt;/i&gt;&lt;br&gt;  - &lt;i&gt;admin_room&lt;/i&gt;&lt;br&gt;• Real-Time Push Alerts&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=6;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="860" y="330" width="260" height="185" as="geometry"/>
+        <mxCell id="edge_mod_1_func_1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_0" target="func_1_1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_t3_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="60" y="580" width="1080" height="175" as="geometry"/>
+      
+        <mxCell id="func_1_2" value="1.2.3 Triple-Confirmation Warning Modal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="362" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_t3_lbl" value="&lt;b style=&quot;color:#B45309; font-size:13px;&quot;&gt;3. DATA &amp;amp; EXTERNAL SERVICES LAYER (PERSISTENCE &amp;amp; CLOUD INTEGRATIONS)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="80" y="586" width="600" height="24" as="geometry"/>
+        <mxCell id="edge_mod_1_func_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_1" target="func_1_2">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_db" value="&lt;b style=&quot;font-size:13px; color:#0F172A;&quot;&gt;MongoDB Atlas Cloud Database (15 Mongoose Schema Collections)&lt;/b&gt;&lt;hr style=&quot;margin:4px 0; border:0; border-top:1px solid #CBD5E1;&quot;&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155;&quot;&gt;• &lt;b&gt;Users&lt;/b&gt; • &lt;b&gt;Households&lt;/b&gt; • &lt;b&gt;DistributionEvents&lt;/b&gt; • &lt;b&gt;Distributions&lt;/b&gt; • &lt;b&gt;AssistanceRequests&lt;/b&gt; • &lt;b&gt;DamageReports&lt;/b&gt;&lt;br&gt;• &lt;b&gt;WarehouseItems&lt;/b&gt; • &lt;b&gt;WarehouseLogs&lt;/b&gt; • &lt;b&gt;AuditLogs&lt;/b&gt; • &lt;b&gt;Incidents&lt;/b&gt; • &lt;b&gt;PolicyConfigs&lt;/b&gt; • &lt;b&gt;RecoveryStatuses&lt;/b&gt;&lt;br&gt;• &lt;b&gt;Announcements&lt;/b&gt; • &lt;b&gt;OtpTokens&lt;/b&gt; • &lt;b&gt;ReliefItemTypes&lt;/b&gt; | &lt;span style=&quot;color:#DC2626; font-weight:700;&quot;&gt;Compound Unique Indexes (qrCode + eventId)&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="80" y="615" width="600" height="125" as="geometry"/>
+      
+        <mxCell id="func_1_3" value="1.2.4 Executive Security Passcode Verification" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="418" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="a_ext" value="&lt;b style=&quot;font-size:13px; color:#0F172A;&quot;&gt;External Cloud Gateways&lt;/b&gt;&lt;hr style=&quot;margin:4px 0; border:0; border-top:1px solid #CBD5E1;&quot;&gt;&lt;div style=&quot;font-size:10.5px; text-align:left; color:#334155;&quot;&gt;• &lt;b&gt;Semaphore SMS Gateway:&lt;/b&gt; Outbound OTP &amp;amp; Alerts&lt;br&gt;• &lt;b&gt;Gmail SMTP / Nodemailer:&lt;/b&gt; Cloud Email Verification&lt;br&gt;• &lt;b&gt;OpenStreetMap Tile Servers:&lt;/b&gt; GIS Map Geometry&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="700" y="615" width="420" height="125" as="geometry"/>
+        <mxCell id="edge_mod_1_func_1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_2" target="func_1_3">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a_c1" value="&lt;b&gt;HTTPS REST (JSON)&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1D4ED8;strokeWidth=2;fontSize=10;fontColor=#1D4ED8;" edge="1" parent="1" source="a_web" target="a_sec"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="a_c2" value="&lt;b&gt;HTTPS REST&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1D4ED8;strokeWidth=2;fontSize=10;fontColor=#1D4ED8;" edge="1" parent="1" source="a_mob_res" target="a_api"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="a_c3" value="&lt;b&gt;WSS WebSockets&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0D9488;strokeWidth=2;fontSize=10;fontColor=#0D9488;dashed=1;" edge="1" parent="1" source="a_mob_stf" target="a_sock"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="a_c4" value="&lt;b&gt;Mongoose ODM Transactions&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=2;fontSize=10;fontColor=#B45309;" edge="1" parent="1" source="a_api" target="a_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="445" y="550"/><mxPoint x="380" y="550"/></Array></mxGeometry></mxCell>
-        <mxCell id="a_c5" value="&lt;b&gt;External Outbound Gateways&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6D28D9;strokeWidth=2;fontSize=10;fontColor=#6D28D9;" edge="1" parent="1" source="a_eng" target="a_ext"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="715" y="550"/><mxPoint x="910" y="550"/></Array></mxGeometry></mxCell>
+      
+      <mxCell id="mod_2" value="&lt;b&gt;1.3 Account Governance&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6D28D9;strokeColor=#7C3AED;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="540" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_2">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_2_0" value="1.3.1 Provision LGU Admin Accounts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_2" target="func_2_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_1" value="1.3.2 Provision Barangay Official Accounts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_0" target="func_2_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_2" value="1.3.3 Suspend / Reactivate Official Access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_1" target="func_2_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_3" value="1.3.4 Permanent Deactivation &amp; Deletion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_2" target="func_2_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 2: AGILE SCRUM METHODOLOGY                            -->
-  <!-- ========================================================= -->
-  <diagram id="tab-meth" name="2. Agile Methodology">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
+  <diagram id="tab_03_2" name="03.2 FDD - LGU Admin">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="m_hdr" value="&lt;b style=&quot;font-size:18px; color:#0F172A;&quot;&gt;MITIGATEPLUS: AGILE SCRUM DEVELOPMENT LIFECYCLE&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px; color:#475569;&quot;&gt;Iterative and Incremental Capstone Software Engineering Process&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1.5;align=center;" vertex="1" parent="1">
-          <mxGeometry x="60" y="20" width="1080" height="50" as="geometry"/>
+        
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+  
+    <mxCell id="root" value="&lt;b&gt;2.0 LGU ADMIN / MDRRMO MODULES&lt;/b&gt;&lt;br/&gt;&lt;font style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;City-Wide Operations &amp; Disaster Command (Web Admin)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;strokeColor=#040035;strokeWidth=2;fontColor=#FFFFFF;fontSize=14;fontFamily=Helvetica;arcSize=14;shadow=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="40" width="320" height="70" as="geometry" />
+    </mxCell>
+  
+      <mxCell id="mod_0" value="&lt;b&gt;2.1 GIS Heatmap Command&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1D4ED8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="40" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_0">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_0_0" value="2.1.1 Interactive 897-Barangay Vector Map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="m_p1" value="&lt;b style=&quot;font-size:13px; color:#1E40AF;&quot;&gt;PHASE 1: PRODUCT BACKLOG &amp;amp; REQUIREMENTS GATHERING&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#1D4ED8;strokeWidth=2;align=center;" vertex="1" parent="1">
-          <mxGeometry x="60" y="100" width="1080" height="40" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_0" target="func_0_0">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m_p1_c1" value="&lt;b&gt;1. Stakeholder Interviews&lt;/b&gt;&lt;br&gt;Analyze DSWD &amp;amp; Manila LGU Relief Quota Guidelines" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;color:#334155;" vertex="1" parent="1"><mxGeometry x="80" y="155" width="320" height="60" as="geometry"/></mxCell>
-        <mxCell id="m_p1_c2" value="&lt;b&gt;2. User Persona Modeling&lt;/b&gt;&lt;br&gt;SuperAdmin, Barangay Official, Field Staff, Resident" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;color:#334155;" vertex="1" parent="1"><mxGeometry x="440" y="155" width="320" height="60" as="geometry"/></mxCell>
-        <mxCell id="m_p1_c3" value="&lt;b&gt;3. Product Backlog Creation&lt;/b&gt;&lt;br&gt;Prioritized Epics &amp;amp; Acceptance Criteria User Stories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;color:#334155;" vertex="1" parent="1"><mxGeometry x="800" y="155" width="320" height="60" as="geometry"/></mxCell>
-        <mxCell id="m_p2" value="&lt;b style=&quot;font-size:13px; color:#0F766E;&quot;&gt;PHASE 2: AGILE SPRINT EXECUTION (2-WEEK ITERATIONS)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;align=center;" vertex="1" parent="1">
-          <mxGeometry x="60" y="250" width="1080" height="40" as="geometry"/>
+      
+        <mxCell id="func_0_1" value="2.1.2 Flood Inundation Hazard Overlays" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="m_s1" value="&lt;b&gt;1. Sprint Planning&lt;/b&gt;&lt;br&gt;Select sprint user stories &amp;amp; allocate team tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="80" y="310" width="190" height="70" as="geometry"/></mxCell>
-        <mxCell id="m_s2" value="&lt;b&gt;2. UI/UX &amp;amp; Schema Design&lt;/b&gt;&lt;br&gt;Wireframing &amp;amp; Mongoose database schemas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="300" y="310" width="190" height="70" as="geometry"/></mxCell>
-        <mxCell id="m_s3" value="&lt;b&gt;3. Full-Stack Dev&lt;/b&gt;&lt;br&gt;React 18, React Native, Node.js API, Sockets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="520" y="310" width="190" height="70" as="geometry"/></mxCell>
-        <mxCell id="m_s4" value="&lt;b&gt;4. Testing &amp;amp; Audit&lt;/b&gt;&lt;br&gt;Anti-duplicate stress test, rate limit verification" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="740" y="310" width="190" height="70" as="geometry"/></mxCell>
-        <mxCell id="m_s5" value="&lt;b&gt;5. Review &amp;amp; Retrospect&lt;/b&gt;&lt;br&gt;Demonstration &amp;amp; backlog refinement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="960" y="310" width="160" height="70" as="geometry"/></mxCell>
-        <mxCell id="m_p3" value="&lt;b style=&quot;font-size:13px; color:#B45309;&quot;&gt;PHASE 3: FIELD EVALUATION &amp;amp; PRODUCTION CLOUD DEPLOYMENT&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;align=center;" vertex="1" parent="1">
-          <mxGeometry x="60" y="440" width="1080" height="40" as="geometry"/>
+        <mxCell id="edge_mod_0_func_0_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_0" target="func_0_1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m_e1" value="&lt;b&gt;Field Simulation&lt;/b&gt;&lt;br&gt;End-to-End on-ground QR relief scanning and SMS OTP test" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;color:#334155;" vertex="1" parent="1"><mxGeometry x="120" y="505" width="280" height="60" as="geometry"/></mxCell>
-        <mxCell id="m_dec" value="&lt;b&gt;Meets Defense &amp;amp; LGU Standards?&lt;/b&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;color:#0F172A;" vertex="1" parent="1"><mxGeometry x="460" y="490" width="220" height="90" as="geometry"/></mxCell>
-        <mxCell id="m_e2" value="&lt;b style=&quot;color:#065F46;&quot;&gt;Production Deployment&lt;/b&gt;&lt;br&gt;Vercel (Web), Render (API), Atlas (DB), Standalone APK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontSize=11;color:#065F46;" vertex="1" parent="1"><mxGeometry x="740" y="505" width="320" height="60" as="geometry"/></mxCell>
-        <mxCell id="m_arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1D4ED8;strokeWidth=2;" edge="1" parent="1" source="m_p1_c1" target="m_p1_c2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1D4ED8;strokeWidth=2;" edge="1" parent="1" source="m_p1_c2" target="m_p1_c3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="1" source="m_s1" target="m_s2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="1" source="m_s2" target="m_s3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="1" source="m_s3" target="m_s4"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="1" source="m_s4" target="m_s5"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_loop" value="&lt;b&gt;Next Sprint Cycle&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0D9488;strokeWidth=2;dashed=1;fontSize=10;fontColor=#0D9488;" edge="1" parent="1" source="m_s5" target="m_s1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1040" y="400"/><mxPoint x="175" y="400"/></Array></mxGeometry></mxCell>
-        <mxCell id="m_arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="m_p1_c3" target="m_p2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="m_s5" target="m_p3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="1" source="m_e1" target="m_dec"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr10" value="&lt;b&gt;Yes&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#059669;strokeWidth=2;fontSize=11;fontColor=#059669;" edge="1" parent="1" source="m_dec" target="m_e2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m_arr11" value="&lt;b&gt;No (Refine)&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DC2626;strokeWidth=2;dashed=1;fontSize=10;fontColor=#DC2626;" edge="1" parent="1" source="m_dec" target="m_s1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="570" y="610"/><mxPoint x="40" y="610"/><mxPoint x="40" y="345"/></Array></mxGeometry></mxCell>
+      
+        <mxCell id="func_0_2" value="2.1.3 Live Evacuation Center Capacity Telemetry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_1" target="func_0_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_3" value="2.1.4 GPS Damage Indicator Pins Inspection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_2" target="func_0_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_1" value="&lt;b&gt;2.2 Relief Operations&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#047857;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="290" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_1_0" value="2.2.1 Schedule Distribution Events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_1" target="func_1_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_1" value="2.2.2 Manage Status (Scheduled, Ongoing, Concluded)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_0" target="func_1_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_2" value="2.2.3 Broadcast Alerts to Resident Mobile Apps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_1" target="func_1_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_3" value="2.2.4 Review Beneficiary Quota Distribution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_2" target="func_1_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_2" value="&lt;b&gt;2.3 Fraud &amp; Logistics&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B91C1C;strokeColor=#DC2626;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="540" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_2">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_2_0" value="2.3.1 Real-Time Duplicate Claim Interception" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_2" target="func_2_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_1" value="2.3.2 Audit Log Inspection &amp; Filter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_0" target="func_2_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_2" value="2.3.3 Track Warehouse Stock In / Out Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_1" target="func_2_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_3" value="2.3.4 Monitor 4-Stage City Recovery Progress" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_2" target="func_2_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 3: FUNCTIONAL DECOMPOSITION DIAGRAM (FDD)             -->
-  <!-- ========================================================= -->
-  <diagram id="tab-fdd" name="3. Functional Decomposition">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
+  <diagram id="tab_03_3" name="03.3 FDD - Barangay Admin">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="fd_root" value="&lt;b style=&quot;font-size:16px; color:#FFFFFF;&quot;&gt;MITIGATEPLUS SYSTEM&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;Post-Disaster Mitigation, Household Profiling &amp;amp; Relief Operations&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#0F172A;align=center;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="420" y="25" width="360" height="50" as="geometry"/>
+        
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+  
+    <mxCell id="root" value="&lt;b&gt;3.0 BARANGAY OFFICIAL MODULES&lt;/b&gt;&lt;br/&gt;&lt;font style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;Grassroots Beneficiary Triage &amp; Local Operations (Web Admin)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;strokeColor=#040035;strokeWidth=2;fontColor=#FFFFFF;fontSize=14;fontFamily=Helvetica;arcSize=14;shadow=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="40" width="320" height="70" as="geometry" />
+    </mxCell>
+  
+      <mxCell id="mod_0" value="&lt;b&gt;3.1 Household Verification&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1D4ED8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="40" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_0">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_0_0" value="3.1.1 Review Pending Resident Registrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="220" height="44" as="geometry" />
         </mxCell>
-        <mxCell id="fd_r1" value="&lt;b style=&quot;font-size:13px; color:#FFFFFF;&quot;&gt;1. LGU SuperAdmin / Head&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1E40AF;align=center;arcSize=6;" vertex="1" parent="1"><mxGeometry x="60" y="115" width="240" height="40" as="geometry"/></mxCell>
-        <mxCell id="fd_r1_box" value="&lt;b style=&quot;color:#1E40AF;&quot;&gt;Executive &amp;amp; Strategic Modules:&lt;/b&gt;&lt;ul style=&quot;margin:4px 0; padding-left:18px; text-align:left; font-size:11px; color:#334155;&quot;&gt;&lt;li&gt;&lt;b&gt;Executive Dashboard:&lt;/b&gt; City Metrics&lt;/li&gt;&lt;li&gt;&lt;b&gt;GIS Risk Heatmap:&lt;/b&gt; Spatial Damage&lt;/li&gt;&lt;li&gt;&lt;b&gt;Relief Operations:&lt;/b&gt; Schedule Events&lt;/li&gt;&lt;li&gt;&lt;b&gt;Warehouse Inventory:&lt;/b&gt; Stock Logs&lt;/li&gt;&lt;li&gt;&lt;b&gt;Security &amp;amp; Governance:&lt;/b&gt; Audit Logs&lt;/li&gt;&lt;/ul&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#BFDBFE;align=left;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1"><mxGeometry x="60" y="165" width="240" height="150" as="geometry"/></mxCell>
-        <mxCell id="fd_r2" value="&lt;b style=&quot;font-size:13px; color:#FFFFFF;&quot;&gt;2. Barangay Official&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0D9488;strokeColor=#0D9488;align=center;arcSize=6;" vertex="1" parent="1"><mxGeometry x="340" y="115" width="240" height="40" as="geometry"/></mxCell>
-        <mxCell id="fd_r2_box" value="&lt;b style=&quot;color:#0D9488;&quot;&gt;Barangay Operations Modules:&lt;/b&gt;&lt;ul style=&quot;margin:4px 0; padding-left:18px; text-align:left; font-size:11px; color:#334155;&quot;&gt;&lt;li&gt;&lt;b&gt;Household Verification Queue&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Inspect Attached Valid IDs&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Priority Index Ranking&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Manage Vulnerability Tags&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;In-Place Edit Advisories&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#99F6E4;align=left;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1"><mxGeometry x="340" y="165" width="240" height="150" as="geometry"/></mxCell>
-        <mxCell id="fd_r3" value="&lt;b style=&quot;font-size:13px; color:#FFFFFF;&quot;&gt;3. Field Distribution Staff&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D97706;strokeColor=#D97706;align=center;arcSize=6;" vertex="1" parent="1"><mxGeometry x="620" y="115" width="240" height="40" as="geometry"/></mxCell>
-        <mxCell id="fd_r3_box" value="&lt;b style=&quot;color:#D97706;&quot;&gt;On-Ground Checkpoint Modules:&lt;/b&gt;&lt;ul style=&quot;margin:4px 0; padding-left:18px; text-align:left; font-size:11px; color:#334155;&quot;&gt;&lt;li&gt;&lt;b&gt;Hardware Camera QR Scanner&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Anti-Duplicate Checkpoint Guard&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Right-Sized Quota Release&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Log Physical Item Handover&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Report On-Ground Incidents&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#FDE68A;align=left;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1"><mxGeometry x="620" y="165" width="240" height="150" as="geometry"/></mxCell>
-        <mxCell id="fd_r4" value="&lt;b style=&quot;font-size:13px; color:#FFFFFF;&quot;&gt;4. Registered Resident&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6D28D9;strokeColor=#6D28D9;align=center;arcSize=6;" vertex="1" parent="1"><mxGeometry x="900" y="115" width="240" height="40" as="geometry"/></mxCell>
-        <mxCell id="fd_r4_box" value="&lt;b style=&quot;color:#6D28D9;&quot;&gt;Citizen &amp;amp; Resident Modules:&lt;/b&gt;&lt;ul style=&quot;margin:4px 0; padding-left:18px; text-align:left; font-size:11px; color:#334155;&quot;&gt;&lt;li&gt;&lt;b&gt;Household Profiling &amp;amp; OTP Auth&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Digital Encrypted QR Relief Pass&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Report Structural Damage (GPS)&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;Request Special Medical Kits&lt;/b&gt;&lt;/li&gt;&lt;li&gt;&lt;b&gt;View Live Claims &amp;amp; Advisories&lt;/b&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#DDD6FE;align=left;verticalAlign=top;padding=8;arcSize=6;" vertex="1" parent="1"><mxGeometry x="900" y="165" width="240" height="150" as="geometry"/></mxCell>
-        <mxCell id="fd_c1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="fd_root" target="fd_r1"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="fd_c2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="fd_root" target="fd_r2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="fd_c3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="fd_root" target="fd_r3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="fd_c4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#64748B;strokeWidth=1.5;" edge="1" parent="1" source="fd_root" target="fd_r4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="edge_mod_0_func_0_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_0" target="func_0_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_1" value="3.1.2 HD Government ID Document Lightbox Viewer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_0" target="func_0_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_2" value="3.1.3 Verify Headcount &amp; Vulnerability Flags" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_1" target="func_0_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_3" value="3.1.4 Approve / Reject with Custom Audit Notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_2" target="func_0_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_1" value="&lt;b&gt;3.2 Recovery Priority Matrix&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D97706;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="290" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_1_0" value="3.2.1 Smart Recovery Priority Score Calculation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_1" target="func_1_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_1" value="3.2.2 Filter by Damage Severity (Total, Severe, etc.)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_0" target="func_1_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_2" value="3.2.3 Identify High-Risk Vulnerable Households" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_1" target="func_1_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_3" value="3.2.4 Search Beneficiary Records by Name/Address" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_2" target="func_1_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_2" value="&lt;b&gt;3.3 Offline &amp; Civic Ops&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#047857;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="540" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_2">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_2_0" value="3.3.1 Encode Special Relief for Non-Smartphone Citizens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_2" target="func_2_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_1" value="3.3.2 Specify Bedridden / Elderly Delivery Address" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_0" target="func_2_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_2" value="3.3.3 Post Barangay Announcements &amp; Alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_1" target="func_2_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_3" value="3.3.4 Configure 1-Tap Citizen Action Deep Links" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_2" target="func_2_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 4: PROCESS FLOW - CITIZEN REGISTRATION & OTP          -->
-  <!-- ========================================================= -->
-  <diagram id="tab-p1" name="4.1 Registration &amp; OTP Flow">
+  <diagram id="tab_03_4" name="03.4 FDD - Resident & Citizen">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+  
+    <mxCell id="root" value="&lt;b&gt;4.0 RESIDENT CITIZEN MODULES&lt;/b&gt;&lt;br/&gt;&lt;font style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;Mobile Beneficiary Client (React Native / Expo)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;strokeColor=#040035;strokeWidth=2;fontColor=#FFFFFF;fontSize=14;fontFamily=Helvetica;arcSize=14;shadow=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="40" width="320" height="70" as="geometry" />
+    </mxCell>
+  
+      <mxCell id="mod_0" value="&lt;b&gt;4.1 Profiling &amp; Auth&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1D4ED8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="40" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_0">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_0_0" value="4.1.1 6-Digit SMS OTP Verification (Semaphore)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_0" target="func_0_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_1" value="4.1.2 Household Family Member Registration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_0" target="func_0_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_2" value="4.1.3 Tag Vulnerabilities (Senior, PWD, Infant)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_1" target="func_0_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_3" value="4.1.4 Upload Government ID via Camera/Gallery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_2" target="func_0_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_1" value="&lt;b&gt;4.2 Digital Relief Pass&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#047857;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="290" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_1_0" value="4.2.1 Display Anti-Tamper Dynamic QR Pass" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_1" target="func_1_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_1" value="4.2.2 View Right-Sized Package Entitlement Quota" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_0" target="func_1_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_2" value="4.2.3 Check Live Verification Status (Verified/Pending)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_1" target="func_1_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_3" value="4.2.4 Review Complete Relief Claim History Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_2" target="func_1_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_2" value="&lt;b&gt;4.3 Emergency Telemetry&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B91C1C;strokeColor=#DC2626;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="540" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_2">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_2_0" value="4.3.1 Capture Damage Photo with Auto-GPS Lat/Lng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_2" target="func_2_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_1" value="4.3.2 Select Severity Level (Totally Damaged, Severe)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_0" target="func_2_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_2" value="4.3.3 Submit Special Medical / Infant Kit Request" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_1" target="func_2_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_3" value="4.3.4 Receive Real-Time Civic Alerts &amp; Advisories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_2" target="func_2_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="tab_03_5" name="03.5 FDD - Field Staff">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+  
+    <mxCell id="root" value="&lt;b&gt;5.0 FIELD DISTRIBUTION STAFF MODULES&lt;/b&gt;&lt;br/&gt;&lt;font style=&quot;font-size:11px; color:#E2E8F0;&quot;&gt;Field Checkpoint Scanner &amp; Delivery Client (Mobile App)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;strokeColor=#040035;strokeWidth=2;fontColor=#FFFFFF;fontSize=14;fontFamily=Helvetica;arcSize=14;shadow=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="40" width="320" height="70" as="geometry" />
+    </mxCell>
+  
+      <mxCell id="mod_0" value="&lt;b&gt;5.1 QR Checkpoint Scanner&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;strokeColor=#1D4ED8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="40" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_0">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_0_0" value="5.1.1 Hardware Camera QR Scanning Integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_0" target="func_0_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_1" value="5.1.2 Flashlight &amp; High-Speed Optical Detection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_0" target="func_0_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_2" value="5.1.3 Real-Time Token Verification against Event" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_1" target="func_0_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_0_3" value="5.1.4 Duplicate Claim Anti-Fraud Audio/Visual Blocker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_0_func_0_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_0_2" target="func_0_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_1" value="&lt;b&gt;5.2 Relief Package Release&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#047857;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="290" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_1_0" value="5.2.1 Display Household Right-Sized Quota Details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_1" target="func_1_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_1" value="5.2.2 Confirm Package Release with 1-Tap Button" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_0" target="func_1_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_2" value="5.2.3 Compound Unique Key Record Writing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_1" target="func_1_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_1_3" value="5.2.4 Auto-Sync Offline Transactions to Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_1_func_1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_1_2" target="func_1_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      <mxCell id="mod_2" value="&lt;b&gt;5.3 Field Logistics &amp; Reports&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D97706;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;arcSize=12;shadow=1;" vertex="1" parent="1">
+        <mxGeometry x="540" y="170" width="220" height="50" as="geometry" />
+      </mxCell>
+      <mxCell id="edge_r_mod_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#64748B;strokeWidth=2;" edge="1" parent="1" source="root" target="mod_2">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+    
+        <mxCell id="func_2_0" value="5.3.1 View Special Request House-to-House Assignments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="mod_2" target="func_2_0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_1" value="5.3.2 Mark Offline Elderly/PWD Deliveries Complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="306" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_0" target="func_2_1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_2" value="5.3.3 Submit Field Incident Reports &amp; Surges" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="362" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_1" target="func_2_2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+        <mxCell id="func_2_3" value="5.3.4 Live Socket.IO Field Sync with Command Center" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontFamily=Helvetica;arcSize=10;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="418" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_mod_2_func_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#94A3B8;strokeWidth=1.5;" edge="1" parent="1" source="func_2_2" target="func_2_3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="tab_04_1" name="04.1 Process Flow - Citizen Registration & OTP">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -172,11 +772,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 5: PROCESS FLOW - BARANGAY VERIFICATION & QR PASS     -->
-  <!-- ========================================================= -->
-  <diagram id="tab-p2" name="4.2 Verification &amp; QR Flow">
+  <diagram id="tab_04_2" name="04.2 Process Flow - Barangay Verification & QR">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -202,11 +798,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 6: PROCESS FLOW - CHECKPOINT QR SCANNING & ANTI-FRAUD -->
-  <!-- ========================================================= -->
-  <diagram id="tab-p3" name="4.3 QR Relief Scanning Flow">
+  <diagram id="tab_04_3" name="04.3 Process Flow - Relief Scanning & Anti-Fraud">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -232,11 +824,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 7: PROCESS FLOW - DAMAGE REPORTING & GIS HEATMAP      -->
-  <!-- ========================================================= -->
-  <diagram id="tab-p4" name="4.4 Damage Reporting &amp; GIS Flow">
+  <diagram id="tab_04_4" name="04.4 Process Flow - Damage Reporting & Heatmap">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -262,11 +850,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 8: PROCESS FLOW - SPECIAL ASSISTANCE REQUESTS         -->
-  <!-- ========================================================= -->
-  <diagram id="tab-p5" name="4.5 Special Assistance Flow">
+  <diagram id="tab_04_5" name="04.5 Process Flow - Special Assistance Delivery">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -292,11 +876,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-
-  <!-- ========================================================= -->
-  <!-- TAB 9: OVERALL SYSTEM PROCESS FLOW (HOLISTIC JOURNEY)     -->
-  <!-- ========================================================= -->
-  <diagram id="tab-overall" name="5. Overall Process Flow">
+  <diagram id="tab_05" name="05. Overall End-to-End Process Flow">
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
       <root>
         <mxCell id="0"/>
@@ -314,5 +894,4 @@
       </root>
     </mxGraphModel>
   </diagram>
-
 </mxfile>
