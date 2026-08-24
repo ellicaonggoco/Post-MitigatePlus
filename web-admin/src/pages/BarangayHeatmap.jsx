@@ -370,9 +370,17 @@ export default function BarangayHeatmap() {
     });
   };
 
-  const uniqueBrgyCount = new Set(filteredDots.map(d => d.barangayCode)).size;
-  const reportedBarangays = uniqueBrgyCount || 5;
-  const highRiskBarangays = filteredDots.filter(d => d.damageLevel === 'Severe' || d.damageLevel === 'Totally Damaged').length || 3;
+  const totalReportsCount = filteredDots.length;
+  const criticalCount = filteredDots.filter(d => d.damageLevel === 'Totally Damaged').length;
+  const severeCount = filteredDots.filter(d => d.damageLevel === 'Severe').length;
+  const moderateCount = filteredDots.filter(d => d.damageLevel === 'Moderate').length;
+  const minorCount = filteredDots.filter(d => d.damageLevel === 'Minor').length;
+  const highRiskCount = criticalCount + severeCount;
+
+  const matchingEvacHubs = selectedBarangayFilter === 'ALL'
+    ? MANILA_EVACUATION_CENTERS
+    : MANILA_EVACUATION_CENTERS.filter(e => e.barangayCode === selectedBarangayFilter);
+  const evacHubsCount = matchingEvacHubs.length || (selectedBarangayFilter === 'ALL' ? MANILA_EVACUATION_CENTERS.length : 0);
 
   return (
     <div className="page-container page-animate">
@@ -666,22 +674,36 @@ export default function BarangayHeatmap() {
         {/* ── Side Insight Panel with MotionCard ── */}
         <aside className="map-insight-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <MotionCard className="clay-card" style={{ padding: '16px' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--manila-blue)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              City Damage & Evac Overview
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center' }}>
-              <div style={{ background: 'var(--sampaguita)', padding: '10px 6px', borderRadius: 'var(--radius-inner)' }}>
-                <span style={{ fontSize: '11px', color: 'var(--ink-soft)', fontWeight: 800, display: 'block' }}>REPORTED</span>
-                <strong style={{ fontSize: '18px', color: 'var(--manila-blue)' }}>{reportedBarangays}</strong>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {selectedBarangayFilter === 'ALL' ? 'City Damage & Evac Overview' : `Brgy ${selectedBarangayFilter} Damage & Evac Overview`}
+              </h3>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', background: 'var(--sampaguita)', padding: '2px 8px', borderRadius: '999px' }}>
+                {filterSeverity === 'ALL' ? 'All Risks' : filterSeverity}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center', marginBottom: '12px' }}>
+              <div style={{ background: 'var(--sampaguita)', padding: '10px 6px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '10.5px', color: 'var(--ink-soft)', fontWeight: 800, display: 'block' }}>ALL REPORTS</span>
+                <strong style={{ fontSize: '19px', color: 'var(--manila-blue)', fontWeight: 900 }}>{totalReportsCount}</strong>
               </div>
-              <div style={{ background: 'rgba(220,38,38,0.08)', padding: '10px 6px', borderRadius: 'var(--radius-inner)' }}>
-                <span style={{ fontSize: '11px', color: '#991B1B', fontWeight: 800, display: 'block' }}>HIGH RISK</span>
-                <strong style={{ fontSize: '18px', color: '#991B1B' }}>{highRiskBarangays}</strong>
+              <div style={{ background: 'rgba(220,38,38,0.08)', padding: '10px 6px', borderRadius: 'var(--radius-inner)', border: '1px solid rgba(220,38,38,0.2)' }}>
+                <span style={{ fontSize: '10.5px', color: '#991B1B', fontWeight: 800, display: 'block' }}>HIGH RISK</span>
+                <strong style={{ fontSize: '19px', color: '#991B1B', fontWeight: 900 }}>{highRiskCount}</strong>
               </div>
-              <div style={{ background: 'rgba(16,185,129,0.08)', padding: '10px 6px', borderRadius: 'var(--radius-inner)' }}>
-                <span style={{ fontSize: '11px', color: '#047857', fontWeight: 800, display: 'block' }}>EVAC HUBS</span>
-                <strong style={{ fontSize: '18px', color: '#047857' }}>{MANILA_EVACUATION_CENTERS.length}</strong>
+              <div style={{ background: 'rgba(16,185,129,0.08)', padding: '10px 6px', borderRadius: 'var(--radius-inner)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <span style={{ fontSize: '10.5px', color: '#047857', fontWeight: 800, display: 'block' }}>EVAC HUBS</span>
+                <strong style={{ fontSize: '19px', color: '#047857', fontWeight: 900 }}>{evacHubsCount}</strong>
               </div>
+            </div>
+
+            {/* Micro Breakdown Bar */}
+            <div style={{ background: 'var(--sampaguita)', borderRadius: '8px', padding: '8px 10px', fontSize: '11px', display: 'flex', justifyContent: 'space-between', color: 'var(--ink-soft)', flexWrap: 'wrap', gap: '4px', border: '1px solid var(--border)' }}>
+              <span><strong style={{ color: '#8B5FBF' }}>Total:</strong> {criticalCount}</span>
+              <span><strong style={{ color: '#DC2626' }}>Severe:</strong> {severeCount}</span>
+              <span><strong style={{ color: '#D97706' }}>Moderate:</strong> {moderateCount}</span>
+              <span><strong style={{ color: '#F59E0B' }}>Minor:</strong> {minorCount}</span>
             </div>
           </MotionCard>
 
