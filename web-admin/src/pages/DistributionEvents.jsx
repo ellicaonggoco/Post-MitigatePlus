@@ -190,12 +190,27 @@ export default function DistributionEvents() {
     });
   };
 
-  // Filter events by tab
+  // Robust status normalizer that correctly infers Ongoing vs Completed vs Scheduled from MongoDB schema
+  const getEventStatus = (e) => {
+    if (!e) return 'Scheduled';
+    if (e.status) {
+      const s = String(e.status).toLowerCase();
+      if (s === 'ongoing') return 'Ongoing';
+      if (s === 'completed') return 'Completed';
+      if (s === 'scheduled') return 'Scheduled';
+      if (s === 'cancelled') return 'Cancelled';
+    }
+    if (e.isActive === true) return 'Ongoing';
+    if (e.isActive === false || e.closedAt) return 'Completed';
+    return 'Scheduled';
+  };
+
+  // Filter events by tab with robust status matching
   const filtered = filter === 'ALL'
     ? events
     : filter === 'ANNOUNCED'
-    ? events.filter(e => sentAnnouncements[e.id])
-    : events.filter(e => e.status === filter);
+    ? events.filter(e => !!sentAnnouncements[e._id || e.id])
+    : events.filter(e => getEventStatus(e) === filter);
 
   return (
     <div className="page-container page-animate">
@@ -261,11 +276,11 @@ export default function DistributionEvents() {
       {/* ── Filter Tabs: ALL, Scheduled, Ongoing, Completed, Announcement Sent ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
-          { key: 'ALL', label: 'ALL Events' },
-          { key: 'Scheduled', label: 'Scheduled' },
-          { key: 'Ongoing', label: 'Ongoing' },
-          { key: 'Completed', label: 'Completed' },
-          { key: 'ANNOUNCED', label: `Announcement Sent (${Object.keys(sentAnnouncements).length})` },
+          { key: 'ALL', label: `ALL Events (${events.length})` },
+          { key: 'Scheduled', label: `Scheduled (${events.filter(e => getEventStatus(e) === 'Scheduled').length})` },
+          { key: 'Ongoing', label: `Ongoing (${events.filter(e => getEventStatus(e) === 'Ongoing').length})` },
+          { key: 'Completed', label: `Completed (${events.filter(e => getEventStatus(e) === 'Completed').length})` },
+          { key: 'ANNOUNCED', label: `Announcement Sent (${events.filter(e => !!sentAnnouncements[e._id || e.id]).length})` },
         ].map(t => (
           <button
             key={t.key}
@@ -289,10 +304,10 @@ export default function DistributionEvents() {
           </div>
         )}
         {filtered.map((ev, idx) => {
-          const evStatus = ev.status || (ev.isActive ? 'Ongoing' : 'Completed');
+          const evStatus = getEventStatus(ev);
           const cfg = STATUS_CONFIG[evStatus] || STATUS_CONFIG.Scheduled;
           const StatusIcon = cfg.icon;
-          const isAnnounced = !!sentAnnouncements[ev.id || ev._id];
+          const isAnnounced = !!sentAnnouncements[ev._id || ev.id];
           const isAllTab = filter === 'ALL';
 
           const evBrgy = ev.barangay || (ev.barangayCode ? `Barangay ${ev.barangayCode}` : ev.location || 'Barangay 291');
