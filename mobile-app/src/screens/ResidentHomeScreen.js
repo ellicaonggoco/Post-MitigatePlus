@@ -528,6 +528,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         ) : activeTab === 'history' ? (
           <ResidentClaimsHistoryScreen
             token={token}
+            user={user}
+            household={householdData || household}
             lang={lang}
             onBack={() => setActiveTab('home')}
           />

@@ -6,11 +6,17 @@ import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionPressable, MotionPulseBadge } from '../components/motion';
 
-export default function ResidentClaimsHistoryScreen({ token, lang = 'en', onBack }) {
+export default function ResidentClaimsHistoryScreen({ token, user, household, lang = 'en', onBack }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
+
+  const residentName = user?.name || household?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
+  const residentAddress = household?.address || (lang === 'tl' ? 'Barangay 291, Maynila' : 'Barangay 291, Manila');
+  const residentBrgy = household?.barangayCode || user?.barangayCode || '291';
+  const residentQr = household?.qrCode || `MNL-${residentBrgy}-PASS`;
+  const residentMembers = household?.memberCount || 1;
 
   useEffect(() => {
     async function loadHistory() {
@@ -29,11 +35,16 @@ export default function ResidentClaimsHistoryScreen({ token, lang = 'en', onBack
             return {
               id: rawId,
               receiptNumber: receiptNo,
+              beneficiaryName: c.householdId?.headOfHouseholdUserId?.name || residentName,
+              address: c.householdId?.address || residentAddress,
+              barangay: c.householdId?.barangayCode || residentBrgy,
+              qrCode: c.householdId?.qrCode || residentQr,
+              familySize: c.householdSizeAtDistribution || c.householdId?.memberCount || residentMembers,
               type: c.itemType || (c.items ? c.items.join(', ') : 'Family Food Pack'),
               status: c.status || 'CLAIMED',
               quantity: (c.baseUnitsGiven || 1) + (c.topUpUnitsGiven || 0),
               date: c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt ? new Date(c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : 'Recent',
-              location: c.location || (c.distributionEventId?.location) || 'Barangay 291 Covered Court',
+              location: c.location || (c.distributionEventId?.location) || `Barangay ${residentBrgy} Distribution Center`,
               verifiedBy: typeof c.releasedBy === 'object' ? (c.releasedBy?.name || 'Field Officer') : (c.verifiedBy || c.releasedBy || 'MDRRMO Field Staff'),
               team: typeof c.releasedBy === 'object' ? (c.releasedBy?.teamName || 'Field Operations') : 'MDRRMO Field Operations',
             };
@@ -163,12 +174,31 @@ export default function ResidentClaimsHistoryScreen({ token, lang = 'en', onBack
 
               <View style={styles.receiptRows}>
                 <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Benepisyaryo:' : 'Beneficiary Name:'}</Text>
+                  <Text style={styles.receiptValueBold}>{selectedReceipt.beneficiaryName}</Text>
+                </View>
+                <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Barangay at Tirahan:' : 'Address & Barangay:'}</Text>
+                  <Text style={styles.receiptValue}>{selectedReceipt.address}</Text>
+                </View>
+                <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'QR Pass Ref:' : 'QR Pass Ref:'}</Text>
+                  <Text style={[styles.receiptValue, { fontWeight: '700', color: '#1557B0' }]}>{selectedReceipt.qrCode}</Text>
+                </View>
+                <View style={styles.receiptRow}>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Miyembro ng Pamilya:' : 'Family Headcount:'}</Text>
+                  <Text style={styles.receiptValueBold}>{selectedReceipt.familySize} {lang === 'tl' ? 'katao' : 'members'}</Text>
+                </View>
+
+                <View style={{ height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 }} />
+
+                <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Uri ng Ayuda:' : 'Relief Item:'}</Text>
                   <Text style={styles.receiptValueBold}>{selectedReceipt.type}</Text>
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Dami na Na-release:' : 'Quantity Released:'}</Text>
-                  <Text style={styles.receiptValueBold}>{selectedReceipt.quantity} Pack(s)</Text>
+                  <Text style={[styles.receiptValueBold, { color: '#047857' }]}>{selectedReceipt.quantity} Pack(s)</Text>
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Lugar ng Distribusyon:' : 'Distribution Venue:'}</Text>
