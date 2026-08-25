@@ -601,7 +601,7 @@ export default function ProvisionAccounts() {
                           (cleanNum && (b.code === cleanNum || b.code.startsWith(cleanNum))) ||
                           `brgy ${b.code}`.toLowerCase().includes(rawTerm)
                         );
-                      }).slice(0, 50);
+                      }).slice(0, 5);
                       return (
                         <>
                           <input
@@ -643,18 +643,18 @@ export default function ProvisionAccounts() {
                           {showBarangaySuggestions && suggestions.length > 0 && (
                             <div style={{
                               position: 'absolute',
-                              top: '100%',
+                              top: 'calc(100% + 4px)',
                               left: 0,
                               right: 0,
                               background: 'var(--card)',
                               border: '1.5px solid var(--border)',
                               borderRadius: 'var(--radius-inner)',
                               zIndex: 9999,
-                              maxHeight: 180,
+                              maxHeight: 160,
                               overflowY: 'auto',
-                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
                             }}>
-                              {suggestions.map(b => (
+                              {suggestions.map((b, idx) => (
                                 <div
                                   key={b.code}
                                   onMouseDown={() => {
@@ -663,16 +663,20 @@ export default function ProvisionAccounts() {
                                     setShowBarangaySuggestions(false);
                                   }}
                                   style={{
-                                    padding: '9px 14px',
-                                    fontSize: 13,
+                                    padding: '8px 12px',
+                                    fontSize: 12.5,
                                     cursor: 'pointer',
-                                    borderBottom: '1px solid var(--border)',
+                                    borderBottom: idx === suggestions.length - 1 ? 'none' : '1px solid var(--border)',
                                     color: 'var(--ink)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
                                   }}
                                   onMouseEnter={e => e.currentTarget.style.background = 'var(--sampaguita)'}
                                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                 >
-                                  {b.label}
+                                  <span style={{ fontWeight: 600 }}>{b.label}</span>
+                                  <span style={{ fontSize: 10.5, color: 'var(--ink-soft)', background: 'var(--card-hover)', padding: '1px 6px', borderRadius: 4 }}>Code: {b.code}</span>
                                 </div>
                               ))}
                             </div>
@@ -680,7 +684,7 @@ export default function ProvisionAccounts() {
                           {showBarangaySuggestions && suggestions.length === 0 && barangaySearch && (
                             <div style={{
                               position: 'absolute',
-                              top: '100%',
+                              top: 'calc(100% + 4px)',
                               left: 0,
                               right: 0,
                               background: 'var(--card)',
@@ -688,9 +692,9 @@ export default function ProvisionAccounts() {
                               borderRadius: 'var(--radius-inner)',
                               zIndex: 9999,
                               padding: '10px 14px',
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
                               fontSize: 12,
                               color: 'var(--ink-soft)',
-                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                             }}>
                               No available barangays match "{barangaySearch}". All matching barangays may already have an assigned official.
                             </div>
