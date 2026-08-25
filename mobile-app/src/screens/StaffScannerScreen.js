@@ -77,7 +77,19 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
             .map(([item, rec]) => `${rec.basePacks}x Base ${item}${rec.topUpUnits > 0 ? ` + ${rec.topUpUnits} Top-Up Units` : ''}`)
             .join(' • ');
         } else {
-          entitlementText = `${Math.ceil((hh.memberCount || 4) / 5)}x Family Food Pack`;
+        // Immediate Front-End Duplicate Check
+        const selectedEvtId = String(selectedEvent?._id || selectedEvent?.id || '');
+        const alreadyClaimed = Array.isArray(res.pastDistributions) && res.pastDistributions.some(
+          (d) => String(d.distributionEventId?._id || d.distributionEventId) === selectedEvtId
+        );
+
+        if (alreadyClaimed) {
+          const priorClaim = res.pastDistributions.find(
+            (d) => String(d.distributionEventId?._id || d.distributionEventId) === selectedEvtId
+          );
+          const claimTime = priorClaim?.releasedAt ? new Date(priorClaim.releasedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'earlier today';
+          setDuplicateAlert(true);
+          setDuplicateMessage(`Nakatanggap na ang pamilyang ito ng ayuda sa naturang event kaninang ${claimTime}. Bawal ang dobleng kuha.`);
         }
 
         setScanResult({
