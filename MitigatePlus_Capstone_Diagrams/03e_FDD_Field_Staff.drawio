@@ -1,153 +1,72 @@
-<mxfile host="app.diagrams.net" modified="2026-08-25T06:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
-  <diagram id="fdd_staff" name="03e. FDD — Field Staff">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="fdd_fs" name="03e. FDD — Field Staff">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1300" math="0" shadow="0">
       <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="title" value="MitigatePlus — Functional Decomposition Diagram (FDD)\nFIELD STAFF" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;fontColor=#090154;" vertex="1" parent="1">
-          <mxGeometry x="80" y="15" width="1480" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="root" value="&amp;lt;b&amp;gt;FIELD STAFF&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;&amp;lt;font style=&quot;font-size:11px;color:#cce4ff;&quot;&amp;gt;MitigatePlus Mobile App — On-Ground Operations &amp; QR Scanner&amp;lt;/font&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#090154;fontColor=#ffffff;strokeColor=#090154;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="577" y="100" width="500" height="65" as="geometry" />
-        </mxCell>
-        <mxCell id="m0" value="&amp;lt;b&amp;gt;5.1 Authentication&amp;lt;/b&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1557b0;fontColor=#ffffff;strokeColor=#1557b0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="255" y="230" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="em_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="ttl" value="Functional Decomposition Diagram (FDD)
+FIELD STAFF
+MitigatePlus Mobile App — On-Ground Operations &amp; QR Scanner" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="60" y="10" width="1530" height="55" as="geometry"/></mxCell>
+        <mxCell id="root" value="FIELD STAFF
+MitigatePlus Mobile App — On-Ground Operations &amp; QR Scanner" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#0D3C75;strokeColor=#0D3C75;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="577" y="80" width="500" height="55" as="geometry"/></mxCell>
+        <mxCell id="m0" value="5.1 Authentication" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="70" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="em0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f0_0" value="5.1.1 Login with Staff
-Employee Credentials" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="262.5" y="310" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef0_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m0" target="f0_0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Employee Credentials" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef0_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m0" target="f0_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f0_1" value="5.1.2 Auto-Route to
-Field Operations Mode" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="262.5" y="362" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef0_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f0_0" target="f0_1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="m1" value="&amp;lt;b&amp;gt;5.2 QR Scanner
-&amp; Distribution&amp;lt;/b&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1557b0;fontColor=#ffffff;strokeColor=#1557b0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="495" y="230" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="em_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Field Operations Mode" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef0_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f0_0" target="f0_1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m1" value="5.2 QR Scanner
+&amp; Distribution" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="376" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="em1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_0" value="5.2.1 Select Active
-Distribution Event" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="502.5" y="310" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef1_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m1" target="f1_0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Distribution Event" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef1_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m1" target="f1_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_1" value="5.2.2 Scan QR Code
-via Camera" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="502.5" y="362" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef1_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_0" target="f1_1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+via Camera" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef1_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_0" target="f1_1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_2" value="5.2.3 View Household
-Eligibility &amp; Entitlement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="502.5" y="414" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef1_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_1" target="f1_2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="f1_3" value="5.2.4 Tap &quot;Confirm
-Release&quot; in App" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="502.5" y="466" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef1_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_2" target="f1_3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Eligibility &amp; Entitlement" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef1_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_1" target="f1_2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="f1_3" value="5.2.4 Tap Confirm
+Release in App" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="415" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef1_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_2" target="f1_3"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_4" value="5.2.5 Detect Duplicate
-Claim Attempts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="502.5" y="518" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef1_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_3" target="f1_4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="m2" value="&amp;lt;b&amp;gt;5.3 Task
-Management&amp;lt;/b&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1557b0;fontColor=#ffffff;strokeColor=#1557b0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="735" y="230" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="em_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Claim Attempts" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="469" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef1_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_3" target="f1_4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m2" value="5.3 Task
+Management" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="682" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="em2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m2"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f2_0" value="5.3.1 View Assigned
-Special Delivery Tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="742.5" y="310" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef2_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m2" target="f2_0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Special Delivery Tasks" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef2_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m2" target="f2_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f2_1" value="5.3.2 Navigate to
-Household Address" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="742.5" y="362" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef2_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_0" target="f2_1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Household Address" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef2_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_0" target="f2_1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f2_2" value="5.3.3 Mark Task as
-&quot;Delivered&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="742.5" y="414" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef2_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_1" target="f2_2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="m3" value="&amp;lt;b&amp;gt;5.4 Incident
-Reporting&amp;lt;/b&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1557b0;fontColor=#ffffff;strokeColor=#1557b0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="975" y="230" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="em_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Delivered" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef2_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_1" target="f2_2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m3" value="5.4 Incident
+Reporting" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="988" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="em3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m3"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f3_0" value="5.4.1 Select Incident
-Type (Crowd/Stock/QR)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="982.5" y="310" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef3_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m3" target="f3_0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Type (Crowd/Stock/QR)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="993" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef3_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m3" target="f3_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f3_1" value="5.4.2 Log Incident
-Details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="982.5" y="362" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef3_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_0" target="f3_1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Details" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="993" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef3_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_0" target="f3_1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f3_2" value="5.4.3 Broadcast to LGU
-Command Center (Live)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="982.5" y="414" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef3_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_1" target="f3_2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="m4" value="&amp;lt;b&amp;gt;5.5 Settings&amp;lt;/b&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1557b0;fontColor=#ffffff;strokeColor=#1557b0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="1215" y="230" width="210" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="em_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+Command Center (Live)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="993" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef3_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_1" target="f3_2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m4" value="5.5 Settings" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="1294" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="em4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m4"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f4_0" value="5.5.1 Switch Language
-(English / Tagalog)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1222.5" y="310" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef4_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m4" target="f4_0">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+(English / Tagalog)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1299" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef4_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m4" target="f4_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f4_1" value="5.5.2 View App Version
-&amp; System Information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;fontColor=#1e3a5f;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1222.5" y="362" width="195" height="42" as="geometry" />
-        </mxCell>
-        <mxCell id="ef4_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#94a3b8;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f4_0" target="f4_1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+&amp; System Info" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1299" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef4_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f4_0" target="f4_1"><mxGeometry relative="1" as="geometry"/></mxCell>
       </root>
     </mxGraphModel>
   </diagram>
