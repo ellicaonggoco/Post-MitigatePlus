@@ -24,11 +24,23 @@ export default function ProvisionAccounts() {
   const [employeeId, setEmployeeId] = useState('');
   const [department, setDepartment] = useState('');
   const [contactNum, setContactNum] = useState('');
+  const [teamName, setTeamName] = useState('Field Team Alpha');
+  const [staffDesignation, setStaffDesignation] = useState('field_officer'); // 'team_leader' | 'field_officer'
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Available Field Teams in Manila MDRRMO Operations
+  const FIELD_TEAMS = [
+    'Field Team Alpha',
+    'Field Team Bravo',
+    'Field Team Charlie',
+    'Field Team Delta',
+    'Quick Response Unit 1',
+    'Quick Response Unit 2',
+  ];
 
   // All barangay codes in Manila District 1 used by MitigatePlus
   const ALL_BARANGAYS = Array.from({ length: 20 }, (_, i) => ({
@@ -45,6 +57,8 @@ export default function ProvisionAccounts() {
     setDepartment('');
     setContactNum('');
     setPassword('');
+    setTeamName('Field Team Alpha');
+    setStaffDesignation('field_officer');
     setTargetRole(isSuperAdmin ? 'lgu_admin' : 'field_staff');
     setBarangayCode('');
     setBarangaySearch('');
@@ -60,6 +74,8 @@ export default function ProvisionAccounts() {
     setEmployeeId(acc.employeeId || '');
     setDepartment(acc.department || '');
     setContactNum(acc.contactNum || '');
+    setTeamName(acc.teamName || 'Field Team Alpha');
+    setStaffDesignation(acc.staffDesignation || 'field_officer');
     setTargetRole(acc.role || (isSuperAdmin ? 'lgu_admin' : 'field_staff'));
     const bc = acc.barangayCode && acc.barangayCode !== 'City-Wide' ? acc.barangayCode : '';
     setBarangayCode(bc);
@@ -215,6 +231,8 @@ export default function ProvisionAccounts() {
           employeeId: employeeId.trim(),
           department: department.trim(),
           contactNum: contactNum.trim(),
+          teamName: targetRole === 'field_staff' ? teamName : null,
+          staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
         }),
       });
 
@@ -584,24 +602,46 @@ export default function ProvisionAccounts() {
                     <input type="text" value="City-Wide Manila" disabled style={{ ...inputStyle, background: 'var(--sampaguita)', color: 'var(--ink-soft)' }} />
                   </div>
                 ) : (
-                  /* field_staff — no fixed barangay, city-wide deployment via event assignment */
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>Deployment Scope</label>
-                    <div style={{
-                      ...inputStyle,
-                      background: 'var(--sampaguita)',
-                      color: 'var(--ink-soft)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      cursor: 'default',
-                    }}>
-                      <span style={{ fontSize: 16 }}>🌆</span>
-                      City-Wide (Assigned per Distribution Event)
+                  /* field_staff — structured team assignment and role designation */
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, gridColumn: 'span 2' }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Assigned Field Team / Unit *</label>
+                      <select
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        style={{ ...inputStyle, cursor: 'pointer' }}
+                      >
+                        {FIELD_TEAMS.map(team => (
+                          <option key={team} value={team}>{team}</option>
+                        ))}
+                      </select>
                     </div>
-                    <p style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.4 }}>
-                      Field Staff are deployed city-wide. Their barangay assignment is determined per relief distribution event by the LGU Admin when opening each event.
-                    </p>
+
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Staff Position / Rank *</label>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          type="button"
+                          onClick={() => setStaffDesignation('team_leader')}
+                          className={staffDesignation === 'team_leader' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                        >
+                          🎖️ Head Staff (Lead)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStaffDesignation('field_officer')}
+                          className={staffDesignation === 'field_officer' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                        >
+                          📋 Field Staff (Scanner)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ gridColumn: 'span 2', background: 'var(--sampaguita)', padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-soft)' }}>
+                      ℹ️ <strong>City-Wide Deployment Pool:</strong> Ang team na ito ay idinedeploy ng LGU Admin sa mga active Relief Distribution Events o Door-to-Door Special Assistance Tasks.
+                    </div>
                   </div>
                 )}
               </div>

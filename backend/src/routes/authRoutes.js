@@ -479,7 +479,7 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
 // @desc    LGU Admin or SuperAdmin provisions a Field Staff account (City-Wide deployment)
 router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
-    const { name, emailOrPhone, password, barangayCode } = req.body;
+    const { name, emailOrPhone, password, barangayCode, teamName, staffDesignation, employeeId, department, contactNum } = req.body;
     if (!name || !emailOrPhone || !password) {
       return res.status(400).json({ message: 'Please provide name, email/phone, and password.' });
     }
@@ -494,16 +494,21 @@ router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmi
     const passwordHash = await bcrypt.hash(password, salt);
 
     const staff = await User.create({
-      name,
+      name: name.trim(),
       emailOrPhone: emailOrPhone.trim().toLowerCase(),
       passwordHash,
       role: 'field_staff',
       barangayCode: barangayCode || 'City-Wide',
+      teamName: teamName || 'Field Team Alpha',
+      staffDesignation: staffDesignation || 'field_officer',
+      employeeId: employeeId || null,
+      department: department || 'MDRRMO Field Operations',
+      contactNum: contactNum || null,
       createdBy: req.user._id,
     });
 
     res.status(201).json({
-      message: `Field Staff account created successfully for ${name} (City-Wide Deployment)`,
+      message: `Field Staff account created successfully for ${name} (${teamName || 'Field Team Alpha'})`,
       user: staff,
     });
   } catch (error) {

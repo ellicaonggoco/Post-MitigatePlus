@@ -10,16 +10,19 @@ const { protect, requireRole } = require('../middleware/auth');
 const { calculateReliefAllocation } = require('../utils/reliefAllocation');
 
 // @route   GET /api/distribution-events
-// @desc    Get distribution events (admins see all, field staff see active only)
+// @desc    Get distribution events (admins see all, barangay officials see their barangay, field staff see active drives)
 router.get('/events', protect, async (req, res) => {
   try {
     let query = {};
-    if (req.user.role === 'barangay_official' || req.user.role === 'field_staff') {
+    if (req.user.role === 'barangay_official') {
       query.barangayCode = req.user.barangayCode;
+      query.isActive = true;
+    } else if (req.user.role === 'field_staff') {
+      // Field staff see all active drives city-wide (or drives assigned to their team)
       query.isActive = true;
     }
     // Admins/superadmins see all events (active + closed)
-    const events = await DistributionEvent.find(query).sort({ openedAt: -1 });
+    const events = await DistributionEvent.find(query).populate('openedBy', 'name emailOrPhone').sort({ openedAt: -1 });
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching distribution events', error: error.message });
@@ -46,7 +49,7 @@ router.patch('/events/:id', protect, requireRole('barangay_official', 'lgu_admin
 
     await event.save();
 
-    // Audit log the status change
+    // Log status update
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: req.user.role,
@@ -64,9 +67,9 @@ router.patch('/events/:id', protect, requireRole('barangay_official', 'lgu_admin
 
 // @route   POST /api/distribution-events
 // @desc    Open a new distribution event
-router.post('/events', protect, requireRole('barangay_official', 'lgu_admin'), async (req, res) => {
+router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
-    const { title, itemType, batchId, barangayCode, location } = req.body;
+    const { title, itemType, batchId, barangayCode, location, assignedTeam, staffAssigned, scheduledDate, scheduledTime, targetHouseholds } = req.body;
     if (!title && !location) {
       return res.status(400).json({ message: 'Please provide at least a title or location.' });
     }
@@ -77,6 +80,10 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin'), a
       batchId: batchId || `BATCH-${Date.now()}`,
       barangayCode: barangayCode || req.user.barangayCode || '291',
       location: location || title,
+      assignedTeam: assignedTeam || staffAssigned || 'Field Team Alpha',
+      scheduledDate: scheduledDate || null,
+      scheduledTime: scheduledTime || null,
+      targetHouseholds: parseInt(targetHouseholds) || 0,
       openedBy: req.user._id,
     });
 

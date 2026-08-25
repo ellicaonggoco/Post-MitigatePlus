@@ -13,8 +13,20 @@ const userSchema = new mongoose.Schema({
   barangayCode: {
     type: String,
     default: null,
-    // Required for field_staff and barangay_official to scope what they can see/act on
+    // Required for barangay_official to scope what they can see/act on
   },
+  teamName: {
+    type: String,
+    default: null, // e.g. 'Field Team Alpha', 'Field Team Bravo', 'Field Team Charlie', 'Quick Response Unit'
+  },
+  staffDesignation: {
+    type: String,
+    enum: ['team_leader', 'field_officer', null],
+    default: null, // 'team_leader' | 'field_officer'
+  },
+  employeeId: { type: String, default: null },
+  department: { type: String, default: 'MDRRMO Field Operations' },
+  contactNum: { type: String, default: null },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

@@ -13,6 +13,16 @@ const STATUS_CONFIG = {
   Cancelled: { color: '#DC2626', bg: '#FEF2F2', icon: XCircle },
 };
 
+// Standard Field Teams in Manila MDRRMO Operations
+const FIELD_TEAMS = [
+  'Field Team Alpha',
+  'Field Team Bravo',
+  'Field Team Charlie',
+  'Field Team Delta',
+  'Quick Response Unit 1',
+  'Quick Response Unit 2',
+];
+
 export default function DistributionEvents() {
   const { user, token } = useContext(AuthContext);
   const location = useLocation();
@@ -45,7 +55,7 @@ export default function DistributionEvents() {
 
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'Scheduled' | 'Ongoing' | 'Completed' | 'ANNOUNCED'
-  const [form, setForm] = useState({ barangay: '', date: '', time: '', items: '', staff: '', households: '' });
+  const [form, setForm] = useState({ barangay: '', date: '', time: '', items: 'Family Food Pack', staff: 'Field Team Alpha', households: '' });
   const [toastMsg, setToastMsg] = useState('');
 
   // ── Auto-prefill from Heatmap navigation ("Schedule Relief Event for Brgy X") ──
@@ -251,20 +261,53 @@ export default function DistributionEvents() {
         <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid var(--manila-blue)' }}>
           <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: 'var(--ink)' }}>Create Distribution Event</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
-            {[
-              { key: 'barangay', label: 'Barangay', placeholder: 'e.g. Barangay 291' },
-              { key: 'date', label: 'Date', placeholder: 'YYYY-MM-DD', type: 'date' },
-              { key: 'time', label: 'Time', placeholder: 'e.g. 08:00 AM' },
-              { key: 'items', label: 'Relief Items', placeholder: 'e.g. Food Packs, Water' },
-              { key: 'staff', label: 'Field Staff Assigned', placeholder: 'e.g. Field Team Alpha' },
-              { key: 'households', label: 'Target Households', placeholder: 'Number', type: 'number' },
-            ].map(f => (
-              <div key={f.key}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{f.label}</label>
-                <input type={f.type || 'text'} placeholder={f.placeholder} value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
-              </div>
-            ))}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Barangay *</label>
+              <input type="text" placeholder="e.g. Barangay 291" value={form.barangay} onChange={e => setForm(p => ({ ...p, barangay: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} required />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Date *</label>
+              <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} required />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Time</label>
+              <input type="text" placeholder="e.g. 08:00 AM" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Relief Items</label>
+              <input type="text" placeholder="e.g. Family Food Packs, Water" value={form.items} onChange={e => setForm(p => ({ ...p, items: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Assigned Field Team *</label>
+              <select
+                value={form.staff}
+                onChange={e => setForm(p => ({ ...p, staff: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', cursor: 'pointer' }}
+              >
+                {FIELD_TEAMS.map(t => {
+                  const activeInEvent = events.find(ev => ev.isActive && (ev.assignedTeam === t || ev.staff === t));
+                  return (
+                    <option key={t} value={t}>
+                      {t} {activeInEvent ? `(🔴 Deployed at ${activeInEvent.location || activeInEvent.barangayCode})` : '(🟢 Available / Standby)'}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Target Households</label>
+              <input type="number" placeholder="e.g. 150" value={form.households} onChange={e => setForm(p => ({ ...p, households: e.target.value }))}
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleCreate} className="clay-button-approve" style={{ fontSize: 13 }}>Create Event</button>
@@ -367,7 +410,7 @@ export default function DistributionEvents() {
                     <span><Calendar size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} /><strong>{evDate}</strong> at {evTime}</span>
                     <span><Package size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{evItems}</span>
                     <span><Users size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} /><strong>{evHouseholds}</strong> households</span>
-                    <span><Truck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} /><strong>{evStaff}</strong></span>
+                    <span><Truck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} /><strong>{ev.assignedTeam || evStaff}</strong></span>
                   </div>
                 </div>
 
