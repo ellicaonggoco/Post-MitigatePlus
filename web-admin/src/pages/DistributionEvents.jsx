@@ -53,10 +53,30 @@ export default function DistributionEvents() {
     fetchEvents();
   }, [token]);
 
+  const [warehouseStock, setWarehouseStock] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'Scheduled' | 'Ongoing' | 'Completed' | 'ANNOUNCED'
   const [form, setForm] = useState({ barangay: '', date: '', time: '', items: 'Family Food Pack', staff: 'Field Team Alpha', households: '' });
   const [toastMsg, setToastMsg] = useState('');
+
+  // ── Fetch Warehouse Inventory for Real-time Stock Pre-Check ──
+  useEffect(() => {
+    const fetchWarehouse = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/warehouse`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setWarehouseStock(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Error loading warehouse stock:', err);
+      }
+    };
+    fetchWarehouse();
+  }, [token]);
 
   // ── Auto-prefill from Heatmap navigation ("Schedule Relief Event for Brgy X") ──
   useEffect(() => {
@@ -309,6 +329,52 @@ export default function DistributionEvents() {
                 style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
             </div>
           </div>
+
+          {/* ── Warehouse Stock Pre-Check Banner ── */}
+          {(() => {
+            const targetCount = parseInt(form.households) || 0;
+            const matchedItem = warehouseStock.find(w => 
+              (w.name || '').toLowerCase().includes((form.items || '').toLowerCase().trim()) ||
+              (form.items || '').toLowerCase().includes((w.name || '').toLowerCase().trim())
+            ) || warehouseStock[0];
+
+            const availableStock = matchedItem ? (matchedItem.stock || 0) : 0;
+            const itemUnit = matchedItem ? (matchedItem.unit || 'packs') : 'packs';
+            const itemName = matchedItem ? matchedItem.name : (form.items || 'Family Food Pack');
+            const hasDeficit = targetCount > availableStock;
+            const deficit = targetCount - availableStock;
+
+            return (
+              <div style={{
+                marginBottom: 16,
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-inner)',
+                background: hasDeficit ? '#FEF2F2' : '#F0FDF4',
+                border: `1px solid ${hasDeficit ? '#FECACA' : '#BBF7D0'}`,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12
+              }}>
+                <span style={{ fontSize: 20 }}>{hasDeficit ? '⚠️' : '📦'}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                    <strong style={{ fontSize: 13, color: hasDeficit ? '#991B1B' : '#166534' }}>
+                      {hasDeficit ? 'Kakulangan sa Warehouse Stock Warning' : 'Sapat ang Warehouse Stock'}
+                    </strong>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: hasDeficit ? '#FEE2E2' : '#DCFCE7', color: hasDeficit ? '#DC2626' : '#15803D' }}>
+                      Stock: {availableStock.toLocaleString()} {itemUnit} available
+                    </span>
+                  </div>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: hasDeficit ? '#B91C1C' : '#15803D', lineHeight: 1.4 }}>
+                    {hasDeficit
+                      ? `Kulang ng ${deficit.toLocaleString()} ${itemUnit} para sa target na ${targetCount.toLocaleString()} pamilya. Kakailanganin ng karagdagang supply shipment mula sa LGU Central Hub bago ang distribution day.`
+                      : `Mayroong sapat na ${availableStock.toLocaleString()} ${itemUnit} ng ${itemName} sa bodega para sa ${targetCount || 'darating na'} event.`}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleCreate} className="clay-button-approve" style={{ fontSize: 13 }}>Create Event</button>
             <button onClick={() => setShowForm(false)} className="clay-button-ghost" style={{ fontSize: 13 }}>Cancel</button>

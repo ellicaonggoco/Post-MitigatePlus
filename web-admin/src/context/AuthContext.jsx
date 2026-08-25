@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
     setToken(jwtToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', jwtToken);
+    localStorage.setItem('session_start', Date.now().toString());
   };
 
   const logout = () => {
@@ -28,7 +29,19 @@ export const AuthProvider = ({ children }) => {
     setToken('');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('session_start');
   };
+
+  // 12-Hour Inactivity & Session Expiration Check
+  useEffect(() => {
+    const sessionStart = localStorage.getItem('session_start');
+    if (sessionStart) {
+      const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+      if (Date.now() - parseInt(sessionStart, 10) > TWELVE_HOURS_MS) {
+        logout();
+      }
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>

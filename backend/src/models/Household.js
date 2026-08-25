@@ -54,6 +54,15 @@ const householdSchema = new mongoose.Schema({
     default: 'Low',
     index: true,
   },
+  lastQrRegeneratedAt: { type: Date, default: null },
+  inAppNotifications: [{
+    id: { type: String, default: () => Date.now().toString() },
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    type: { type: String, default: 'info' }, // 'priority_update' | 'distribution' | 'verification' | 'info'
+    createdAt: { type: Date, default: Date.now },
+    isRead: { type: Boolean, default: false },
+  }],
   createdAt: { type: Date, default: Date.now },
 });
 

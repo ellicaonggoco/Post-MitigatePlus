@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, Switch } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import StaffTasksScreen from './StaffTasksScreen';
-import { scanHouseholdQRCode, releaseDistribution, submitFieldIncident, fetchDistributionEvents } from '../services/api';
+import { scanHouseholdQRCode, releaseDistribution, submitFieldIncident, fetchDistributionEvents, API_BASE_URL } from '../services/api';
 import { PackageIcon, QrCodeIcon, DamageIcon, SettingsIcon, MapPinIcon, CameraIcon, AlertTriangleIcon, CheckIcon, ShieldCheckIcon } from '../components/AppIcons';
 
 import { RADIUS, FONT_WEIGHT, SPACING, RESPONSIVE, wp, hp } from '../theme';
@@ -29,13 +30,31 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
 
+  // Offline Mode State
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [offlineCache, setOfflineCache] = useState([]);
+  const [offlineClaimsQueue, setOfflineClaimsQueue] = useState([]);
+  const [cachingLoading, setCachingLoading] = useState(false);
+  const [syncingClaims, setSyncingClaims] = useState(false);
+
   // Incident State
   const [incidentType, setIncidentType] = useState('Stock Shortage');
   const [incidentNotes, setIncidentNotes] = useState('');
   const [incidentSubmitted, setIncidentSubmitted] = useState(false);
 
+  // Load offline storage and cached events
   useEffect(() => {
-    async function loadActiveEvent() {
+    async function loadStorageAndEvents() {
+      try {
+        const cachedHh = await AsyncStorage.getItem('mitigateplus_offline_households');
+        if (cachedHh) setOfflineCache(JSON.parse(cachedHh));
+
+        const queue = await AsyncStorage.getItem('mitigateplus_offline_claims');
+        if (queue) setOfflineClaimsQueue(JSON.parse(queue));
+      } catch (err) {
+        console.log('Error reading local offline cache:', err);
+      }
+
       if (!token) return;
       try {
         const events = await fetchDistributionEvents(token);
@@ -53,8 +72,69 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
         console.log('Using default active event:', e.message);
       }
     }
-    loadActiveEvent();
+    loadStorageAndEvents();
   }, [token]);
+
+  // Pre-download verified households for Offline Mode
+  const downloadOfflineCache = async () => {
+    setCachingLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/households/offline-cache`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.households)) {
+        await AsyncStorage.setItem('mitigateplus_offline_households', JSON.stringify(data.households));
+        setOfflineCache(data.households);
+        Alert.alert(
+          lang === 'tl' ? 'Offline Cache Handa Na!' : 'Offline Cache Ready!',
+          lang === 'tl'
+            ? `Na-download ang ${data.households.length} verified households. Handa nang mag-scan kahit mawalan ng signal o internet sa evacuation area!`
+            : `Downloaded ${data.households.length} verified households for offline scanning.`
+        );
+      } else {
+        Alert.alert('Error', data.message || 'Failed to download offline cache.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Hindi ma-download ang cache. Siguraduhing may internet koneksyon muna.');
+    } finally {
+      setCachingLoading(false);
+    }
+  };
+
+  // Sync Offline Claims to Central Server
+  const syncOfflineClaimsToServer = async () => {
+    if (offlineClaimsQueue.length === 0) {
+      Alert.alert(lang === 'tl' ? 'Walang Offline Claims' : 'No Offline Claims', lang === 'tl' ? 'Walang nakabinbing offline claims na kailangang i-upload.' : 'No pending offline claims in queue.');
+      return;
+    }
+
+    setSyncingClaims(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/distributions/sync-offline-claims`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claims: offlineClaimsQueue }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await AsyncStorage.removeItem('mitigateplus_offline_claims');
+        setOfflineClaimsQueue([]);
+        Alert.alert(
+          lang === 'tl' ? 'Tagumpay na Nai-Sync!' : 'Sync Successful!',
+          lang === 'tl'
+            ? `Nai-upload ang ${data.syncedCount} claims sa LGU Server. (${data.duplicateCount} duplicate ignored).`
+            : `Uploaded ${data.syncedCount} offline claims to central database.`
+        );
+      } else {
+        Alert.alert('Error', data.message || 'Failed to sync offline claims.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Hindi makakonekta sa LGU Server. Subukan muling mag-sync kapag may maayos nang internet signal.');
+    } finally {
+      setSyncingClaims(false);
+    }
+  };
 
   const handleExecuteScan = async (codeToScan) => {
     const targetCode = codeToScan || manualCode;
@@ -67,6 +147,62 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
     setDuplicateAlert(false);
     setDuplicateMessage('');
 
+    // ── OFFLINE MODE SCAN EXECUTION ──
+    if (isOfflineMode) {
+      setTimeout(() => {
+        const cleanedTarget = targetCode.trim().toUpperCase();
+        const matchedHh = offlineCache.find(
+          (h) => (h.qrCode && h.qrCode.toUpperCase() === cleanedTarget) || (h._id && h._id.toString() === cleanedTarget) || (h.id && h.id.toString() === cleanedTarget)
+        );
+
+        if (!matchedHh) {
+          setScanResult({
+            success: false,
+            error: lang === 'tl'
+              ? 'Hindi nahanap ang QR sa Offline Cache. I-download ang pinakabagong cache o kumonekta sa internet.'
+              : 'QR code not found in offline cache. Please update cache.',
+          });
+          setLoading(false);
+          return;
+        }
+
+        const selectedEvtId = String(selectedEvent?._id || selectedEvent?.id || '');
+        const alreadyClaimedOffline = offlineClaimsQueue.some(
+          (c) => (c.qrCode === matchedHh.qrCode || c.householdId === matchedHh._id) && String(c.distributionEventId) === selectedEvtId
+        );
+
+        if (alreadyClaimedOffline) {
+          setDuplicateAlert(true);
+          setDuplicateMessage(
+            lang === 'tl'
+              ? 'DUPLICATE ALERT: Nakatanggap na ang pamilyang ito sa Offline Queue ng naturang event ngayon. Bawal ang dobleng kuha.'
+              : 'DUPLICATE ALERT: This household already claimed in offline queue.'
+          );
+        }
+
+        const entitlementText = `${Math.ceil((matchedHh.memberCount || 4) / 5)}x Family Food Pack (Standard Headcount)`;
+        setScanResult({
+          household: {
+            _id: matchedHh._id || matchedHh.id,
+            id: matchedHh._id || matchedHh.id,
+            name: matchedHh.name || 'Verified Beneficiary',
+            qrCode: matchedHh.qrCode,
+            address: matchedHh.address || 'Barangay 291, Manila',
+            familyHeadcount: matchedHh.memberCount || 1,
+            priorityLevel: matchedHh.priorityLevel || 'High',
+            entitlement: entitlementText,
+            isVerified: true,
+            isOfflineScanned: true,
+          },
+          recommendations: null,
+          scannedAt: new Date().toLocaleTimeString(),
+        });
+        setLoading(false);
+      }, 400);
+      return;
+    }
+
+    // ── ONLINE MODE SCAN EXECUTION ──
     try {
       const res = await scanHouseholdQRCode(targetCode.trim(), token);
       if (res && res.household) {
@@ -111,10 +247,10 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
           scannedAt: new Date().toLocaleTimeString(),
         });
       } else {
-        setScanResult({ success: false, error: lang === 'tl' ? 'Hindi makapag-scan. I-check ang koneksyon.' : 'Scan failed. Check your connection.' });
+        setScanResult({ success: false, error: lang === 'tl' ? 'Hindi makapag-scan. I-check ang koneksyon o i-on ang Offline Mode.' : 'Scan failed. Check connection or switch to Offline Mode.' });
       }
     } catch (err) {
-      setScanResult({ success: false, error: lang === 'tl' ? 'Hindi makapag-scan. I-check ang koneksyon.' : 'Scan failed. Check your connection.' });
+      setScanResult({ success: false, error: lang === 'tl' ? 'Walang internet connection. I-on ang Offline Mode para mag-scan gamit ang local storage.' : 'No internet connection. Enable Offline Mode to continue.' });
     } finally {
       setLoading(false);
     }
@@ -123,6 +259,36 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
   const handleConfirmRelease = async () => {
     if (!scanResult || !scanResult.household) return;
 
+    // ── OFFLINE RELEASE LOGIC ──
+    if (isOfflineMode) {
+      const offlineClaimRecord = {
+        distributionEventId: selectedEvent._id || selectedEvent.id || 'evt_1',
+        householdId: scanResult.household._id || scanResult.household.id,
+        qrCode: scanResult.household.qrCode,
+        beneficiaryName: scanResult.household.name,
+        address: scanResult.household.address,
+        baseUnitsGiven: Math.ceil((scanResult.household.familyHeadcount || 4) / 5),
+        topUpUnitsGiven: 0,
+        releasedAt: new Date().toISOString(),
+      };
+
+      const updatedQueue = [offlineClaimRecord, ...offlineClaimsQueue];
+      setOfflineClaimsQueue(updatedQueue);
+      await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
+
+      Alert.alert(
+        lang === 'tl' ? '✅ Na-save sa Offline Queue!' : '✅ Saved to Offline Queue!',
+        lang === 'tl'
+          ? `Matagumpay na na-record ang release para kay ${scanResult.household.name}. (${updatedQueue.length} pending claims para i-sync kapag may internet na).`
+          : `Release saved offline for ${scanResult.household.name}. (${updatedQueue.length} pending claims in queue).`
+      );
+
+      setScanResult(null);
+      setDuplicateAlert(false);
+      return;
+    }
+
+    // ── ONLINE RELEASE LOGIC ──
     setReleasing(true);
     try {
       const payload = {
@@ -195,11 +361,90 @@ export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSel
               </View>
             </View>
 
+            {/* Offline Mode Switch & Sync Panel */}
+            <View style={[
+              styles.activeEventCard,
+              {
+                backgroundColor: isOfflineMode ? '#FEF2F2' : '#F0FDF4',
+                borderColor: isOfflineMode ? '#FECACA' : '#BBF7D0',
+                marginBottom: 14,
+                padding: 12,
+              }
+            ]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: isOfflineMode ? '#DC2626' : '#15803D' }}>
+                      {isOfflineMode ? '📡 OFFLINE SCANNER MODE: ACTIVE' : '🌐 ONLINE LIVE CLOUD MODE'}
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: 11, color: isOfflineMode ? '#991B1B' : '#166534', marginTop: 2 }}>
+                    {isOfflineMode
+                      ? `Gumagana gamit ang ${offlineCache.length} cached households. Walang internet na kailangan.`
+                      : 'Direktang nakakonekta sa LGU Cloud Server.'}
+                  </Text>
+                </View>
+                <Switch
+                  value={isOfflineMode}
+                  onValueChange={(val) => {
+                    setIsOfflineMode(val);
+                    if (val && offlineCache.length === 0) {
+                      Alert.alert(
+                        'Paalala',
+                        'Walang naka-save na offline cache. Pindutin ang "I-download ang Cache" bago pumunta sa flood zone.'
+                      );
+                    }
+                  }}
+                  trackColor={{ false: '#CBD5E1', true: '#F87171' }}
+                  thumbColor={isOfflineMode ? '#DC2626' : '#10B981'}
+                />
+              </View>
+
+              {/* Cache Actions */}
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderWidth: 1,
+                    borderColor: '#E2E8F0',
+                    paddingVertical: 6,
+                    paddingHorizontal: 10,
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                  onPress={downloadOfflineCache}
+                  disabled={cachingLoading}
+                >
+                  {cachingLoading ? <ActivityIndicator size="small" color="#002BB8" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#002BB8' }}>📥 I-download Cache ({offlineCache.length})</Text>}
+                </TouchableOpacity>
+
+                {offlineClaimsQueue.length > 0 && (
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: '#DC2626',
+                      paddingVertical: 6,
+                      paddingHorizontal: 10,
+                      borderRadius: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                    }}
+                    onPress={syncOfflineClaimsToServer}
+                    disabled={syncingClaims}
+                  >
+                    {syncingClaims ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>🔄 I-sync ang {offlineClaimsQueue.length} Claims</Text>}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
             {/* Viewfinder Camera Simulation */}
             <View style={styles.viewfinderCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                 <CameraIcon size={14} color="#002BB8" />
-                <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER</Text>
+                <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
               </View>
               <Text style={styles.viewfinderSub}>Position resident QR Pass in the viewfinder</Text>
               <View style={styles.cameraBox}>

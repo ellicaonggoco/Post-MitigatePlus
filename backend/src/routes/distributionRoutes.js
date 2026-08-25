@@ -260,4 +260,85 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
   }
 });
 
+// @route   POST /api/distributions/sync-offline-claims
+// @desc    Batch sync offline claims stored locally on Field Staff mobile device
+router.post('/sync-offline-claims', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+  try {
+    const { claims } = req.body;
+    if (!Array.isArray(claims) || claims.length === 0) {
+      return res.status(400).json({ message: 'No offline claims to sync.' });
+    }
+
+    let syncedCount = 0;
+    let duplicateCount = 0;
+    let errors = [];
+
+    for (const claim of claims) {
+      const { distributionEventId, householdId, qrCode, baseUnitsGiven, topUpUnitsGiven, releasedAt } = claim;
+      
+      let targetHouseholdId = householdId;
+      if (!targetHouseholdId && qrCode) {
+        const hh = await Household.findOne({ qrCode: qrCode.trim() });
+        if (hh) targetHouseholdId = hh._id;
+      }
+
+      if (!targetHouseholdId || !distributionEventId) {
+        errors.push({ claim, reason: 'Missing householdId or eventId' });
+        continue;
+      }
+
+      // Check existing claim in DB
+      const existing = await Distribution.findOne({ distributionEventId, householdId: targetHouseholdId });
+      if (existing) {
+        duplicateCount++;
+        continue;
+      }
+
+      const event = await DistributionEvent.findById(distributionEventId);
+      const itemType = event ? event.itemType : 'Family Food Pack';
+      const hhDoc = await Household.findById(targetHouseholdId);
+
+      try {
+        await Distribution.create({
+          distributionEventId,
+          householdId: targetHouseholdId,
+          itemType,
+          baseUnitsGiven: baseUnitsGiven || 1,
+          topUpUnitsGiven: topUpUnitsGiven || 0,
+          householdSizeAtDistribution: hhDoc?.memberCount || 1,
+          releasedBy: req.user._id,
+          releasedAt: releasedAt ? new Date(releasedAt) : new Date(),
+        });
+
+        await AuditLog.create({
+          actorUserId: req.user._id,
+          actorRole: req.user.role,
+          action: 'OFFLINE_CLAIM_SYNCED',
+          targetType: 'Distribution',
+          targetId: targetHouseholdId.toString(),
+          notes: `Offline claim synced for event '${event?.title || distributionEventId}'. Released by ${req.user.name}.`,
+        });
+
+        syncedCount++;
+      } catch (err) {
+        if (err.code === 11000) {
+          duplicateCount++;
+        } else {
+          errors.push({ claim, error: err.message });
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Batch sync complete: ${syncedCount} claims uploaded, ${duplicateCount} duplicates ignored.`,
+      syncedCount,
+      duplicateCount,
+      errorsCount: errors.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error syncing offline claims', error: error.message });
+  }
+});
+
 module.exports = router;

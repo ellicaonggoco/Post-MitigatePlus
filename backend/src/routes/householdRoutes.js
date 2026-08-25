@@ -82,8 +82,41 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     // Recalculate priority index upon official verification
     const pastDistributionsCount = await Distribution.countDocuments({ householdId: household._id });
     const { priorityScore, priorityLevel } = calculatePriorityIndex(household, household.createdAt, pastDistributionsCount);
+    const prevPriority = household.priorityLevel;
     household.priorityScore = priorityScore;
     household.priorityLevel = priorityLevel;
+
+    // Send in-app notification to household
+    if (!household.inAppNotifications) household.inAppNotifications = [];
+    
+    if (status === 'verified') {
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: '✅ Rehistrasyon Naaprubahan!',
+        message: `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay ${priorityLevel}. Ang inyong Official QR Pass ay handa na para sa distribusyon ng ayuda.`,
+        type: 'verification',
+        createdAt: new Date(),
+        isRead: false,
+      });
+    } else if (status === 'rejected') {
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: '❌ Rehistrasyon Hindi Naaprubahan',
+        message: `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}. Mangyaring makipag-ugnayan sa Barangay Hall.`,
+        type: 'verification',
+        createdAt: new Date(),
+        isRead: false,
+      });
+    } else if (prevPriority !== priorityLevel) {
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: '🔔 Na-update ang Priority Level',
+        message: `Ang inyong Priority Level ay na-update sa [${priorityLevel}] batay sa inyong na-verify na datos at assessment.`,
+        type: 'priority_update',
+        createdAt: new Date(),
+        isRead: false,
+      });
+    }
 
     await household.save();
 
@@ -94,7 +127,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       action: `VERIFICATION_${status.toUpperCase()}`,
       targetType: 'Household',
       targetId: household._id.toString(),
-      notes: `Verified status updated to ${status}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}`,
+      notes: `Verified status updated to ${status}. Priority: ${priorityLevel}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}`,
     });
 
     // Notify resident via Socket.IO
@@ -103,8 +136,14 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       io.to(`household:${household._id}`).emit('verification_updated', {
         verificationStatus: status,
         verificationNotes,
+        priorityLevel: household.priorityLevel,
+        priorityScore: household.priorityScore,
         memberCount: household.memberCount,
         verifiedAt: household.verifiedAt,
+      });
+      io.to(`household:${household._id}`).emit('new_in_app_notification', {
+        title: status === 'verified' ? '✅ Rehistrasyon Naaprubahan' : '🔔 Notipikasyon sa Account',
+        priorityLevel: household.priorityLevel,
       });
     }
 
@@ -285,12 +324,27 @@ router.post('/regenerate-qr', protect, async (req, res) => {
       return res.status(404).json({ message: 'Household record not found.' });
     }
 
+    // Rate Limiting: Residents can only regenerate QR once every 30 days unless overridden by Barangay Official
+    if (req.user.role === 'resident' && household.lastQrRegeneratedAt) {
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      const timeSinceLast = Date.now() - new Date(household.lastQrRegeneratedAt).getTime();
+      if (timeSinceLast < THIRTY_DAYS_MS) {
+        const remainingDays = Math.ceil((THIRTY_DAYS_MS - timeSinceLast) / (24 * 60 * 60 * 1000));
+        return res.status(400).json({
+          message: `Maaari lamang mag-regenerate ng QR Code isang beses bawat 30 araw upang maiwasan ang pang-aabuso. Huling pinalitan noong ${new Date(household.lastQrRegeneratedAt).toLocaleDateString()}. Makipag-ugnayan sa inyong Barangay Official para sa emergency security renewal (${remainingDays} araw pa ang hihintayin).`,
+          remainingDays,
+          lastRegeneratedAt: household.lastQrRegeneratedAt,
+        });
+      }
+    }
+
     const crypto = require('crypto');
     const oldQr = household.qrCode;
     const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
     const newQr = `MNL-${household.barangayCode}-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
 
     household.qrCode = newQr;
+    household.lastQrRegeneratedAt = new Date();
     await household.save();
 
     await AuditLog.create({
@@ -316,9 +370,81 @@ router.post('/regenerate-qr', protect, async (req, res) => {
       oldQrCode: oldQr,
       newQrCode: newQr,
       household,
+      lastQrRegeneratedAt: household.lastQrRegeneratedAt,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error regenerating QR code', error: error.message });
+  }
+});
+
+// @route   GET /api/households/offline-cache
+// @desc    Pre-download verified households for Field Staff Offline Mode scanning
+router.get('/offline-cache', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+  try {
+    const { barangayCode } = req.query;
+    let query = { verificationStatus: 'verified' };
+    if (barangayCode && barangayCode !== 'ALL' && barangayCode !== 'City-Wide') {
+      query.barangayCode = barangayCode;
+    }
+
+    const households = await Household.find(query)
+      .populate('headOfHouseholdUserId', 'name emailOrPhone')
+      .select('address purok barangayCode memberCount qrCode priorityLevel verificationStatus headOfHouseholdUserId');
+
+    const cacheDataset = households.map(h => ({
+      _id: h._id,
+      id: h._id,
+      qrCode: h.qrCode,
+      name: h.headOfHouseholdUserId?.name || 'Beneficiary',
+      address: `${h.address}, ${h.purok ? `Purok ${h.purok}, ` : ''}Brgy ${h.barangayCode}`,
+      barangayCode: h.barangayCode,
+      memberCount: h.memberCount || 1,
+      priorityLevel: h.priorityLevel || 'High',
+      isVerified: true,
+    }));
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      count: cacheDataset.length,
+      households: cacheDataset,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating offline cache', error: error.message });
+  }
+});
+
+// @route   GET /api/households/me/notifications
+// @desc    Get in-app notifications for current resident household
+router.get('/me/notifications', protect, requireRole('resident'), async (req, res) => {
+  try {
+    const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    if (!household) return res.status(404).json({ message: 'Household not found' });
+
+    res.json({
+      notifications: household.inAppNotifications || [],
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching notifications', error: error.message });
+  }
+});
+
+// @route   PATCH /api/households/me/notifications/:id/read
+// @desc    Mark in-app notification as read
+router.patch('/me/notifications/:id/read', protect, requireRole('resident'), async (req, res) => {
+  try {
+    const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    if (!household) return res.status(404).json({ message: 'Household not found' });
+
+    if (household.inAppNotifications) {
+      const notif = household.inAppNotifications.find(n => n.id === req.params.id || n._id?.toString() === req.params.id);
+      if (notif) notif.isRead = true;
+      await household.save();
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Error marking notification read', error: error.message });
   }
 });
 

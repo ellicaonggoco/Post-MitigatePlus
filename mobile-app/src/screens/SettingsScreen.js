@@ -683,8 +683,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Digital QR Relief Pass Security' : 'QR Relief Pass Security'}</Text>
             <Text style={styles.settingItemSub}>
               {lang === 'tl'
-                ? 'Piliin ito kung nawala o napicturan ng iba ang inyong QR Pass upang mag-issue ng bagong token.'
-                : 'Revoke and generate a new secure QR token if your current pass was compromised.'}
+                ? 'Piliin ito kung nawala o napicturan ng iba ang inyong QR Pass. (Limitado sa 1 beses bawat 30 araw para sa proteksyon).'
+                : 'Revoke and generate a new secure QR token if compromised. (Allowed once every 30 days for anti-abuse protection).'}
             </Text>
           </View>
           <TouchableOpacity

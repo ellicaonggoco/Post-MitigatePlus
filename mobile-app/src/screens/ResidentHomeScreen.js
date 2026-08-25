@@ -90,7 +90,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [activeTab, setActiveTab] = useState('home');
   const [showQRModal, setShowQRModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
-  const [hasUnreadNotifs, setHasUnreadNotifs] = useState(true);
+  const [inAppNotifs, setInAppNotifs] = useState([]);
   const [householdData, setHouseholdData] = useState(household || null);
   const [announcements, setAnnouncements] = useState([]);
   const [lang, setLang] = useState(propLang || 'en');
@@ -110,6 +110,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         const profile = await fetchHouseholdProfile(token);
         if (profile?.household) {
           setHouseholdData(profile.household);
+          if (profile.household.inAppNotifications) {
+            setInAppNotifs(profile.household.inAppNotifications);
+          }
           initSocket(profile.household._id, profile.household.barangayCode || '291');
         } else {
           initSocket(null, user?.barangayCode || '291');
@@ -135,15 +138,23 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           setAnnouncements((prev) => [newAnn, ...prev]);
           setHasUnreadNotifs(true);
         });
+        socket.on('new_in_app_notification', (notif) => {
+          setInAppNotifs((prev) => [
+            { id: Date.now().toString(), title: notif.title || 'Notipikasyon', message: `Priority: ${notif.priorityLevel || 'Updated'}`, createdAt: new Date() },
+            ...prev
+          ]);
+          setHasUnreadNotifs(true);
+        });
         onVerificationUpdated((payload) => {
           const newStatus = typeof payload === 'string' ? payload : (payload?.verificationStatus || 'verified');
-          setHouseholdData((prev) => (prev ? { ...prev, verificationStatus: newStatus } : prev));
+          const newPriority = payload?.priorityLevel;
+          setHouseholdData((prev) => (prev ? { ...prev, verificationStatus: newStatus, priorityLevel: newPriority || prev.priorityLevel } : prev));
           if (newStatus === 'verified') {
             Alert.alert(
               lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
               lang === 'tl'
-                ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong QR Relief Pass ay aktibo na.'
-                : 'Your account has been verified by the Barangay Admin! Your Relief QR Pass is now active.'
+                ? `Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong Priority Level ay [${newPriority || 'High'}]. Ang inyong QR Relief Pass ay aktibo na.`
+                : `Your account has been verified by the Barangay Admin! Your Priority Level is [${newPriority || 'High'}]. Your Relief QR Pass is now active.`
             );
           }
         });
@@ -630,27 +641,49 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </View>
                 </View>
 
-                {/* Singpass-Style Save to Device / Gallery Action (Only when verified) */}
+                {/* Singpass-Style Save to Device / Gallery & Printable PDF Actions (Only when verified) */}
                 {isVerified && (
-                  <TouchableOpacity
-                    style={styles.modalSavePassBtn}
-                    onPress={() => {
-                      Alert.alert(
-                        lang === 'tl' ? 'QR Pass Na-save!' : 'QR Pass Saved!',
-                        lang === 'tl'
-                          ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong Photo Gallery para sa offline presentation.'
-                          : 'Beneficiary Pass saved to photo gallery for offline physical presentation.'
-                      );
-                    }}
-                    activeOpacity={0.85}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <DownloadIcon size={18} color="#FFFFFF" />
-                      <Text style={styles.modalSavePassBtnText}>
-                        {lang === 'tl' ? 'I-save ang Pass sa Photo Gallery' : 'Save Pass to Gallery'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  <View style={{ gap: 10, marginTop: 14 }}>
+                    <TouchableOpacity
+                      style={styles.modalSavePassBtn}
+                      onPress={() => {
+                        Alert.alert(
+                          lang === 'tl' ? 'QR Pass Na-save!' : 'QR Pass Saved!',
+                          lang === 'tl'
+                            ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong Photo Gallery para sa offline presentation.'
+                            : 'Beneficiary Pass saved to photo gallery for offline physical presentation.'
+                        );
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <DownloadIcon size={18} color="#FFFFFF" />
+                        <Text style={styles.modalSavePassBtnText}>
+                          {lang === 'tl' ? 'I-save ang Pass sa Photo Gallery' : 'Save Pass to Gallery'}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.modalSavePassBtn, { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1' }]}
+                      onPress={() => {
+                        Alert.alert(
+                          lang === 'tl' ? '🖨️ I-print / I-save ang Official PDF Voucher' : '🖨️ Print / Save Official PDF Voucher',
+                          lang === 'tl'
+                            ? `Nilikha ang Official DSWD/LGU Disaster Relief Voucher para kay ${householdName} (${address}). Handa na para sa pisikal na pag-print o pag-save bilang PDF backup sakaling mawalan ng kuryente.`
+                            : `Generated Official Disaster Relief Voucher for ${householdName} (${address}). Ready for physical printing or PDF storage during power outages.`
+                        );
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <Text style={{ fontSize: 16 }}>🖨️</Text>
+                        <Text style={[styles.modalSavePassBtnText, { color: '#1E293B', fontWeight: '800' }]}>
+                          {lang === 'tl' ? 'I-print / I-save bilang PDF Voucher' : 'Print / Save as PDF Voucher'}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </ScrollView>
@@ -661,21 +694,37 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* 5. Top Popover Notifications with Direct Screen Navigation */}
       <NotificationModal
         visible={showNotifModal}
-        onClose={() => setShowNotifModal(false)}
-        notifs={announcements.map((a, idx) => ({
-          id: a.id || idx,
-          title: a.title,
-          body: a.body,
-          time: a.timestamp,
-          tag: a.tag,
-          targetTab: a.targetTab || (idx === 0 ? 'request' : idx === 1 ? 'damage' : 'history'),
-          type: a.isUrgent ? 'urgent' : 'advisory',
-          unread: idx === 0,
-        }))}
+        onClose={() => {
+          setShowNotifModal(false);
+          setHasUnreadNotifs(false);
+        }}
+        notifs={[
+          ...inAppNotifs.map((n) => ({
+            id: n.id,
+            title: n.title,
+            body: n.message,
+            time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Kamakailan',
+            tag: n.type === 'priority_update' ? 'Priority' : 'Opisyal',
+            targetTab: 'history',
+            type: 'urgent',
+            unread: !n.isRead,
+          })),
+          ...announcements.map((a, idx) => ({
+            id: a.id || idx,
+            title: a.title,
+            body: a.body,
+            time: a.timestamp,
+            tag: a.tag,
+            targetTab: a.targetTab || (idx === 0 ? 'request' : idx === 1 ? 'damage' : 'history'),
+            type: a.isUrgent ? 'urgent' : 'advisory',
+            unread: idx === 0,
+          }))
+        ]}
         onNavigate={(targetTab) => {
           if (targetTab) {
             setActiveTab(targetTab);
             setShowNotifModal(false);
+            setHasUnreadNotifs(false);
           }
         }}
       />

@@ -71,16 +71,35 @@ export default function App() {
     if (session?.token) {
       try {
         await AsyncStorage.setItem('mitigateplus_token', session.token);
+        await AsyncStorage.setItem('mitigateplus_session_start', Date.now().toString());
       } catch (e) {}
     }
+  };
 
   const handleLogout = async () => {
     setUserSession(null);
     setCurrentScreen('login');
     try {
       await AsyncStorage.removeItem('mitigateplus_token');
+      await AsyncStorage.removeItem('mitigateplus_session_start');
     } catch (e) {}
   };
+
+  // 12-Hour Session Expiry Check on App Startup / Active
+  useEffect(() => {
+    const checkSessionExpiry = async () => {
+      try {
+        const sessionStart = await AsyncStorage.getItem('mitigateplus_session_start');
+        if (sessionStart) {
+          const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+          if (Date.now() - parseInt(sessionStart, 10) > TWELVE_HOURS_MS) {
+            await handleLogout();
+          }
+        }
+      } catch (e) {}
+    };
+    checkSessionExpiry();
+  }, []);
 
   const activeKey = userSession ? (userSession.role === 'staff' ? 'staff' : 'resident') : currentScreen;
 
