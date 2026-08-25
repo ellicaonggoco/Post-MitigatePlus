@@ -131,6 +131,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                 <View style={styles.completedInfoRow}>
                   <Text style={styles.completedInfoText}>
                     {lang === 'tl' ? `Natapos noong: ${item.completedTime}` : `Completed: ${item.completedTime}`}
+                  </Text>
                   <MotionPressable
                     style={styles.viewAuditBtn}
                     onPress={() => {
