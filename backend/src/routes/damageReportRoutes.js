@@ -10,8 +10,9 @@ const { calculatePriorityIndex } = require('../utils/priorityIndex');
 router.post('/', protect, requireRole('resident'), async (req, res) => {
   try {
     const { damageLevel, photos, description, latitude, longitude, locationName } = req.body;
+    const normalizedLevel = (damageLevel === 'Total' || damageLevel === 'Totally Damaged') ? 'Totally Damaged' : damageLevel;
     const validLevels = ['Minor', 'Moderate', 'Severe', 'Totally Damaged'];
-    if (!validLevels.includes(damageLevel)) {
+    if (!validLevels.includes(normalizedLevel)) {
       return res.status(400).json({ message: `damageLevel must be one of: ${validLevels.join(', ')}` });
     }
 
@@ -39,8 +40,8 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
 
     const report = await DamageReport.create({
       householdId: household._id,
-      damageLevel,
-      reportedDamageLevel: damageLevel,
+      damageLevel: normalizedLevel,
+      reportedDamageLevel: normalizedLevel,
       verificationStatus: 'pending',
       photos: sanitizedPhotos,
       description: typeof description === 'string' ? description.trim().slice(0, 1000) : '',

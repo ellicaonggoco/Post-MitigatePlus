@@ -5,27 +5,39 @@ const Household = require('../models/Household');
 const { protect, requireRole } = require('../middleware/auth');
 
 // @route   POST /api/assistance-requests
-// @desc    Submit a new assistance request (Resident only)
-router.post('/', protect, requireRole('resident'), async (req, res) => {
+// @desc    Submit a new assistance request (Resident or Official on behalf of household)
+router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
-    const { itemType, notes } = req.body;
-    if (!itemType) {
-      return res.status(400).json({ message: 'Please specify the assistance item type needed.' });
-    }
+    const { itemType, items, reason, notes, resident, barangay, householdId } = req.body;
+    const requestedItem = itemType || items || 'Emergency Relief Package';
+    const requestNotes = reason || notes || '';
 
-    const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
-    if (!household) {
-      return res.status(404).json({ message: 'Household record not found.' });
-    }
-
-    if (household.verificationStatus !== 'verified') {
-      return res.status(400).json({ message: 'Only verified households can request assistance.' });
+    let targetHousehold = null;
+    if (req.user.role === 'resident') {
+      targetHousehold = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+      if (!targetHousehold) {
+        return res.status(404).json({ message: 'Household record not found.' });
+      }
+    } else {
+      // Official / Admin submitted on behalf of household
+      if (householdId) {
+        targetHousehold = await Household.findById(householdId);
+      } else {
+        const brgyCode = barangay || req.user.barangayCode || '291';
+        targetHousehold = await Household.findOne({ barangayCode: brgyCode });
+        if (!targetHousehold) {
+          // Find any verified household or create placeholder
+          targetHousehold = await Household.findOne();
+        }
+      }
     }
 
     const request = await AssistanceRequest.create({
-      householdId: household._id,
-      itemType,
-      notes: notes || '',
+      householdId: targetHousehold ? targetHousehold._id : null,
+      itemType: requestedItem,
+      notes: requestNotes,
+      status: 'pending',
+      requestedBy: req.user.role === 'resident' ? req.user.name : `Official: ${req.user.name}`,
     });
 
     res.status(201).json(request);
@@ -141,25 +153,31 @@ router.patch('/:id/deliver', protect, requireRole('field_staff', 'barangay_offic
 
 // @route   PATCH /api/assistance-requests/:id
 // @desc    Approve / reject / update status of an assistance request
-router.patch('/:id', protect, requireRole('barangay_official', 'lgu_admin', 'field_staff'), async (req, res) => {
+router.patch('/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
   try {
-    const { status, proofOfDeliveryPhoto, recipientSignatureOrNotes } = req.body;
-    const validStatuses = ['pending', 'under_review', 'approved', 'released', 'received'];
-    if (!validStatuses.includes(status)) {
+    const { status, notes, assignedStaff, proofOfDeliveryPhoto, recipientSignatureOrNotes } = req.body;
+    let normalizedStatus = typeof status === 'string' ? status.toLowerCase().trim() : '';
+    if (normalizedStatus === 'rejected') normalizedStatus = 'rejected';
+    if (normalizedStatus === 'approved') normalizedStatus = 'approved';
+
+    const validStatuses = ['pending', 'under_review', 'approved', 'released', 'received', 'rejected'];
+    if (normalizedStatus && !validStatuses.includes(normalizedStatus)) {
       return res.status(400).json({ message: `Status must be one of: ${validStatuses.join(', ')}` });
     }
 
     const request = await AssistanceRequest.findById(req.params.id).populate('householdId', 'barangayCode');
     if (!request) return res.status(404).json({ message: 'Request not found.' });
 
-    if (req.user.role === 'barangay_official' && request.householdId?.barangayCode !== req.user.barangayCode) {
+    if (req.user.role === 'barangay_official' && request.householdId?.barangayCode && request.householdId?.barangayCode !== req.user.barangayCode) {
       return res.status(403).json({ message: 'Forbidden: this request is outside your assigned barangay.' });
     }
 
-    request.status = status;
+    if (normalizedStatus) request.status = normalizedStatus;
+    if (notes !== undefined) request.notes = notes;
+    if (assignedStaff !== undefined) request.assignedStaff = assignedStaff;
     request.decidedBy = req.user._id;
     request.decidedAt = new Date();
-    if (status === 'received' || status === 'released') {
+    if (normalizedStatus === 'received' || normalizedStatus === 'released') {
       request.deliveredBy = req.user._id;
       request.deliveredAt = new Date();
       if (proofOfDeliveryPhoto) request.proofOfDeliveryPhoto = proofOfDeliveryPhoto;

@@ -124,7 +124,12 @@ export default function WarehouseInventory() {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qty, note })
+        body: JSON.stringify({
+          quantity: Number(qty),
+          qty: Number(qty),
+          notes: note || '',
+          note: note || '',
+        })
       });
       if (res.ok) {
         fetchInventory();

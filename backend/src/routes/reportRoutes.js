@@ -135,6 +135,12 @@ router.get('/gap-analysis', protect, requireRole('barangay_official', 'lgu_admin
       };
     }));
 
+    res.json(report);
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating gap analysis', error: error.message });
+  }
+});
+
 // @route   GET /api/reports/coa-liquidation
 // @desc    Export official COA / DSWD DROMIC-compliant liquidation masterlist
 router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {

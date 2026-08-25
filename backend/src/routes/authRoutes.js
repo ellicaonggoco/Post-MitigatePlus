@@ -106,12 +106,15 @@ router.post('/verify-otp', async (req, res) => {
 // @desc    Self-service password recovery using OTP
 router.post('/forgot-password', async (req, res) => {
   try {
-    const { emailOrPhone, otpCode, newPassword } = req.body;
-    if (!emailOrPhone || !otpCode || !newPassword) {
+    const rawTarget = req.body.emailOrPhone || req.body.identifier || req.body.phoneOrEmail;
+    const rawOtp = req.body.otpCode || req.body.otp || req.body.code;
+    const { newPassword } = req.body;
+    if (!rawTarget || !rawOtp || !newPassword) {
       return res.status(400).json({ message: 'Please provide email/phone, OTP code, and new password.' });
     }
 
-    const key = emailOrPhone.trim().toLowerCase();
+    const key = rawTarget.trim().toLowerCase();
+    const otpCode = String(rawOtp).trim();
     const dbRecord = await OtpToken.findOne({ phoneOrEmail: key, code: otpCode.trim() });
     const memoryRecord = otpStore.get(key);
 

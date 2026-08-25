@@ -252,7 +252,7 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
     try {
       await submitDamageReport(
         {
-          damageLevel,
+          damageLevel: (damageLevel === 'Total' || damageLevel === 'Totally Damaged') ? 'Totally Damaged' : damageLevel,
           description: `Landmark: ${addressLandmark} | Notes: ${description}`,
           photos: selectedPhoto ? [selectedPhoto.uri] : [],
           latitude: geoCoords?.lat || null,
