@@ -294,6 +294,11 @@ export default function VerificationQueue() {
                     <div style={{ fontSize: '13px', color: 'var(--ink-soft)' }}>
                       {hh.address}, Purok {hh.purok} · Brgy {hh.barangayCode} ·{' '}
                       <strong style={{ color: 'var(--ink)' }}>{hh.memberCount} member(s)</strong>
+                      {hh.memberCountPendingUpdate && (
+                        <span style={{ marginLeft: 6, color: '#D97706', fontWeight: 800, background: '#FFFBEB', padding: '2px 8px', borderRadius: 999, fontSize: 11, border: '1px solid #FCD34D' }}>
+                          ⚠️ Requesting addition to {hh.memberCountPendingUpdate} members
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -305,6 +310,20 @@ export default function VerificationQueue() {
                     </span>
                   </div>
                 </div>
+
+                {/* Pending Member Bump Alert */}
+                {hh.memberCountPendingUpdate && (
+                  <div style={{
+                    background: 'rgba(217, 119, 6, 0.1)', border: '1.5px solid rgba(217, 119, 6, 0.35)',
+                    borderRadius: 'var(--radius-inner)', padding: '10px 14px', marginBottom: '14px',
+                    display: 'flex', alignItems: 'flex-start', gap: '10px', color: '#92400E', fontSize: '13px',
+                  }}>
+                    <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px', color: '#D97706' }} />
+                    <div>
+                      <strong>Family Headcount Update Request:</strong> Nagsumite ang pamilyang ito ng karagdagang miyembro ({hh.memberCount} $\rightarrow$ {hh.memberCountPendingUpdate} members). Suriin ang kanilang mga pangalan sa ibaba bago aprubahan.
+                    </div>
+                  </div>
+                )}
 
                 {/* Overlap Warning */}
                 {hasOverlap && (
@@ -323,10 +342,10 @@ export default function VerificationQueue() {
                 {/* Members panel */}
                 <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '14px', marginBottom: '14px' }}>
                   <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Members & Vulnerabilities ({hh.members?.length || 0})
+                    {hh.pendingMembers && hh.pendingMembers.length > 0 ? 'Proposed New Family Roster' : 'Registered Family Members & Vulnerabilities'} ({((hh.pendingMembers && hh.pendingMembers.length > 0) ? hh.pendingMembers : hh.members)?.length || 0})
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {hh.members?.map((m, idx) => (
+                    {((hh.pendingMembers && hh.pendingMembers.length > 0) ? hh.pendingMembers : hh.members)?.map((m, idx) => (
                       <div key={idx} style={{
                         background: '#fff', padding: '5px 12px', borderRadius: 'var(--radius-pill)',
                         fontSize: '12px', border: '1px solid var(--border)', display: 'flex', gap: '6px', alignItems: 'center',

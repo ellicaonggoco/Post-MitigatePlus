@@ -58,10 +58,20 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       });
     }
 
-    // Handle pending member count updates
-    if (status === 'verified' && household.memberCountPendingUpdate) {
-      household.memberCount = household.memberCountPendingUpdate;
+    // Handle pending member count and pending member roster updates upon verification
+    if (status === 'verified') {
+      if (household.memberCountPendingUpdate) {
+        household.memberCount = household.memberCountPendingUpdate;
+        household.memberCountPendingUpdate = null;
+      }
+      if (household.pendingMembers && household.pendingMembers.length > 0) {
+        household.members = household.pendingMembers;
+        household.pendingMembers = [];
+      }
+    } else if (status === 'rejected') {
+      // Revert any pending member update requests
       household.memberCountPendingUpdate = null;
+      household.pendingMembers = [];
     }
 
     household.verificationStatus = status;
@@ -69,7 +79,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     household.verifiedAt = new Date();
     household.verificationNotes = verificationNotes || '';
 
-    // Recalculate priority index upon verification
+    // Recalculate priority index upon official verification
     const pastDistributionsCount = await Distribution.countDocuments({ householdId: household._id });
     const { priorityScore, priorityLevel } = calculatePriorityIndex(household, household.createdAt, pastDistributionsCount);
     household.priorityScore = priorityScore;
@@ -84,7 +94,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       action: `VERIFICATION_${status.toUpperCase()}`,
       targetType: 'Household',
       targetId: household._id.toString(),
-      notes: `Verified status updated to ${status}. Notes: ${verificationNotes || 'None'}`,
+      notes: `Verified status updated to ${status}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}`,
     });
 
     // Notify resident via Socket.IO
@@ -93,6 +103,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       io.to(`household:${household._id}`).emit('verification_updated', {
         verificationStatus: status,
         verificationNotes,
+        memberCount: household.memberCount,
         verifiedAt: household.verifiedAt,
       });
     }
@@ -106,19 +117,48 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
   }
 });
 
-// PUT /api/households/me/members - Update household members
+// PUT /api/households/me/members - Request to update household members (requires Barangay Official review)
 router.put('/me/members', protect, requireRole('resident'), async (req, res) => {
   try {
     const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
     if (!household) return res.status(404).json({ message: 'Household not found' });
     const { members } = req.body;
     if (!Array.isArray(members)) return res.status(400).json({ message: 'Members must be an array' });
-    household.members = members;
-    household.memberCount = members.length + 1; // +1 for head
+
+    // Anti-Fraud Safeguard:
+    // Do NOT directly increase the official memberCount or priority score!
+    // Stage the requested members in pendingMembers and alert the Barangay Official.
+    const requestedCount = members.length + 1; // +1 for head of household
+    household.memberCountPendingUpdate = requestedCount;
+    household.pendingMembers = members;
     await household.save();
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: 'resident',
+      action: 'REQUEST_MEMBER_UPDATE',
+      targetType: 'Household',
+      targetId: household._id.toString(),
+      notes: `${req.user.name} requested to update household members from ${household.memberCount} to ${requestedCount}. Pending Barangay Official review.`,
+    });
+
     const io = req.app.get('io');
-    if (io) io.to(`household:${household._id}`).emit('household_updated', household);
-    res.json(household);
+    if (io) {
+      io.to(`barangay:${household.barangayCode}`).emit('household_update_pending', {
+        householdId: household._id,
+        address: household.address,
+        purok: household.purok,
+        barangayCode: household.barangayCode,
+        currentMemberCount: household.memberCount,
+        pendingMemberCount: requestedCount,
+      });
+    }
+
+    res.json({
+      message: 'Naisumite na ang kahilingan sa pagdagdag ng miyembro ng pamilya. Dadaan muna ito sa pagsusuri ng inyong Barangay Official bago ma-update ang inyong opisyal na priority score.',
+      household,
+      isPendingApproval: true,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

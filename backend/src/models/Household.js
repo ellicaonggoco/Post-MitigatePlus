@@ -22,6 +22,7 @@ const householdSchema = new mongoose.Schema({
   memberCount: { type: Number, required: true, default: 1 },
   memberCountPendingUpdate: { type: Number, default: null },
   members: [memberSchema],
+  pendingMembers: [memberSchema],
   qrCode: { type: String, required: true, unique: true, index: true },
   verificationStatus: {
     type: String,
