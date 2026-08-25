@@ -44,10 +44,10 @@ export default function ProvisionAccounts() {
     'Quick Response Unit 2',
   ];
 
-  // All barangay codes in Manila District 1 used by MitigatePlus
-  const ALL_BARANGAYS = Array.from({ length: 20 }, (_, i) => ({
-    code: String(291 + i),
-    label: `Barangay ${291 + i}`,
+  // All barangay codes in the entire City of Manila (Barangay 1 to Barangay 905)
+  const ALL_BARANGAYS = Array.from({ length: 905 }, (_, i) => ({
+    code: String(i + 1),
+    label: `Barangay ${i + 1}`,
   }));
 
 
@@ -587,20 +587,38 @@ export default function ProvisionAccounts() {
                     {(() => {
                       const occupiedCodes = accounts
                         .filter(a => a.role === 'barangay_official' && a.barangayCode && (!editingAccount || a._id !== editingAccount._id))
-                        .map(a => a.barangayCode);
-                      const suggestions = ALL_BARANGAYS.filter(b =>
-                        b.label.toLowerCase().includes(barangaySearch.toLowerCase()) &&
-                        !occupiedCodes.includes(b.code)
-                      );
+                        .map(a => String(a.barangayCode));
+                      
+                      const rawTerm = barangaySearch.toLowerCase().trim();
+                      const cleanNum = rawTerm.replace(/\D/g, '');
+
+                      const suggestions = ALL_BARANGAYS.filter(b => {
+                        if (occupiedCodes.includes(b.code)) return false;
+                        if (!rawTerm) return true;
+                        return (
+                          b.label.toLowerCase().includes(rawTerm) ||
+                          b.code === rawTerm ||
+                          (cleanNum && (b.code === cleanNum || b.code.startsWith(cleanNum))) ||
+                          `brgy ${b.code}`.toLowerCase().includes(rawTerm)
+                        );
+                      }).slice(0, 50);
                       return (
                         <>
                           <input
                             type="text"
-                            placeholder="Type barangay number (e.g. 291)"
+                            placeholder="Type barangay number (e.g. 344 or 291)"
                             value={barangaySearch}
                             onChange={(e) => {
-                              setBarangaySearch(e.target.value);
-                              setBarangayCode('');
+                              const val = e.target.value;
+                              setBarangaySearch(val);
+                              // Auto-match exact code if typed directly
+                              const numOnly = val.replace(/\D/g, '');
+                              const exactMatch = ALL_BARANGAYS.find(b => b.code === numOnly || b.label.toLowerCase() === val.toLowerCase().trim());
+                              if (exactMatch && !occupiedCodes.includes(exactMatch.code)) {
+                                setBarangayCode(exactMatch.code);
+                              } else {
+                                setBarangayCode('');
+                              }
                               setShowBarangaySuggestions(true);
                             }}
                             onFocus={() => setShowBarangaySuggestions(true)}
