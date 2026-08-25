@@ -1,8 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
-import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3 } from 'lucide-react';
-import ConfirmModal from '../components/ConfirmModal';
+import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 
@@ -15,6 +14,7 @@ export default function ProvisionAccounts() {
 
   // Default targetRole: 'lgu_admin' if SuperAdmin, 'field_staff' if LGU Admin
   const [targetRole, setTargetRole] = useState(() => isSuperAdmin ? 'lgu_admin' : 'field_staff');
+  const [viewTab, setViewTab] = useState('roster'); // 'roster' | 'table'
   const [name, setName] = useState('');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -698,9 +698,178 @@ export default function ProvisionAccounts() {
         </button>
       </div>
 
-      <div>
+      {/* ── View Switcher Tabs ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8, background: 'var(--card)', padding: '4px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)' }}>
+          <button
+            onClick={() => setViewTab('roster')}
+            className={viewTab === 'roster' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 13, gap: 6, padding: '7px 16px' }}
+          >
+            <Users size={15} /> Field Operations Teams Roster ({FIELD_TEAMS.length})
+          </button>
+          <button
+            onClick={() => setViewTab('table')}
+            className={viewTab === 'table' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 13, gap: 6, padding: '7px 16px' }}
+          >
+            <List size={15} /> All Accounts Directory ({filteredAccounts.length})
+          </button>
+        </div>
 
-        {/* ── RIGHT: Accounts Directory Table ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 'var(--radius-pill)' }}>
+          <Search size={14} color="var(--ink-soft)" />
+          <input
+            value={search}
+            aria-label="Search account name"
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search name, phone, team..."
+            style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: 170 }}
+          />
+        </div>
+      </div>
+
+      {/* ── TAB 1: FIELD OPERATIONS TEAMS ROSTER VIEW (GROUPS VIEW) ── */}
+      {viewTab === 'roster' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 24 }}>
+          {FIELD_TEAMS.map((team, tIdx) => {
+            const teamMembers = accounts.filter(a =>
+              a.role === 'field_staff' &&
+              (a.teamName === team || (!a.teamName && team === 'Field Team Alpha')) &&
+              (!search || a.name.toLowerCase().includes(search.toLowerCase()) || a.emailOrPhone.toLowerCase().includes(search.toLowerCase()))
+            );
+            const teamLeader = teamMembers.find(m => m.staffDesignation === 'team_leader');
+            const officers = teamMembers.filter(m => m.staffDesignation !== 'team_leader');
+
+            return (
+              <MotionCard
+                key={team}
+                delay={tIdx * 0.05}
+                className="clay-card"
+                style={{
+                  borderLeft: teamLeader ? '4px solid var(--bay-teal)' : '4px solid var(--jeepney-amber)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: 14,
+                }}
+              >
+                <div>
+                  {/* Team Card Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 'var(--radius-inner)',
+                        background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13,
+                      }}>
+                        {tIdx + 1}
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>{team}</h3>
+                        <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>Manila MDRRMO Field Operations</span>
+                      </div>
+                    </div>
+
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      background: teamMembers.length > 0 ? 'rgba(21, 138, 100, 0.1)' : 'rgba(232, 148, 15, 0.1)',
+                      color: teamMembers.length > 0 ? '#158A64' : '#B45309',
+                      fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999,
+                    }}>
+                      <CheckCircle size={12} /> {teamMembers.length} Personnel
+                    </span>
+                  </div>
+
+                  {/* Team Leader Box */}
+                  <div style={{
+                    background: teamLeader ? 'rgba(37, 99, 235, 0.06)' : 'var(--sampaguita)',
+                    border: teamLeader ? '1px solid rgba(37, 99, 235, 0.2)' : '1px dashed var(--border)',
+                    borderRadius: 'var(--radius-inner)',
+                    padding: '10px 12px',
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: teamLeader ? 'var(--manila-blue)' : 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Crown size={13} color={teamLeader ? '#D97706' : 'var(--ink-soft)'} /> Head Staff / Team Leader
+                    </div>
+                    {teamLeader ? (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: 'var(--ink)', fontSize: 14 }}>{teamLeader.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>{teamLeader.emailOrPhone}</div>
+                        </div>
+                        <span style={{ fontSize: 11, background: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: 999, fontWeight: 800 }}>
+                          Lead
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
+                        No Team Leader assigned yet. Click Edit or Create to assign.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Field Staff Officers List */}
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                      Field Officers / Scanners ({officers.length})
+                    </div>
+                    {officers.length === 0 ? (
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontStyle: 'italic', padding: '6px 0' }}>
+                        No field officers assigned to this team yet.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {officers.map(off => (
+                          <div
+                            key={off.id}
+                            style={{
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                              padding: '6px 10px', background: 'var(--card)', borderRadius: 'var(--radius-inner)',
+                              border: '1px solid var(--border)', fontSize: 12,
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <UserCheck size={13} color="#158A64" />
+                              <strong style={{ color: 'var(--ink)' }}>{off.name}</strong>
+                              <span style={{ color: 'var(--ink-soft)', fontSize: 11 }}>({off.emailOrPhone})</span>
+                            </div>
+                            <button
+                              onClick={() => openEditModal(off)}
+                              style={{ background: 'none', border: 'none', color: 'var(--manila-blue)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card Action Footer */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>Scope: City-Wide Manila</span>
+                  <button
+                    onClick={() => {
+                      openCreateModal();
+                      setTargetRole('field_staff');
+                      setTeamName(team);
+                    }}
+                    className="clay-button-ghost"
+                    style={{ fontSize: 11, padding: '4px 10px', gap: 4, height: 26 }}
+                  >
+                    <UserPlus size={12} /> Add to {team.split(' ')[0]}
+                  </button>
+                </div>
+              </MotionCard>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── TAB 2: MASTER ACCOUNTS DIRECTORY TABLE VIEW ── */}
+      {viewTab === 'table' && (
         <div className="clay-card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -744,26 +913,16 @@ export default function ProvisionAccounts() {
                   </button>
                 </div>
               )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--sampaguita)', border: '1px solid var(--border)', padding: '5px 10px', borderRadius: 'var(--radius-pill)' }}>
-                <Search size={14} color="var(--ink-soft)" />
-                <input
-                  value={search}
-                  aria-label="Search account name"
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search account name..."
-                  style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: 140 }}
-                />
-              </div>
             </div>
           </div>
 
           <table className="clay-table">
             <thead>
               <tr>
-                <th>Account Name / Email</th>
+                <th>Account Name / Contact</th>
                 <th>Role</th>
-                <th>Scope</th>
+                <th>Assigned Team & Rank</th>
+                <th>Jurisdiction</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -771,7 +930,7 @@ export default function ProvisionAccounts() {
             <tbody>
               {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--ink-soft)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--ink-soft)' }}>
                     No accounts found matching your search.
                   </td>
                 </tr>
@@ -792,8 +951,27 @@ export default function ProvisionAccounts() {
                       </span>
                     </td>
                     <td>
+                      {acc.role === 'field_staff' ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontWeight: 800, color: 'var(--ink)', fontSize: 12 }}>
+                            {acc.teamName || 'Field Team Alpha'}
+                          </span>
+                          <span style={{
+                            fontSize: 10, fontWeight: 800,
+                            color: acc.staffDesignation === 'team_leader' ? '#1D4ED8' : '#64748B',
+                            background: acc.staffDesignation === 'team_leader' ? '#EFF6FF' : 'var(--sampaguita)',
+                            padding: '1px 6px', borderRadius: 4, width: 'fit-content',
+                          }}>
+                            {acc.staffDesignation === 'team_leader' ? '🎖️ Team Leader (Head)' : '📋 Field Officer (Scanner)'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>—</span>
+                      )}
+                    </td>
+                    <td>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)' }}>
-                        {acc.barangayCode === 'City-Wide' ? 'City-Wide' : `Brgy ${acc.barangayCode}`}
+                        {acc.barangayCode === 'City-Wide' ? 'City-Wide Manila' : `Brgy ${acc.barangayCode}`}
                       </span>
                     </td>
                     <td>
@@ -881,7 +1059,7 @@ export default function ProvisionAccounts() {
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

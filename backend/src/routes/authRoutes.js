@@ -531,6 +531,11 @@ router.get('/provisioned-users', protect, requireRole('lgu_admin', 'lgu_superadm
       emailOrPhone: u.emailOrPhone,
       role: u.role,
       barangayCode: u.barangayCode || 'City-Wide',
+      teamName: u.teamName || (u.role === 'field_staff' ? 'Field Team Alpha' : null),
+      staffDesignation: u.staffDesignation || (u.role === 'field_staff' ? 'field_officer' : null),
+      employeeId: u.employeeId || null,
+      department: u.department || null,
+      contactNum: u.contactNum || null,
       status: u.status || 'active',
       createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-08-01',
     })));
