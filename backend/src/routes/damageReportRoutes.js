@@ -40,6 +40,8 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
     const report = await DamageReport.create({
       householdId: household._id,
       damageLevel,
+      reportedDamageLevel: damageLevel,
+      verificationStatus: 'pending',
       photos: sanitizedPhotos,
       description: typeof description === 'string' ? description.trim().slice(0, 1000) : '',
       latitude: !isNaN(numLat) ? numLat : null,
@@ -50,33 +52,33 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
     if (!isNaN(numLat) && !isNaN(numLng)) {
       household.latitude = numLat;
       household.longitude = numLng;
+      await household.save();
     }
-
-    // Update the household's damage level and recompute priority — a new/updated damage
-    // report is exactly the kind of thing that should move a household in the queue.
-    household.damageLevel = damageLevel;
-    const { priorityScore, priorityLevel } = calculatePriorityIndex(household);
-    household.priorityScore = priorityScore;
-    household.priorityLevel = priorityLevel;
-    await household.save();
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`barangay:${household.barangayCode}`).emit('damage_report_submitted', {
+      io.to(`barangay:${household.barangayCode}`).emit('new_pending_damage_report', {
+        reportId: report._id,
         householdId: household._id,
         damageLevel,
-        priorityLevel,
+        address: household.address,
+        barangayCode: household.barangayCode,
+        reportedAt: report.reportedAt,
       });
     }
 
-    res.status(201).json({ report, updatedPriorityLevel: priorityLevel, updatedPriorityScore: priorityScore });
+    res.status(201).json({
+      message: 'Damage report submitted successfully. It is now pending review and photo verification by your Barangay Official.',
+      report,
+      household,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error submitting damage report', error: error.message });
   }
 });
 
-// @route   GET /api/damage-reports?householdId=...
-// @desc    List damage reports — resident sees their own, official/admin can filter by household
+// @route   GET /api/damage-reports
+// @desc    List damage reports — resident sees their own, official/admin can filter by barangay/household
 router.get('/', protect, async (req, res) => {
   try {
     const filter = {};
@@ -86,9 +88,14 @@ router.get('/', protect, async (req, res) => {
       filter.householdId = household._id;
     } else if (req.query.householdId) {
       filter.householdId = req.query.householdId;
+    } else if (req.query.verificationStatus) {
+      filter.verificationStatus = req.query.verificationStatus;
     }
 
-    const reports = await DamageReport.find(filter).sort({ reportedAt: -1 });
+    const reports = await DamageReport.find(filter)
+      .populate('householdId')
+      .populate('validatedBy', 'name emailOrPhone')
+      .sort({ reportedAt: -1 });
     res.json(reports);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching damage reports', error: error.message });
@@ -96,28 +103,64 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   PATCH /api/damage-reports/:id/validate
-// @desc    Field staff validates/updates a damage report after physical inspection
-router.patch('/:id/validate', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin'), async (req, res) => {
+// @desc    Barangay Official or LGU Admin validates, adjusts, or rejects a damage report
+router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
   try {
-    const { damageLevel, notes } = req.body;
+    const { action, validatedDamageLevel, damageLevel, notes, rejectionReason } = req.body;
     const report = await DamageReport.findById(req.params.id);
     if (!report) return res.status(404).json({ message: 'Damage report not found.' });
 
-    if (damageLevel) report.damageLevel = damageLevel;
+    const finalAction = action || (validatedDamageLevel ? 'verified' : 'verified');
+    const finalLevel = validatedDamageLevel || damageLevel || report.reportedDamageLevel || report.damageLevel;
+
+    if (finalAction === 'rejected') {
+      report.verificationStatus = 'rejected';
+      report.rejectionReason = rejectionReason || notes || 'Insufficient or non-matching photo evidence.';
+      report.validatedBy = req.user._id;
+      report.validatedAt = new Date();
+      report.notes = notes || report.notes;
+      await report.save();
+
+      return res.json({
+        message: 'Damage report rejected.',
+        report,
+      });
+    }
+
+    // Action is verify or adjust
+    report.verificationStatus = finalAction === 'adjust' || finalLevel !== report.reportedDamageLevel ? 'adjusted' : 'verified';
+    report.validatedDamageLevel = finalLevel;
+    report.damageLevel = finalLevel;
     report.notes = notes || report.notes;
     report.validatedBy = req.user._id;
     report.validatedAt = new Date();
     await report.save();
 
-    if (damageLevel) {
-      const household = await Household.findById(report.householdId);
-      if (household) {
-        household.damageLevel = damageLevel;
-        const { priorityScore, priorityLevel } = calculatePriorityIndex(household);
-        household.priorityScore = priorityScore;
-        household.priorityLevel = priorityLevel;
-        await household.save();
+    // Now update household damage level and recalculate official priority score
+    const household = await Household.findById(report.householdId);
+    if (household) {
+      household.damageLevel = finalLevel;
+      const { priorityScore, priorityLevel } = calculatePriorityIndex(household);
+      household.priorityScore = priorityScore;
+      household.priorityLevel = priorityLevel;
+      await household.save();
+
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`barangay:${household.barangayCode}`).emit('damage_report_verified', {
+          householdId: household._id,
+          verifiedDamageLevel: finalLevel,
+          priorityScore,
+          priorityLevel,
+        });
       }
+
+      return res.json({
+        message: `Damage report successfully ${report.verificationStatus} as ${finalLevel}. Household Priority Score updated to ${priorityScore} (${priorityLevel}).`,
+        report,
+        updatedPriorityScore: priorityScore,
+        updatedPriorityLevel: priorityLevel,
+      });
     }
 
     res.json(report);
