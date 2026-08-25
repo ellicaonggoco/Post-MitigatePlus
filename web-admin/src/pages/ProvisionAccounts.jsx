@@ -28,6 +28,7 @@ export default function ProvisionAccounts() {
   const [teamName, setTeamName] = useState('Field Team Alpha');
   const [staffDesignation, setStaffDesignation] = useState('field_officer'); // 'team_leader' | 'field_officer'
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [lockedTeam, setLockedTeam] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,7 @@ export default function ProvisionAccounts() {
 
   const openCreateModal = () => {
     setEditingAccount(null);
+    setLockedTeam(null);
     setName('');
     setEmailOrPhone('');
     setEmployeeId('');
@@ -62,6 +64,25 @@ export default function ProvisionAccounts() {
     setStaffDesignation('field_officer');
     setTargetRole(isSuperAdmin ? 'lgu_admin' : 'field_staff');
     setBarangayCode('');
+    setBarangaySearch('');
+    setShowBarangaySuggestions(false);
+    setStatusMsg({ type: '', text: '' });
+    setIsCreateModalOpen(true);
+  };
+
+  const openCreateModalForTeam = (team) => {
+    setEditingAccount(null);
+    setLockedTeam(team);
+    setName('');
+    setEmailOrPhone('');
+    setEmployeeId('');
+    setDepartment('MDRRMO Field Operations');
+    setContactNum('');
+    setPassword('');
+    setTeamName(team);
+    setStaffDesignation('field_officer');
+    setTargetRole('field_staff');
+    setBarangayCode('City-Wide');
     setBarangaySearch('');
     setShowBarangaySuggestions(false);
     setStatusMsg({ type: '', text: '' });
@@ -423,7 +444,7 @@ export default function ProvisionAccounts() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {editingAccount ? <Edit3 size={22} color="var(--manila-blue)" /> : <UserPlus size={22} color="var(--manila-blue)" />}
                 <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--manila-blue)', margin: 0 }}>
-                  {editingAccount ? 'Edit Account Details' : 'Create Official LGU Account'}
+                  {editingAccount ? 'Edit Account Details' : lockedTeam ? `Add Field Staff (${lockedTeam})` : 'Create Official LGU Account'}
                 </h2>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="clay-button-ghost" style={{ padding: '4px 10px', fontSize: 13 }}>✕ Close</button>
@@ -442,51 +463,53 @@ export default function ProvisionAccounts() {
             )}
 
             <form onSubmit={handleProvisionRequest}>
-              {/* Role Selection */}
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>Account Role Type</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {isSuperAdmin ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setTargetRole('lgu_admin')}
-                        className={targetRole === 'lgu_admin' ? 'clay-button-primary' : 'clay-button-ghost'}
-                        style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
-                      >
-                        <Shield size={14} /> LGU Admin
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTargetRole('barangay_official')}
-                        className={targetRole === 'barangay_official' ? 'clay-button-primary' : 'clay-button-ghost'}
-                        style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
-                      >
-                        <Shield size={14} /> Official
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setTargetRole('field_staff')}
-                        className={targetRole === 'field_staff' ? 'clay-button-primary' : 'clay-button-ghost'}
-                        style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
-                      >
-                        <Users size={14} /> Field Staff
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTargetRole('barangay_official')}
-                        className={targetRole === 'barangay_official' ? 'clay-button-primary' : 'clay-button-ghost'}
-                        style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
-                      >
-                        <Shield size={14} /> Official
-                      </button>
-                    </>
-                  )}
+              {/* Role Selection (Only shown for general Create Account, hidden when adding to a specific Field Team) */}
+              {!lockedTeam && !editingAccount && (
+                <div style={fieldGroupStyle}>
+                  <label style={labelStyle}>Account Role Type</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {isSuperAdmin ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setTargetRole('lgu_admin')}
+                          className={targetRole === 'lgu_admin' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
+                        >
+                          <Shield size={14} /> LGU Admin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetRole('barangay_official')}
+                          className={targetRole === 'barangay_official' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
+                        >
+                          <Shield size={14} /> Official
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setTargetRole('field_staff')}
+                          className={targetRole === 'field_staff' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
+                        >
+                          <Users size={14} /> Field Staff
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetRole('barangay_official')}
+                          className={targetRole === 'barangay_official' ? 'clay-button-primary' : 'clay-button-ghost'}
+                          style={{ flex: 1, padding: '8px', fontSize: 12, justifyContent: 'center' }}
+                        >
+                          <Shield size={14} /> Official
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Full Name & Employee ID */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -913,11 +936,7 @@ export default function ProvisionAccounts() {
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>Scope: City-Wide Manila</span>
                   <button
-                    onClick={() => {
-                      openCreateModal();
-                      setTargetRole('field_staff');
-                      setTeamName(team);
-                    }}
+                    onClick={() => openCreateModalForTeam(team)}
                     className="clay-button-ghost"
                     style={{ fontSize: 11, padding: '4px 10px', gap: 4, height: 26 }}
                   >
