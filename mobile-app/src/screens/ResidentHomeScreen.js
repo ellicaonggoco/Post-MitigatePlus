@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
@@ -14,6 +14,13 @@ import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
 import { fetchAnnouncements, fetchHouseholdProfile } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
+
+const EMERGENCY_HOTLINES = [
+  { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', icon: '🚨', bg: '#FEE2E2', color: '#DC2626' },
+  { name: 'Ambulance / EMS', phone: '(02) 8527-5175', icon: '🚑', bg: '#EFF6FF', color: '#2563EB' },
+  { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', icon: '🚒', bg: '#FEF3C7', color: '#D97706' },
+  { name: 'PNP Police Emergency', phone: '911', icon: '👮', bg: '#F3E8FF', color: '#7C3AED' },
+];
 
 /**
  * Impeccable Tactile Animated Navigation Tab Item
@@ -390,6 +397,38 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   {lang === 'tl' ? 'Roster at seguridad' : 'Household & security'}
                 </Text>
               </MotionPressable>
+            </View>
+
+            {/* ── 24/7 Manila Emergency Hotlines 1-Tap SOS Dialers ── */}
+            <View style={styles.emergencyHotlineSection}>
+              <View style={styles.emergencySectionHeader}>
+                <View style={styles.emergencyIconDot} />
+                <Text style={styles.emergencySectionTitle}>
+                  {lang === 'tl' ? '24/7 TULONG AT RESCUE HOTLINES' : '24/7 MANILA EMERGENCY RESCUE HOTLINES'}
+                </Text>
+              </View>
+              <Text style={styles.emergencySectionSub}>
+                {lang === 'tl' ? 'Pindutin ang alinman para direktang tumawag sa oras ng sakuna o baha:' : 'Tap any service below to dial immediately in an emergency:'}
+              </Text>
+              <View style={styles.emergencyGrid}>
+                {EMERGENCY_HOTLINES.map((hotline, hIdx) => (
+                  <MotionPressable
+                    key={hIdx}
+                    style={[styles.emergencyDialBtn, { backgroundColor: hotline.bg, borderColor: hotline.color + '40' }]}
+                    onPress={() => {
+                      const cleanNum = hotline.phone.replace(/[^0-9]/g, '');
+                      Linking.openURL(`tel:${cleanNum}`);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.emergencyDialIcon}>{hotline.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.emergencyDialName, { color: hotline.color }]}>{hotline.name}</Text>
+                      <Text style={styles.emergencyDialPhone}>{hotline.phone}</Text>
+                    </View>
+                  </MotionPressable>
+                ))}
+              </View>
             </View>
 
             {/* 5-Phase Linear Disaster Recovery Status Stepper */}
@@ -1235,5 +1274,68 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800',
+  },
+  emergencyHotlineSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#FECACA',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  emergencySectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  emergencyIconDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#DC2626',
+  },
+  emergencySectionTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#991B1B',
+    letterSpacing: 0.5,
+  },
+  emergencySectionSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginBottom: 10,
+  },
+  emergencyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  emergencyDialBtn: {
+    width: '48.5%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 8,
+  },
+  emergencyDialIcon: {
+    fontSize: 20,
+  },
+  emergencyDialName: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  emergencyDialPhone: {
+    fontSize: 10,
+    color: '#475569',
+    fontWeight: '600',
+    marginTop: 1,
   },
 });
