@@ -18,7 +18,9 @@ export default function ProvisionAccounts() {
   const [name, setName] = useState('');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [barangayCode, setBarangayCode] = useState('291');
+  const [barangayCode, setBarangayCode] = useState('');
+  const [barangaySearch, setBarangaySearch] = useState('');
+  const [showBarangaySuggestions, setShowBarangaySuggestions] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
   const [department, setDepartment] = useState('');
   const [contactNum, setContactNum] = useState('');
@@ -27,6 +29,13 @@ export default function ProvisionAccounts() {
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // All barangay codes in Manila District 1 used by MitigatePlus
+  const ALL_BARANGAYS = Array.from({ length: 20 }, (_, i) => ({
+    code: String(291 + i),
+    label: `Barangay ${291 + i}`,
+  }));
+
 
   const openCreateModal = () => {
     setEditingAccount(null);
@@ -37,7 +46,9 @@ export default function ProvisionAccounts() {
     setContactNum('');
     setPassword('');
     setTargetRole(isSuperAdmin ? 'lgu_admin' : 'field_staff');
-    setBarangayCode('291');
+    setBarangayCode('');
+    setBarangaySearch('');
+    setShowBarangaySuggestions(false);
     setStatusMsg({ type: '', text: '' });
     setIsCreateModalOpen(true);
   };
@@ -50,7 +61,10 @@ export default function ProvisionAccounts() {
     setDepartment(acc.department || '');
     setContactNum(acc.contactNum || '');
     setTargetRole(acc.role || (isSuperAdmin ? 'lgu_admin' : 'field_staff'));
-    setBarangayCode(acc.barangayCode && acc.barangayCode !== 'City-Wide' ? acc.barangayCode : '291');
+    const bc = acc.barangayCode && acc.barangayCode !== 'City-Wide' ? acc.barangayCode : '';
+    setBarangayCode(bc);
+    setBarangaySearch(bc ? `Barangay ${bc}` : '');
+    setShowBarangaySuggestions(false);
     setPassword('');
     setStatusMsg({ type: '', text: '' });
     setIsCreateModalOpen(true);
@@ -137,13 +151,22 @@ export default function ProvisionAccounts() {
       return;
     }
 
+    if (targetRole === 'barangay_official' && !barangayCode.trim()) {
+      setStatusMsg({ type: 'error', text: 'Paki-pili ang Assigned Barangay mula sa mga available na suggestions.' });
+      return;
+    }
+
     const roleTitle = targetRole === 'lgu_admin'
       ? 'LGU Admin'
       : targetRole === 'barangay_official'
       ? 'Barangay Official'
       : 'Field Staff';
 
-    const locationText = targetRole === 'lgu_admin' ? 'City-Wide' : `Barangay ${barangayCode}`;
+    const locationText = targetRole === 'barangay_official'
+      ? `Barangay ${barangayCode}`
+      : targetRole === 'field_staff'
+      ? 'City-Wide (Assigned per Event)'
+      : 'City-Wide';
 
     setModal({
       isOpen: true,
@@ -171,7 +194,6 @@ export default function ProvisionAccounts() {
     }
 
     // Creating new account
-
     try {
       const endpoint = targetRole === 'barangay_official'
         ? `${API_BASE_URL}/auth/provision-official`
@@ -179,10 +201,21 @@ export default function ProvisionAccounts() {
         ? `${API_BASE_URL}/auth/provision-admin`
         : `${API_BASE_URL}/auth/provision-staff`;
 
+      const payloadBarangayCode = targetRole === 'barangay_official' ? barangayCode : 'City-Wide';
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, emailOrPhone, password, barangayCode, role: targetRole, employeeId, department, contactNum }),
+        body: JSON.stringify({
+          name: name.trim(),
+          emailOrPhone: emailOrPhone.trim(),
+          password,
+          barangayCode: payloadBarangayCode,
+          role: targetRole,
+          employeeId: employeeId.trim(),
+          department: department.trim(),
+          contactNum: contactNum.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -193,6 +226,8 @@ export default function ProvisionAccounts() {
         setName('');
         setEmailOrPhone('');
         setPassword('');
+        setBarangayCode('');
+        setBarangaySearch('');
         setEmployeeId('');
         setDepartment('');
         setContactNum('');
@@ -437,30 +472,140 @@ export default function ProvisionAccounts() {
                     style={inputStyle}
                   />
                 </div>
-                {targetRole !== 'lgu_admin' ? (
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>Assigned Barangay</label>
-                    <select
-                      id="provision-assigned-barangay"
-                      aria-label="Select Assigned Barangay"
-                      value={barangayCode}
-                      onChange={(e) => setBarangayCode(e.target.value)}
-                      style={{ ...inputStyle, cursor: 'pointer' }}
-                    >
-                      <option value="291">Barangay 291</option>
-                      <option value="292">Barangay 292</option>
-                      <option value="293">Barangay 293</option>
-                      <option value="294">Barangay 294</option>
-                      <option value="295">Barangay 295</option>
-                    </select>
+                {targetRole === 'barangay_official' ? (
+                  <div style={{ ...fieldGroupStyle, position: 'relative' }}>
+                    <label style={labelStyle}>
+                      Assigned Barangay *
+                      <span style={{ fontWeight: 400, color: 'var(--ink-soft)', marginLeft: 4, textTransform: 'none', letterSpacing: 0 }}>
+                        (type to search)
+                      </span>
+                    </label>
+                    {/* Occupied barangay codes = those already assigned to another barangay_official */}
+                    {(() => {
+                      const occupiedCodes = accounts
+                        .filter(a => a.role === 'barangay_official' && a.barangayCode && (!editingAccount || a._id !== editingAccount._id))
+                        .map(a => a.barangayCode);
+                      const suggestions = ALL_BARANGAYS.filter(b =>
+                        b.label.toLowerCase().includes(barangaySearch.toLowerCase()) &&
+                        !occupiedCodes.includes(b.code)
+                      );
+                      return (
+                        <>
+                          <input
+                            type="text"
+                            placeholder="Type barangay number (e.g. 291)"
+                            value={barangaySearch}
+                            onChange={(e) => {
+                              setBarangaySearch(e.target.value);
+                              setBarangayCode('');
+                              setShowBarangaySuggestions(true);
+                            }}
+                            onFocus={() => setShowBarangaySuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowBarangaySuggestions(false), 150)}
+                            style={{
+                              ...inputStyle,
+                              borderColor: barangayCode ? 'var(--bay-teal)' : 'var(--border)',
+                            }}
+                            autoComplete="off"
+                            required
+                          />
+                          {barangayCode && (
+                            <div style={{ fontSize: 11, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 600 }}>
+                              ✓ Selected: Barangay {barangayCode}
+                            </div>
+                          )}
+                          {!barangayCode && barangaySearch && (
+                            <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>
+                              Please select a barangay from the suggestions below.
+                            </div>
+                          )}
+                          {showBarangaySuggestions && suggestions.length > 0 && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '100%',
+                              left: 0,
+                              right: 0,
+                              background: 'var(--card)',
+                              border: '1.5px solid var(--border)',
+                              borderRadius: 'var(--radius-inner)',
+                              zIndex: 9999,
+                              maxHeight: 180,
+                              overflowY: 'auto',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            }}>
+                              {suggestions.map(b => (
+                                <div
+                                  key={b.code}
+                                  onMouseDown={() => {
+                                    setBarangayCode(b.code);
+                                    setBarangaySearch(b.label);
+                                    setShowBarangaySuggestions(false);
+                                  }}
+                                  style={{
+                                    padding: '9px 14px',
+                                    fontSize: 13,
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid var(--border)',
+                                    color: 'var(--ink)',
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.background = 'var(--sampaguita)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                  {b.label}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {showBarangaySuggestions && suggestions.length === 0 && barangaySearch && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '100%',
+                              left: 0,
+                              right: 0,
+                              background: 'var(--card)',
+                              border: '1.5px solid var(--border)',
+                              borderRadius: 'var(--radius-inner)',
+                              zIndex: 9999,
+                              padding: '10px 14px',
+                              fontSize: 12,
+                              color: 'var(--ink-soft)',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            }}>
+                              No available barangays match "{barangaySearch}". All matching barangays may already have an assigned official.
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
-                ) : (
+                ) : targetRole === 'lgu_admin' ? (
                   <div style={fieldGroupStyle}>
                     <label style={labelStyle}>Jurisdiction Scope</label>
                     <input type="text" value="City-Wide Manila" disabled style={{ ...inputStyle, background: 'var(--sampaguita)', color: 'var(--ink-soft)' }} />
                   </div>
+                ) : (
+                  /* field_staff — no fixed barangay, city-wide deployment via event assignment */
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>Deployment Scope</label>
+                    <div style={{
+                      ...inputStyle,
+                      background: 'var(--sampaguita)',
+                      color: 'var(--ink-soft)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      cursor: 'default',
+                    }}>
+                      <span style={{ fontSize: 16 }}>🌆</span>
+                      City-Wide (Assigned per Distribution Event)
+                    </div>
+                    <p style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.4 }}>
+                      Field Staff are deployed city-wide. Their barangay assignment is determined per relief distribution event by the LGU Admin when opening each event.
+                    </p>
+                  </div>
                 )}
               </div>
+
 
               {/* Initial Password */}
               <div style={{ ...fieldGroupStyle, marginBottom: 20 }}>

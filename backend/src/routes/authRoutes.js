@@ -447,6 +447,12 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
       return res.status(400).json({ message: 'An account with this email/phone already exists.' });
     }
 
+    // Ensure only 1 active official per barangay
+    const existingOfficial = await User.findOne({ role: 'barangay_official', barangayCode: String(barangayCode).trim() });
+    if (existingOfficial) {
+      return res.status(400).json({ message: `Mayroon nang nakatalagang Barangay Official para sa Barangay ${barangayCode} (${existingOfficial.name}).` });
+    }
+
     const bcrypt = require('bcryptjs');
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -456,7 +462,7 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
       emailOrPhone: emailOrPhone.trim().toLowerCase(),
       passwordHash,
       role: 'barangay_official',
-      barangayCode,
+      barangayCode: String(barangayCode).trim(),
       createdBy: req.user._id,
     });
 
@@ -470,12 +476,12 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
 });
 
 // @route   POST /api/auth/provision-staff
-// @desc    LGU Admin or SuperAdmin provisions a Field Staff account
+// @desc    LGU Admin or SuperAdmin provisions a Field Staff account (City-Wide deployment)
 router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { name, emailOrPhone, password, barangayCode } = req.body;
-    if (!name || !emailOrPhone || !password || !barangayCode) {
-      return res.status(400).json({ message: 'Please provide name, email/phone, password, and barangayCode.' });
+    if (!name || !emailOrPhone || !password) {
+      return res.status(400).json({ message: 'Please provide name, email/phone, and password.' });
     }
 
     const existing = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
@@ -492,12 +498,12 @@ router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmi
       emailOrPhone: emailOrPhone.trim().toLowerCase(),
       passwordHash,
       role: 'field_staff',
-      barangayCode,
+      barangayCode: barangayCode || 'City-Wide',
       createdBy: req.user._id,
     });
 
     res.status(201).json({
-      message: `Field Staff account created for Barangay ${barangayCode}`,
+      message: `Field Staff account created successfully for ${name} (City-Wide Deployment)`,
       user: staff,
     });
   } catch (error) {

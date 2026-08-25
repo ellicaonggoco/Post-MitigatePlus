@@ -88,29 +88,21 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
     const errs = {};
     if (!emailOrPhone.trim()) {
       errs.emailOrPhone = lang === 'tl'
-        ? 'Pakilagay ang inyong rehistradong Email Address o Mobile Number.'
-        : 'Please enter your registered Email Address or Mobile Number.';
+        ? 'Pakilagay ang inyong rehistradong mobile number.'
+        : 'Please enter your registered phone number.';
     } else {
-      const cleaned = emailOrPhone.trim();
-      const isDigitStart = /^(\+?63|0)?\d*$/.test(cleaned);
-      if (isDigitStart && !cleaned.includes('@')) {
-        const pureDigits = cleaned.replace(/[\s-+]/g, '');
-        if (!/^(09|\+639)\d{9}$/.test(cleaned.replace(/[\s-]/g, '')) && pureDigits.length !== 11) {
-          errs.emailOrPhone = lang === 'tl'
-            ? 'Kailangang 11 digits ang mobile number (hal. 09XXXXXXXXX)'
-            : 'Mobile number must be 11 digits (e.g. 09XXXXXXXXX)';
-        }
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) {
+      const cleaned = emailOrPhone.trim().replace(/[\s-]/g, '');
+      if (!/^09\d{9}$/.test(cleaned)) {
         errs.emailOrPhone = lang === 'tl'
-          ? 'Maglagay ng wastong email (hal. name@gmail.com) o 11-digit mobile (09XXXXXXXXX)'
-          : 'Enter a valid email (e.g. name@gmail.com) or 11-digit mobile (09XXXXXXXXX)';
+          ? 'Kailangang 11 digits ang mobile number na nagsisimula sa 09 (hal. 09XXXXXXXXX)'
+          : 'Phone number must be 11 digits starting with 09 (e.g. 09XXXXXXXXX)';
       }
     }
 
     if (!password) {
       errs.password = lang === 'tl'
         ? 'Pakilagay ang inyong password.'
-        : 'Please enter your account password.';
+        : 'Please enter your password.';
     } else if (password.length < 6) {
       errs.password = lang === 'tl'
         ? 'Kailangang may minimum 6 na characters ang password.'
@@ -182,30 +174,30 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
         <View style={styles.loginCard}>
           <View style={styles.cardHeaderGroup}>
             <Text style={styles.cardTitle}>
-              {lang === 'tl' ? 'Portal ng Residente sa Ayuda at Pagbangon' : 'Citizen Relief & Recovery Portal'}
+              {lang === 'tl' ? 'Mag-Log In sa Inyong Account' : 'Log In to Your Account'}
             </Text>
             <Text style={styles.cardSub}>
               {lang === 'tl'
-                ? 'Mag-login gamit ang inyong account upang ma-access ang inyong Household Relief Pass at mga serbisyo.'
-                : 'Sign in with your registered credentials to access your Household Relief Pass and services.'}
+                ? 'Gamitin ang inyong rehistradong mobile number at password upang ma-access ang inyong account.'
+                : 'Use your registered mobile number and password to access your account.'}
             </Text>
           </View>
 
-          {/* Mobile Number or Email Input */}
+          {/* Mobile Number Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? '11-Digit Mobile Number (o Email)' : '11-Digit Mobile Number (or Email)'}
+            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder="09XXXXXXXXX (hal. 09236051393)"
+            placeholder="09XXXXXXXXX"
             errorText={errors.emailOrPhone}
             required
-            keyboardType="default"
+            keyboardType="phone-pad"
             autoCapitalize="none"
           />
 
           {/* Password Input without cluttered helper text */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Password ng Account' : 'Account Password'}
+            label={lang === 'tl' ? 'Password' : 'Password'}
             value={password}
             onChangeText={handlePasswordChange}
             placeholder="••••••••"
@@ -341,10 +333,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   submitBtn: {
+    width: '100%',
     backgroundColor: '#1557B0',
-    paddingVertical: 13,
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 6,
     ...SHADOWS.sm,
   },

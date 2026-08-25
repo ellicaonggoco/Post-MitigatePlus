@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="app.diagrams.net" modified="2026-08-24T01:50:00.000Z" agent="5.0" version="21.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="2026-08-24T15:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="04_3_Relief_Scanning_Anti_Fraud_Flow_drawio" name="04 3 Relief Scanning Anti Fraud Flow">
+    <mxfile host="app.diagrams.net" modified="2026-08-24T01:50:00.000Z" agent="5.0" version="21.0.0" type="device">
   <diagram id="tab-p3" name="4.3 QR Relief Scanning Flow">
 
     <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" background="#FFFFFF">
@@ -27,5 +28,7 @@
       </root>
     </mxGraphModel>
   
+  </diagram>
+</mxfile>
   </diagram>
 </mxfile>

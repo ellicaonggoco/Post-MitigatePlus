@@ -1,8 +1,12 @@
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity } from 'react-native';
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 /**
  * MotionPressable (Motion Primitive)
+ * - Uses AnimatedTouchable so the ENTIRE button bounding box (padding, background, borders)
+ *   is 100% clickable, not just the inner text.
  * - Apple-grade subtle spring physics on press (0.975 scale on pressIn -> 1.0 on release)
  * - Zero lag, runs 100% on Native Driver (60-120 FPS)
  * - Gives every card and button an authentic, premium tactile feel
@@ -11,7 +15,7 @@ export default function MotionPressable({
   children,
   onPress,
   style,
-  activeOpacity = 0.92,
+  activeOpacity = 0.85,
   scaleTo = 0.975,
   disabled = false,
   ...props
@@ -39,17 +43,17 @@ export default function MotionPressable({
   };
 
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={activeOpacity}
-        disabled={disabled}
-        {...props}
-      >
-        {children}
-      </TouchableOpacity>
-    </Animated.View>
+    <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={activeOpacity}
+      disabled={disabled}
+      style={[{ transform: [{ scale: scaleAnim }] }, style]}
+      {...props}
+    >
+      {children}
+    </AnimatedTouchable>
   );
 }
+
