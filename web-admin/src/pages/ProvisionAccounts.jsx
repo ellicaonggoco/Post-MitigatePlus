@@ -921,7 +921,7 @@ export default function ProvisionAccounts() {
                     className="clay-button-ghost"
                     style={{ fontSize: 11, padding: '4px 10px', gap: 4, height: 26 }}
                   >
-                    <UserPlus size={12} /> Add to {team.split(' ')[0]}
+                    <UserPlus size={12} /> Add Staff to {team}
                   </button>
                 </div>
               </MotionCard>
