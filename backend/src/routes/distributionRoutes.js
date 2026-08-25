@@ -209,14 +209,22 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       notes: `Released ${baseUnitsGiven} base + ${topUpUnitsGiven} top-up '${event.itemType}' to ${household.address} (${household.memberCount} members). ${isOverridden ? `[OVERRIDDEN: ${overrideReason}]` : '[RECOMMENDED]'}`
     });
 
+    // 6. GENERATE DIGITAL CLAIM RECEIPT
+    const receiptNumber = `RCPT-${new Date().getFullYear()}-${releaseRecord._id.toString().slice(-6).toUpperCase()}`;
+
     // Notify resident via Socket.IO
     const io = req.app.get('io');
     if (io) {
       io.to(`household:${household._id}`).emit('assistance_released', {
+        receiptNumber,
+        eventTitle: event.title,
         itemType: event.itemType,
         baseUnitsGiven,
         topUpUnitsGiven,
+        totalPacks: baseUnitsGiven + topUpUnitsGiven,
         releasedAt: releaseRecord.releasedAt,
+        releasedByName: req.user.name,
+        disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
       });
     }
 
@@ -224,6 +232,21 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       success: true,
       message: 'Relief successfully issued and recorded.',
       distribution: releaseRecord,
+      receiptNumber,
+      receipt: {
+        receiptNumber,
+        eventTitle: event.title,
+        barangayCode: household.barangayCode,
+        householdAddress: household.address,
+        headOfHousehold: household.headOfHouseholdUserId?.name || 'Verified Beneficiary',
+        itemType: event.itemType,
+        totalPacks: baseUnitsGiven + topUpUnitsGiven,
+        baseUnitsGiven,
+        topUpUnitsGiven,
+        releasedAt: releaseRecord.releasedAt,
+        releasedByName: req.user.name,
+        disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
+      },
       recoveryStatus: recovery.status,
     });
   } catch (error) {

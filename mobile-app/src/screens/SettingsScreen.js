@@ -674,6 +674,64 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             </TouchableOpacity>
           </View>
         )}
+
+        <View style={styles.divider} />
+
+        {/* ── Regenerate / Revoke Compromised QR Code ── */}
+        <View style={styles.settingRowItem}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.settingItemLabel}>{lang === 'tl' ? 'Digital QR Relief Pass Security' : 'QR Relief Pass Security'}</Text>
+            <Text style={styles.settingItemSub}>
+              {lang === 'tl'
+                ? 'Piliin ito kung nawala o napicturan ng iba ang inyong QR Pass upang mag-issue ng bagong token.'
+                : 'Revoke and generate a new secure QR token if your current pass was compromised.'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={{ backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}
+            onPress={() => {
+              Alert.alert(
+                lang === 'tl' ? 'Palitan ang QR Code?' : 'Regenerate QR Code?',
+                lang === 'tl'
+                  ? 'Ang inyong lumang QR code ay magiging walang-bisa agad. Maglalabas ang system ng bagong secure QR Pass. Nais mo bang magpatuloy?'
+                  : 'Your old QR code will be permanently revoked immediately. A new secure pass will be issued. Continue?',
+                [
+                  { text: lang === 'tl' ? 'Kanselahin' : 'Cancel', style: 'cancel' },
+                  {
+                    text: lang === 'tl' ? 'Oo, Palitan' : 'Yes, Replace',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        const res = await fetch(`${API_BASE_URL}/households/regenerate-qr`, {
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ reason: 'Resident requested security renewal via Mobile App' }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          Alert.alert(
+                            lang === 'tl' ? 'Tagumpay!' : 'Success!',
+                            lang === 'tl'
+                              ? `Na-revoke na ang lumang QR. Ang inyong bagong QR Pass ay aktibo na (${data.newQrCode}).`
+                              : `Old QR revoked. New pass issued successfully (${data.newQrCode}).`
+                          );
+                        } else {
+                          Alert.alert('Error', data.message || 'Failed to regenerate QR code.');
+                        }
+                      } catch (err) {
+                        Alert.alert('Error', 'Network error while regenerating QR pass.');
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#DC2626' }}>
+              🔄 {lang === 'tl' ? 'Palitan ang QR' : 'Regenerate QR'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Text style={styles.sectionLabel}>{lang === 'tl' ? 'MGA NOTIFIKASYON AT ADVISORY' : 'NOTIFICATIONS & ALERTS'}</Text>

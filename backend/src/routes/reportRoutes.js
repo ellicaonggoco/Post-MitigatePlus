@@ -135,9 +135,78 @@ router.get('/gap-analysis', protect, requireRole('barangay_official', 'lgu_admin
       };
     }));
 
-    res.json(report);
+// @route   GET /api/reports/coa-liquidation
+// @desc    Export official COA / DSWD DROMIC-compliant liquidation masterlist
+router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
+  try {
+    const { barangayCode, distributionEventId } = req.query;
+    let query = {};
+    if (distributionEventId) query.distributionEventId = distributionEventId;
+
+    let householdFilter = {};
+    if (req.user.role === 'barangay_official') {
+      householdFilter.barangayCode = req.user.barangayCode;
+    } else if (barangayCode && barangayCode !== 'ALL') {
+      householdFilter.barangayCode = barangayCode;
+    }
+
+    if (Object.keys(householdFilter).length > 0) {
+      const hhList = await Household.find(householdFilter).select('_id');
+      query.householdId = { $in: hhList.map(h => h._id) };
+    }
+
+    const distributions = await Distribution.find(query)
+      .populate({
+        path: 'householdId',
+        select: 'address purok barangayCode memberCount priorityLevel priorityScore qrCode headOfHouseholdUserId validIdType validIdNumber',
+        populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone contactNum' }
+      })
+      .populate('distributionEventId', 'title location scheduledDate itemType')
+      .populate('releasedBy', 'name emailOrPhone teamName staffDesignation')
+      .sort({ releasedAt: -1 });
+
+    const rows = distributions.map((d, index) => {
+      const hh = d.householdId || {};
+      const head = hh.headOfHouseholdUserId || {};
+      const ev = d.distributionEventId || {};
+      const staff = d.releasedBy || {};
+
+      return {
+        itemNo: index + 1,
+        claimReceiptNo: `RCPT-${new Date(d.releasedAt).getFullYear()}-${d._id.toString().slice(-6).toUpperCase()}`,
+        beneficiaryName: head.name || 'Resident Beneficiary',
+        contactNumber: head.contactNum || head.emailOrPhone || 'N/A',
+        address: `${hh.address || 'Address'}, Purok ${hh.purok || '1'}`,
+        barangay: `Barangay ${hh.barangayCode || '291'}`,
+        qrCode: hh.qrCode || 'N/A',
+        validId: `${hh.validIdType || 'Gov ID'} ${hh.validIdNumber ? `(${hh.validIdNumber})` : ''}`.trim(),
+        familySize: d.householdSizeAtDistribution || hh.memberCount || 1,
+        priorityLevel: hh.priorityLevel || 'Medium',
+        eventTitle: ev.title || 'Relief Distribution Drive',
+        reliefItem: d.itemType || ev.itemType || 'Family Food Pack',
+        basePacks: d.baseUnitsGiven || 1,
+        topUpPacks: d.topUpUnitsGiven || 0,
+        totalPacksReleased: (d.baseUnitsGiven || 1) + (d.topUpUnitsGiven || 0),
+        disbursingOfficer: staff.name || 'Field Officer',
+        disbursingTeam: staff.teamName || 'Field Operations',
+        dateTimeClaimed: new Date(d.releasedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }),
+        timestampIso: d.releasedAt,
+        overrideReason: d.overrideReason || 'Standard DSWD Allocation',
+      };
+    });
+
+    res.json({
+      success: true,
+      reportTitle: 'Republic of the Philippines — City of Manila Disaster Relief Assistance Liquidation Masterlist',
+      complianceStandard: 'Commission on Audit (COA) Circular 2014-002 / DSWD DROMIC Relief Distribution Standards',
+      generatedAt: new Date().toISOString(),
+      generatedBy: req.user.name,
+      totalBeneficiariesClaimed: rows.length,
+      totalPacksDistributed: rows.reduce((sum, r) => sum + r.totalPacksReleased, 0),
+      records: rows,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching gap report', error: error.message });
+    res.status(500).json({ message: 'Error generating COA liquidation masterlist', error: error.message });
   }
 });
 

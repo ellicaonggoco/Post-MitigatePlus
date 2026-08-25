@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image, TextInput, ActivityIndicator } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import Svg, { Path } from 'react-native-svg';
-import { ArrowLeftIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, CameraIcon, ImageIcon, CheckIcon } from '../components/AppIcons';
 import { COLORS, RADIUS, TOUCH_TARGET, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, wp, hp } from '../theme';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,6 +11,10 @@ import { API_BASE_URL } from '../config';
 export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deliveringTask, setDeliveringTask] = useState(null);
+  const [proofPhoto, setProofPhoto] = useState(null);
+  const [recipientNotes, setRecipientNotes] = useState('');
+  const [submittingDelivery, setSubmittingDelivery] = useState(false);
 
   const fetchTasks = async () => {
     try {
@@ -32,9 +37,12 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
             members: item.householdId?.memberCount || 1,
             barangay: item.householdId?.barangayCode || '291',
             requestedBy: item.householdId?.headOfHouseholdUserId?.name || 'Resident',
-            assignedStaff: 'Field Officer',
+            assignedStaff: item.assignedStaff?.name || 'Field Officer',
             assignedAt: new Date(item.requestedAt || Date.now()).toLocaleDateString(),
             status: item.status === 'received' || item.status === 'released' ? 'Delivered' : 'Assigned',
+            proofOfDeliveryPhoto: item.proofOfDeliveryPhoto || null,
+            recipientSignatureOrNotes: item.recipientSignatureOrNotes || '',
+            deliveredAt: item.deliveredAt ? new Date(item.deliveredAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : null,
           }));
           setTasks(mapped);
         }
@@ -50,34 +58,92 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
     fetchTasks();
   }, []);
 
-  const handleMarkDelivered = async (taskId, residentName) => {
-    Alert.alert(
-      lang === 'tl' ? 'Markahan bilang Naihatid na?' : 'Mark as Delivered?',
-      lang === 'tl' ? `Sigurado ka bang naihatid na ang relief packages kay "${residentName}"?` : `Are you sure you have delivered relief packages to "${residentName}"?`,
-      [
-        { text: lang === 'tl' ? 'Kanselahin' : 'Cancel', style: 'cancel' },
-        {
-          text: lang === 'tl' ? 'Oo, Naihatid na' : 'Yes, Delivered',
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('mitigateplus_token');
-              await fetch(`${API_BASE_URL}/assistance-requests/${taskId}`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: token ? `Bearer ${token}` : '',
-                },
-                body: JSON.stringify({ status: 'received' }),
-              });
-              setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'Delivered', deliveredAt: new Date().toLocaleString() } : t));
-              Alert.alert(lang === 'tl' ? 'Tagumpay' : 'Success', lang === 'tl' ? `Nakumpirma ang door-to-door delivery para kay ${residentName}!` : `Door-to-door delivery confirmed for ${residentName}!`);
-            } catch (err) {
-              setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'Delivered', deliveredAt: new Date().toLocaleString() } : t));
-            }
-          },
+  const handlePickCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Camera permission is required to capture proof of handover.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.6,
+        base64: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setProofPhoto(result.assets[0]);
+      }
+    } catch (e) {
+      Alert.alert('Camera Note', 'Unable to open camera: ' + e.message);
+    }
+  };
+
+  const handlePickLibrary = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Gallery permission is required to select proof photo.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.6,
+        base64: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setProofPhoto(result.assets[0]);
+      }
+    } catch (e) {
+      Alert.alert('Gallery Note', 'Unable to open gallery: ' + e.message);
+    }
+  };
+
+  const handleConfirmProofDelivery = async () => {
+    if (!deliveringTask) return;
+    try {
+      setSubmittingDelivery(true);
+      const token = await AsyncStorage.getItem('mitigateplus_token');
+      const photoUri = proofPhoto ? (proofPhoto.base64 ? `data:image/jpeg;base64,${proofPhoto.base64}` : proofPhoto.uri) : null;
+
+      const res = await fetch(`${API_BASE_URL}/assistance-requests/${deliveringTask.id}/deliver`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
         },
-      ]
-    );
+        body: JSON.stringify({
+          status: 'received',
+          proofOfDeliveryPhoto: photoUri,
+          recipientSignatureOrNotes: recipientNotes || 'Handed directly to beneficiary / verified family representative.',
+        }),
+      });
+
+      if (res.ok) {
+        setTasks(prev => prev.map(t => t.id === deliveringTask.id ? {
+          ...t,
+          status: 'Delivered',
+          deliveredAt: new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' }),
+          proofOfDeliveryPhoto: photoUri,
+          recipientSignatureOrNotes: recipientNotes,
+        } : t));
+        Alert.alert(
+          lang === 'tl' ? 'Matagumpay na Naihatid!' : 'Delivery Confirmed!',
+          lang === 'tl'
+            ? `Nai-upload ang proof of delivery para kay ${deliveringTask.resident}.`
+            : `Proof of delivery photo recorded for ${deliveringTask.resident}.`
+        );
+        setDeliveringTask(null);
+        setProofPhoto(null);
+        setRecipientNotes('');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        Alert.alert('Error', errData.message || 'Failed to submit proof of delivery.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error while recording proof of delivery.');
+    } finally {
+      setSubmittingDelivery(false);
+    }
   };
 
   return (
@@ -200,22 +266,132 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
 
                 <Text style={[styles.infoLabel, { marginTop: 8 }]}>ITEMS TO DELIVER:</Text>
                 <Text style={styles.itemsVal}>{item.items} ({item.members} members)</Text>
+
+                {item.proofOfDeliveryPhoto && (
+                  <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderColor: '#CBD5E1' }}>
+                    <Text style={[styles.infoLabel, { color: '#047857' }]}>📸 PROOF OF HANDOVER PHOTO:</Text>
+                    <Image source={{ uri: item.proofOfDeliveryPhoto }} style={{ width: '100%', height: 140, borderRadius: 8, marginTop: 4 }} resizeMode="cover" />
+                    {item.recipientSignatureOrNotes ? (
+                      <Text style={{ fontSize: 11, color: '#334155', fontStyle: 'italic', marginTop: 4 }}>
+                        Note: {item.recipientSignatureOrNotes}
+                      </Text>
+                    ) : null}
+                  </View>
+                )}
               </View>
 
               {isPending ? (
                 <TouchableOpacity
                   style={styles.deliverBtn}
-                  onPress={() => handleMarkDelivered(item.id, item.resident)}
-                  activeOpacity={0.8}
+                  onPress={() => {
+                    setDeliveringTask(item);
+                    setProofPhoto(null);
+                    setRecipientNotes('');
+                  }}
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.deliverBtnText}>Mark as Delivered / Fulfilled</Text>
+                  <Text style={styles.deliverBtnText}>📸 Complete Delivery & Upload Proof</Text>
                 </TouchableOpacity>
               ) : (
-                <Text style={styles.deliveredTimeText}>Na-deliver noong {item.deliveredAt || item.assignedAt}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                  <Text style={{ fontSize: 12 }}>✅</Text>
+                  <Text style={styles.deliveredTimeText}>Na-deliver noong {item.deliveredAt || item.assignedAt}</Text>
+                </View>
               )}
             </View>
           );
         })
+      )}
+
+      {/* ── Proof of Handover Photo & Delivery Modal ── */}
+      {deliveringTask && (
+        <Modal
+          visible={!!deliveringTask}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setDeliveringTask(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalKicker}>DOOR-TO-DOOR RELIEF HANDOVER PROOF</Text>
+              <Text style={styles.modalTitle}>{deliveringTask.resident}</Text>
+              <Text style={styles.modalSub}>
+                {lang === 'tl'
+                  ? 'Kumuha ng litrato ng pag-abot ng ayuda o lagda ng pamilya bilang opisyal na patunay.'
+                  : 'Capture a photo of the relief goods handover at the doorstep for official audit verification.'}
+              </Text>
+
+              {/* Photo Preview / Capture Options */}
+              <View style={styles.photoPickerContainer}>
+                {proofPhoto ? (
+                  <View style={styles.photoPreviewBox}>
+                    <Image source={{ uri: proofPhoto.uri }} style={styles.photoPreviewImg} resizeMode="cover" />
+                    <TouchableOpacity
+                      style={styles.changePhotoBtn}
+                      onPress={() => setProofPhoto(null)}
+                    >
+                      <Text style={styles.changePhotoText}>{lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.photoActionRow}>
+                    <TouchableOpacity
+                      style={styles.photoActionBtn}
+                      onPress={handlePickCamera}
+                      activeOpacity={0.8}
+                    >
+                      <CameraIcon size={22} color="#1557B0" />
+                      <Text style={styles.photoActionBtnText}>{lang === 'tl' ? 'Buksan ang Camera' : 'Take Photo (Camera)'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.photoActionBtn, { backgroundColor: '#F8FAFC' }]}
+                      onPress={handlePickLibrary}
+                      activeOpacity={0.8}
+                    >
+                      <ImageIcon size={22} color="#64748B" />
+                      <Text style={[styles.photoActionBtnText, { color: '#475569' }]}>{lang === 'tl' ? 'Pumili sa Gallery' : 'Upload from Gallery'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* Delivery Notes */}
+              <Text style={styles.notesLabel}>{lang === 'tl' ? 'Tala / Pangalan ng Tumanggap (Optional):' : 'Recipient / Handover Notes:'}</Text>
+              <TextInput
+                style={styles.notesInput}
+                placeholder={lang === 'tl' ? 'Hal. Iniabot sa anak na si Maria, nasa maayos na kalagayan.' : 'e.g. Received by daughter Maria, verified resident.'}
+                value={recipientNotes}
+                onChangeText={setRecipientNotes}
+                multiline
+              />
+
+              {/* Action Buttons */}
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setDeliveringTask(null)}
+                  disabled={submittingDelivery}
+                >
+                  <Text style={styles.modalCancelBtnText}>{lang === 'tl' ? 'Kanselahin' : 'Cancel'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalSubmitBtn}
+                  onPress={handleConfirmProofDelivery}
+                  disabled={submittingDelivery}
+                >
+                  {submittingDelivery ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.modalSubmitBtnText}>
+                      ✓ {lang === 'tl' ? 'Kumpirmahin ang Delivery' : 'Confirm & Save Proof'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </ScrollView>
   );
@@ -297,4 +473,128 @@ const styles = StyleSheet.create({
   },
   deliverBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
   deliveredTimeText: { fontSize: 11, color: COLORS.bayTealDeep, fontWeight: '700', textAlign: 'center', marginTop: 4 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 20,
+    ...SHADOWS.modal,
+  },
+  modalKicker: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#1557B0',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  modalSub: {
+    fontSize: 11.5,
+    color: '#64748B',
+    lineHeight: 16,
+    marginBottom: 14,
+  },
+  photoPickerContainer: {
+    marginBottom: 14,
+  },
+  photoActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  photoActionBtn: {
+    flex: 1,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  photoActionBtnText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#1557B0',
+  },
+  photoPreviewBox: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  photoPreviewImg: {
+    width: '100%',
+    height: 160,
+  },
+  changePhotoBtn: {
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  changePhotoText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  notesLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  notesInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 12,
+    color: '#0F172A',
+    minHeight: 50,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  modalSubmitBtn: {
+    flex: 2,
+    backgroundColor: '#047857',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSubmitBtnText: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
 });

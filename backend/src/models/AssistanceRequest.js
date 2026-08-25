@@ -12,6 +12,11 @@ const assistanceRequestSchema = new mongoose.Schema({
   requestedAt: { type: Date, default: Date.now },
   decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   decidedAt: { type: Date, default: null },
+  assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  deliveredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  deliveredAt: { type: Date, default: null },
+  proofOfDeliveryPhoto: { type: String, default: null },
+  recipientSignatureOrNotes: { type: String, default: '' },
 });
 
 module.exports = mongoose.model('AssistanceRequest', assistanceRequestSchema);

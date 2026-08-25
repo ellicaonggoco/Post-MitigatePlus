@@ -286,6 +286,26 @@ export default function SpecialRequestRelief() {
                         <UserCheck size={13} /> Sent to Mobile App: {assignedStaffName}
                       </div>
                     )}
+
+                    {/* ── Proof of Delivery Photo & Handover Notes ── */}
+                    {req.proofOfDeliveryPhoto && (
+                      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--bay-teal)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          📸 Proof of Handover Photo (On-Ground Delivery)
+                        </div>
+                        <img
+                          src={req.proofOfDeliveryPhoto}
+                          alt="Proof of Handover"
+                          style={{ width: 140, height: 100, objectFit: 'cover', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                          onClick={() => window.open(req.proofOfDeliveryPhoto, '_blank')}
+                        />
+                        {req.recipientSignatureOrNotes && (
+                          <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontStyle: 'italic', marginTop: 4 }}>
+                            Note: {req.recipientSignatureOrNotes}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {isLguAdmin && req.status === 'Pending' && (

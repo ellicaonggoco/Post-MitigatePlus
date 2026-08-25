@@ -439,6 +439,63 @@ export default function ReportsPage() {
           </table>
         </div>
       </div>
+
+      {/* ── Official COA & DSWD DROMIC Relief Liquidation Masterlist ── */}
+      <div className="clay-card" style={{ marginTop: '24px', borderLeft: '4px solid var(--manila-blue)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Building size={22} color="var(--manila-blue)" />
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
+                Official COA & DSWD DROMIC Relief Liquidation Masterlist
+              </h2>
+              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                COA Circular 2014-002 Compliance · Download official liquidation sheet with full beneficiary and disbursing staff audit trails.
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={async () => {
+                try {
+                  const url = `${API_BASE_URL}/reports/coa-liquidation${selectedBrgy !== 'all' ? `?barangayCode=${selectedBrgy}` : ''}`;
+                  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                  const data = await res.json();
+                  if (data && Array.isArray(data.records) && data.records.length > 0) {
+                    const headers = [
+                      'Item No.', 'Claim Receipt No.', 'Beneficiary Full Name', 'Contact Number',
+                      'Registered Address', 'Barangay', 'QR Pass Code', 'Valid ID Presented',
+                      'Family Headcount', 'Priority Tier', 'Relief Event Title', 'Item Type',
+                      'Base Packs', 'Top-Up Packs', 'Total Quantity Released', 'Disbursing Officer',
+                      'Disbursing Team', 'Date & Time Claimed (PHT)', 'Allocation Note / Reason'
+                    ];
+                    const rows = data.records.map(r => [
+                      r.itemNo, r.claimReceiptNo, r.beneficiaryName, r.contactNumber,
+                      r.address, r.barangay, r.qrCode, r.validId,
+                      r.familySize, r.priorityLevel, r.eventTitle, r.reliefItem,
+                      r.basePacks, r.topUpPacks, r.totalPacksReleased, r.disbursingOfficer,
+                      r.disbursingTeam, r.dateTimeClaimed, r.overrideReason
+                    ]);
+                    exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_Manila_${selectedBrgy}`, headers, rows);
+                  } else {
+                    alert('Walang natagpuang relief distribution records para sa napiling sakop.');
+                  }
+                } catch (e) {
+                  alert('Error exporting COA liquidation masterlist: ' + e.message);
+                }
+              }}
+              className="clay-button-primary"
+              style={{ padding: '8px 16px', fontSize: '12px', gap: 6 }}
+            >
+              <Download size={14} /> Export COA Masterlist (CSV / Excel)
+            </button>
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)' }}>
+          🏛️ <strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.
+        </div>
+      </div>
     </div>
   );
 }

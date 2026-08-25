@@ -265,4 +265,61 @@ router.get('/', protect, requireRole('barangay_official', 'lgu_admin'), requireB
   }
 });
 
+// @route   POST /api/households/regenerate-qr
+// @desc    Revoke and regenerate a compromised QR code (Resident for own pass, or Barangay Official)
+router.post('/regenerate-qr', protect, async (req, res) => {
+  try {
+    let household;
+    const { householdId, reason } = req.body;
+
+    if (req.user.role === 'resident') {
+      household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    } else if (['barangay_official', 'lgu_admin', 'lgu_superadmin'].includes(req.user.role)) {
+      if (!householdId) {
+        return res.status(400).json({ message: 'householdId is required when admin requests QR regeneration.' });
+      }
+      household = await Household.findById(householdId);
+    }
+
+    if (!household) {
+      return res.status(404).json({ message: 'Household record not found.' });
+    }
+
+    const crypto = require('crypto');
+    const oldQr = household.qrCode;
+    const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const newQr = `MNL-${household.barangayCode}-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
+
+    household.qrCode = newQr;
+    await household.save();
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'QR_REVOKED_AND_REGENERATED',
+      targetType: 'Household',
+      targetId: household._id.toString(),
+      notes: `Old QR '${oldQr}' revoked. New QR issued: '${newQr}'. Reason: ${reason || 'Security renewal / suspected leak'}`,
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`household:${household._id}`).emit('qr_code_regenerated', {
+        newQrCode: newQr,
+        revokedAt: new Date(),
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Matagumpay na na-revoke ang lumang QR code at naglabas ng bagong Secure QR Pass!',
+      oldQrCode: oldQr,
+      newQrCode: newQr,
+      household,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error regenerating QR code', error: error.message });
+  }
+});
+
 module.exports = router;
