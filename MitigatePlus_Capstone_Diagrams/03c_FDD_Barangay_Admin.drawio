@@ -1,76 +1,79 @@
 <mxfile host="app.diagrams.net" version="24.0.7" type="device">
-  <diagram id="fdd_brgy" name="03c. FDD — Barangay Admin">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1300" math="0" shadow="0">
+  <diagram id="fdd_ba" name="03c. FDD — Barangay Admin">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="546" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
         <mxCell id="ttl" value="Functional Decomposition Diagram (FDD)
-BARANGAY OFFICIAL
-MitigatePlus Web Admin — Constituent Verification &amp; Local Operations" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="60" y="10" width="1530" height="55" as="geometry"/></mxCell>
-        <mxCell id="root" value="BARANGAY OFFICIAL
-MitigatePlus Web Admin — Constituent Verification &amp; Local Operations" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#0D3C75;strokeColor=#0D3C75;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="577" y="80" width="500" height="55" as="geometry"/></mxCell>
+BARANGAY OFFICIAL" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="60" y="10" width="1534" height="52" as="geometry"/></mxCell>
+        <mxCell id="sub" value="Web Admin — Role: barangay_official — Constituent Verification &amp; Local Operations" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#475569;" vertex="1" parent="1"><mxGeometry x="60" y="64" width="1534" height="30" as="geometry"/></mxCell>
+        <mxCell id="root" value="BARANGAY OFFICIAL" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#0D3C75;strokeColor=#0D3C75;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="547" y="106" width="560" height="52" as="geometry"/></mxCell>
         <mxCell id="m0" value="3.1 Household
-Verification Queue" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="70" y="185" width="286" height="48" as="geometry"/></mxCell>
+Verification" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="60" y="210" width="294" height="48" as="geometry"/></mxCell>
         <mxCell id="em0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f0_0" value="3.1.1 View Pending
-Verification Requests" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="253" width="276" height="44" as="geometry"/></mxCell>
+Verification Queue" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="64" y="278" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef0_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m0" target="f0_0"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f0_1" value="3.1.2 Inspect Gov't ID
-Photo (Lightbox)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f0_1" value="3.1.2 Inspect Gov't
+ID Photo (Lightbox)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="64" y="332" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef0_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f0_0" target="f0_1"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f0_2" value="3.1.3 Approve Household
-Registration" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f0_2" value="3.1.3 Approve
+Household Registration" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="64" y="386" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef0_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f0_1" target="f0_2"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f0_3" value="3.1.4 Reject with
-Mandatory Reason" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="75" y="415" width="276" height="44" as="geometry"/></mxCell>
+Mandatory Reason" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="64" y="440" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef0_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f0_2" target="f0_3"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="m1" value="3.2 Beneficiary
-Directory" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="376" y="185" width="286" height="48" as="geometry"/></mxCell>
+Directory" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="370" y="210" width="294" height="48" as="geometry"/></mxCell>
         <mxCell id="em1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_0" value="3.2.1 Search &amp; Filter
-Verified Households" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="253" width="276" height="44" as="geometry"/></mxCell>
+Verified Households" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="374" y="278" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef1_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m1" target="f1_0"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_1" value="3.2.2 View Household
-Members &amp; Details" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="307" width="276" height="44" as="geometry"/></mxCell>
+Members &amp; Details" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="374" y="332" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef1_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_0" target="f1_1"><mxGeometry relative="1" as="geometry"/></mxCell>
         <mxCell id="f1_2" value="3.2.3 View Vulnerability
-Tags (Senior/PWD/Infant)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="361" width="276" height="44" as="geometry"/></mxCell>
+Tags (Senior/PWD/Infant)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="374" y="386" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef1_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_1" target="f1_2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f1_3" value="3.2.4 Download
-Beneficiary Masterlist" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="381" y="415" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f1_3" value="3.2.4 Smart Priority
+Dashboard View" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="374" y="440" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef1_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f1_2" target="f1_3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m2" value="3.3 Barangay
-Dashboard" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="682" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="m2" value="3.3 Community
+Content" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="680" y="210" width="294" height="48" as="geometry"/></mxCell>
         <mxCell id="em2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f2_0" value="3.3.1 Barangay KPI
-Monitoring" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f2_0" value="3.3.1 Post
+Announcements" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="684" y="278" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef2_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m2" target="f2_0"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f2_1" value="3.3.2 View High-Priority
-Household Alerts" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f2_1" value="3.3.2 Edit /
+Delete Announcements" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="684" y="332" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef2_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_0" target="f2_1"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f2_2" value="3.3.3 Track Claims Per
-Household" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="687" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f2_2" value="3.3.3 View All
+Posted Bulletins" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="684" y="386" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef2_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_1" target="f2_2"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m3" value="3.4 Smart Priority
-Index" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="988" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="f2_3" value="3.3.4 Special Request
+Relief Queue" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="684" y="440" width="286" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef2_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f2_2" target="f2_3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m3" value="3.4 Operations
+Monitoring" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="990" y="210" width="294" height="48" as="geometry"/></mxCell>
         <mxCell id="em3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m3"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f3_0" value="3.4.1 View Auto-Computed
-Priority Score Rankings" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="993" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f3_0" value="3.4.1 Recovery Progress
+Tracker (Barangay)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="994" y="278" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef3_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m3" target="f3_0"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f3_1" value="3.4.2 Identify Highest-Need
-Families for Aid" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="993" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f3_1" value="3.4.2 View Damage
+Reports by Household" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="994" y="332" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef3_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_0" target="f3_1"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="m4" value="3.5 Community
-Announcements" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="1294" y="185" width="286" height="48" as="geometry"/></mxCell>
+        <mxCell id="f3_2" value="3.4.3 View Distribution
+History (Read-Only)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="994" y="386" width="286" height="44" as="geometry"/></mxCell>
+        <mxCell id="ef3_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f3_1" target="f3_2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m4" value="3.5 Account" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1557B0;strokeColor=#1557B0;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="1300" y="210" width="294" height="48" as="geometry"/></mxCell>
         <mxCell id="em4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="root" target="m4"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f4_0" value="3.5.1 Post Typhoon
-Advisories &amp; Bulletins" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1299" y="253" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f4_0" value="3.5.1 View
+Dashboard (KPIs)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1304" y="278" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef4_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="m4" target="f4_0"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f4_1" value="3.5.2 Schedule Relief
-Distribution Notices" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1299" y="307" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f4_1" value="3.5.2 Settings
+Page" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1304" y="332" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef4_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f4_0" target="f4_1"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="f4_2" value="3.5.3 View All
-Posted Announcements" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1299" y="361" width="276" height="44" as="geometry"/></mxCell>
+        <mxCell id="f4_2" value="3.5.3 Change
+Password" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=1.5;fontSize=10;fontColor=#0D1B2A;" vertex="1" parent="1"><mxGeometry x="1304" y="386" width="286" height="44" as="geometry"/></mxCell>
         <mxCell id="ef4_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;strokeColor=#6C8EBF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="f4_1" target="f4_2"><mxGeometry relative="1" as="geometry"/></mxCell>
       </root>
     </mxGraphModel>
