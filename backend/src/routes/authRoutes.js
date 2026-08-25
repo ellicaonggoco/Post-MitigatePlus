@@ -544,6 +544,109 @@ router.get('/provisioned-users', protect, requireRole('lgu_admin', 'lgu_superadm
   }
 });
 
+// @route   PATCH /api/auth/provisioned-users/:id/status
+// @desc    Suspend or Reactivate a provisioned user account
+router.patch('/provisioned-users/:id/status', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found.' });
+    }
+
+    if (user.role === 'lgu_superadmin' || user.role === 'lgu_super_admin') {
+      return res.status(403).json({ message: 'Cannot modify Superadmin account status.' });
+    }
+
+    const newStatus = user.status === 'suspended' ? 'active' : 'suspended';
+    user.status = newStatus;
+    await user.save();
+
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: newStatus === 'suspended' ? 'SUSPEND_ACCOUNT' : 'REACTIVATE_ACCOUNT',
+      targetType: 'User',
+      targetId: user._id,
+      notes: `${newStatus === 'suspended' ? 'Suspended' : 'Reactivated'} account for ${user.name} (${user.emailOrPhone})`,
+    });
+
+    res.json({ success: true, message: `Account status updated to ${newStatus}.`, status: newStatus, user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating account status', error: error.message });
+  }
+});
+
+// @route   PUT /api/auth/provisioned-users/:id
+// @desc    Edit details of a provisioned user account
+router.put('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found.' });
+    }
+
+    const { name, emailOrPhone, department, employeeId, contactNum, teamName, staffDesignation, barangayCode } = req.body;
+    if (name) user.name = name.trim();
+    if (emailOrPhone) user.emailOrPhone = emailOrPhone.trim().toLowerCase();
+    if (department !== undefined) user.department = department;
+    if (employeeId !== undefined) user.employeeId = employeeId;
+    if (contactNum !== undefined) user.contactNum = contactNum;
+    if (teamName !== undefined) user.teamName = teamName;
+    if (staffDesignation !== undefined) user.staffDesignation = staffDesignation;
+    if (barangayCode !== undefined) user.barangayCode = barangayCode;
+
+    await user.save();
+
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'UPDATE_ACCOUNT_DETAILS',
+      targetType: 'User',
+      targetId: user._id,
+      notes: `Updated details for ${user.name} (${user.emailOrPhone})`,
+    });
+
+    res.json({ success: true, message: `Account for ${user.name} updated successfully.`, user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user account', error: error.message });
+  }
+});
+
+// @route   DELETE /api/auth/provisioned-users/:id
+// @desc    Delete a provisioned user account
+router.delete('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found.' });
+    }
+
+    if (user.role === 'lgu_superadmin' || user.role === 'lgu_super_admin') {
+      return res.status(403).json({ message: 'Cannot delete Superadmin account.' });
+    }
+
+    const userName = user.name;
+    const userEmail = user.emailOrPhone;
+    await User.findByIdAndDelete(req.params.id);
+
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'DELETE_ACCOUNT',
+      targetType: 'User',
+      targetId: req.params.id,
+      notes: `Deleted account for ${userName} (${userEmail})`,
+    });
+
+    res.json({ success: true, message: `Account for ${userName} has been permanently deleted.` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user account', error: error.message });
+  }
+});
+
 // @route   POST /api/auth/register-fcm-token
 // @desc    Register or update user's FCM Push Notification Token
 router.post('/register-fcm-token', protect, async (req, res) => {

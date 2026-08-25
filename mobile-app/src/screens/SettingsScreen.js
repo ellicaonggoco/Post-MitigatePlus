@@ -702,6 +702,11 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                     style: 'destructive',
                     onPress: async () => {
                       try {
+                        const token = await AsyncStorage.getItem('mitigateplus_token');
+                        if (!token) {
+                          Alert.alert('Error', lang === 'tl' ? 'Kailangang mag-login muli.' : 'Authentication required.');
+                          return;
+                        }
                         const res = await fetch(`${API_BASE_URL}/households/regenerate-qr`, {
                           method: 'POST',
                           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },

@@ -131,10 +131,17 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                 <View style={styles.completedInfoRow}>
                   <Text style={styles.completedInfoText}>
                     {lang === 'tl' ? `Natapos noong: ${item.completedTime}` : `Completed: ${item.completedTime}`}
-                  </Text>
-                  <MotionPressable style={styles.viewAuditBtn}>
+                  <MotionPressable
+                    style={styles.viewAuditBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        lang === 'tl' ? 'Buod ng Distribusyon' : 'Distribution Summary',
+                        `${item.title}\n\n📍 Lugar: ${item.venue || item.location}\n📦 Uri ng Ayuda: ${item.itemType}\n✅ Status: Matagumpay na natapos at nai-sync sa LGU Command Center.`
+                      );
+                    }}
+                  >
                     <Text style={styles.viewAuditText}>
-                      {lang === 'tl' ? 'Tingnan ang Audit Log' : 'View Audit Log'}
+                      {lang === 'tl' ? 'Tingnan ang Buod' : 'View Summary'}
                     </Text>
                   </MotionPressable>
                 </View>

@@ -201,11 +201,38 @@ export default function ProvisionAccounts() {
 
     // If editing existing account
     if (editingAccount) {
-      alert('This action requires server-side implementation');
-      setStatusMsg({ type: 'success', text: `✓ Updated account for ${name}!` });
-      setEditingAccount(null);
-      setIsCreateModalOpen(false);
-      setLoading(false);
+      try {
+        const targetId = editingAccount.id || editingAccount._id;
+        const res = await fetch(`${API_BASE_URL}/auth/provisioned-users/${targetId}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.trim(),
+            emailOrPhone: emailOrPhone.trim(),
+            department: department.trim(),
+            employeeId: employeeId.trim(),
+            contactNum: contactNum.trim(),
+            teamName: targetRole === 'field_staff' ? teamName : null,
+            staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
+            barangayCode: targetRole === 'barangay_official' ? barangayCode : 'City-Wide',
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setStatusMsg({ type: 'success', text: `✓ Matagumpay na na-update ang akawnt ni ${name}!` });
+          await fetchProvisionedAccounts();
+          setEditingAccount(null);
+          setIsCreateModalOpen(false);
+        } else {
+          setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pag-update ng akawnt.' });
+        }
+      } catch (err) {
+        console.error('Update account error:', err);
+        setStatusMsg({ type: 'error', text: 'Error habang nag-a-update ng akawnt.' });
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -272,9 +299,26 @@ export default function ProvisionAccounts() {
       message: `Sigurado ka bang gusto mong ${isAct ? 'i-suspend' : 'i-reactivate'} ang akawnt ni ${acc.name}? ${isAct ? 'Hindi na siya makakapag-access sa system.' : 'Muli siyang makakapag-access sa system.'}`,
       type: isAct ? 'danger' : 'success',
       confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
-      onConfirm: () => {
-        alert('This action requires server-side implementation');
-        closeConfirm();
+      onConfirm: async () => {
+        try {
+          const targetId = acc.id || acc._id;
+          const res = await fetch(`${API_BASE_URL}/auth/provisioned-users/${targetId}/status`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setStatusMsg({ type: 'success', text: `✓ Status ni ${acc.name}: ${data.status || 'Updated'}` });
+            await fetchProvisionedAccounts();
+          } else {
+            setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pag-update ng status.' });
+          }
+        } catch (err) {
+          console.error('Toggle status error:', err);
+          setStatusMsg({ type: 'error', text: 'Error habang nag-a-update ng status.' });
+        } finally {
+          closeConfirm();
+        }
       },
     });
   };
@@ -287,9 +331,26 @@ export default function ProvisionAccounts() {
       message: `Sigurado ka bang gusto mong tuluyang BURAHIN ang akawnt ni ${acc.name} (${acc.emailOrPhone})? Hindi na ito mababawi.`,
       type: 'danger',
       confirmText: 'Oo, Burahin Akawnt',
-      onConfirm: () => {
-        alert('This action requires server-side implementation');
-        closeConfirm();
+      onConfirm: async () => {
+        try {
+          const targetId = acc.id || acc._id;
+          const res = await fetch(`${API_BASE_URL}/auth/provisioned-users/${targetId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setStatusMsg({ type: 'success', text: `✓ Nabura na ang akawnt ni ${acc.name}.` });
+            await fetchProvisionedAccounts();
+          } else {
+            setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pagbura ng akawnt.' });
+          }
+        } catch (err) {
+          console.error('Delete account error:', err);
+          setStatusMsg({ type: 'error', text: 'Error habang binubura ang akawnt.' });
+        } finally {
+          closeConfirm();
+        }
       },
     });
   };
