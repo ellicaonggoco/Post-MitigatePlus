@@ -647,9 +647,9 @@ export default function DistributionEvents() {
                       <Truck size={14} color="#D97706" /> Distribution In-Progress
                     </span>
                   ) : isAnnounced ? (
-                    <button disabled className="clay-button-ghost" style={{ fontSize: 12, gap: 5, color: 'var(--bay-teal-deep)', borderColor: 'var(--bay-teal)', opacity: 0.95, cursor: 'default', background: 'var(--bay-teal-light)' }}>
+                    <span className="clay-button-ghost" style={{ fontSize: 12, gap: 5, color: 'var(--bay-teal-deep)', borderColor: 'var(--bay-teal)', opacity: 0.95, background: 'var(--bay-teal-light)', display: 'inline-flex', alignItems: 'center', padding: '6px 14px', borderRadius: 'var(--radius-inner)' }}>
                       <CheckCircle size={14} color="var(--bay-teal)" /> Announcement Sent to Residents
-                    </button>
+                    </span>
                   ) : (
                     <button onClick={() => requestSendAnnouncement(ev)} className="clay-button-approve" style={{ fontSize: 12, gap: 6, padding: '9px 16px' }}>
                       <Send size={13} /> Send Announcement
