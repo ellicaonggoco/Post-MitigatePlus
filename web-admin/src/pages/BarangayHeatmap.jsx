@@ -322,10 +322,10 @@ export default function BarangayHeatmap() {
     }
 
     return {
-      fillColor: isFilteredBrgy ? 'rgba(0, 43, 184, 0.08)' : 'rgba(200, 200, 200, 0.04)',
-      weight: isFilteredBrgy ? 1.2 : 0.6,
-      color: isFilteredBrgy ? 'rgba(0, 43, 184, 0.5)' : 'rgba(150, 150, 150, 0.2)',
-      fillOpacity: selected ? 0.04 : isFilteredBrgy ? 0.4 : 0.08,
+      fillColor: isFilteredBrgy ? 'rgba(0, 43, 184, 0.15)' : 'rgba(100, 116, 139, 0.08)',
+      weight: isFilteredBrgy ? 1.5 : 0.8,
+      color: isFilteredBrgy ? 'rgba(0, 43, 184, 0.6)' : 'rgba(100, 116, 139, 0.35)',
+      fillOpacity: isSelectedBrgy ? 0.45 : isFilteredBrgy ? 0.22 : 0.12,
     };
   };
 
@@ -348,15 +348,21 @@ export default function BarangayHeatmap() {
     layer.on({
       mouseover: () => {
         if (selected?.code !== code) {
-          layer.setStyle({ weight: 2.4, color: '#002BB8', fillColor: 'rgba(0, 43, 184, 0.2)' });
+          layer.setStyle({ weight: 2.8, color: '#002BB8', fillColor: 'rgba(0, 43, 184, 0.3)', fillOpacity: 0.35 });
         }
       },
       mouseout: () => layer.setStyle(styleFeature(feature)),
       click: (e) => {
-        if (e.originalEvent?.target) {
-          e.originalEvent.target.blur();
+        if (e.originalEvent) {
+          e.originalEvent.stopPropagation();
+          if (e.originalEvent.target) e.originalEvent.target.blur();
         }
-        setSelected({ code, name: feature.properties.name, stat: stat || null, floodInfo: floodInfo || null });
+        setSelected({
+          code,
+          name: feature.properties.name,
+          stat: barangayStats[code] || null,
+          floodInfo: floodInfo || null,
+        });
         setSelectedEvac(null);
       },
     });
@@ -552,10 +558,10 @@ export default function BarangayHeatmap() {
               style={{ height: '100%', width: '100%' }}
               zoomControl={true}
             >
-              {/* High-Resolution Mapcn Vector Tiles */}
+              {/* Clean Vector OpenStreetMap Tiles (No Watermark) */}
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
 
               {/* Barangay Boundaries Layer with Flood Inundation Colors */}
