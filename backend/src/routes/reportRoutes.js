@@ -242,8 +242,94 @@ router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_ad
       totalPacksDistributed: rows.reduce((sum, r) => sum + r.totalPacksReleased, 0),
       records: rows,
     });
+// @route   GET /api/reports/pre-event-assessment
+// @desc    Automated Barangay Relief Demand & Pre-Event Assessment Report
+router.get('/pre-event-assessment', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
+  try {
+    const rawBrgy = req.query.barangayCode || (req.user.role === 'barangay_official' ? req.user.barangayCode : '291');
+    const cleanCode = String(rawBrgy).replace(/\D/g, '') || '291';
+
+    const households = await Household.find({
+      barangayCode: cleanCode,
+      verificationStatus: 'verified',
+    }).populate('headOfHouseholdUserId', 'name contactNum emailOrPhone');
+
+    let totalHeadcount = 0;
+    let baseFoodPacks = 0;
+    let waterJugs = households.length;
+    let seniorCount = 0;
+    let infantCount = 0;
+    let pwdCount = 0;
+    let totallyDamagedCount = 0;
+    let severeCount = 0;
+    let moderateCount = 0;
+    let minorCount = 0;
+
+    const roster = households.map(hh => {
+      const n = Math.max(1, Number(hh.memberCount || 1));
+      totalHeadcount += n;
+      const packs = n >= 9 ? 3 : n >= 5 ? 2 : 1;
+      baseFoodPacks += packs;
+
+      const members = Array.isArray(hh.members) ? hh.members : [];
+      const seniors = members.filter(m => (m.age !== undefined && m.age >= 60) || (m.specialConditions || []).includes('senior')).length;
+      const infants = members.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions || []).includes('infant')).length;
+      const pwds = members.filter(m => (m.specialConditions || []).includes('pwd')).length;
+
+      seniorCount += seniors;
+      infantCount += infants;
+      pwdCount += pwds;
+
+      if (hh.damageLevel === 'Totally Damaged') totallyDamagedCount++;
+      else if (hh.damageLevel === 'Severe') severeCount++;
+      else if (hh.damageLevel === 'Moderate') moderateCount++;
+      else minorCount++;
+
+      return {
+        id: hh._id,
+        headName: hh.headOfHouseholdUserId?.name || hh.headName || 'Resident Household',
+        address: hh.address ? `${hh.address}, Purok ${hh.purok || 1}` : 'Barangay 291, Manila',
+        purok: hh.purok || 1,
+        memberCount: n,
+        seniors,
+        infants,
+        pwds,
+        damageLevel: hh.damageLevel || 'Minor',
+        priorityScore: hh.priorityScore || 50,
+        allocatedFoodPacks: packs,
+        allocatedWaterJugs: 1,
+        allocatedSeniorKits: seniors,
+        allocatedInfantPacks: infants,
+        allocatedShelterKits: hh.damageLevel === 'Totally Damaged' ? 1 : 0,
+      };
+    });
+
+    const WarehouseItem = require('../models/WarehouseItem');
+    const warehouseStock = await WarehouseItem.find({}).catch(() => []);
+
+    res.json({
+      barangayCode: cleanCode,
+      totalHouseholds: households.length,
+      totalHeadcount,
+      demand: {
+        foodPacks: baseFoodPacks,
+        waterJugs,
+        seniorKits: seniorCount,
+        infantPacks: infantCount,
+        pwdKits: pwdCount,
+        shelterRepairKits: totallyDamagedCount,
+      },
+      damageTelemetry: {
+        totallyDamaged: totallyDamagedCount,
+        severe: severeCount,
+        moderate: moderateCount,
+        minor: minorCount,
+      },
+      warehouseStock,
+      roster,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error generating COA liquidation masterlist', error: error.message });
+    res.status(500).json({ message: 'Error generating pre-event assessment', error: error.message });
   }
 });
 

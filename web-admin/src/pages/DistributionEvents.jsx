@@ -87,10 +87,14 @@ export default function DistributionEvents() {
     fetchWarehouse();
   }, [token]);
 
-  // ── Auto-prefill and Auto-open Form from Priority Index / Heatmap ("Deploy Relief for Brgy X") ──
+  const [liveAssessment, setLiveAssessment] = useState(null);
+  const [loadingAssessment, setLoadingAssessment] = useState(false);
+
+  // ── Auto-prefill and Auto-open Form from Priority Index / Heatmap / Assessment ("Deploy Relief for Brgy X") ──
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const queryBrgy = params.get('barangay') || params.get('prefill') || params.get('code');
+    const queryHH = params.get('households');
     const stateBrgy = location.state?.prefillBarangay;
     const targetBrgy = queryBrgy || stateBrgy;
 
@@ -105,13 +109,38 @@ export default function DistributionEvents() {
         date: prev.date || todayStr,
         time: prev.time || '08:00 AM',
         items: prev.items || 'All-in-One Family Food Pack',
+        households: queryHH || prev.households || '',
         staff: availableTeam,
       }));
       setShowForm(true);
-      setToastMsg(` Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
+      setToastMsg(`Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.search, location.state, events]);
+
+  // ── Dynamic live assessment fetch when Barangay input changes ──
+  useEffect(() => {
+    const raw = form.barangay || '';
+    const clean = raw.replace(/\D/g, '');
+    if (clean && clean.length >= 1) {
+      setLoadingAssessment(true);
+      fetch(`${API_BASE_URL}/reports/pre-event-assessment?barangayCode=${clean}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.demand) {
+          setLiveAssessment(data);
+        } else {
+          setLiveAssessment(null);
+        }
+      })
+      .catch(() => setLiveAssessment(null))
+      .finally(() => setLoadingAssessment(false));
+    } else {
+      setLiveAssessment(null);
+    }
+  }, [form.barangay, token]);
 
 
 
@@ -356,6 +385,67 @@ export default function DistributionEvents() {
                 style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
             </div>
           </div>
+
+          {/* ── Live Pre-Event Demand & Assessment Inspector ── */}
+          {liveAssessment && (
+            <div style={{
+              marginBottom: 16,
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-inner)',
+              background: '#EFF6FF',
+              border: '1.5px solid #BFDBFE',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Package size={16} color="#1557B0" />
+                  <strong style={{ fontSize: 13, color: '#1E3A8A' }}>
+                    Automated Pre-Event Assessment para sa Barangay {liveAssessment.barangayCode}
+                  </strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm(p => ({
+                      ...p,
+                      households: String(liveAssessment.totalHouseholds || ''),
+                      items: 'All-in-One Family Food Packs & Vulnerability Kits',
+                    }));
+                  }}
+                  className="clay-button-primary"
+                  style={{ fontSize: 11.5, padding: '4px 10px', gap: 4, background: '#1557B0' }}
+                >
+                  <CheckCircle size={13} /> I-apply ang Computed Quotas ({liveAssessment.totalHouseholds} Families)
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12 }}>
+                <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#1E3A8A', border: '1px solid #DBEAFE' }}>
+                  Verified Families: {liveAssessment.totalHouseholds} ({liveAssessment.totalHeadcount} persons)
+                </span>
+                <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#1557B0', border: '1px solid #DBEAFE' }}>
+                  Base Food Packs Demand: {liveAssessment.demand.foodPacks} packs
+                </span>
+                <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#0284C7', border: '1px solid #DBEAFE' }}>
+                  Potable Water: {liveAssessment.demand.waterJugs} jugs
+                </span>
+                {liveAssessment.demand.seniorKits > 0 && (
+                  <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#7C3AED', border: '1px solid #DBEAFE' }}>
+                    Senior Kits: {liveAssessment.demand.seniorKits}
+                  </span>
+                )}
+                {liveAssessment.demand.infantPacks > 0 && (
+                  <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#D97706', border: '1px solid #DBEAFE' }}>
+                    Infant Packs: {liveAssessment.demand.infantPacks}
+                  </span>
+                )}
+                {liveAssessment.demand.shelterRepairKits > 0 && (
+                  <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: 6, fontWeight: 700, color: '#DC2626', border: '1px solid #DBEAFE' }}>
+                    Shelter Repair: {liveAssessment.demand.shelterRepairKits}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── Warehouse Stock Pre-Check Banner ── */}
           {(() => {

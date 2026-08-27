@@ -201,7 +201,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         { label: t.distributionEvents || 'Distribution Events', path: '/distribution-events', icon: IconlyTruck },
         { label: t.warehouseInventory || 'Warehouse Inventory', path: '/warehouse-inventory', icon: IconlyWarehouse },
         { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
-        { label: t.specialRequests || 'Special Requests', path: '/special-request-relief', icon: IconlySpecial },
+        { label: 'Pre-Event Assessment', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },
         {label: 'Manage Accounts', path: '/provision-accounts', icon: IconlyUserPlus },
@@ -215,7 +215,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       title: t.brgyTools || 'BARANGAY TOOLS',
       items: [
         { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
-        { label: t.specialRequests || 'Special Requests', path: '/special-request-relief', icon: IconlySpecial },
+        { label: 'Pre-Event Assessment', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.reports || 'Reports', path: '/reports', icon: IconlyFileText },
       ],
