@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
-import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck } from 'lucide-react';
+import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
@@ -19,6 +19,7 @@ export default function ProvisionAccounts() {
   const [name, setName] = useState('');
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [barangayCode, setBarangayCode] = useState('');
   const [barangaySearch, setBarangaySearch] = useState('');
   const [showBarangaySuggestions, setShowBarangaySuggestions] = useState(false);
@@ -186,12 +187,16 @@ export default function ProvisionAccounts() {
     e.preventDefault();
     setStatusMsg({ type: '', text: '' });
 
-    if (!name.trim() || !emailOrPhone.trim() || !password.trim() || !employeeId.trim() || !contactNum.trim()) {
-      setStatusMsg({ type: 'error', text: 'Please complete all required account and employee fields.' });
+    if (!emailOrPhone.trim() || !password.trim() || !contactNum.trim()) {
+      setStatusMsg({ type: 'error', text: 'Please complete all required fields.' });
       return;
     }
 
     let finalBrgyCode = barangayCode.trim();
+    let finalName = name.trim();
+    let finalEmployeeId = employeeId.trim();
+    let finalDepartment = department.trim();
+
     if (targetRole === 'barangay_official') {
       if (!finalBrgyCode) {
         const numOnly = barangaySearch.replace(/\D/g, '');
@@ -199,6 +204,15 @@ export default function ProvisionAccounts() {
       }
       if (!finalBrgyCode) {
         setStatusMsg({ type: 'error', text: 'Please select an assigned Barangay from the suggestions.' });
+        return;
+      }
+      // For Barangay Official: Name is automatically "Barangay [Code]"
+      finalName = `Barangay ${finalBrgyCode}`;
+      finalEmployeeId = `BRGY-${finalBrgyCode}`;
+      finalDepartment = 'Barangay Local Government Unit';
+    } else {
+      if (!finalName || !finalEmployeeId) {
+        setStatusMsg({ type: 'error', text: 'Please complete all required employee and identification fields.' });
         return;
       }
     }
@@ -213,10 +227,10 @@ export default function ProvisionAccounts() {
           method: 'PUT',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: name.trim(),
+            name: finalName,
             emailOrPhone: emailOrPhone.trim(),
-            department: department.trim(),
-            employeeId: employeeId.trim(),
+            department: finalDepartment,
+            employeeId: finalEmployeeId,
             contactNum: contactNum.trim(),
             teamName: targetRole === 'field_staff' ? teamName : null,
             staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
@@ -226,7 +240,7 @@ export default function ProvisionAccounts() {
 
         const data = await res.json();
         if (res.ok) {
-          setStatusMsg({ type: 'success', text: `Account for ${name} has been updated successfully!` });
+          setStatusMsg({ type: 'success', text: `Account for ${finalName} has been updated successfully!` });
           await fetchProvisionedAccounts();
           setEditingAccount(null);
           setIsCreateModalOpen(false);
@@ -256,13 +270,13 @@ export default function ProvisionAccounts() {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
+          name: finalName,
           emailOrPhone: emailOrPhone.trim(),
           password,
           barangayCode: payloadBarangayCode,
           role: targetRole,
-          employeeId: employeeId.trim(),
-          department: department.trim(),
+          employeeId: finalEmployeeId,
+          department: finalDepartment,
           contactNum: contactNum.trim(),
           teamName: targetRole === 'field_staff' ? teamName : null,
           staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
@@ -272,7 +286,7 @@ export default function ProvisionAccounts() {
       const data = await res.json();
 
       if (res.ok) {
-        setStatusMsg({ type: 'success', text: `Official account created successfully for ${name} (${emailOrPhone})!` });
+        setStatusMsg({ type: 'success', text: `Official account created successfully for ${finalName} (${emailOrPhone})!` });
         await fetchProvisionedAccounts();
         setName('');
         setEmailOrPhone('');
@@ -494,76 +508,15 @@ export default function ProvisionAccounts() {
                 </div>
               )}
 
-              {/* Full Name & Employee ID */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>Full Name *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Maria R. Cruz"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    style={inputStyle}
-                    required
-                  />
-                </div>
-                <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>Employee / Staff ID *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. EMP-MNL-4821"
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
-                    style={inputStyle}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email & Contact Phone */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>Official Email Address *</label>
-                  <input
-                    type="email"
-                    placeholder="e.g. m.cruz@manila.gov.ph"
-                    value={emailOrPhone}
-                    onChange={(e) => setEmailOrPhone(e.target.value)}
-                    style={inputStyle}
-                    required
-                  />
-                </div>
-                <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>Contact Phone *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 0917 123 4567"
-                    value={contactNum}
-                    onChange={(e) => setContactNum(e.target.value)}
-                    style={inputStyle}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Department & Barangay Scope */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>Department / Division</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. MDRRMO Field Ops"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    style={inputStyle}
-                  />
-                </div>
-                {targetRole === 'barangay_official' ? (
-                  <div style={{ ...fieldGroupStyle, position: 'relative' }}>
+              {/* Dynamic Form Fields based on Role */}
+              {targetRole === 'barangay_official' ? (
+                <>
+                  {/* Assigned Barangay Search */}
+                  <div style={{ ...fieldGroupStyle, position: 'relative', marginBottom: 12 }}>
                     <label style={labelStyle}>
                       Assigned Barangay *
                       <span style={{ fontWeight: 400, color: 'var(--ink-soft)', marginLeft: 4, textTransform: 'none', letterSpacing: 0 }}>
-                        (type to search)
+                        (type to search number or name)
                       </span>
                     </label>
                     {/* Occupied barangay codes = those already assigned to another barangay_official */}
@@ -614,8 +567,8 @@ export default function ProvisionAccounts() {
                             required
                           />
                           {barangayCode && (
-                            <div style={{ fontSize: 11, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 600 }}>
-                               Selected: Barangay {barangayCode}
+                            <div style={{ fontSize: 12, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 700 }}>
+                              ✓ Selected: Barangay {barangayCode} (Account Name: Barangay {barangayCode})
                             </div>
                           )}
                           {!barangayCode && barangaySearch && (
@@ -664,90 +617,186 @@ export default function ProvisionAccounts() {
                               ))}
                             </div>
                           )}
-                          {showBarangaySuggestions && suggestions.length === 0 && barangaySearch && (
-                            <div style={{
-                              position: 'absolute',
-                              top: 'calc(100% + 4px)',
-                              left: 0,
-                              right: 0,
-                              background: 'var(--card)',
-                              border: '1.5px solid var(--border)',
-                              borderRadius: 'var(--radius-inner)',
-                              zIndex: 9999,
-                              padding: '10px 14px',
-                              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                              fontSize: 12,
-                              color: 'var(--ink-soft)',
-                            }}>
-                              No available barangays match "{barangaySearch}". All matching barangays may already have an assigned official.
-                            </div>
-                          )}
                         </>
                       );
                     })()}
                   </div>
-                ) : targetRole === 'lgu_admin' ? (
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>Jurisdiction Scope</label>
-                    <input type="text" value="City-Wide Manila" disabled style={{ ...inputStyle, background: 'var(--sampaguita)', color: 'var(--ink-soft)' }} />
-                  </div>
-                ) : (
-                  /* field_staff — structured team assignment and role designation */
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, gridColumn: 'span 2' }}>
-                    <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>Assigned Field Team / Unit *</label>
-                      <select
-                        value={teamName}
-                        onChange={(e) => setTeamName(e.target.value)}
-                        style={{ ...inputStyle, cursor: 'pointer' }}
-                      >
-                        {FIELD_TEAMS.map(team => (
-                          <option key={team} value={team}>{team}</option>
-                        ))}
-                      </select>
-                    </div>
 
+                  {/* Email & Contact Phone */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>Staff Position / Rank *</label>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={() => setStaffDesignation('team_leader')}
-                          className={staffDesignation === 'team_leader' ? 'clay-button-primary' : 'clay-button-ghost'}
-                          style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
-                        >
-                          ️ Head Staff (Lead)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setStaffDesignation('field_officer')}
-                          className={staffDesignation === 'field_officer' ? 'clay-button-primary' : 'clay-button-ghost'}
-                          style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
-                        >
-                           Field Staff (Scanner)
-                        </button>
+                      <label style={labelStyle}>Official Email Address *</label>
+                      <input
+                        type="email"
+                        placeholder="e.g. official344@manila.gov.ph"
+                        value={emailOrPhone}
+                        onChange={(e) => setEmailOrPhone(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Contact Phone *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 0917 123 4567"
+                        value={contactNum}
+                        onChange={(e) => setContactNum(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Full Name & Employee ID */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Full Name *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Maria R. Cruz"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Employee / Staff ID *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. EMP-MNL-4821"
+                        value={employeeId}
+                        onChange={(e) => setEmployeeId(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email & Contact Phone */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Official Email Address *</label>
+                      <input
+                        type="email"
+                        placeholder="e.g. m.cruz@manila.gov.ph"
+                        value={emailOrPhone}
+                        onChange={(e) => setEmailOrPhone(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Contact Phone *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 0917 123 4567"
+                        value={contactNum}
+                        onChange={(e) => setContactNum(e.target.value)}
+                        style={inputStyle}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Department & Scope */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>Department / Division</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. MDRRMO Field Ops"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+                    {targetRole === 'lgu_admin' ? (
+                      <div style={fieldGroupStyle}>
+                        <label style={labelStyle}>Jurisdiction Scope</label>
+                        <input type="text" value="City-Wide Manila" disabled style={{ ...inputStyle, background: 'var(--sampaguita)', color: 'var(--ink-soft)' }} />
                       </div>
-                    </div>
+                    ) : (
+                      /* field_staff — structured team assignment and role designation */
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, gridColumn: 'span 2' }}>
+                        <div style={fieldGroupStyle}>
+                          <label style={labelStyle}>Assigned Field Team / Unit *</label>
+                          <select
+                            value={teamName}
+                            onChange={(e) => setTeamName(e.target.value)}
+                            style={{ ...inputStyle, cursor: 'pointer' }}
+                          >
+                            {FIELD_TEAMS.map(team => (
+                              <option key={team} value={team}>{team}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    <div style={{ gridColumn: 'span 2', background: 'var(--sampaguita)', padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-soft)' }}>
-                      ℹ️ <strong>City-Wide Deployment Pool:</strong> Ang team na ito ay idinedeploy ng LGU Admin sa mga active Relief Distribution Events o Door-to-Door Special Assistance Tasks.
-                    </div>
+                        <div style={fieldGroupStyle}>
+                          <label style={labelStyle}>Staff Position / Rank *</label>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              type="button"
+                              onClick={() => setStaffDesignation('team_leader')}
+                              className={staffDesignation === 'team_leader' ? 'clay-button-primary' : 'clay-button-ghost'}
+                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                            >
+                              ️ Head Staff (Lead)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setStaffDesignation('field_officer')}
+                              className={staffDesignation === 'field_officer' ? 'clay-button-primary' : 'clay-button-ghost'}
+                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                            >
+                              Field Staff (Scanner)
+                            </button>
+                          </div>
+                        </div>
+
+                        <div style={{ gridColumn: 'span 2', background: 'var(--sampaguita)', padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-soft)' }}>
+                          ℹ️ <strong>City-Wide Deployment Pool:</strong> Ang team na ito ay idinedeploy ng LGU Admin sa mga active Relief Distribution Events o Door-to-Door Special Assistance Tasks.
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
 
-
-              {/* Initial Password */}
+              {/* Initial Password with Show / Hide Toggle */}
               <div style={{ ...fieldGroupStyle, marginBottom: 20 }}>
                 <label style={labelStyle}>Initial Temporary Password *</label>
-                <input
-                  type="password"
-                  placeholder="Assign initial password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Assign initial password (min 6 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ ...inputStyle, paddingRight: 40 }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: 10,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--ink-soft)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: 4,
+                    }}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

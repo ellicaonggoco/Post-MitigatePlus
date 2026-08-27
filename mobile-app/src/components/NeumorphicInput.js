@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback } from 'react-native';
-import { AlertTriangleIcon, CheckIcon } from './AppIcons';
+import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import { AlertTriangleIcon, CheckIcon, EyeIcon, EyeOffIcon } from './AppIcons';
 import { COLORS, FONT_WEIGHT } from '../theme';
 
 /**
@@ -10,6 +10,7 @@ import { COLORS, FONT_WEIGHT } from '../theme';
  * - 48px minimum touch target height (Fitts's Law)
  * - Crisp 1.5px border (#D9E2EC) with active Blue focus ring (#1557B0)
  * - Persistent label, helper hints, and friendly inline error feedback
+ * - Built-in interactive [Show / Hide] Password eye toggle
  */
 export default function NeumorphicInput({
   label,
@@ -30,10 +31,12 @@ export default function NeumorphicInput({
   inputStyle,
 }) {
   const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordHidden, setIsPasswordHidden] = useState(true);
   const inputRef = useRef(null);
 
   const hasError = !!errorText;
   const hasSuccess = !hasError && !!successText;
+  const isPassword = secureTextEntry;
 
   const handleContainerPress = () => {
     if (inputRef.current) {
@@ -65,6 +68,7 @@ export default function NeumorphicInput({
             ref={inputRef}
             style={[
               styles.inputField,
+              isPassword && { paddingRight: 40 },
               multiline && styles.inputMultiline,
               inputStyle,
             ]}
@@ -72,7 +76,7 @@ export default function NeumorphicInput({
             onChangeText={onChangeText}
             placeholder={placeholder}
             placeholderTextColor="#94A3B8"
-            secureTextEntry={secureTextEntry}
+            secureTextEntry={isPassword ? isPasswordHidden : false}
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize}
             multiline={multiline}
@@ -82,6 +86,17 @@ export default function NeumorphicInput({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
+
+          {isPassword && (
+            <TouchableOpacity
+              onPress={() => setIsPasswordHidden(!isPasswordHidden)}
+              style={styles.eyeButton}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#1557B0" />}
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableWithoutFeedback>
 
@@ -216,5 +231,13 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 5,
     lineHeight: 16,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 14,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

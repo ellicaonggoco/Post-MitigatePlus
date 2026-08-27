@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeftIcon, ShieldCheckIcon, LockIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon } from '../components/AppIcons';
 import { COLORS, RADIUS, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../config';
 export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -88,14 +89,23 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
           />
 
           <Text style={[styles.label, { marginTop: 14 }]}>Password ng Kawani:</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••••••"
-            placeholderTextColor="#94A3B8"
-            secureTextEntry
-          />
+          <View style={{ position: 'relative', justifyContent: 'center' }}>
+            <TextInput
+              style={[styles.input, { paddingRight: 44 }]}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••••••"
+              placeholderTextColor="#94A3B8"
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={{ position: 'absolute', right: 12, top: 14, padding: 4 }}
+              activeOpacity={0.7}
+            >
+              {showPassword ? <EyeOffIcon size={19} color="#1557B0" /> : <EyeIcon size={19} color="#64748B" />}
+            </TouchableOpacity>
+          </View>
 
           <MotionPressable
             style={[styles.loginBtn, loading && { opacity: 0.75 }]}

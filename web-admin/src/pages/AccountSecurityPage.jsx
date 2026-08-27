@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { Lock, Shield, UserX, AlertTriangle, CheckCircle, Clock, Search, Plus, UserPlus, Crown, Trash2, Power } from 'lucide-react';
+import { Lock, Shield, UserX, AlertTriangle, CheckCircle, Clock, Search, Plus, UserPlus, Crown, Trash2, Power, Eye, EyeOff } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
@@ -51,6 +51,7 @@ export default function AccountSecurityPage() {
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [newBarangay, setNewBarangay] = useState('');
 
   // ── Confirm Modal State ──
@@ -275,14 +276,24 @@ export default function AccountSecurityPage() {
 
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>Security Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  placeholder="Assign password"
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }}
-                  required
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Assign password (min 6 chars)"
+                    style={{ width: '100%', padding: '9px 38px 9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-soft)', padding: 4, display: 'flex', alignItems: 'center' }}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
 
