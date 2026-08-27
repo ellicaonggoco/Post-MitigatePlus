@@ -181,45 +181,29 @@ export default function ProvisionAccounts() {
     );
   }
 
-  // ── Create New Account with Confirmation ──
-  const handleProvisionRequest = (e) => {
+  // ── Create New Account / Update Account ──
+  const handleProvisionRequest = async (e) => {
     e.preventDefault();
+    setStatusMsg({ type: '', text: '' });
+
     if (!name.trim() || !emailOrPhone.trim() || !password.trim() || !employeeId.trim() || !contactNum.trim()) {
       setStatusMsg({ type: 'error', text: 'Please complete all required account and employee fields.' });
       return;
     }
 
-    if (targetRole === 'barangay_official' && !barangayCode.trim()) {
-      setStatusMsg({ type: 'error', text: 'Paki-pili ang Assigned Barangay mula sa mga available na suggestions.' });
-      return;
+    let finalBrgyCode = barangayCode.trim();
+    if (targetRole === 'barangay_official') {
+      if (!finalBrgyCode) {
+        const numOnly = barangaySearch.replace(/\D/g, '');
+        if (numOnly) finalBrgyCode = numOnly;
+      }
+      if (!finalBrgyCode) {
+        setStatusMsg({ type: 'error', text: 'Please select an assigned Barangay from the suggestions.' });
+        return;
+      }
     }
 
-    const roleTitle = targetRole === 'lgu_admin'
-      ? 'LGU Admin'
-      : targetRole === 'barangay_official'
-      ? 'Barangay Official'
-      : 'Field Staff';
-
-    const locationText = targetRole === 'barangay_official'
-      ? `Barangay ${barangayCode}`
-      : targetRole === 'field_staff'
-      ? 'City-Wide (Assigned per Event)'
-      : 'City-Wide';
-
-    setModal({
-      isOpen: true,
-      title: 'Lumikha ng Bagong Akawnt?',
-      message: `Are you sure you want to provision an official account for "${name}" (${employeeId}) as ${roleTitle} (${locationText})?`,
-      type: 'info',
-      confirmText: 'Oo, Lumikha ng Akawnt',
-      onConfirm: executeProvision,
-    });
-  };
-
-  const executeProvision = async () => {
     setLoading(true);
-    setStatusMsg({ type: '', text: '' });
-    closeConfirm();
 
     // If editing existing account
     if (editingAccount) {
@@ -236,22 +220,22 @@ export default function ProvisionAccounts() {
             contactNum: contactNum.trim(),
             teamName: targetRole === 'field_staff' ? teamName : null,
             staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
-            barangayCode: targetRole === 'barangay_official' ? barangayCode : 'City-Wide',
+            barangayCode: targetRole === 'barangay_official' ? finalBrgyCode : 'City-Wide',
           }),
         });
 
         const data = await res.json();
         if (res.ok) {
-          setStatusMsg({ type: 'success', text: ` Matagumpay na na-update ang akawnt ni ${name}!` });
+          setStatusMsg({ type: 'success', text: `Account for ${name} has been updated successfully!` });
           await fetchProvisionedAccounts();
           setEditingAccount(null);
           setIsCreateModalOpen(false);
         } else {
-          setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pag-update ng akawnt.' });
+          setStatusMsg({ type: 'error', text: data.message || 'Failed to update account.' });
         }
       } catch (err) {
         console.error('Update account error:', err);
-        setStatusMsg({ type: 'error', text: 'Error habang nag-a-update ng akawnt.' });
+        setStatusMsg({ type: 'error', text: 'Server error while updating account.' });
       } finally {
         setLoading(false);
       }
@@ -266,7 +250,7 @@ export default function ProvisionAccounts() {
         ? `${API_BASE_URL}/auth/provision-admin`
         : `${API_BASE_URL}/auth/provision-staff`;
 
-      const payloadBarangayCode = targetRole === 'barangay_official' ? barangayCode : 'City-Wide';
+      const payloadBarangayCode = targetRole === 'barangay_official' ? finalBrgyCode : 'City-Wide';
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -288,7 +272,7 @@ export default function ProvisionAccounts() {
       const data = await res.json();
 
       if (res.ok) {
-        setStatusMsg({ type: 'success', text: ` Nilikha na ang opisyal na akawnt para kay ${name} (${emailOrPhone})!` });
+        setStatusMsg({ type: 'success', text: `Official account created successfully for ${name} (${emailOrPhone})!` });
         await fetchProvisionedAccounts();
         setName('');
         setEmailOrPhone('');
@@ -300,12 +284,11 @@ export default function ProvisionAccounts() {
         setContactNum('');
         setIsCreateModalOpen(false);
       } else {
-        // Display real backend error to user and do NOT save fake local data
-        setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang paglikha ng akawnt.' });
+        setStatusMsg({ type: 'error', text: data.message || 'Failed to create account.' });
       }
     } catch (err) {
       console.error('Provisioning error:', err);
-      setStatusMsg({ type: 'error', text: 'Network/server error habang lumilikha ng akawnt.' });
+      setStatusMsg({ type: 'error', text: 'Network/server error while creating account.' });
     } finally {
       setLoading(false);
     }

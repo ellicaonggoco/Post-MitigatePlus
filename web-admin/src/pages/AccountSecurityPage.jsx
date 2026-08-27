@@ -69,25 +69,11 @@ export default function AccountSecurityPage() {
     setAccounts(updatedList);
   };
 
-  // ── Create Account Request with Confirmation ──
-  const handleCreateRequest = (e) => {
+  // ── Create Account Request ──
+  const handleCreateRequest = async (e) => {
     e.preventDefault();
     if (!newName.trim() || !newEmail.trim() || !newPassword.trim()) return;
 
-    const roleTitle = newRole === 'lgu_admin' ? 'LGU Admin' : 'Barangay Official';
-    const brgyText = newRole === 'lgu_admin' ? 'City-Wide' : `Barangay ${newBarangay}`;
-
-    setModal({
-      isOpen: true,
-      title: 'I-create ang Bagong Akawnt?',
-      message: `Are you sure you want to provision an account for "${newName}" (${newEmail}) as ${roleTitle} (${brgyText})?`,
-      type: 'info',
-      confirmText: 'Oo, I-create',
-      onConfirm: executeCreate,
-    });
-  };
-
-  const executeCreate = async () => {
     try {
       const endpoint = newRole === 'lgu_admin'
         ? `${API_BASE_URL}/auth/provision-admin`
@@ -114,16 +100,12 @@ export default function AccountSecurityPage() {
         setNewPassword('');
         setNewBarangay('');
         setShowCreateForm(false);
-        closeConfirm();
-        // Refresh the accounts list from the server
         fetchAccounts();
       } else {
         const errData = await res.json().catch(() => ({}));
-        closeConfirm();
         alert(`Failed to create account: ${errData.message || 'Server error'}`);
       }
     } catch (err) {
-      closeConfirm();
       alert('Could not connect to server. Please try again.');
     }
   };
