@@ -382,7 +382,7 @@ export default function BarangayHeatmap() {
 
   return (
     <div className="page-container page-animate">
-      {/* Mapcn Embedded CSS Keyframes for Pulsing Radar Animations */}
+      {/* Mapcn Embedded CSS Keyframes for Pulsing Radar Animations & Click Passthrough */}
       <style>{`
         @keyframes mapcnPing {
           0% { transform: scale(0.9); opacity: 0.8; }
@@ -394,6 +394,42 @@ export default function BarangayHeatmap() {
           backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.15);
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        /* Crucial: Number markers must pass clicks through to the polygon underneath */
+        .brgy-number-marker,
+        .brgy-micro-num {
+          pointer-events: none !important;
+          user-select: none !important;
+          cursor: pointer !important;
+        }
+        .brgy-micro-num {
+          font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          color: #1E3A8A;
+          text-shadow: 0 0 3px #FFFFFF, 0 0 3px #FFFFFF, 0 0 3px #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .brgy-micro-num--severe {
+          color: #DC2626 !important;
+          font-weight: 900 !important;
+        }
+        .brgy-micro-num--selected {
+          color: #D97706 !important;
+          font-size: 12px !important;
+          font-weight: 900 !important;
+          transform: scale(1.25);
+        }
+        .leaflet-interactive {
+          cursor: pointer !important;
+        }
+        .leaflet-container {
+          cursor: grab;
+        }
+        .leaflet-container:active {
+          cursor: grabbing;
         }
       `}</style>
 
@@ -553,7 +589,7 @@ export default function BarangayHeatmap() {
               maxZoom={18}
               maxBounds={MANILA_BOUNDS}
               maxBoundsViscosity={1.0}
-              preferCanvas={true}
+              preferCanvas={false}
               className="manila-map"
               style={{ height: '100%', width: '100%' }}
               zoomControl={true}
