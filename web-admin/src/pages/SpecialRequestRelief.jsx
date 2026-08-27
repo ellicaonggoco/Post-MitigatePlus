@@ -89,7 +89,7 @@ export default function SpecialRequestRelief() {
           <div>
             <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Pre-Event Relief Demand & Quota Assessment</h1>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              Awtomatikong pagsusuri ng pangangailangan, entitlement ng pamilya, at warehouse stock feasibility bago mag-create ng event.
+              Automated assessment of household relief entitlements, demographic vulnerability breakdown, and warehouse inventory feasibility prior to event creation.
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function SpecialRequestRelief() {
               <div style={{ position: 'relative', maxWidth: 360 }}>
                 <input
                   type="text"
-                  placeholder="I-type ang Barangay (hal. 291, 653, 304)..."
+                  placeholder="Type Barangay number (e.g. 291, 653, 304)..."
                   value={brgySearch}
                   onFocus={() => setShowSuggestions(true)}
                   onChange={(e) => {
@@ -347,7 +347,7 @@ export default function SpecialRequestRelief() {
             })()}
           </div>
           <div style={{ marginTop: 12, fontSize: 11.5, color: '#158A64', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <CheckCircle size={14} /> Ang lahat ng kailangan para sa Barangay {selectedBrgy} ay sapat sa bodega.
+            <CheckCircle size={14} /> All required relief supplies for Barangay {selectedBrgy} are fully stocked and available in the warehouse.
           </div>
         </div>
       </div>
@@ -379,7 +379,7 @@ export default function SpecialRequestRelief() {
               {(!assessmentData?.roster || assessmentData.roster.length === 0) ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--ink-soft)' }}>
-                    {loading ? 'Kinakalkula ang datos ng pamilya...' : `Walang rehistradong beripikadong pamilya sa Barangay ${selectedBrgy}.`}
+                    {loading ? 'Calculating verified household census...' : `No verified registered households found in Barangay ${selectedBrgy}.`}
                   </td>
                 </tr>
               ) : (

@@ -419,7 +419,7 @@ export default function DistributionEvents() {
               />
               {liveAssessment?.totalHouseholds > 0 && (
                 <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>
-                  Awtomatikong na-detect mula sa rehistradong pamilya sa Barangay {liveAssessment.barangayCode}.
+                  Automatically detected from {liveAssessment.totalHouseholds} verified registered households in Barangay {liveAssessment.barangayCode}.
                 </div>
               )}
             </div>
@@ -438,7 +438,7 @@ export default function DistributionEvents() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Package size={16} color="#1557B0" />
                   <strong style={{ fontSize: 13, color: '#1E3A8A' }}>
-                    Automated Pre-Event Assessment para sa Barangay {liveAssessment.barangayCode}
+                    Automated Pre-Event Assessment for Barangay {liveAssessment.barangayCode}
                   </strong>
                 </div>
                 <button
@@ -453,7 +453,7 @@ export default function DistributionEvents() {
                   className="clay-button-primary"
                   style={{ fontSize: 11.5, padding: '4px 10px', gap: 4, background: '#1557B0' }}
                 >
-                  <CheckCircle size={13} /> I-apply ang Computed Quotas ({liveAssessment.totalHouseholds} Families)
+                  <CheckCircle size={13} /> Apply Computed Quotas ({liveAssessment.totalHouseholds} Families)
                 </button>
               </div>
 
@@ -511,11 +511,11 @@ export default function DistributionEvents() {
                 alignItems: 'flex-start',
                 gap: 12
               }}>
-                <span style={{ fontSize: 20 }}>{hasDeficit ? '️' : ''}</span>
+                <span style={{ fontSize: 20 }}>{hasDeficit ? '⚠️' : '✅'}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                     <strong style={{ fontSize: 13, color: hasDeficit ? '#991B1B' : '#166534' }}>
-                      {hasDeficit ? 'Kakulangan sa Warehouse Stock Warning' : 'Sapat ang Warehouse Stock'}
+                      {hasDeficit ? 'Warehouse Stock Deficit Warning' : 'Warehouse Inventory Stock: Sufficient'}
                     </strong>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: hasDeficit ? '#FEE2E2' : '#DCFCE7', color: hasDeficit ? '#DC2626' : '#15803D' }}>
                       Stock: {availableStock.toLocaleString()} {itemUnit} available
@@ -523,8 +523,8 @@ export default function DistributionEvents() {
                   </div>
                   <p style={{ margin: '4px 0 0', fontSize: 12, color: hasDeficit ? '#B91C1C' : '#15803D', lineHeight: 1.4 }}>
                     {hasDeficit
-                      ? `Kulang ng ${deficit.toLocaleString()} ${itemUnit} para sa target na ${targetCount.toLocaleString()} pamilya. Kakailanganin ng karagdagang supply shipment mula sa LGU Central Hub bago ang distribution day.`
-                      : `Mayroong sapat na ${availableStock.toLocaleString()} ${itemUnit} ng ${itemName} sa bodega para sa ${targetCount || 'darating na'} event.`}
+                      ? `Deficit of ${deficit.toLocaleString()} ${itemUnit} for the target of ${targetCount.toLocaleString()} households. Additional replenishment from LGU Central Hub is required prior to distribution.`
+                      : `There is sufficient inventory of ${availableStock.toLocaleString()} ${itemUnit} of ${itemName} in the warehouse for this scheduled distribution.`}
                   </p>
                 </div>
               </div>
