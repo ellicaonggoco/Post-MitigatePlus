@@ -94,13 +94,13 @@ export default function AnnouncementsPage() {
   const getCategoryMeta = (cat) => {
     switch (cat) {
       case 'relief':
-        return { tag: 'Distribution Schedule', targetTab: 'request', actionText: 'Request' };
+        return { tag: 'Relief Schedule', targetTab: 'history', actionText: 'View Schedule' };
       case 'damage':
-        return { tag: 'Advisory', targetTab: 'damage', actionText: 'Report' };
+        return { tag: 'Damage Advisory', targetTab: 'damage', actionText: 'Report Damage' };
       case 'status':
-        return { tag: 'Status Update', targetTab: 'history', actionText: 'View' };
+        return { tag: 'Recovery Status', targetTab: 'history', actionText: 'View Status' };
       default:
-        return { tag: 'Public Notice', targetTab: null, actionText: null };
+        return { tag: 'Public Advisory', targetTab: null, actionText: null };
     }
   };
 
@@ -301,21 +301,21 @@ export default function AnnouncementsPage() {
           {/* Smart Mobile Action Trigger Selector */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
-              Citizen Mobile Action Trigger (Deep-Link Button)
+              Announcement Category & Type
             </label>
             <select
-              aria-label="Select Mobile Action Trigger"
+              aria-label="Select Announcement Category"
               value={form.category}
               onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
               style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--manila-blue)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', fontWeight: 700, cursor: 'pointer' }}
             >
-              <option value="relief">Relief Pack Distribution — Displays 'Request' button on mobile</option>
-              <option value="damage">Damage Assessment Survey — Displays 'Report' button on mobile</option>
-              <option value="status">Household Verification / Claim Logs — Displays 'View' button on mobile</option>
-              <option value="general">General Public Notice — Standard announcement (No action button)</option>
+              <option value="relief">Relief Distribution Schedule (Official Public Notice)</option>
+              <option value="damage">Damage Assessment Advisory (Opens Damage Report Form)</option>
+              <option value="status">Recovery & Claims Advisory (Opens Household Timeline)</option>
+              <option value="general">General Public Advisory (Standard Official Notice)</option>
             </select>
             <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 4 }}>
-              Kapag na-post ito, magkakaroon ng 1-tap shortcut button ang mobile app ng mga residente patungo sa napiling feature.
+              Pumili ng opisyal na kategorya para sa anunsyo.
             </p>
           </div>
           {/* Scope Selection */}
@@ -457,11 +457,19 @@ export default function AnnouncementsPage() {
                   }}>
                     {brgyLabel}
                   </span>
-                  {ann.targetTab && (
-                    <span style={{ background: '#E8F2FF', color: '#1557B0', border: '1px solid #BFDBFE', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
-                      Mobile: {ann.targetTab === 'request' ? 'Request' : ann.targetTab === 'damage' ? 'Report' : 'View'}
+                  {ann.category === 'damage' ? (
+                    <span style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
+                      Damage Advisory
                     </span>
-                  )}
+                  ) : ann.category === 'relief' ? (
+                    <span style={{ background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
+                      Relief Schedule
+                    </span>
+                  ) : ann.category === 'status' ? (
+                    <span style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
+                      Status Update
+                    </span>
+                  ) : null}
                   {ann.edited && (
                     <span style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid rgba(217,119,6,0.3)', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
                       (Edited)
