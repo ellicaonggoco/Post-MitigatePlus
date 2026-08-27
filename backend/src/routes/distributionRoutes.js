@@ -6,6 +6,8 @@ const Household = require('../models/Household');
 const RecoveryStatus = require('../models/RecoveryStatus');
 const AuditLog = require('../models/AuditLog');
 const ReliefItemType = require('../models/ReliefItemType');
+const WarehouseItem = require('../models/WarehouseItem');
+const WarehouseLog = require('../models/WarehouseLog');
 const { protect, requireRole } = require('../middleware/auth');
 const { calculateReliefAllocation } = require('../utils/reliefAllocation');
 
@@ -74,6 +76,7 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
       return res.status(400).json({ message: 'Please provide at least a title or location.' });
     }
 
+    const targetHH = parseInt(targetHouseholds) || 0;
     const event = await DistributionEvent.create({
       title: title || `Relief Distribution — ${location}`,
       itemType: itemType || 'Family Food Pack',
@@ -83,9 +86,50 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
       assignedTeam: assignedTeam || staffAssigned || 'Field Team Alpha',
       scheduledDate: scheduledDate || null,
       scheduledTime: scheduledTime || null,
-      targetHouseholds: parseInt(targetHouseholds) || 0,
+      targetHouseholds: targetHH,
       openedBy: req.user._id,
     });
+
+    // ── AWTOMATIKONG DEDUCTION / DISPATCH MULA SA WAREHOUSE STOCK ──
+    if (targetHH > 0) {
+      try {
+        const itemTypeQuery = (itemType || 'Family Food Pack').toLowerCase();
+        let matchedItem = await WarehouseItem.findOne({
+          name: { $regex: new RegExp(itemTypeQuery.split(' ')[0], 'i') }
+        });
+        if (!matchedItem) {
+          matchedItem = await WarehouseItem.findOne();
+        }
+
+        if (matchedItem) {
+          const qtyToDeduct = Math.min(matchedItem.stock, targetHH);
+          matchedItem.stock = Math.max(0, matchedItem.stock - qtyToDeduct);
+          matchedItem.updatedBy = req.user._id;
+          await matchedItem.save();
+
+          await WarehouseLog.create({
+            itemId: matchedItem._id,
+            itemName: matchedItem.name,
+            type: 'dispatch',
+            quantity: qtyToDeduct,
+            notes: `Auto-Dispatched for Event: ${event.title} (Brgy ${event.barangayCode})`,
+            performedBy: req.user.name || 'System Admin',
+            recordedBy: req.user._id,
+          });
+
+          await AuditLog.create({
+            actorUserId: req.user._id,
+            actorRole: req.user.role,
+            action: 'WAREHOUSE_AUTO_DISPATCH',
+            targetType: 'WarehouseItem',
+            targetId: matchedItem._id.toString(),
+            notes: `Auto-dispatched ${qtyToDeduct} ${matchedItem.unit} for Event: ${event.title}`,
+          });
+        }
+      } catch (stockErr) {
+        console.error('Warehouse auto-dispatch error:', stockErr);
+      }
+    }
 
     res.status(201).json(event);
   } catch (error) {
