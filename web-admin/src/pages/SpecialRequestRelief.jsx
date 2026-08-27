@@ -34,22 +34,26 @@ export default function SpecialRequestRelief() {
     totalRequests: 0,
   });
   const [staffList, setStaffList] = useState([]);
+  const [focusedReqId, setFocusedReqId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ resident: '', reason: '', items: '', members: '' });
   const [assignStaff, setAssignStaff] = useState({});
   const [successToast, setSuccessToast] = useState('');
 
   // ── Confirm Modal State ──
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, reqId: null, actionType: '', targetName: '', staffName: '' });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, reqId: null, actionType: '', targetName: '', staffName: '', customTitle: '', customMessage: '' });
 
   useEffect(() => {
     const fetchRequestsAndSummary = async () => {
       try {
-        const [resReq, resSummary] = await Promise.all([
+        const [resReq, resSummary, resStaff] = await Promise.all([
           fetch(`${API_BASE_URL}/assistance-requests`, {
             headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
           }),
           fetch(`${API_BASE_URL}/assistance-requests/demand-summary`, {
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+          }).catch(() => null),
+          fetch(`${API_BASE_URL}/auth/provisioned-users`, {
             headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
           }).catch(() => null),
         ]);
@@ -61,13 +65,42 @@ export default function SpecialRequestRelief() {
           setRequests([]);
         }
 
+        if (resStaff && resStaff.ok) {
+          const staffData = await resStaff.json();
+          if (Array.isArray(staffData)) {
+            const filteredStaff = staffData.filter(u => u.role === 'field_staff');
+            if (filteredStaff.length > 0) {
+              setStaffList(filteredStaff.map(s => ({
+                id: s._id || s.id,
+                name: s.name,
+                team: s.teamName || 'Field Response Alpha',
+                designation: s.staffDesignation || 'Field Officer',
+                barangay: s.barangayCode || 'City-Wide',
+              })));
+            } else {
+              setStaffList([
+                { id: 'fs-1', name: 'Officer Ricardo Dalisay', designation: 'Team Leader', team: 'Field Response Alpha', barangay: '291' },
+                { id: 'fs-2', name: 'Officer Maria Elena Santos', designation: 'Field Medic', team: 'Quick Response Team', barangay: '291' },
+                { id: 'fs-3', name: 'Officer Juan Ramos', designation: 'Door-to-Door Logistics', team: 'Zone 35 Dispatch', barangay: '291' },
+                { id: 'fs-4', name: 'Officer Carlo Mendoza', designation: 'Relief Inspector', team: 'MDRRMO Response', barangay: '291' },
+              ]);
+            }
+          }
+        } else {
+          setStaffList([
+            { id: 'fs-1', name: 'Officer Ricardo Dalisay', designation: 'Team Leader', team: 'Field Response Alpha', barangay: '291' },
+            { id: 'fs-2', name: 'Officer Maria Elena Santos', designation: 'Field Medic', team: 'Quick Response Team', barangay: '291' },
+            { id: 'fs-3', name: 'Officer Juan Ramos', designation: 'Door-to-Door Logistics', team: 'Zone 35 Dispatch', barangay: '291' },
+            { id: 'fs-4', name: 'Officer Carlo Mendoza', designation: 'Relief Inspector', team: 'MDRRMO Response', barangay: '291' },
+          ]);
+        }
+
         if (resSummary && resSummary.ok) {
           const summaryData = await resSummary.json();
           if (summaryData && summaryData.categories) {
             setDemandSummary(summaryData);
           }
         } else if (Array.isArray(data)) {
-          // Compute client-side demand counts if summary endpoint is offline
           const counts = { food: 0, water: 0, medical: 0, infant: 0, senior: 0 };
           data.forEach(r => {
             const str = `${r.itemType || ''} ${r.notes || ''}`.toLowerCase();
@@ -100,10 +133,6 @@ export default function SpecialRequestRelief() {
     setRequests(newList);
   };
 
-  const saveAssignmentTask = (requestObj, staffName) => {
-    // Moved to backend
-  };
-
   const handleSubmit = async () => {
     if (!form.resident || !form.reason) return;
     const newReq = {
@@ -131,12 +160,24 @@ export default function SpecialRequestRelief() {
   };
 
   const requestApproveModal = (req) => {
-    const chosenStaff = assignStaff[req.id || req._id] || staffList[0]?.name || 'Unassigned';
+    const chosenStaff = (assignStaff[req.id || req._id] || '').trim();
+    if (!chosenStaff) {
+      setConfirmModal({
+        isOpen: true,
+        reqId: null,
+        actionType: 'warning_no_staff',
+        targetName: req.resident || req.fullName || 'Resident',
+        staffName: '',
+        customTitle: '⚠️ Kailangan ng Naka-assign na Field Officer',
+        customMessage: 'Hindi maaaring i-dispatch ang door-to-door relief kung walang naka-assign na Field Staff! Pakipili o i-type ang pangalan ng opisyal na magde-deliver mula sa listahan bago i-click ang Approve & Dispatch.',
+      });
+      return;
+    }
     setConfirmModal({
       isOpen: true,
       reqId: req.id || req._id,
       actionType: 'approve',
-      targetName: req.resident,
+      targetName: req.resident || req.fullName || 'Resident',
       staffName: chosenStaff,
     });
   };
@@ -146,14 +187,17 @@ export default function SpecialRequestRelief() {
       isOpen: true,
       reqId: req.id || req._id,
       actionType: 'reject',
-      targetName: req.resident,
+      targetName: req.resident || req.fullName || 'Resident',
       staffName: '',
     });
   };
 
   const executeAction = async () => {
     const { reqId, actionType, staffName } = confirmModal;
-    if (!reqId) return;
+    if (!reqId) {
+      setConfirmModal({ isOpen: false, reqId: null, actionType: '', targetName: '', staffName: '' });
+      return;
+    }
 
     try {
       if (actionType === 'approve') {
@@ -205,14 +249,28 @@ export default function SpecialRequestRelief() {
       {/* Universal Double Confirmation Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        title={confirmModal.actionType === 'approve' ? 'I-approve & I-assign sa Staff Mobile App?' : 'I-reject ang Special Request?'}
+        title={
+          confirmModal.actionType === 'warning_no_staff'
+            ? confirmModal.customTitle
+            : confirmModal.actionType === 'approve'
+            ? 'I-approve & I-assign sa Staff Mobile App?'
+            : 'I-reject ang Special Request?'
+        }
         message={
-          confirmModal.actionType === 'approve'
+          confirmModal.actionType === 'warning_no_staff'
+            ? confirmModal.customMessage
+            : confirmModal.actionType === 'approve'
             ? `Sigurado ka bang gusto mong I-APPROVE ang ayuda request para kay "${confirmModal.targetName}" at I-ASSIGN kay "${confirmModal.staffName}"? Lalabas ito sa kanyang Field Staff Mobile App screen na "Special Request Assignment".`
             : `Sigurado ka bang gusto mong I-REJECT ang ayuda request para kay "${confirmModal.targetName}"?`
         }
-        type={confirmModal.actionType === 'approve' ? 'success' : 'danger'}
-        confirmText={confirmModal.actionType === 'approve' ? 'Oo, Approve & Send to Mobile App' : 'Oo, Reject Request'}
+        type={confirmModal.actionType === 'warning_no_staff' ? 'warning' : confirmModal.actionType === 'approve' ? 'success' : 'danger'}
+        confirmText={
+          confirmModal.actionType === 'warning_no_staff'
+            ? 'Naiintindihan (Pumili ng Staff)'
+            : confirmModal.actionType === 'approve'
+            ? 'Oo, Approve & Send to Mobile App'
+            : 'Oo, Reject Request'
+        }
         onConfirm={executeAction}
         onCancel={() => setConfirmModal({ isOpen: false, reqId: null, actionType: '', targetName: '', staffName: '' })}
       />
@@ -462,28 +520,99 @@ export default function SpecialRequestRelief() {
                         Assign Field Officer for Door-to-Door
                       </label>
 
-                      {/* Clean Type/Select Autocomplete Input */}
-                      <input
-                        list="staff-options-list"
-                        placeholder="Click or type officer name..."
-                        value={assignStaff[req.id || req._id] || ''}
-                        onChange={e => setAssignStaff(p => ({ ...p, [req.id || req._id]: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '9px 12px',
-                          borderRadius: 'var(--radius-inner)',
-                          border: '1px solid var(--border)',
-                          fontSize: 12,
-                          outline: 'none',
-                          background: 'var(--card)',
-                          color: 'var(--ink)',
-                          boxSizing: 'border-box',
-                        }}
-                      />
+                      {/* Interactive Staff Input & Live Suggestion Dropdown */}
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          placeholder="Click or type officer name..."
+                          value={assignStaff[req.id || req._id] || ''}
+                          onFocus={() => setFocusedReqId(req.id || req._id)}
+                          onChange={e => {
+                            setAssignStaff(p => ({ ...p, [req.id || req._id]: e.target.value }));
+                            setFocusedReqId(req.id || req._id);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            borderRadius: 'var(--radius-inner)',
+                            border: assignStaff[req.id || req._id]?.trim() ? '1.5px solid #158A64' : '1.5px solid #D97706',
+                            fontSize: 12,
+                            outline: 'none',
+                            background: 'var(--card)',
+                            color: 'var(--ink)',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+
+                        {/* Floating Live Suggestions Box */}
+                        {focusedReqId === (req.id || req._id) && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 'calc(100% + 4px)',
+                              left: 0,
+                              right: 0,
+                              zIndex: 100,
+                              background: 'var(--card)',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.18)',
+                              maxHeight: '190px',
+                              overflowY: 'auto',
+                            }}
+                          >
+                            <div style={{ padding: '6px 10px', fontSize: '10.5px', fontWeight: 800, color: 'var(--manila-blue)', borderBottom: '1px solid var(--border)', background: 'var(--sampaguita)', textTransform: 'uppercase' }}>
+                              👥 Click to Select Field Officer
+                            </div>
+                            {staffList
+                              .filter(s => s.name.toLowerCase().includes((assignStaff[req.id || req._id] || '').toLowerCase()))
+                              .map((staff, sIdx) => (
+                                <div
+                                  key={staff.id || sIdx}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setAssignStaff(p => ({ ...p, [req.id || req._id]: staff.name }));
+                                    setFocusedReqId(null);
+                                  }}
+                                  style={{
+                                    padding: '8px 10px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    borderBottom: '1px solid rgba(0,0,0,0.04)',
+                                    transition: 'background 0.15s ease',
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.background = 'var(--manila-blue-light)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                  <div>
+                                    <div style={{ fontWeight: 800, color: 'var(--ink)' }}>{staff.name}</div>
+                                    <div style={{ fontSize: '10.5px', color: 'var(--ink-soft)' }}>
+                                      {staff.designation} • {staff.team}
+                                    </div>
+                                  </div>
+                                  <span className="badge badge-success" style={{ fontSize: '9.5px', padding: '2px 6px' }}>Available</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
 
                       <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                        <button onClick={() => requestApproveModal(req)} className="clay-button-approve" style={{ fontSize: 12, flex: 1, padding: '8px 10px', gap: 4 }}>
-                          <CheckCircle size={13} /> Approve & Dispatch
+                        <button
+                          onClick={() => requestApproveModal(req)}
+                          className={assignStaff[req.id || req._id]?.trim() ? 'clay-button-approve' : 'clay-button-ghost'}
+                          style={{
+                            fontSize: 12,
+                            flex: 1,
+                            padding: '8px 10px',
+                            gap: 4,
+                            border: assignStaff[req.id || req._id]?.trim() ? 'none' : '1px dashed #D97706',
+                            color: assignStaff[req.id || req._id]?.trim() ? '#fff' : '#B45309',
+                          }}
+                        >
+                          <CheckCircle size={13} /> {assignStaff[req.id || req._id]?.trim() ? 'Approve & Dispatch' : 'Assign Staff First'}
                         </button>
                         <button onClick={() => requestRejectModal(req)} className="clay-button-danger" style={{ fontSize: 12, padding: '8px 10px', gap: 4 }}>
                           <XCircle size={13} /> Reject
