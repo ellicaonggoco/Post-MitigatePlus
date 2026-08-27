@@ -85,7 +85,7 @@ export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkM
                   ]}
                 >
                   <Text style={[styles.nodeText, (isDone || isCurrent) && styles.nodeTextActive]}>
-                    {isDone ? '✓' : idx + 1}
+                    {isDone ? '' : idx + 1}
                   </Text>
                 </View>
                 <Text

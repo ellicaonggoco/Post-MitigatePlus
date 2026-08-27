@@ -451,7 +451,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
             activeOpacity={0.8}
           >
-            <Text style={styles.jumpChipText}>👤 {lang === 'tl' ? 'Profile' : 'Profile'}</Text>
+            <Text style={styles.jumpChipText}> {lang === 'tl' ? 'Profile' : 'Profile'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -459,7 +459,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             onPress={() => scrollRef.current?.scrollTo({ y: rosterY - 10, animated: true })}
             activeOpacity={0.8}
           >
-            <Text style={styles.jumpChipText}>👥 {lang === 'tl' ? 'Pamilya' : 'Roster'} ({members.length})</Text>
+            <Text style={styles.jumpChipText}> {lang === 'tl' ? 'Pamilya' : 'Roster'} ({members.length})</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -467,7 +467,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             onPress={() => scrollRef.current?.scrollTo({ y: hotlineY - 10, animated: true })}
             activeOpacity={0.8}
           >
-            <Text style={[styles.jumpChipText, { color: '#DC2626' }]}>🚨 {lang === 'tl' ? 'Hotlines' : 'Hotlines'}</Text>
+            <Text style={[styles.jumpChipText, { color: '#DC2626' }]}> {lang === 'tl' ? 'Hotlines' : 'Hotlines'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -475,7 +475,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             onPress={() => scrollRef.current?.scrollTo({ y: securityY - 10, animated: true })}
             activeOpacity={0.8}
           >
-            <Text style={styles.jumpChipText}>🔒 {lang === 'tl' ? 'Seguridad' : 'Security'}</Text>
+            <Text style={styles.jumpChipText}> {lang === 'tl' ? 'Seguridad' : 'Security'}</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -577,7 +577,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       </View>
 
       {rosterSavedSuccess && (
-        <Text style={styles.rosterSuccessToast}>✓ {lang === 'tl' ? 'Na-update ang talaan ng pamilya.' : 'Household roster updated.'}</Text>
+        <Text style={styles.rosterSuccessToast}> {lang === 'tl' ? 'Na-update ang talaan ng pamilya.' : 'Household roster updated.'}</Text>
       )}
 
       <View style={styles.membersList}>
@@ -609,7 +609,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                     onPress={() => handleToggleMemberCondition(mem.id, preset.tag)}
                   >
                     <Text style={[styles.condTagText, isActive ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' }]}>
-                      {isActive ? '✓ ' : '+ '}{preset.tag}
+                      {isActive ? ' ' : '+ '}{preset.tag}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -649,7 +649,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <Text style={styles.editActionText}>{isEditingContact ? (lang === 'tl' ? 'I-save' : 'Save') : (lang === 'tl' ? 'Palitan' : 'Edit')}</Text>
           </TouchableOpacity>
         </View>
-        {savedSuccess && <Text style={styles.successInline}>✓ {lang === 'tl' ? 'Na-save ang contact details.' : 'Contact saved.'}</Text>}
+        {savedSuccess && <Text style={styles.successInline}> {lang === 'tl' ? 'Na-save ang contact details.' : 'Contact saved.'}</Text>}
       </View>
 
       <Text style={styles.sectionLabel} onLayout={(e) => setSecurityY(e.nativeEvent.layout.y)}>{lang === 'tl' ? 'SEGURIDAD AT PAG-LOGIN' : 'SECURITY & LOGIN'}</Text>
@@ -733,7 +733,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: '800', color: '#DC2626' }}>
-              🔄 {lang === 'tl' ? 'Palitan ang QR' : 'Regenerate QR'}
+               {lang === 'tl' ? 'Palitan ang QR' : 'Regenerate QR'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -875,7 +875,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                       }}
                     >
                       <Text style={[styles.condTagText, isChecked ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' }]}>
-                        {isChecked ? '✓ ' : '+ '}{preset.tag}
+                        {isChecked ? ' ' : '+ '}{preset.tag}
                       </Text>
                     </TouchableOpacity>
                   );

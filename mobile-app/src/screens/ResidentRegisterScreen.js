@@ -60,7 +60,7 @@ function PasswordRulesBox({ password, lang, hasLowercase, hasUppercase, hasNumbe
       </Text>
       <View style={styles.ruleItem}>
         <Text style={[styles.ruleIcon, hasLowercase ? styles.ruleIconValid : styles.ruleIconInvalid]}>
-          {hasLowercase ? '✓' : '✖'}
+          {hasLowercase ? '' : ''}
         </Text>
         <Text style={[styles.ruleText, hasLowercase ? styles.ruleTextValid : styles.ruleTextInvalid]}>
           {lang === 'tl' ? 'Kahit isang maliit na titik (lowercase)' : 'At least one lowercase letter'}
@@ -68,7 +68,7 @@ function PasswordRulesBox({ password, lang, hasLowercase, hasUppercase, hasNumbe
       </View>
       <View style={styles.ruleItem}>
         <Text style={[styles.ruleIcon, hasUppercase ? styles.ruleIconValid : styles.ruleIconInvalid]}>
-          {hasUppercase ? '✓' : '✖'}
+          {hasUppercase ? '' : ''}
         </Text>
         <Text style={[styles.ruleText, hasUppercase ? styles.ruleTextValid : styles.ruleTextInvalid]}>
           {lang === 'tl' ? 'Kahit isang malaking titik (uppercase)' : 'At least one uppercase letter'}
@@ -76,7 +76,7 @@ function PasswordRulesBox({ password, lang, hasLowercase, hasUppercase, hasNumbe
       </View>
       <View style={styles.ruleItem}>
         <Text style={[styles.ruleIcon, hasNumber ? styles.ruleIconValid : styles.ruleIconInvalid]}>
-          {hasNumber ? '✓' : '✖'}
+          {hasNumber ? '' : ''}
         </Text>
         <Text style={[styles.ruleText, hasNumber ? styles.ruleTextValid : styles.ruleTextInvalid]}>
           {lang === 'tl' ? 'Kahit isang numero (0-9)' : 'At least one number (0-9)'}
@@ -84,7 +84,7 @@ function PasswordRulesBox({ password, lang, hasLowercase, hasUppercase, hasNumbe
       </View>
       <View style={styles.ruleItem}>
         <Text style={[styles.ruleIcon, hasMinLength ? styles.ruleIconValid : styles.ruleIconInvalid]}>
-          {hasMinLength ? '✓' : '✖'}
+          {hasMinLength ? '' : ''}
         </Text>
         <Text style={[styles.ruleText, hasMinLength ? styles.ruleTextValid : styles.ruleTextInvalid]}>
           {lang === 'tl' ? 'Minimum 8 characters' : 'Minimum 8 characters'}
@@ -489,7 +489,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           barangayCode: res.barangayCode,
         };
         Alert.alert(
-          lang === 'tl' ? '🎉 Rehistrasyon Naisumite!' : '🎉 Registration Submitted!',
+          lang === 'tl' ? ' Rehistrasyon Naisumite!' : ' Registration Submitted!',
           lang === 'tl'
             ? 'Na-verify na ang inyong mobile number! Ang inyong aplikasyon ay nakabinbin sa Verification Queue ng Barangay para sa opisyal na pagsusuri.'
             : 'Your mobile number is verified! Your application is now in the Barangay Verification Queue awaiting official review.'
@@ -609,10 +609,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 </Text>
                 <View style={styles.conditionGrid}>
                   {[
-                    { id: 'none', label: lang === 'tl' ? '👨 Regular Adult' : '👨 Regular Adult', sub: '18-59 yrs' },
-                    { id: 'senior', label: lang === 'tl' ? '🧓 Senior Citizen' : '🧓 Senior Citizen', sub: '60+ yrs' },
-                    { id: 'pwd', label: lang === 'tl' ? '♿ PWD (May Kapansanan)' : '♿ Person with Disability', sub: 'Special care' },
-                    { id: 'pregnant', label: lang === 'tl' ? '🤰 Buntis / Nagpapasuso' : '🤰 Pregnant / Nursing', sub: 'Maternal' },
+                    { id: 'none', label: lang === 'tl' ? ' Regular Adult' : ' Regular Adult', sub: '18-59 yrs' },
+                    { id: 'senior', label: lang === 'tl' ? ' Senior Citizen' : ' Senior Citizen', sub: '60+ yrs' },
+                    { id: 'pwd', label: lang === 'tl' ? ' PWD (May Kapansanan)' : ' Person with Disability', sub: 'Special care' },
+                    { id: 'pregnant', label: lang === 'tl' ? ' Buntis / Nagpapasuso' : ' Pregnant / Nursing', sub: 'Maternal' },
                   ].map((c) => (
                     <TouchableOpacity
                       key={c.id}
@@ -712,7 +712,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       styles.idUploadBadgeText,
                       idPhoto ? styles.idUploadSuccessBadgeText : styles.idUploadRequiredBadgeText
                     ]}>
-                      {idPhoto ? (lang === 'tl' ? 'NA-UPLOAD NA ✓' : 'UPLOADED ✓') : (lang === 'tl' ? 'KAILANGAN *' : 'REQUIRED *')}
+                      {idPhoto ? (lang === 'tl' ? 'NA-UPLOAD NA ' : 'UPLOADED ') : (lang === 'tl' ? 'KAILANGAN *' : 'REQUIRED *')}
                     </Text>
                   </View>
                 </View>
@@ -1027,11 +1027,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
               <View style={styles.conditionGrid}>
                 {[
-                  { id: 'none', label: lang === 'tl' ? '👨 Regular Adult' : '👨 Regular Adult', sub: '18-59 yrs' },
-                  { id: 'senior', label: lang === 'tl' ? '🧓 Senior Citizen' : '🧓 Senior Citizen', sub: '60+ yrs' },
-                  { id: 'pwd', label: lang === 'tl' ? '♿ PWD (May Kapansanan)' : '♿ Person with Disability', sub: 'Special care' },
-                  { id: 'pregnant', label: lang === 'tl' ? '🤰 Buntis / Nagpapasuso' : '🤰 Pregnant / Nursing', sub: 'Maternal' },
-                  { id: 'infant', label: lang === 'tl' ? '👶 Sanggol / Infant' : '👶 Infant / Sanggol', sub: '0-12 months (No age input)' },
+                  { id: 'none', label: lang === 'tl' ? ' Regular Adult' : ' Regular Adult', sub: '18-59 yrs' },
+                  { id: 'senior', label: lang === 'tl' ? ' Senior Citizen' : ' Senior Citizen', sub: '60+ yrs' },
+                  { id: 'pwd', label: lang === 'tl' ? ' PWD (May Kapansanan)' : ' Person with Disability', sub: 'Special care' },
+                  { id: 'pregnant', label: lang === 'tl' ? ' Buntis / Nagpapasuso' : ' Pregnant / Nursing', sub: 'Maternal' },
+                  { id: 'infant', label: lang === 'tl' ? ' Sanggol / Infant' : ' Infant / Sanggol', sub: '0-12 months (No age input)' },
                 ].map((c) => (
                   <TouchableOpacity
                     key={c.id}
@@ -1065,7 +1065,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               {newMemberCondition === 'infant' ? (
                 <View style={styles.infantNoticeBox}>
                   <Text style={styles.infantNoticeTitle}>
-                    {lang === 'tl' ? '👶 Awtomatikong 0-12 Buwan (Sanggol)' : '👶 Automatically 0-12 Months (Infant)'}
+                    {lang === 'tl' ? ' Awtomatikong 0-12 Buwan (Sanggol)' : ' Automatically 0-12 Months (Infant)'}
                   </Text>
                   <Text style={styles.infantNoticeText}>
                     {lang === 'tl'
@@ -1196,7 +1196,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             {/* ERROR MESSAGE IF ANY */}
             {otpError ? (
               <View style={styles.otpErrorBox}>
-                <Text style={styles.otpErrorText}>⚠️ {otpError}</Text>
+                <Text style={styles.otpErrorText}>️ {otpError}</Text>
               </View>
             ) : null}
 
@@ -1205,7 +1205,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               {canResend ? (
                 <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading}>
                   <Text style={styles.otpResendActiveText}>
-                    {lang === 'tl' ? '🔄 Magpadala Muli ng Code' : '🔄 Resend Verification Code'}
+                    {lang === 'tl' ? ' Magpadala Muli ng Code' : ' Resend Verification Code'}
                   </Text>
                 </TouchableOpacity>
               ) : (
@@ -1229,7 +1229,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text style={styles.verifyOtpBtnText}>
-                    {lang === 'tl' ? '✓ I-verify at Tapusin ang Rehistrasyon' : '✓ Verify & Complete Registration'}
+                    {lang === 'tl' ? ' I-verify at Tapusin ang Rehistrasyon' : ' Verify & Complete Registration'}
                   </Text>
                 )}
               </MotionPressable>

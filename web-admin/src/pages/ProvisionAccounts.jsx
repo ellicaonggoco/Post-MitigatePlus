@@ -242,7 +242,7 @@ export default function ProvisionAccounts() {
 
         const data = await res.json();
         if (res.ok) {
-          setStatusMsg({ type: 'success', text: `✓ Matagumpay na na-update ang akawnt ni ${name}!` });
+          setStatusMsg({ type: 'success', text: ` Matagumpay na na-update ang akawnt ni ${name}!` });
           await fetchProvisionedAccounts();
           setEditingAccount(null);
           setIsCreateModalOpen(false);
@@ -288,7 +288,7 @@ export default function ProvisionAccounts() {
       const data = await res.json();
 
       if (res.ok) {
-        setStatusMsg({ type: 'success', text: `✓ Nilikha na ang opisyal na akawnt para kay ${name} (${emailOrPhone})!` });
+        setStatusMsg({ type: 'success', text: ` Nilikha na ang opisyal na akawnt para kay ${name} (${emailOrPhone})!` });
         await fetchProvisionedAccounts();
         setName('');
         setEmailOrPhone('');
@@ -330,7 +330,7 @@ export default function ProvisionAccounts() {
           });
           const data = await res.json();
           if (res.ok) {
-            setStatusMsg({ type: 'success', text: `✓ Status ni ${acc.name}: ${data.status || 'Updated'}` });
+            setStatusMsg({ type: 'success', text: ` Status ni ${acc.name}: ${data.status || 'Updated'}` });
             await fetchProvisionedAccounts();
           } else {
             setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pag-update ng status.' });
@@ -362,7 +362,7 @@ export default function ProvisionAccounts() {
           });
           const data = await res.json();
           if (res.ok) {
-            setStatusMsg({ type: 'success', text: `✓ Nabura na ang akawnt ni ${acc.name}.` });
+            setStatusMsg({ type: 'success', text: ` Nabura na ang akawnt ni ${acc.name}.` });
             await fetchProvisionedAccounts();
           } else {
             setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pagbura ng akawnt.' });
@@ -447,7 +447,7 @@ export default function ProvisionAccounts() {
                   {editingAccount ? 'Edit Account Details' : lockedTeam ? `Add Field Staff (${lockedTeam})` : 'Create Official LGU Account'}
                 </h2>
               </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="clay-button-ghost" style={{ padding: '4px 10px', fontSize: 13 }}>✕ Close</button>
+              <button onClick={() => setIsCreateModalOpen(false)} className="clay-button-ghost" style={{ padding: '4px 10px', fontSize: 13 }}> Close</button>
             </div>
 
             {statusMsg.text && (
@@ -632,7 +632,7 @@ export default function ProvisionAccounts() {
                           />
                           {barangayCode && (
                             <div style={{ fontSize: 11, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 600 }}>
-                              ✓ Selected: Barangay {barangayCode}
+                               Selected: Barangay {barangayCode}
                             </div>
                           )}
                           {!barangayCode && barangaySearch && (
@@ -733,7 +733,7 @@ export default function ProvisionAccounts() {
                           className={staffDesignation === 'team_leader' ? 'clay-button-primary' : 'clay-button-ghost'}
                           style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
                         >
-                          🎖️ Head Staff (Lead)
+                          ️ Head Staff (Lead)
                         </button>
                         <button
                           type="button"
@@ -741,7 +741,7 @@ export default function ProvisionAccounts() {
                           className={staffDesignation === 'field_officer' ? 'clay-button-primary' : 'clay-button-ghost'}
                           style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
                         >
-                          📋 Field Staff (Scanner)
+                           Field Staff (Scanner)
                         </button>
                       </div>
                     </div>
@@ -1065,7 +1065,7 @@ export default function ProvisionAccounts() {
                             background: acc.staffDesignation === 'team_leader' ? '#EFF6FF' : 'var(--sampaguita)',
                             padding: '1px 6px', borderRadius: 4, width: 'fit-content',
                           }}>
-                            {acc.staffDesignation === 'team_leader' ? '🎖️ Team Leader (Head)' : '📋 Field Officer (Scanner)'}
+                            {acc.staffDesignation === 'team_leader' ? '️ Team Leader (Head)' : ' Field Officer (Scanner)'}
                           </span>
                         </div>
                       ) : (

@@ -71,7 +71,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
       <ScrollView style={styles.scrollBody} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {errorMsg ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {errorMsg}</Text>
+            <Text style={styles.errorText}>️ {errorMsg}</Text>
           </View>
         ) : null}
 
@@ -106,14 +106,14 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginBtnText}>Mag-Log In sa Staff Scanner ➔</Text>
+              <Text style={styles.loginBtnText}>Mag-Log In sa Staff Scanner </Text>
             )}
           </MotionPressable>
         </View>
 
         <View style={styles.noticeBox}>
           <Text style={styles.noticeText}>
-            🔒 <Text style={{ fontWeight: '800' }}>Paunawa sa Seguridad:</Text> Ang mga Field Staff accounts ay direktang nililikha ng LGU Admin. Walang public self-registration upang matiyak ang integridad ng pamamahagi.
+             <Text style={{ fontWeight: '800' }}>Paunawa sa Seguridad:</Text> Ang mga Field Staff accounts ay direktang nililikha ng LGU Admin. Walang public self-registration upang matiyak ang integridad ng pamamahagi.
           </Text>
         </View>
       </ScrollView>

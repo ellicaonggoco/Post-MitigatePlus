@@ -142,7 +142,7 @@ export default function FraudInterception() {
               aria-label="Clear search input"
               style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 700 }}
             >
-              ✕
+              
             </button>
           )}
         </div>

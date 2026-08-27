@@ -278,7 +278,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
       >
         <Text style={[styles.manualCodeLabel, copied && { color: '#059669' }]}>
           {copied
-            ? (lang === 'tl' ? '✓ Na-kopya na sa clipboard!' : '✓ Copied to clipboard!')
+            ? (lang === 'tl' ? ' Na-kopya na sa clipboard!' : ' Copied to clipboard!')
             : (lang === 'tl' ? 'Manual Household ID (I-tap upang kopyahin):' : 'Manual Household ID (Tap code to copy):')}
         </Text>
         <View style={[styles.codePillBox, copied && styles.codePillBoxCopied]}>

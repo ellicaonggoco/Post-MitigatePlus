@@ -137,7 +137,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                     onPress={() => {
                       Alert.alert(
                         lang === 'tl' ? 'Buod ng Distribusyon' : 'Distribution Summary',
-                        `${item.title}\n\n📍 Lugar: ${item.venue || item.location}\n📦 Uri ng Ayuda: ${item.itemType}\n✅ Status: Matagumpay na natapos at nai-sync sa LGU Command Center.`
+                        `${item.title}\n\n Lugar: ${item.venue || item.location}\n Uri ng Ayuda: ${item.itemType}\n Status: Matagumpay na natapos at nai-sync sa LGU Command Center.`
                       );
                     }}
                   >

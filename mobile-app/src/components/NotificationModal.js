@@ -17,7 +17,7 @@ import { MotionPressable } from './motion';
  * ----------------------------------------------------------------------------
  * - Anchored cleanly under the header Bell button (preserves user context)
  * - Tapping a notification card immediately routes to the designated screen
- * - No redundant bottom buttons: dismissed via backdrop tap or top-right ✕ button
+ * - No redundant bottom buttons: dismissed via backdrop tap or top-right  button
  * - Blue + Pearl White civic theme
  */
 export default function NotificationModal({

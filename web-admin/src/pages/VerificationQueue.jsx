@@ -296,7 +296,7 @@ export default function VerificationQueue() {
                       <strong style={{ color: 'var(--ink)' }}>{hh.memberCount} member(s)</strong>
                       {hh.memberCountPendingUpdate && (
                         <span style={{ marginLeft: 6, color: '#D97706', fontWeight: 800, background: '#FFFBEB', padding: '2px 8px', borderRadius: 999, fontSize: 11, border: '1px solid #FCD34D' }}>
-                          ⚠️ Requesting addition to {hh.memberCountPendingUpdate} members
+                          ️ Requesting addition to {hh.memberCountPendingUpdate} members
                         </span>
                       )}
                     </div>

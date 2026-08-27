@@ -169,7 +169,7 @@ export default function ReliefAllocationPage() {
       // In a real application, POST to a policy endpoint
       localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify(policy));
       window.dispatchEvent(new Event('mitigateplus_policy_updated'));
-      setMsg('✓ Na-update at na-apply na ang opisyal na Relief Allocation Policy sa buong lungsod!');
+      setMsg(' Na-update at na-apply na ang opisyal na Relief Allocation Policy sa buong lungsod!');
     } catch (e) {
       console.error(e);
     }

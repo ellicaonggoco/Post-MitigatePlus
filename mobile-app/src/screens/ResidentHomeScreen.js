@@ -16,10 +16,10 @@ import { fetchAnnouncements, fetchHouseholdProfile } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
 
 const EMERGENCY_HOTLINES = [
-  { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', icon: '🚨', bg: '#FEE2E2', color: '#DC2626' },
-  { name: 'Ambulance / EMS', phone: '(02) 8527-5175', icon: '🚑', bg: '#EFF6FF', color: '#2563EB' },
-  { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', icon: '🚒', bg: '#FEF3C7', color: '#D97706' },
-  { name: 'PNP Police Emergency', phone: '911', icon: '👮', bg: '#F3E8FF', color: '#7C3AED' },
+  { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', icon: '', bg: '#FEE2E2', color: '#DC2626' },
+  { name: 'Ambulance / EMS', phone: '(02) 8527-5175', icon: '', bg: '#EFF6FF', color: '#2563EB' },
+  { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', icon: '', bg: '#FEF3C7', color: '#D97706' },
+  { name: 'PNP Police Emergency', phone: '911', icon: '', bg: '#F3E8FF', color: '#7C3AED' },
 ];
 
 /**
@@ -339,7 +339,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <Text style={styles.refreshStatusBtnText}>
                       {loadingProfile
                         ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
-                        : (lang === 'tl' ? '🔄 Muling I-check ang Katayuan' : '🔄 Refresh Approval Status')}
+                        : (lang === 'tl' ? ' Muling I-check ang Katayuan' : ' Refresh Approval Status')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -361,7 +361,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             <View style={styles.entitlementBannerCard}>
               <View style={styles.entitlementBannerHeader}>
                 <View style={styles.entitlementIconWell}>
-                  <Text style={{ fontSize: 18 }}>🍱</Text>
+                  <Text style={{ fontSize: 18 }}></Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.entitlementKicker}>
@@ -391,7 +391,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   <View style={[styles.entitlementItemDot, { backgroundColor: '#1557B0' }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.entitlementItemName}>
-                      🍱 {basePacks}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
+                       {basePacks}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
                     </Text>
                     <Text style={styles.entitlementItemDesc}>
                       {lang === 'tl' ? 'Kumpletong Bigas/Pagkain, Gamot & First Aid, at Inuming Tubig (Sakop ang hanggang 5 miyembro)' : 'Core Food Pack, Medical/First Aid Kit, and Drinking Water (Covers up to 5 members)'}
@@ -408,7 +408,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <View style={[styles.entitlementItemDot, { backgroundColor: '#0284C7' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
-                        🍚 +{topUpUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
+                         +{topUpUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
                       </Text>
                       <Text style={styles.entitlementItemDesc}>
                         {lang === 'tl' ? `Karagdagang pagkain para sa ${topUpUnits} miyembrong lampas sa 5-pax base capacity` : `Additional food allocation for ${topUpUnits} member(s) beyond base 5-pax coverage`}
@@ -426,7 +426,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <View style={[styles.entitlementItemDot, { backgroundColor: '#D97706' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
-                        🧓 +{seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
+                         +{seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
                       </Text>
                       <Text style={styles.entitlementItemDesc}>
                         {lang === 'tl' ? `Masustansyang pagkain at Maintenance Medicines para sa ${seniorCount} Senior Citizen` : `Nutritious food & maintenance medicines for ${seniorCount} Senior Citizen(s)`}
@@ -444,7 +444,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <View style={[styles.entitlementItemDot, { backgroundColor: '#EC4899' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
-                        👶 +{infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
+                         +{infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
                       </Text>
                       <Text style={styles.entitlementItemDesc}>
                         {lang === 'tl' ? `Gatas/infant formula at baby food para sa ${infantCount} sanggol (0-2 yo)` : `Infant milk formula & baby nutrition for ${infantCount} infant(s)`}
@@ -462,7 +462,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <View style={[styles.entitlementItemDot, { backgroundColor: '#7C3AED' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
-                        ♿ +{pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
+                         +{pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
                       </Text>
                       <Text style={styles.entitlementItemDesc}>
                         {lang === 'tl' ? `Medikal at health support para sa ${pwdCount} PWD member` : `Medical & health care support for ${pwdCount} PWD member(s)`}
@@ -498,7 +498,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#E0F2FE' }]}>
-                  <Text style={{ fontSize: 18 }}>📱</Text>
+                  <Text style={{ fontSize: 18 }}></Text>
                 </View>
                 <Text style={[styles.actionTileTitle, { color: '#075985' }]}>
                   {lang === 'tl' ? 'Palakihin ang QR Pass' : 'View Full QR Pass'}
@@ -781,7 +781,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       style={[styles.modalSavePassBtn, { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1' }]}
                       onPress={() => {
                         Alert.alert(
-                          lang === 'tl' ? '🖨️ I-print / I-save ang Official PDF Voucher' : '🖨️ Print / Save Official PDF Voucher',
+                          lang === 'tl' ? '️ I-print / I-save ang Official PDF Voucher' : '️ Print / Save Official PDF Voucher',
                           lang === 'tl'
                             ? `Nilikha ang Official DSWD/LGU Disaster Relief Voucher para kay ${householdName} (${address}). Handa na para sa pisikal na pag-print o pag-save bilang PDF backup sakaling mawalan ng kuryente.`
                             : `Generated Official Disaster Relief Voucher for ${householdName} (${address}). Ready for physical printing or PDF storage during power outages.`
@@ -790,7 +790,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       activeOpacity={0.85}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <Text style={{ fontSize: 16 }}>🖨️</Text>
+                        <Text style={{ fontSize: 16 }}>️</Text>
                         <Text style={[styles.modalSavePassBtnText, { color: '#1E293B', fontWeight: '800' }]}>
                           {lang === 'tl' ? 'I-print / I-save bilang PDF Voucher' : 'Print / Save as PDF Voucher'}
                         </Text>

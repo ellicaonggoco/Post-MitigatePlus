@@ -108,7 +108,7 @@ export default function DistributionEvents() {
         staff: availableTeam,
       }));
       setShowForm(true);
-      setToastMsg(`🚚 Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
+      setToastMsg(` Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.search, location.state, events]);
@@ -155,10 +155,10 @@ export default function DistributionEvents() {
         setEvents(prev => [...prev, created]);
         setForm({ barangay: '', date: '', time: '', items: '', staff: '', households: '' });
         setShowForm(false);
-        setToastMsg(`✓ Na-schedule na ang bagong Relief Distribution Event sa ${form.barangay}!`);
+        setToastMsg(` Na-schedule na ang bagong Relief Distribution Event sa ${form.barangay}!`);
       } else {
         const errData = await res.json().catch(() => ({}));
-        setToastMsg(`❌ Hindi ma-create ang event: ${errData.message || 'Server error'}`);
+        setToastMsg(` Hindi ma-create ang event: ${errData.message || 'Server error'}`);
       }
     } catch (err) {
       // Fallback to local-only if server is unreachable
@@ -166,7 +166,7 @@ export default function DistributionEvents() {
       setEvents(prev => [...prev, newEv]);
       setForm({ barangay: '', date: '', time: '', items: '', staff: '', households: '' });
       setShowForm(false);
-      setToastMsg(`⚠️ Saved locally — server unreachable. Will sync when online.`);
+      setToastMsg(`️ Saved locally — server unreachable. Will sync when online.`);
     }
   };
 
@@ -194,7 +194,7 @@ export default function DistributionEvents() {
         // Post announcement to API (could be implemented later)
 
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
-        setToastMsg(`📢 Awtomatikong na-broadcast ang Announcement & Na-dispatch ang inventory stocks para sa ${ev.barangay}!`);
+        setToastMsg(` Awtomatikong na-broadcast ang Announcement & Na-dispatch ang inventory stocks para sa ${ev.barangay}!`);
       },
     });
   };
@@ -228,15 +228,15 @@ export default function DistributionEvents() {
           if (res.ok) {
             const updated = events.map(e => (e._id || e.id) === evId ? { ...e, status: newStatus, isActive: newStatus === 'Ongoing' } : e);
             setEvents(updated);
-            setToastMsg(`✓ Na-update ang status bilang "${newStatus.toUpperCase()}"!`);
+            setToastMsg(` Na-update ang status bilang "${newStatus.toUpperCase()}"!`);
           } else {
-            setToastMsg(`❌ Hindi ma-update ang status. Server error.`);
+            setToastMsg(` Hindi ma-update ang status. Server error.`);
           }
         } catch (err) {
           // Fallback: update locally
           const updated = events.map(e => (e._id || e.id) === (ev._id || ev.id) ? { ...e, status: newStatus } : e);
           setEvents(updated);
-          setToastMsg(`⚠️ Updated locally — server unreachable.`);
+          setToastMsg(`️ Updated locally — server unreachable.`);
         }
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
       },
@@ -296,7 +296,7 @@ export default function DistributionEvents() {
       {toastMsg && (
         <div className="clay-card" style={{ marginBottom: 20, borderLeft: '4px solid var(--bay-teal)', background: 'var(--bay-teal-light)', color: 'var(--bay-teal-deep)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, fontWeight: 700 }}>{toastMsg}</span>
-          <button onClick={() => setToastMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: 'var(--bay-teal-deep)' }}>✕</button>
+          <button onClick={() => setToastMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: 'var(--bay-teal-deep)' }}></button>
         </div>
       )}
 
@@ -343,7 +343,7 @@ export default function DistributionEvents() {
                   });
                   return (
                     <option key={t} value={t} disabled={!!activeInEvent} style={{ color: activeInEvent ? '#94A3B8' : 'inherit', background: activeInEvent ? '#F1F5F9' : 'inherit' }}>
-                      {t} {activeInEvent ? `(🔴 Deployed at ${activeInEvent.location || activeInEvent.barangay || activeInEvent.barangayCode} — Hindi Pwedeng Piliin)` : '(🟢 Available / Standby)'}
+                      {t} {activeInEvent ? `( Deployed at ${activeInEvent.location || activeInEvent.barangay || activeInEvent.barangayCode} — Hindi Pwedeng Piliin)` : '( Available / Standby)'}
                     </option>
                   );
                 })}
@@ -382,7 +382,7 @@ export default function DistributionEvents() {
                 alignItems: 'flex-start',
                 gap: 12
               }}>
-                <span style={{ fontSize: 20 }}>{hasDeficit ? '⚠️' : '📦'}</span>
+                <span style={{ fontSize: 20 }}>{hasDeficit ? '️' : ''}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                     <strong style={{ fontSize: 13, color: hasDeficit ? '#991B1B' : '#166534' }}>

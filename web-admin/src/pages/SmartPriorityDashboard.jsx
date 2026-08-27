@@ -128,7 +128,7 @@ export default function SmartPriorityDashboard() {
     const newNotif = {
       id: Date.now(),
       type: "directive",
-      title: `🏛️ Executive Directive: Deploy Relief`,
+      title: `️ Executive Directive: Deploy Relief`,
       body: `Inatasan ng City Mayor / SuperAdmin ang LGU Disaster Operations na mag-deploy ng relief sa Barangay ${bCode} (${familyCount} pamilya).`,
       time: "Just now",
       read: false,
@@ -158,7 +158,7 @@ export default function SmartPriorityDashboard() {
       });
     } catch (e) {}
 
-    setSuccessToast(`✓ Executive Directive Sent! Naabisuhan na ang LGU Admin na mag-deploy ng relief sa Barangay ${bCode}.`);
+    setSuccessToast(` Executive Directive Sent! Naabisuhan na ang LGU Admin na mag-deploy ng relief sa Barangay ${bCode}.`);
     setDirectiveModal({ isOpen: false, barangay: null });
   };
 
@@ -181,7 +181,7 @@ export default function SmartPriorityDashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
             <CheckCircle2 size={16} /> {successToast}
           </div>
-          <button onClick={() => setSuccessToast('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: '#158A64' }}>✕</button>
+          <button onClick={() => setSuccessToast('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: '#158A64' }}></button>
         </div>
       )}
 
@@ -339,7 +339,7 @@ export default function SmartPriorityDashboard() {
             ))}
           </div>
         ) : viewMode === 'barangay' ? (
-          /* 🏢 BARANGAY PRIORITY RANKINGS TABLE FOR LGU ADMIN */
+          /*  BARANGAY PRIORITY RANKINGS TABLE FOR LGU ADMIN */
           filteredBarangays.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '64px 40px' }}>
               <div style={{
@@ -402,7 +402,7 @@ export default function SmartPriorityDashboard() {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span className={priorityBadgeClass(b.level)}>
-                            {b.level === 'High' ? '🔴 High / Critical' : b.level === 'Medium' ? '🟡 Moderate' : '🟢 Stable'}
+                            {b.level === 'High' ? 'High / Critical' : b.level === 'Medium' ? 'Moderate' : 'Stable'}
                           </span>
                           <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ink)' }}>
                             {b.avgScore} pts avg
@@ -410,10 +410,10 @@ export default function SmartPriorityDashboard() {
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: b.severeCount > 0 ? '#DC2626' : 'var(--ink)' }}>
-                          {b.severeCount > 0 && `🚨 ${b.severeCount} Severe / Total Damage`}
-                          {b.severeCount === 0 && b.moderateCount > 0 && `⚠️ ${b.moderateCount} Moderate Damage`}
-                          {b.severeCount === 0 && b.moderateCount === 0 && `✓ ${b.minorCount} Minor / No Severe Damage`}
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: b.severeCount > 0 ? '#DC2626' : b.moderateCount > 0 ? '#D97706' : '#158A64' }}>
+                          {b.severeCount > 0 && `${b.severeCount} Severe / Total Damage`}
+                          {b.severeCount === 0 && b.moderateCount > 0 && `${b.moderateCount} Moderate Damage`}
+                          {b.severeCount === 0 && b.moderateCount === 0 && `${b.minorCount} Minor / No Severe Damage`}
                         </div>
                       </td>
                       <td>
@@ -489,7 +489,7 @@ export default function SmartPriorityDashboard() {
             </div>
           )
         ) : (
-          /* 👥 INDIVIDUAL HOUSEHOLDS ROSTER */
+          /*  INDIVIDUAL HOUSEHOLDS ROSTER */
           filteredHouseholds.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '64px 40px' }}>
               <div style={{

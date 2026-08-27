@@ -305,7 +305,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
       await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
 
       Alert.alert(
-        lang === 'tl' ? '✅ Na-save sa Offline Queue!' : '✅ Saved to Offline Queue!',
+        lang === 'tl' ? ' Na-save sa Offline Queue!' : ' Saved to Offline Queue!',
         lang === 'tl'
           ? `Matagumpay na na-record ang release para kay ${scanResult.household.name}. (${updatedQueue.length} pending claims para i-sync kapag may internet na).`
           : `Release saved offline for ${scanResult.household.name}. (${updatedQueue.length} pending claims in queue).`
@@ -403,7 +403,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                 <View style={{ flex: 1, paddingRight: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text style={{ fontSize: 13, fontWeight: '800', color: isOfflineMode ? '#DC2626' : '#15803D' }}>
-                      {isOfflineMode ? '📡 OFFLINE SCANNER MODE: ACTIVE' : '🌐 ONLINE LIVE CLOUD MODE'}
+                      {isOfflineMode ? ' OFFLINE SCANNER MODE: ACTIVE' : ' ONLINE LIVE CLOUD MODE'}
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11, color: isOfflineMode ? '#991B1B' : '#166534', marginTop: 2 }}>
@@ -445,7 +445,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                   onPress={downloadOfflineCache}
                   disabled={cachingLoading}
                 >
-                  {cachingLoading ? <ActivityIndicator size="small" color="#002BB8" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#002BB8' }}>📥 I-download Cache ({offlineCache.length})</Text>}
+                  {cachingLoading ? <ActivityIndicator size="small" color="#002BB8" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#002BB8' }}> I-download Cache ({offlineCache.length})</Text>}
                 </TouchableOpacity>
 
                 {offlineClaimsQueue.length > 0 && (
@@ -462,7 +462,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                     onPress={syncOfflineClaimsToServer}
                     disabled={syncingClaims}
                   >
-                    {syncingClaims ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>🔄 I-sync ang {offlineClaimsQueue.length} Claims</Text>}
+                    {syncingClaims ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}> I-sync ang {offlineClaimsQueue.length} Claims</Text>}
                   </TouchableOpacity>
                 )}
               </View>
@@ -535,15 +535,15 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                 {/* Package Breakdown Checklist */}
                 <View style={{ marginTop: 10, padding: 10, backgroundColor: '#F8FAFC', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' }}>
                   <Text style={{ fontSize: 11, fontWeight: '800', color: '#1E293B', marginBottom: 6, textTransform: 'uppercase' }}>
-                    {lang === 'tl' ? '📦 TALAAN NG MGA IAABOT NA AYUDA' : '📦 AUTHORIZED ITEMS TO RELEASE'}
+                    {lang === 'tl' ? ' TALAAN NG MGA IAABOT NA AYUDA' : ' AUTHORIZED ITEMS TO RELEASE'}
                   </Text>
                   
                   <View style={{ gap: 5 }}>
                     {/* 1. Base All-in-One Family Relief Pack */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                      <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                        🍱 {scanResult.household.basePacks || 1}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
+                         {scanResult.household.basePacks || 1}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
                       </Text>
                       <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                         <Text style={{ fontSize: 10, fontWeight: '800', color: '#1557B0' }}>{lang === 'tl' ? 'Pagkain + Gamot + Tubig' : 'Food + Meds + Water'}</Text>
@@ -553,9 +553,9 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                     {/* 2. Extra Member Food Top-Up */}
                     {scanResult.household.extraUnits > 0 && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
                         <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                          🍚 +{scanResult.household.extraUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
+                           +{scanResult.household.extraUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
                         </Text>
                         <View style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                           <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>+{scanResult.household.extraUnits} pax</Text>
@@ -566,9 +566,9 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                     {/* 3. Senior Citizen Maintenance & Nutrition Top-Up */}
                     {scanResult.household.seniorCount > 0 && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
                         <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                          🧓 +{scanResult.household.seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
+                           +{scanResult.household.seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
                         </Text>
                         <View style={{ backgroundColor: '#FFFBEB', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                           <Text style={{ fontSize: 10, fontWeight: '800', color: '#D97706' }}>{scanResult.household.seniorCount} Senior</Text>
@@ -579,9 +579,9 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                     {/* 4. Infant Care & Baby Nutrition Top-Up */}
                     {scanResult.household.infantCount > 0 && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
                         <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                          👶 +{scanResult.household.infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
+                           +{scanResult.household.infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
                         </Text>
                         <View style={{ backgroundColor: '#FDF2F8', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                           <Text style={{ fontSize: 10, fontWeight: '800', color: '#DB2777' }}>{scanResult.household.infantCount} Sanggol</Text>
@@ -592,9 +592,9 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                     {/* 5. PWD Health Support Top-Up */}
                     {scanResult.household.pwdCount > 0 && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
                         <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                          ♿ +{scanResult.household.pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
+                           +{scanResult.household.pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
                         </Text>
                         <View style={{ backgroundColor: '#F5F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                           <Text style={{ fontSize: 10, fontWeight: '800', color: '#7C3AED' }}>{scanResult.household.pwdCount} PWD</Text>

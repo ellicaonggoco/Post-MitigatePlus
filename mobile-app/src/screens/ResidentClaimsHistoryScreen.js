@@ -146,7 +146,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   {item.receiptNumber}
                 </Text>
                 <Text style={{ fontSize: 11, fontWeight: '800', color: '#1557B0' }}>
-                  🧾 {lang === 'tl' ? 'Tingnan ang Resibo →' : 'View Claim Receipt →'}
+                   {lang === 'tl' ? 'Tingnan ang Resibo →' : 'View Claim Receipt →'}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -222,7 +222,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
 
               <View style={styles.receiptSealBox}>
                 <View style={styles.receiptSealPill}>
-                  <Text style={styles.receiptSealText}>✓ 100% OFFICIALLY VERIFIED & RELEASED</Text>
+                  <Text style={styles.receiptSealText}> 100% OFFICIALLY VERIFIED & RELEASED</Text>
                 </View>
                 <Text style={styles.receiptSecurityHint}>
                   Security Hash: Verified against Manila LGU Post-Disaster Central Ledger.

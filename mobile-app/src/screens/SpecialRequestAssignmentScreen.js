@@ -269,7 +269,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
 
                 {item.proofOfDeliveryPhoto && (
                   <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderColor: '#CBD5E1' }}>
-                    <Text style={[styles.infoLabel, { color: '#047857' }]}>📸 PROOF OF HANDOVER PHOTO:</Text>
+                    <Text style={[styles.infoLabel, { color: '#047857' }]}> PROOF OF HANDOVER PHOTO:</Text>
                     <Image source={{ uri: item.proofOfDeliveryPhoto }} style={{ width: '100%', height: 140, borderRadius: 8, marginTop: 4 }} resizeMode="cover" />
                     {item.recipientSignatureOrNotes ? (
                       <Text style={{ fontSize: 11, color: '#334155', fontStyle: 'italic', marginTop: 4 }}>
@@ -290,11 +290,11 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                   }}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.deliverBtnText}>📸 Complete Delivery & Upload Proof</Text>
+                  <Text style={styles.deliverBtnText}> Complete Delivery & Upload Proof</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
-                  <Text style={{ fontSize: 12 }}>✅</Text>
+                  <Text style={{ fontSize: 12 }}></Text>
                   <Text style={styles.deliveredTimeText}>Na-deliver noong {item.deliveredAt || item.assignedAt}</Text>
                 </View>
               )}
@@ -384,7 +384,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
                     <Text style={styles.modalSubmitBtnText}>
-                      ✓ {lang === 'tl' ? 'Kumpirmahin ang Delivery' : 'Confirm & Save Proof'}
+                       {lang === 'tl' ? 'Kumpirmahin ang Delivery' : 'Confirm & Save Proof'}
                     </Text>
                   )}
                 </TouchableOpacity>

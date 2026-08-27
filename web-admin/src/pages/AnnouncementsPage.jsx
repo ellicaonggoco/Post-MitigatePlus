@@ -344,8 +344,8 @@ export default function AnnouncementsPage() {
                   onChange={e => setForm(p => ({ ...p, scope: e.target.value }))}
                   style={{ padding: '9px 14px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--manila-blue)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', cursor: 'pointer', fontWeight: 700, minWidth: 260 }}
                 >
-                  <option value="city-wide">🌐 City-Wide (Lahat ng 897 Barangays sa Maynila)</option>
-                  <option value="barangay">🏢 Specific Barangay Only (Pumili ng Barangay)</option>
+                  <option value="city-wide">City-Wide (Lahat ng 897 Barangays sa Maynila)</option>
+                  <option value="barangay">Specific Barangay Only (Pumili ng Barangay)</option>
                 </select>
 
                 {/* Autocomplete Typeahead Search Box when 'Specific Barangay' is selected */}
@@ -382,7 +382,7 @@ export default function AnnouncementsPage() {
                             onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sampaguita)'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                           >
-                            🏢 Barangay {b.code}
+                            Barangay {b.code}
                           </div>
                         ))}
                       </div>
@@ -418,7 +418,7 @@ export default function AnnouncementsPage() {
             className={adminFilterBrgy === 'CITY_WIDE' ? 'clay-button-primary' : 'clay-button-ghost'}
             style={{ fontSize: 12.5, padding: '6px 14px' }}
           >
-            🌐 City-Wide Lamang
+            City-Wide Lamang
           </button>
         </div>
       )}
@@ -438,7 +438,7 @@ export default function AnnouncementsPage() {
           const authorName = typeof ann.postedBy === 'object' ? (ann.postedBy?.name || 'City Official') : (ann.postedBy || 'Command Center');
           const displayDate = ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently');
           const brgyCodeVal = ann.barangayCode || ann.barangay;
-          const brgyLabel = isCityWide ? '🌐 City-Wide Broadcast' : `🏢 Barangay ${brgyCodeVal} Residents Only`;
+          const brgyLabel = isCityWide ? 'City-Wide Broadcast' : `Barangay ${brgyCodeVal} Residents Only`;
 
           return (
             <MotionCard key={ann.id || ann._id || idx} delay={idx * 0.05} className="clay-card" style={{ borderLeft: `4.5px solid ${isCityWide ? '#7C3AED' : 'var(--manila-blue)'}` }}>

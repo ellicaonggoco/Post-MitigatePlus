@@ -108,7 +108,7 @@ export default function RecoveryPhaseStepper({
                     !isVerified && isCurrent && { color: '#B45309' },
                   ]}
                 >
-                  {isCompleted ? '✓' : idx + 1}
+                  {isCompleted ? '' : idx + 1}
                 </Text>
               </View>
 

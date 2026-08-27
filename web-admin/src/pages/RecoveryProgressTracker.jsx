@@ -272,7 +272,7 @@ export default function RecoveryProgressTracker() {
                         <StageIcon size={13} /> {stage.label}
                       </span>
                       <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
-                        ({stage.type === 'auto' ? '⚡ System Auto-Updated' : '✋ Barangay Managed'})
+                        ({stage.type === 'auto' ? ' System Auto-Updated' : ' Barangay Managed'})
                       </span>
                     </div>
                   </div>

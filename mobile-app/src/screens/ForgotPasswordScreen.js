@@ -222,7 +222,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
 
             {errors.otp && (
               <Text style={{ color: '#DC2626', fontSize: 12, textAlign: 'center', marginBottom: 10, fontWeight: '600' }}>
-                ⚠️ {errors.otp}
+                ️ {errors.otp}
               </Text>
             )}
 

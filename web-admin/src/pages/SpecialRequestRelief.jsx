@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ROLES } from '../utils/roleUtils';
-import { Star, Plus, CheckCircle, Clock, XCircle, Users, UserCheck, Send, Bell, Inbox, Smartphone } from 'lucide-react';
+import { Star, Plus, CheckCircle, Clock, XCircle, Users, UserCheck, Send, Bell, Inbox, Smartphone, Package, Droplets, HeartPulse, Activity, Baby } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
+
+const CATEGORY_ICONS = {
+  food: Package,
+  water: Droplets,
+  medical: Activity,
+  infant: Baby,
+  senior: HeartPulse,
+};
 
 const STATUS_CONFIG = {
   Pending: { color: '#D97706', bg: '#FFFBEB', icon: Clock },
@@ -25,11 +33,11 @@ export default function SpecialRequestRelief() {
   const [requests, setRequests] = useState([]);
   const [demandSummary, setDemandSummary] = useState({
     categories: {
-      food: { id: 'food', name: 'Food Packs', count: 0, icon: '🍚', color: '#1557B0', bg: '#EFF6FF' },
-      water: { id: 'water', name: 'Water Containers', count: 0, icon: '💧', color: '#0284C7', bg: '#E0F2FE' },
-      medical: { id: 'medical', name: 'Medical Kits', count: 0, icon: '💊', color: '#DC2626', bg: '#FEF2F2' },
-      infant: { id: 'infant', name: 'Infant Packs', count: 0, icon: '👶', color: '#D97706', bg: '#FFFBEB' },
-      senior: { id: 'senior', name: 'Senior Care Kits', count: 0, icon: '🧓', color: '#7C3AED', bg: '#F5F3FF' },
+      food: { id: 'food', name: 'Food Packs', count: 0, icon: '', color: '#1557B0', bg: '#EFF6FF' },
+      water: { id: 'water', name: 'Water Containers', count: 0, icon: '', color: '#0284C7', bg: '#E0F2FE' },
+      medical: { id: 'medical', name: 'Medical Kits', count: 0, icon: '', color: '#DC2626', bg: '#FEF2F2' },
+      infant: { id: 'infant', name: 'Infant Packs', count: 0, icon: '', color: '#D97706', bg: '#FFFBEB' },
+      senior: { id: 'senior', name: 'Senior Care Kits', count: 0, icon: '', color: '#7C3AED', bg: '#F5F3FF' },
     },
     totalRequests: 0,
   });
@@ -113,11 +121,11 @@ export default function SpecialRequestRelief() {
           setDemandSummary({
             totalRequests: data.length,
             categories: {
-              food: { id: 'food', name: 'Food Packs', count: counts.food, icon: '🍚', color: '#1557B0', bg: '#EFF6FF' },
-              water: { id: 'water', name: 'Water Containers', count: counts.water, icon: '💧', color: '#0284C7', bg: '#E0F2FE' },
-              medical: { id: 'medical', name: 'Medical Kits', count: counts.medical, icon: '💊', color: '#DC2626', bg: '#FEF2F2' },
-              infant: { id: 'infant', name: 'Infant Packs', count: counts.infant, icon: '👶', color: '#D97706', bg: '#FFFBEB' },
-              senior: { id: 'senior', name: 'Senior Care Kits', count: counts.senior, icon: '🧓', color: '#7C3AED', bg: '#F5F3FF' },
+              food: { id: 'food', name: 'Food Packs', count: counts.food, icon: '', color: '#1557B0', bg: '#EFF6FF' },
+              water: { id: 'water', name: 'Water Containers', count: counts.water, icon: '', color: '#0284C7', bg: '#E0F2FE' },
+              medical: { id: 'medical', name: 'Medical Kits', count: counts.medical, icon: '', color: '#DC2626', bg: '#FEF2F2' },
+              infant: { id: 'infant', name: 'Infant Packs', count: counts.infant, icon: '', color: '#D97706', bg: '#FFFBEB' },
+              senior: { id: 'senior', name: 'Senior Care Kits', count: counts.senior, icon: '', color: '#7C3AED', bg: '#F5F3FF' },
             }
           });
         }
@@ -160,7 +168,7 @@ export default function SpecialRequestRelief() {
         setRequests(prev => [created, ...prev]);
         setForm({ residentName: '', address: '', reason: '', items: '', members: '' });
         setShowForm(false);
-        setSuccessToast('✓ Na-submit na ang bagong Special Relief Request!');
+        setSuccessToast(' Na-submit na ang bagong Special Relief Request!');
       }
     } catch (e) {
       console.error(e);
@@ -176,7 +184,7 @@ export default function SpecialRequestRelief() {
         actionType: 'warning_no_staff',
         targetName: req.resident || req.fullName || 'Resident',
         staffName: '',
-        customTitle: '⚠️ Kailangan ng Naka-assign na Field Officer',
+        customTitle: '️ Kailangan ng Naka-assign na Field Officer',
         customMessage: 'Hindi maaaring i-dispatch ang door-to-door relief kung walang naka-assign na Field Staff! Pakipili o i-type ang pangalan ng opisyal na magde-deliver mula sa listahan bago i-click ang Approve & Dispatch.',
       });
       return;
@@ -217,7 +225,7 @@ export default function SpecialRequestRelief() {
         if (res.ok) {
           const updated = requests.map(r => (r.id === reqId || r._id === reqId) ? { ...r, status: 'Approved', assignedStaff: staffName } : r);
           saveRequests(updated);
-          setSuccessToast(`✓ Approved! Task sent to Field Staff Mobile App under "Special Request Assignment" for ${staffName}.`);
+          setSuccessToast(` Approved! Task sent to Field Staff Mobile App under "Special Request Assignment" for ${staffName}.`);
         }
       } else if (actionType === 'reject') {
         const res = await fetch(`${API_BASE_URL}/assistance-requests/${reqId}`, {
@@ -306,7 +314,7 @@ export default function SpecialRequestRelief() {
       {successToast && (
         <div className="clay-card" style={{ marginBottom: 20, borderLeft: '4px solid var(--bay-teal)', background: 'var(--bay-teal-light)', color: 'var(--bay-teal-deep)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, fontWeight: 700 }}>{successToast}</span>
-          <button onClick={() => setSuccessToast('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: 'var(--bay-teal-deep)' }}>✕</button>
+          <button onClick={() => setSuccessToast('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: 'var(--bay-teal-deep)' }}></button>
         </div>
       )}
 
@@ -314,7 +322,7 @@ export default function SpecialRequestRelief() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-            📦 Batch Warehouse Demand Summary (Total Packs to Prepare)
+             Batch Warehouse Demand Summary (Total Packs to Prepare)
           </h3>
           <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
             Active Household Requests: <strong>{demandSummary.totalRequests || visible.length}</strong>
@@ -339,14 +347,21 @@ export default function SpecialRequestRelief() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 22 }}>{cat.icon || '📦'}</span>
+                  {(() => {
+                    const CatIcon = CATEGORY_ICONS[key] || Package;
+                    return (
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: isFilterActive ? '#FFFFFF' : (cat.bg || '#F1F5F9'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CatIcon size={18} color={cat.color || 'var(--manila-blue)'} />
+                      </div>
+                    );
+                  })()}
                   <span style={{ fontSize: 18, fontWeight: 900, color: cat.color || 'var(--ink)' }}>
                     {cat.count}
                   </span>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>{cat.name}</div>
                 <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-                  {isFilterActive ? '✓ Filtering' : 'Click to filter list'}
+                  {isFilterActive ? 'Active Filter' : 'Click to filter list'}
                 </div>
               </div>
             );
@@ -384,7 +399,7 @@ export default function SpecialRequestRelief() {
               onClick={() => setSelectedCategoryFilter('all')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, color: 'var(--manila-blue)' }}
             >
-              ✕ Clear
+               Clear
             </button>
           </div>
         )}
@@ -487,7 +502,7 @@ export default function SpecialRequestRelief() {
                             gap: 4,
                           }}
                         >
-                          ✓ {pkg.name}
+                           {pkg.name}
                         </span>
                       ))}
                     </div>
@@ -506,7 +521,7 @@ export default function SpecialRequestRelief() {
                     {req.proofOfDeliveryPhoto && (
                       <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
                         <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--bay-teal)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          📸 Proof of Handover Photo (On-Ground Delivery)
+                           Proof of Handover Photo (On-Ground Delivery)
                         </div>
                         <img
                           src={req.proofOfDeliveryPhoto}
@@ -570,7 +585,7 @@ export default function SpecialRequestRelief() {
                             }}
                           >
                             <div style={{ padding: '6px 10px', fontSize: '10.5px', fontWeight: 800, color: 'var(--manila-blue)', borderBottom: '1px solid var(--border)', background: 'var(--sampaguita)', textTransform: 'uppercase' }}>
-                              👥 Click to Select Field Officer
+                               Click to Select Field Officer
                             </div>
                             {staffList
                               .filter(s => s.name.toLowerCase().includes((assignStaff[req.id || req._id] || '').toLowerCase()))

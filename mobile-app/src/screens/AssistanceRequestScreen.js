@@ -144,7 +144,7 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
           {selectedList.map(item => (
             <View key={item.id} style={[styles.submittedItemChip, { backgroundColor: item.tagBg, borderColor: item.tagColor }]}>
               <Text style={[styles.submittedItemChipText, { color: item.tagColor }]}>
-                ✓ {item.name}
+                 {item.name}
               </Text>
             </View>
           ))}
