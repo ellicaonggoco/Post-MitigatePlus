@@ -56,8 +56,17 @@ export default function DistributionEvents() {
   const [warehouseStock, setWarehouseStock] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'Scheduled' | 'Ongoing' | 'Completed' | 'ANNOUNCED'
-  const [form, setForm] = useState({ barangay: '', date: '', time: '', items: 'Family Food Pack', staff: 'Field Team Alpha', households: '' });
+  const [form, setForm] = useState({ barangay: '', date: '', time: '', items: 'All-in-One Family Food Pack', staff: 'Field Team Alpha', households: '' });
   const [toastMsg, setToastMsg] = useState('');
+
+  const getFirstAvailableTeam = (currentEvents = events) => {
+    const available = FIELD_TEAMS.find(t => !currentEvents.some(ev => {
+      const s = String(ev.status || '').toLowerCase();
+      const isOngoing = s === 'ongoing' || ev.isActive === true;
+      return isOngoing && (ev.assignedTeam === t || ev.staff === t || ev.staffAssigned === t);
+    }));
+    return available || FIELD_TEAMS[0];
+  };
 
   // ── Fetch Warehouse Inventory for Real-time Stock Pre-Check ──
   useEffect(() => {
@@ -88,19 +97,21 @@ export default function DistributionEvents() {
     if (targetBrgy) {
       const cleanCode = targetBrgy.toString().replace(/[^0-9]/g, '') || targetBrgy;
       const todayStr = new Date().toISOString().split('T')[0];
+      const availableTeam = getFirstAvailableTeam();
+
       setForm(prev => ({
         ...prev,
         barangay: `Barangay ${cleanCode}`,
         date: prev.date || todayStr,
         time: prev.time || '08:00 AM',
         items: prev.items || 'All-in-One Family Food Pack',
-        staff: prev.staff || 'Field Team Alpha',
+        staff: availableTeam,
       }));
       setShowForm(true);
       setToastMsg(`🚚 Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [location.search, location.state]);
+  }, [location.search, location.state, events]);
 
 
 
@@ -325,10 +336,14 @@ export default function DistributionEvents() {
                 style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', cursor: 'pointer' }}
               >
                 {FIELD_TEAMS.map(t => {
-                  const activeInEvent = events.find(ev => ev.isActive && (ev.assignedTeam === t || ev.staff === t));
+                  const activeInEvent = events.find(ev => {
+                    const status = getEventStatus(ev);
+                    const isOngoing = status === 'Ongoing' || ev.isActive;
+                    return isOngoing && (ev.assignedTeam === t || ev.staff === t || ev.staffAssigned === t);
+                  });
                   return (
-                    <option key={t} value={t}>
-                      {t} {activeInEvent ? `(🔴 Deployed at ${activeInEvent.location || activeInEvent.barangayCode})` : '(🟢 Available / Standby)'}
+                    <option key={t} value={t} disabled={!!activeInEvent} style={{ color: activeInEvent ? '#94A3B8' : 'inherit', background: activeInEvent ? '#F1F5F9' : 'inherit' }}>
+                      {t} {activeInEvent ? `(🔴 Deployed at ${activeInEvent.location || activeInEvent.barangay || activeInEvent.barangayCode} — Hindi Pwedeng Piliin)` : '(🟢 Available / Standby)'}
                     </option>
                   );
                 })}
