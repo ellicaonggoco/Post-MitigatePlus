@@ -138,6 +138,7 @@ app.use('/api/audit-logs', require('./routes/auditLogRoutes'));
 app.use('/api/warehouse', require('./routes/warehouseRoutes'));
 app.use('/api/recovery', require('./routes/recoveryRoutes'));
 app.use('/api/policy', require('./routes/policyRoutes'));
+app.use('/api/ai-triage', require('./routes/aiTriageRoutes'));
 
 app.get('/', (req, res) => {
   res.status(200).json({

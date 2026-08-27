@@ -19,7 +19,9 @@ import {
   Search,
   Building2,
   Calendar,
-  Clock
+  Clock,
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
@@ -31,7 +33,7 @@ export default function SpecialRequestRelief() {
   const navigate = useNavigate();
   const role = user?.role;
   const isBarangay = role === ROLES.BARANGAY_OFFICIAL;
-  const defaultBrgy = isBarangay ? (user?.barangayCode || '291') : '291';
+  const defaultBrgy = isBarangay ? (user?.barangayCode || '344') : '344';
 
   const [selectedBrgy, setSelectedBrgy] = useState(defaultBrgy);
   const [brgySearch, setBrgySearch] = useState(defaultBrgy);
@@ -39,11 +41,16 @@ export default function SpecialRequestRelief() {
   const [loading, setLoading] = useState(true);
   const [assessmentData, setAssessmentData] = useState(null);
 
+  // ── AI Health & Outbreak Surveillance State ──
+  const [outbreakHotspots, setOutbreakHotspots] = useState([]);
+  const [restockingLoading, setRestockingLoading] = useState(false);
+  const [restockSuccessMsg, setRestockSuccessMsg] = useState('');
+
   const fetchAssessment = async (bCode) => {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/reports/pre-event-assessment?barangayCode=${bCode}`, {
+      const res = await fetch(API_BASE_URL + '/reports/pre-event-assessment?barangayCode=' + bCode, {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
       });
       if (res.ok) {
@@ -60,8 +67,24 @@ export default function SpecialRequestRelief() {
     }
   };
 
+  const fetchOutbreakHotspots = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(API_BASE_URL + '/ai-triage/outbreak-hotspots', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOutbreakHotspots(data);
+      }
+    } catch (e) {
+      console.error('Error loading AI outbreak hotspots:', e);
+    }
+  };
+
   useEffect(() => {
     fetchAssessment(selectedBrgy);
+    fetchOutbreakHotspots();
   }, [selectedBrgy, token]);
 
   const handleSelectBrgy = (code) => {
@@ -70,12 +93,42 @@ export default function SpecialRequestRelief() {
     setShowSuggestions(false);
   };
 
+  const handleDispatchBufferRestock = async (bCode) => {
+    setRestockingLoading(true);
+    setRestockSuccessMsg('');
+    try {
+      const res = await fetch(API_BASE_URL + '/ai-triage/dispatch-buffer-restock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token,
+        },
+        body: JSON.stringify({
+          barangayCode: bCode,
+          quantity: 500,
+          medicineName: 'Doxycycline 200mg Capsules',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRestockSuccessMsg('✅ ' + data.message + ' (Waybill: ' + data.referenceNo + ')');
+        fetchOutbreakHotspots();
+      } else {
+        alert(data.message || 'Restock failed');
+      }
+    } catch (e) {
+      alert('Error connecting to Central Warehouse logistics.');
+    } finally {
+      setRestockingLoading(false);
+    }
+  };
+
   const matchingBarangays = MANILA_BARANGAYS_LIST.filter(b => b.includes(brgySearch.trim())).slice(0, 10);
 
   const handleScheduleEvent = () => {
     const totalHH = assessmentData?.totalHouseholds || 0;
     const foodPacks = assessmentData?.demand?.foodPacks || 0;
-    navigate(`/distribution-events?barangay=${selectedBrgy}&households=${totalHH}&demandPacks=${foodPacks}`);
+    navigate('/distribution-events?barangay=' + selectedBrgy + '&households=' + totalHH + '&demandPacks=' + foodPacks);
   };
 
   return (
@@ -87,9 +140,9 @@ export default function SpecialRequestRelief() {
             <Package size={24} color="#fff" />
           </div>
           <div>
-            <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Pre-Event Relief Demand & Quota Assessment</h1>
+            <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Pre-Event Relief Demand & AI Health Surveillance</h1>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              Automated assessment of household relief entitlements, demographic vulnerability breakdown, and warehouse inventory feasibility prior to event creation.
+              Automated NLP symptom triage, post-flood Leptospirosis cluster detection, and warehouse inventory quota feasibility.
             </p>
           </div>
         </div>
@@ -98,122 +151,165 @@ export default function SpecialRequestRelief() {
         <button
           onClick={handleScheduleEvent}
           className="clay-button-primary"
-          style={{ fontSize: 13, gap: 8, padding: '10px 18px', background: '#158A64', borderColor: '#107050' }}
+          style={{ fontSize: 13, gap: 8, padding: '10px 18px' }}
         >
-          <Truck size={16} /> Schedule Event with Computed Quotas
+          <Calendar size={15} /> Schedule Distribution for Brgy {selectedBrgy} <ArrowRight size={15} />
         </button>
       </div>
 
-      {/* ── Barangay Selector Bar ── */}
-      <div
-        className="clay-card"
-        style={{
-          marginBottom: 20,
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-          position: 'relative',
-          zIndex: 1000,
-          overflow: 'visible',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 280, position: 'relative', zIndex: 1001 }}>
-          <Building2 size={20} color="var(--manila-blue)" />
-          <div style={{ flex: 1, position: 'relative', zIndex: 1002 }}>
-            <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
-              Target Assessment Barangay
-            </label>
-            {isBarangay ? (
-              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--manila-blue)' }}>
-                Barangay {user?.barangayCode || '291'} (Locked to Official Jurisdiction)
+      {/* ── AI Post-Flood Health & Leptospirosis Outbreak Surveillance Panel ── */}
+      <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid #7C3AED', background: '#FAFAFE' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={18} color="#7C3AED" />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#1E1B4B', margin: 0 }}>
+                AI Post-Flood Leptospirosis & Epidemic Outbreak Surveillance
+              </h2>
+              <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '2px 0 0' }}>
+                Decentralized 2-Tier Health Logistics: Residents claim at local Barangay Health Centers; LGU Central Warehouse executes automated cluster replenishment.
+              </p>
+            </div>
+          </div>
+          <span style={{ fontSize: 11.5, fontWeight: 800, background: '#F5F3FF', color: '#7C3AED', padding: '4px 10px', borderRadius: 999, border: '1px solid #DDD6FE' }}>
+            NLP Clinical Triage Active
+          </span>
+        </div>
+
+        {restockSuccessMsg && (
+          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: 10, color: '#166534', fontSize: 13, fontWeight: 700, marginBottom: 14 }}>
+            {restockSuccessMsg}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+          {outbreakHotspots.slice(0, 4).map((hotspot, i) => (
+            <div key={i} style={{ background: '#FFFFFF', borderRadius: 12, padding: 14, border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>
+                  📍 Barangay {hotspot.barangayCode}
+                </span>
+                <span style={{
+                  fontSize: 10.5,
+                  fontWeight: 900,
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  background: hotspot.riskLevel === 'CRITICAL' ? '#FEF2F2' : '#FFFBEB',
+                  color: hotspot.riskLevel === 'CRITICAL' ? '#DC2626' : '#D97706',
+                  border: hotspot.riskLevel === 'CRITICAL' ? '1px solid #FECACA' : '1px solid #FDE68A'
+                }}>
+                  {hotspot.riskLevel} ({hotspot.riskScore}%)
+                </span>
               </div>
-            ) : (
-              <div style={{ position: 'relative', maxWidth: 360, zIndex: 1003 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 8 }}>
+                🦠 {hotspot.activeCasesCount} Reported Symptom Cases • {hotspot.floodDurationDays || 2} Flood Stagnation Days
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '8px 10px', borderRadius: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>Local BHC Prophylaxis Stock:</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color: (hotspot.localBhcStockDoxycycline || 10) < 15 ? '#DC2626' : '#16A34A' }}>
+                  {hotspot.localBhcStockDoxycycline || 10} caps remaining
+                </span>
+              </div>
+              <button
+                onClick={() => handleDispatchBufferRestock(hotspot.barangayCode)}
+                disabled={restockingLoading}
+                className="clay-button-ghost"
+                style={{ width: '100%', fontSize: 11.5, padding: '7px 10px', justifyContent: 'center', gap: 6, color: '#1557B0', borderColor: '#BFDBFE', background: '#EFF6FF' }}
+              >
+                <Truck size={13} /> Dispatch 500 Buffer Caps from Warehouse
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Barangay Selector Header Card ── */}
+      <div className="clay-card" style={{ marginBottom: 24, padding: '18px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--manila-blue)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              TARGET JURISDICTION ASSESSMENT
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--ink)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Building2 size={20} color="var(--manila-blue)" />
+              Barangay {selectedBrgy}, City of Manila
+            </div>
+          </div>
+
+          {/* Searchable Picker for LGU Superadmin / Admin */}
+          {!isBarangay && (
+            <div style={{ position: 'relative', minWidth: 260 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', display: 'block', marginBottom: 4 }}>
+                SWITCH BARANGAY ASSESSMENT:
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-inner)', padding: '6px 12px' }}>
+                <Search size={14} color="var(--ink-soft)" />
                 <input
                   type="text"
-                  placeholder="Type Barangay number (e.g. 291, 653, 304)..."
                   value={brgySearch}
-                  onFocus={() => setShowSuggestions(true)}
                   onChange={(e) => {
                     setBrgySearch(e.target.value);
                     setShowSuggestions(true);
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-inner)',
-                    border: '1.5px solid var(--manila-blue)',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    outline: 'none',
-                    background: 'var(--card)',
-                    color: 'var(--ink)',
-                    boxSizing: 'border-box'
-                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="e.g. 291 or 105..."
+                  style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: 13, color: 'var(--ink)' }}
                 />
-                {showSuggestions && matchingBarangays.length > 0 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 4px)',
-                    left: 0,
-                    right: 0,
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-inner)',
-                    boxShadow: '0 20px 45px rgba(0,0,0,0.3), 0 8px 18px rgba(0,0,0,0.15)',
-                    zIndex: 999999,
-                    maxHeight: 220,
-                    overflowY: 'auto'
-                  }}>
-                    {matchingBarangays.map(b => (
-                      <div
-                        key={b}
-                        onClick={() => handleSelectBrgy(b)}
-                        style={{ padding: '9px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderBottom: '1px solid var(--border)', color: 'var(--ink)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sampaguita)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        Barangay {b}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-            )}
-          </div>
-        </div>
 
-        <button
-          onClick={() => fetchAssessment(selectedBrgy)}
-          className="clay-button-ghost"
-          style={{ fontSize: 12.5, gap: 6, padding: '7px 14px' }}
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Census
-        </button>
+              {showSuggestions && matchingBarangays.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-inner)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  zIndex: 99999,
+                  maxHeight: 180,
+                  overflowY: 'auto',
+                  marginTop: 4,
+                }}>
+                  {matchingBarangays.map(b => (
+                    <div
+                      key={b}
+                      onClick={() => handleSelectBrgy(b)}
+                      style={{ padding: '8px 12px', fontSize: 12.5, cursor: 'pointer', borderBottom: '1px solid var(--border)' }}
+                      className="suggestion-item"
+                    >
+                      Barangay {b}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── Automated Quota Demand KPI Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24, position: 'relative', zIndex: 1 }}>
-        {/* Food Packs */}
-        <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #1557B0' }}>
+      {/* ── Right-Sized Quota Metrics Dashboard (4 KPI Tiles) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {/* Core Food Pack */}
+        <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid var(--manila-blue)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ width: 34, height: 34, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={18} color="#1557B0" />
+              <Package size={18} color="var(--manila-blue)" />
             </div>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#1557B0' }}>
+            <span style={{ fontSize: 20, fontWeight: 900, color: 'var(--manila-blue)' }}>
               {assessmentData?.demand?.foodPacks || 0}
             </span>
           </div>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Family Food Packs</div>
           <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-            Right-sized: 1-4 pax = 1, 5-8 = 2, 9+ = 3
+            Right-sized: 1 pack (1-4 pax), 2 packs (5-8 pax)
           </div>
         </div>
 
-        {/* Water Jugs */}
+        {/* Clean Drinking Water */}
         <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #0284C7' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ width: 34, height: 34, borderRadius: 8, background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -223,13 +319,13 @@ export default function SpecialRequestRelief() {
               {assessmentData?.demand?.waterJugs || 0}
             </span>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Potable Water (10L Jugs)</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>10L Potable Water Jugs</div>
           <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-            1 container per verified household
+            1 per registered family unit
           </div>
         </div>
 
-        {/* Senior Care Kits */}
+        {/* Senior Medical Hygiene */}
         <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #7C3AED' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ width: 34, height: 34, borderRadius: 8, background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -239,13 +335,13 @@ export default function SpecialRequestRelief() {
               {assessmentData?.demand?.seniorKits || 0}
             </span>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Senior Care & Med Kits</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Senior & Hygiene Kits</div>
           <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-            Matched with registered 60+ seniors
+            Matched with 60+ yo & chronic patients
           </div>
         </div>
 
-        {/* Infant Care Packs */}
+        {/* Infant Nutrition */}
         <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #D97706' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ width: 34, height: 34, borderRadius: 8, background: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -258,22 +354,6 @@ export default function SpecialRequestRelief() {
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Infant Milk & Nutrition</div>
           <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
             Matched with 0-2 yo registered infants
-          </div>
-        </div>
-
-        {/* Shelter Repair */}
-        <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #DC2626' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 8, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Home size={18} color="#DC2626" />
-            </div>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#DC2626' }}>
-              {assessmentData?.demand?.shelterRepairKits || 0}
-            </span>
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Shelter Repair Materials</div>
-          <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
-            Matched with Totally Damaged houses
           </div>
         </div>
       </div>
@@ -393,7 +473,7 @@ export default function SpecialRequestRelief() {
               {(!assessmentData?.roster || assessmentData.roster.length === 0) ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--ink-soft)' }}>
-                    {loading ? 'Calculating verified household census...' : `No verified registered households found in Barangay ${selectedBrgy}.`}
+                    {loading ? 'Calculating verified household census...' : 'No verified registered households found in Barangay ' + selectedBrgy + '.'}
                   </td>
                 </tr>
               ) : (
@@ -430,8 +510,8 @@ export default function SpecialRequestRelief() {
                     </td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: 'var(--manila-blue)' }}>
                       {hh.allocatedFoodPacks}x Food Pack{hh.allocatedFoodPacks > 1 ? 's' : ''}, 1x Water
-                      {hh.allocatedSeniorKits > 0 && ` + ${hh.allocatedSeniorKits}x Senior Kit`}
-                      {hh.allocatedInfantPacks > 0 && ` + ${hh.allocatedInfantPacks}x Infant Pack`}
+                      {hh.allocatedSeniorKits > 0 && (' + ' + hh.allocatedSeniorKits + 'x Senior Kit')}
+                      {hh.allocatedInfantPacks > 0 && (' + ' + hh.allocatedInfantPacks + 'x Infant Pack')}
                     </td>
                   </tr>
                 ))
