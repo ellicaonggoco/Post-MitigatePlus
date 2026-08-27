@@ -36,7 +36,7 @@ export default function SpecialRequestRelief() {
   const [staffList, setStaffList] = useState([]);
   const [focusedReqId, setFocusedReqId] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ resident: '', reason: '', items: '', members: '' });
+  const [form, setForm] = useState({ residentName: '', address: '', reason: '', items: '', members: '' });
   const [assignStaff, setAssignStaff] = useState({});
   const [successToast, setSuccessToast] = useState('');
 
@@ -134,11 +134,18 @@ export default function SpecialRequestRelief() {
   };
 
   const handleSubmit = async () => {
-    if (!form.resident || !form.reason) return;
+    if (!form.residentName.trim() || !form.address.trim() || !form.reason.trim()) return;
     const newReq = {
       barangay: user?.barangayCode || '291',
       requestedBy: `Hon. ${user?.name?.split(' ')[0] || 'Official'}`,
-      ...form,
+      resident: form.residentName.trim(),
+      fullName: form.residentName.trim(),
+      address: form.address.trim(),
+      reason: form.reason.trim(),
+      notes: `${form.reason.trim()} • Address: ${form.address.trim()}`,
+      items: form.items.trim() || 'All-in-One Family Relief Pack',
+      itemType: form.items.trim() || 'All-in-One Family Relief Pack',
+      members: form.members || '1',
       status: 'Pending',
       assignedStaff: '',
     };
@@ -151,8 +158,9 @@ export default function SpecialRequestRelief() {
       if (res.ok) {
         const created = await res.json();
         setRequests(prev => [created, ...prev]);
-        setForm({ resident: '', reason: '', items: '', members: '' });
+        setForm({ residentName: '', address: '', reason: '', items: '', members: '' });
         setShowForm(false);
+        setSuccessToast('✓ Na-submit na ang bagong Special Relief Request!');
       }
     } catch (e) {
       console.error(e);
@@ -385,12 +393,13 @@ export default function SpecialRequestRelief() {
       {showForm && isBarangay && (
         <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid #D97706' }}>
           <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 14, color: 'var(--ink)' }}>New Special Relief Request</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, marginBottom: 14 }}>
             {[
-              { key: 'resident', label: 'Resident Name & Address', placeholder: 'e.g. Lola Aling, 78 Rizal St, Purok 3' },
-              { key: 'reason', label: 'Reason (Why no phone?)', placeholder: 'e.g. Elderly, PWD, no smartphone' },
-              { key: 'items', label: 'Relief Items Needed', placeholder: 'e.g. Food Pack, Water, Medicine' },
-              { key: 'members', label: 'Number of Household Members', placeholder: 'Number', type: 'number' },
+              { key: 'residentName', label: 'Resident Full Name', placeholder: 'e.g. Lola Teresa Santos' },
+              { key: 'address', label: 'Complete Address & Purok', placeholder: 'e.g. 78 Soler St, Purok 3' },
+              { key: 'reason', label: 'Reason / Special Need', placeholder: 'e.g. Bedridden Senior, PWD, no smartphone' },
+              { key: 'items', label: 'Relief Items Needed', placeholder: 'e.g. Food Pack, Maintenance Meds, Water' },
+              { key: 'members', label: 'Household Member Count', placeholder: 'e.g. 4', type: 'number' },
             ].map(f => (
               <div key={f.key}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>{f.label}</label>
