@@ -8,7 +8,7 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon } from '../components/AppIcons';
+import { HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -476,8 +476,22 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               </View>
             </View>
 
-            {/* Quick Action Tiles Grid (2x2) with MotionPressable Spring Physics */}
+            {/* Quick Action Tiles Grid with MotionPressable Spring Physics */}
             <View style={styles.quickActionGrid}>
+              <MotionPressable
+                style={[styles.actionTile, { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' }]}
+                onPress={() => setActiveTab('assistance')}
+                activeOpacity={0.85}
+              >
+                <View style={[styles.actionTileIconWell, { backgroundColor: '#EDE9FE' }]}>
+                  <MedicineIcon size={18} color="#7C3AED" />
+                </View>
+                <Text style={[styles.actionTileTitle, { color: '#5B21B6' }]}>Health Check</Text>
+                <Text style={[styles.actionTileSub, { color: '#7C3AED' }]}>
+                  {lang === 'tl' ? 'Gamot at AI triage' : 'AI post-flood triage'}
+                </Text>
+              </MotionPressable>
+
               <MotionPressable
                 style={[styles.actionTile, { backgroundColor: '#FFF5F5', borderColor: '#FECACA' }]}
                 onPress={() => setActiveTab('damage')}
@@ -519,20 +533,6 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 <Text style={[styles.actionTileTitle, { color: '#92400E' }]}>{t.navHistory}</Text>
                 <Text style={[styles.actionTileSub, { color: '#B45309' }]}>
                   {lang === 'tl' ? 'Talaan ng ayuda' : 'View claims timeline'}
-                </Text>
-              </MotionPressable>
-
-              <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FAF5FF', borderColor: '#E9D5FF' }]}
-                onPress={() => setActiveTab('settings')}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.actionTileIconWell, { backgroundColor: '#F3E8FF' }]}>
-                  <SettingsIcon size={18} color="#7C3AED" />
-                </View>
-                <Text style={[styles.actionTileTitle, { color: '#581C87' }]}>{lang === 'tl' ? 'Profile at Settings' : 'Profile & Settings'}</Text>
-                <Text style={[styles.actionTileSub, { color: '#7C3AED' }]}>
-                  {lang === 'tl' ? 'Roster at seguridad' : 'Household & security'}
                 </Text>
               </MotionPressable>
             </View>
@@ -637,6 +637,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               )}
             </View>
           </ScrollView>
+        ) : activeTab === 'assistance' ? (
+          <AssistanceRequestScreen
+            token={token}
+            lang={lang}
+            onBack={() => setActiveTab('home')}
+            onSubmitSuccess={() => setActiveTab('home')}
+          />
         ) : activeTab === 'damage' ? (
           <ReportDamageScreen
             token={token}

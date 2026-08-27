@@ -272,12 +272,12 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
         </MotionPressable>
 
         <View style={styles.header}>
-          <Text style={styles.kicker}>MITIGATEPLUS ON-DEMAND RELIEF & HEALTH AI</Text>
-          <Text style={styles.title}>{lang === 'tl' ? 'Humiling ng Ayuda at Medikal' : 'Disaster Relief & Health Triage'}</Text>
+          <Text style={styles.kicker}>MITIGATEPLUS HEALTH CHECK</Text>
+          <Text style={styles.title}>{lang === 'tl' ? 'Health Check' : 'Health Check'}</Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'Pumili ng relief packages o gamitin ang aming Natural Language AI upang mag-triage ng mga sintomas at kagyat na gamot pagkatapos ng baha.'
-              : 'Request standard relief or use our Natural Language AI to triage post-flood symptoms and receive instant health center vouchers.'}
+              ? 'I-check ang inyong kalusugan gamit ang AI para sa agarang gamot sa baha (gaya ng Doxycycline) o humiling ng pamilyang ayuda.'
+              : 'Check your health status with AI for immediate post-flood medicine (such as Doxycycline) or request family relief packages.'}
           </Text>
         </View>
 
@@ -289,7 +289,7 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
             activeOpacity={0.85}
           >
             <Text style={[styles.tabBtnText, activeTab === 'ai_triage' && styles.tabBtnTextActive]}>
-              🤖 AI Health & SOS Triage
+              🤖 AI Health Check
             </Text>
             {activeTab === 'ai_triage' && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
@@ -300,7 +300,7 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
             activeOpacity={0.85}
           >
             <Text style={[styles.tabBtnText, activeTab === 'packages' && styles.tabBtnTextActive]}>
-              📦 Standard Relief Packages
+              📦 Karagdagang Ayuda
             </Text>
             {activeTab === 'packages' && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
