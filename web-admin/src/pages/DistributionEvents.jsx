@@ -78,17 +78,29 @@ export default function DistributionEvents() {
     fetchWarehouse();
   }, [token]);
 
-  // ── Auto-prefill from Heatmap navigation ("Schedule Relief Event for Brgy X") ──
+  // ── Auto-prefill and Auto-open Form from Priority Index / Heatmap ("Deploy Relief for Brgy X") ──
   useEffect(() => {
-    const prefill = location.state?.prefillBarangay;
-    if (prefill) {
-      setForm(prev => ({ ...prev, barangay: `Barangay ${prefill}` }));
+    const params = new URLSearchParams(location.search);
+    const queryBrgy = params.get('barangay') || params.get('prefill') || params.get('code');
+    const stateBrgy = location.state?.prefillBarangay;
+    const targetBrgy = queryBrgy || stateBrgy;
+
+    if (targetBrgy) {
+      const cleanCode = targetBrgy.toString().replace(/[^0-9]/g, '') || targetBrgy;
+      const todayStr = new Date().toISOString().split('T')[0];
+      setForm(prev => ({
+        ...prev,
+        barangay: `Barangay ${cleanCode}`,
+        date: prev.date || todayStr,
+        time: prev.time || '08:00 AM',
+        items: prev.items || 'All-in-One Family Food Pack',
+        staff: prev.staff || 'Field Team Alpha',
+      }));
       setShowForm(true);
-      setToastMsg(`📍 Pre-filled: Barangay ${prefill} — Complete ang remaining fields to schedule.`);
-      // Clear navigation state so it doesn't re-trigger on refresh
-      window.history.replaceState({}, document.title);
+      setToastMsg(`🚚 Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [location.state]);
+  }, [location.search, location.state]);
 
 
 

@@ -366,9 +366,13 @@ export default function SmartPriorityDashboard() {
                             <Users size={13} /> View Families
                           </button>
                           <button
-                            onClick={() => navigate(`/distribution-events?barangay=${b.code}`)}
+                            onClick={() => {
+                              navigate(`/distribution-events?barangay=${b.code}`, {
+                                state: { prefillBarangay: b.code },
+                              });
+                            }}
                             className="btn btn-primary btn-sm"
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px', background: 'var(--manila-blue)', color: '#fff', fontWeight: 700 }}
                           >
                             <Truck size={13} /> Deploy Relief
                           </button>
