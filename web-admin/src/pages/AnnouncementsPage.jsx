@@ -63,13 +63,14 @@ export default function AnnouncementsPage() {
   const [form, setForm] = useState({
     title: '',
     body: '',
-    scope: 'city-wide',
-    targetBarangay: '291',
+    scope: isBarangay ? 'barangay' : 'city-wide',
+    targetBarangay: brgy,
     category: 'relief',
     isUrgent: false,
   });
-  const [brgySearchInput, setBrgySearchInput] = useState('291');
+  const [brgySearchInput, setBrgySearchInput] = useState(brgy);
   const [showBrgySuggestions, setShowBrgySuggestions] = useState(false);
+  const [adminFilterBrgy, setAdminFilterBrgy] = useState('ALL');
 
   // Filter top 8 matching barangays dynamically as user types
   const matchingBarangays = MANILA_BARANGAYS.filter(b => {
@@ -89,8 +90,6 @@ export default function AnnouncementsPage() {
 
   const closeConfirm = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
-
-
   // Helper to map category to mobile target tab and tag
   const getCategoryMeta = (cat) => {
     switch (cat) {
@@ -108,22 +107,25 @@ export default function AnnouncementsPage() {
   // ── Post New Announcement with confirmation ─────────────────
   const requestPost = () => {
     if (!form.title.trim() || !form.body.trim()) return;
-    const targetBrgyName = form.scope === 'city-wide' ? 'buong lungsod' : `Barangay ${form.targetBarangay || brgy}`;
+    const targetScope = isBarangay ? 'barangay' : form.scope;
+    const targetBarangayCode = isBarangay ? brgy : (targetScope === 'city-wide' ? 'City-Wide' : (form.targetBarangay || brgy));
+    const targetBrgyName = targetScope === 'city-wide' ? 'buong lungsod (Lahat ng 897 Barangays)' : `Barangay ${targetBarangayCode} Residents Only`;
     const meta = getCategoryMeta(form.category);
 
     setConfirmModal({
       isOpen: true,
       title: 'I-post ang Anunsyo?',
-      message: `Sigurado ka bang gusto mong i-post ang "${form.title}" sa ${targetBrgyName}? Makatatanggap ang mga residente sa mobile app ng alert na may direct "${meta.actionText || 'View'}" action link.`,
+      message: `Sigurado ka bang gusto mong i-post ang "${form.title}" para sa ${targetBrgyName}? Makatatanggap ang mga residente sa mobile app ng alert na may direct "${meta.actionText || 'View'}" action link.`,
       type: 'info',
       confirmText: 'Oo, I-post na',
       onConfirm: async () => {
         const payload = {
-          title: form.title,
-          body: form.body,
-          barangay: form.scope === 'city-wide' ? 'City-Wide' : (form.targetBarangay || brgy),
-          postedBy: isLguAdmin ? 'LGU Command Center' : `Hon. ${user?.name?.split(' ')[0] || 'Official'}`,
-          scope: form.scope,
+          title: form.title.trim(),
+          body: form.body.trim(),
+          barangay: targetScope === 'city-wide' ? 'City-Wide' : targetBarangayCode,
+          barangayCode: targetScope === 'city-wide' ? null : targetBarangayCode,
+          postedBy: isLguAdmin ? 'LGU Command Center' : `Hon. ${user?.name?.split(' ')[0] || 'Official'} (Brgy ${brgy})`,
+          scope: targetScope,
           category: form.category,
           tag: meta.tag,
           targetTab: meta.targetTab,
@@ -143,7 +145,7 @@ export default function AnnouncementsPage() {
           console.error(e);
         }
         
-        setForm({ title: '', body: '', scope: 'city-wide', targetBarangay: '291', category: 'relief', isUrgent: false });
+        setForm({ title: '', body: '', scope: isBarangay ? 'barangay' : 'city-wide', targetBarangay: brgy, category: 'relief', isUrgent: false });
         setShowForm(false);
         closeConfirm();
       },
@@ -153,19 +155,23 @@ export default function AnnouncementsPage() {
   // ── Edit Announcement with confirmation ──────────────────────
   const startEdit = (ann) => {
     setEditingId(ann._id || ann.id);
+    const isAnnCityWide = !ann.barangayCode || ann.barangayCode === 'null' || ann.barangay === 'City-Wide' || ann.scope === 'city-wide';
     setForm({
       title: ann.title,
       body: ann.body,
-      scope: ann.scope || (ann.barangayCode === 'City-Wide' || ann.barangay === 'City-Wide' ? 'city-wide' : 'barangay'),
+      scope: isBarangay ? 'barangay' : (isAnnCityWide ? 'city-wide' : 'barangay'),
       category: ann.category || 'relief',
       isUrgent: !!ann.isUrgent,
-      targetBarangay: ann.barangay === 'City-Wide' ? '291' : (ann.barangayCode || ann.barangay || '291'),
+      targetBarangay: isAnnCityWide ? '291' : (ann.barangayCode || ann.barangay || '291'),
     });
+    setBrgySearchInput(isAnnCityWide ? '291' : (ann.barangayCode || ann.barangay || '291'));
     setShowForm(true);
   };
 
   const requestSaveEdit = () => {
     if (!form.title.trim() || !form.body.trim()) return;
+    const targetScope = isBarangay ? 'barangay' : form.scope;
+    const targetBarangayCode = isBarangay ? brgy : (targetScope === 'city-wide' ? 'City-Wide' : (form.targetBarangay || brgy));
     const meta = getCategoryMeta(form.category);
 
     setConfirmModal({
@@ -176,9 +182,11 @@ export default function AnnouncementsPage() {
       confirmText: 'Oo, Baguhin',
       onConfirm: async () => {
         const payload = {
-          title: form.title,
-          body: form.body,
-          scope: form.scope,
+          title: form.title.trim(),
+          body: form.body.trim(),
+          scope: targetScope,
+          barangay: targetScope === 'city-wide' ? 'City-Wide' : targetBarangayCode,
+          barangayCode: targetScope === 'city-wide' ? null : targetBarangayCode,
           category: form.category,
           tag: meta.tag,
           targetTab: meta.targetTab,
@@ -194,7 +202,7 @@ export default function AnnouncementsPage() {
         } catch(e) {}
         
         setEditingId(null);
-        setForm({ title: '', body: '', scope: 'city-wide', targetBarangay: '291', category: 'relief', isUrgent: false });
+        setForm({ title: '', body: '', scope: isBarangay ? 'barangay' : 'city-wide', targetBarangay: brgy, category: 'relief', isUrgent: false });
         setShowForm(false);
         closeConfirm();
       },
@@ -222,9 +230,20 @@ export default function AnnouncementsPage() {
     });
   };
 
-  const visible = isBarangay
-    ? announcements.filter(a => a.barangayCode === brgy || a.barangay === brgy || !a.barangayCode || a.scope === 'city-wide')
-    : announcements;
+  const visible = announcements.filter(a => {
+    const code = String(a.barangayCode || a.barangay || '').trim();
+    const isCityWide = !a.barangayCode || a.barangayCode === 'null' || a.barangay === 'City-Wide' || a.scope === 'city-wide';
+
+    if (isBarangay) {
+      // Barangay Official sees their own barangay posts + City-Wide LGU announcements
+      return isCityWide || code === String(brgy).trim();
+    }
+
+    // LGU Admin / Superadmin
+    if (adminFilterBrgy === 'CITY_WIDE') return isCityWide;
+    if (adminFilterBrgy !== 'ALL') return code === adminFilterBrgy;
+    return true;
+  });
 
   return (
     <div className="page-container page-animate">
@@ -299,7 +318,20 @@ export default function AnnouncementsPage() {
               Kapag na-post ito, magkakaroon ng 1-tap shortcut button ang mobile app ng mga residente patungo sa napiling feature.
             </p>
           </div>
-          {isLguAdmin && (
+          {/* Scope Selection */}
+          {isBarangay ? (
+            <div style={{ marginBottom: 16, padding: '12px 16px', background: 'var(--manila-blue-light)', border: '1.5px solid #BFDBFE', borderRadius: 'var(--radius-inner)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Users size={20} color="var(--manila-blue)" />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--manila-blue)' }}>
+                  Target Audience: Barangay {brgy} Residents Only
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>
+                  Awtomatikong naka-lock ang anunsyong ito para lamang sa mga residente ng Barangay {brgy}. Hindi ito makikita ng ibang mga barangay.
+                </div>
+              </div>
+            </div>
+          ) : (
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
                 Announcement Scope & Target Audience
@@ -310,10 +342,10 @@ export default function AnnouncementsPage() {
                   aria-label="Select Announcement Scope"
                   value={form.scope}
                   onChange={e => setForm(p => ({ ...p, scope: e.target.value }))}
-                  style={{ padding: '9px 14px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', cursor: 'pointer', fontWeight: 600, minWidth: 220 }}
+                  style={{ padding: '9px 14px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--manila-blue)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', cursor: 'pointer', fontWeight: 700, minWidth: 260 }}
                 >
-                  <option value="city-wide">City-Wide (All 897 Barangays)</option>
-                  <option value="barangay">Specific Barangay (Type to search)</option>
+                  <option value="city-wide">🌐 City-Wide (Lahat ng 897 Barangays sa Maynila)</option>
+                  <option value="barangay">🏢 Specific Barangay Only (Pumili ng Barangay)</option>
                 </select>
 
                 {/* Autocomplete Typeahead Search Box when 'Specific Barangay' is selected */}
@@ -321,7 +353,7 @@ export default function AnnouncementsPage() {
                   <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
                     <input
                       type="text"
-                      placeholder="Type Barangay number (e.g. 291, 653, 304)..."
+                      placeholder="I-type ang Barangay number (hal. 291, 653, 304)..."
                       value={brgySearchInput}
                       onFocus={() => setShowBrgySuggestions(true)}
                       onChange={(e) => {
@@ -329,12 +361,15 @@ export default function AnnouncementsPage() {
                         setForm(p => ({ ...p, targetBarangay: e.target.value }));
                         setShowBrgySuggestions(true);
                       }}
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--manila-blue)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', fontWeight: 700 }}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1.5px solid #158A64', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', fontWeight: 700 }}
                     />
 
                     {/* Dynamic Suggestion Dropdown List */}
                     {showBrgySuggestions && matchingBarangays.length > 0 && (
                       <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-inner)', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', zIndex: 9999, maxHeight: 220, overflowY: 'auto' }}>
+                        <div style={{ padding: '6px 12px', fontSize: 10.5, fontWeight: 800, color: 'var(--ink-soft)', background: 'var(--sampaguita)', borderBottom: '1px solid var(--border)', textTransform: 'uppercase' }}>
+                          Pumili ng Barangay na Makatatanggap
+                        </div>
                         {matchingBarangays.map(b => (
                           <div
                             key={b.code}
@@ -347,7 +382,7 @@ export default function AnnouncementsPage() {
                             onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sampaguita)'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                           >
-                            Barangay {b.code}
+                            🏢 Barangay {b.code}
                           </div>
                         ))}
                       </div>
@@ -357,12 +392,34 @@ export default function AnnouncementsPage() {
               </div>
             </div>
           )}
+
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={editingId ? requestSaveEdit : requestPost} className="clay-button-primary" style={{ fontSize: 13, gap: 6 }}>
               <Send size={14} /> {editingId ? 'Save Changes' : 'Post Announcement'}
             </button>
-            <button onClick={() => { setShowForm(false); setEditingId(null); setForm({ title: '', body: '', scope: 'barangay' }); }} className="clay-button-ghost" style={{ fontSize: 13 }}>Cancel</button>
+            <button onClick={() => { setShowForm(false); setEditingId(null); setForm({ title: '', body: '', scope: isBarangay ? 'barangay' : 'city-wide', targetBarangay: brgy, category: 'relief', isUrgent: false }); }} className="clay-button-ghost" style={{ fontSize: 13 }}>Cancel</button>
           </div>
+        </div>
+      )}
+
+      {/* ── LGU Admin Scope Filter Bar ── */}
+      {isLguAdmin && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase' }}>Filter View:</span>
+          <button
+            onClick={() => setAdminFilterBrgy('ALL')}
+            className={adminFilterBrgy === 'ALL' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 12.5, padding: '6px 14px' }}
+          >
+            Lahat ng Anunsyo ({announcements.length})
+          </button>
+          <button
+            onClick={() => setAdminFilterBrgy('CITY_WIDE')}
+            className={adminFilterBrgy === 'CITY_WIDE' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 12.5, padding: '6px 14px' }}
+          >
+            🌐 City-Wide Lamang
+          </button>
         </div>
       )}
 
@@ -380,15 +437,24 @@ export default function AnnouncementsPage() {
           const isCityWide = !ann.barangayCode || ann.barangayCode === 'null' || ann.barangay === 'City-Wide' || ann.scope === 'city-wide';
           const authorName = typeof ann.postedBy === 'object' ? (ann.postedBy?.name || 'City Official') : (ann.postedBy || 'Command Center');
           const displayDate = ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently');
-          const brgyLabel = isCityWide ? 'City-Wide' : `Brgy ${ann.barangayCode || ann.barangay}`;
+          const brgyCodeVal = ann.barangayCode || ann.barangay;
+          const brgyLabel = isCityWide ? '🌐 City-Wide Broadcast' : `🏢 Barangay ${brgyCodeVal} Residents Only`;
 
           return (
-            <MotionCard key={ann.id || ann._id || idx} delay={idx * 0.05} className="clay-card" style={{ borderLeft: `4px solid ${isCityWide ? '#7C3AED' : 'var(--manila-blue)'}` }}>
+            <MotionCard key={ann.id || ann._id || idx} delay={idx * 0.05} className="clay-card" style={{ borderLeft: `4.5px solid ${isCityWide ? '#7C3AED' : 'var(--manila-blue)'}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  {isCityWide ? <Globe size={15} color="#7C3AED" /> : <Users size={15} color="var(--manila-blue)" />}
+                  {isCityWide ? <Globe size={16} color="#7C3AED" /> : <Users size={16} color="var(--manila-blue)" />}
                   <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>{ann.title}</span>
-                  <span style={{ background: isCityWide ? '#F5F3FF' : 'var(--manila-blue-light)', color: isCityWide ? '#7C3AED' : 'var(--manila-blue)', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999 }}>
+                  <span style={{
+                    background: isCityWide ? '#F5F3FF' : '#EFF6FF',
+                    color: isCityWide ? '#7C3AED' : '#1D4ED8',
+                    border: isCityWide ? '1px solid #DDD6FE' : '1px solid #BFDBFE',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    padding: '3px 10px',
+                    borderRadius: 999
+                  }}>
                     {brgyLabel}
                   </span>
                   {ann.targetTab && (

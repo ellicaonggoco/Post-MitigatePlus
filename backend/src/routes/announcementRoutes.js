@@ -29,14 +29,30 @@ router.get('/', async (req, res) => {
 
 // @route   POST /api/announcements
 // @desc    Create announcement (Admin / Official)
-router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { title, body, barangay, barangayCode, category, scope, isUrgent, tag, targetTab } = req.body;
     if (!title || !body) {
       return res.status(400).json({ message: 'Title and body are required.' });
     }
 
-    const resolvedBrgy = scope === 'city-wide' || barangay === 'City-Wide' ? null : (barangayCode || barangay || req.user.barangayCode || null);
+    let resolvedBrgy = null;
+    let resolvedScope = 'city-wide';
+
+    if (req.user.role === 'barangay_official') {
+      // Barangay Official: strictly locked to their own barangay
+      resolvedBrgy = String(req.user.barangayCode || '291').trim();
+      resolvedScope = 'barangay';
+    } else {
+      // LGU Admin / Superadmin: Option for City-Wide or Specific Barangay
+      if (scope === 'barangay' && (barangayCode || barangay) && barangayCode !== 'ALL' && barangay !== 'City-Wide') {
+        resolvedBrgy = String(barangayCode || barangay).trim();
+        resolvedScope = 'barangay';
+      } else {
+        resolvedBrgy = null;
+        resolvedScope = 'city-wide';
+      }
+    }
 
     const announcement = await Announcement.create({
       title: title.trim(),
@@ -44,7 +60,7 @@ router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_sup
       barangayCode: resolvedBrgy,
       postedBy: req.user._id,
       category: category || 'general',
-      scope: scope || (resolvedBrgy ? 'barangay' : 'city-wide'),
+      scope: resolvedScope,
       isUrgent: !!isUrgent,
       tag: tag || 'Public Notice',
       targetTab: targetTab || null,
