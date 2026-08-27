@@ -129,7 +129,7 @@ export default function VerificationQueue() {
         }
         message={
           modal.actionStatus === 'verified'
-            ? `Sigurado ka bang verified at tama ang datos ng pamilya ni ${modal.name}? Magiging kwalipikado sila agad para sa ayuda at relief distribution.`
+            ? `Are you sure the household data of ${modal.name} is verified and accurate? They will immediately become eligible for relief distribution.`
             : modal.actionStatus === 'needs_info'
             ? `I-notify si ${modal.name} upang magbigay ng kailangang dokumento o verification notes.`
             : `I-reject ang aplikasyon ni ${modal.name}? Hindi sila makakatanggap ng relief pass hangga't hindi ito naayos.`
@@ -154,7 +154,7 @@ export default function VerificationQueue() {
                  Exclusivong Barangay Official Feature
               </h3>
               <p style={{ fontSize: 13, color: 'var(--ink)', margin: 0 }}>
-                Ang Verification Queue ay para lamang sa mga <strong>Hon. Barangay Officials</strong> upang i-approve ang mga residente ng kanilang mismong barangay. Ang LGU Admin at SuperAdmin ay may kontrol sa Account Provisioning at Field Staff Accounts.
+                The Verification Queue is reserved for Barangay Officials to review and approve residents within their jurisdiction.
               </p>
             </div>
           </div>
@@ -469,7 +469,7 @@ export default function VerificationQueue() {
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <input
                     type="text"
-                    placeholder="Mga tala / dahilan ng pag-apruba (hal. Nabisita sa bahay noong Aug 14, totoong residente)..."
+                    placeholder="Approval notes / verification remarks (e.g. Home visited, verified resident)..."
                     value={selectedNotes[hh._id] || ''}
                     onChange={(e) => setSelectedNotes({ ...selectedNotes, [hh._id]: e.target.value })}
                     style={{

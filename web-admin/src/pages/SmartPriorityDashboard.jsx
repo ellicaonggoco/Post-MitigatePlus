@@ -129,7 +129,7 @@ export default function SmartPriorityDashboard() {
       id: Date.now(),
       type: "directive",
       title: `️ Executive Directive: Deploy Relief`,
-      body: `Inatasan ng City Mayor / SuperAdmin ang LGU Disaster Operations na mag-deploy ng relief sa Barangay ${bCode} (${familyCount} pamilya).`,
+      body: `City Mayor / SuperAdmin has dispatched LGU Disaster Operations to deploy relief in Barangay ${bCode} (${familyCount} households).`,
       time: "Just now",
       read: false,
       link: `/distribution-events?barangay=${bCode}`,

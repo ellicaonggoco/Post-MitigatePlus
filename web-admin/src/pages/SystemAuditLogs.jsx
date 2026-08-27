@@ -230,7 +230,7 @@ export default function SystemAuditLogs() {
               {currentItems.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '36px', color: 'var(--ink-soft)' }}>
-                    Walang nahanap na audit log para sa iyong hinahanap.
+                    No audit log records found matching your search criteria.
                   </td>
                 </tr>
               ) : (

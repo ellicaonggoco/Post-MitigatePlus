@@ -109,15 +109,15 @@ export default function AnnouncementsPage() {
     if (!form.title.trim() || !form.body.trim()) return;
     const targetScope = isBarangay ? 'barangay' : form.scope;
     const targetBarangayCode = isBarangay ? brgy : (targetScope === 'city-wide' ? 'City-Wide' : (form.targetBarangay || brgy));
-    const targetBrgyName = targetScope === 'city-wide' ? 'buong lungsod (Lahat ng 897 Barangays)' : `Barangay ${targetBarangayCode} Residents Only`;
+    const targetBrgyName = targetScope === 'city-wide' ? 'City-Wide (All 897 Barangays)' : `Barangay ${targetBarangayCode} Residents Only`;
     const meta = getCategoryMeta(form.category);
 
     setConfirmModal({
       isOpen: true,
-      title: 'I-post ang Anunsyo?',
-      message: `Sigurado ka bang gusto mong i-post ang "${form.title}" para sa ${targetBrgyName}? Makatatanggap ang mga residente sa mobile app ng alert na may direct "${meta.actionText || 'View'}" action link.`,
+      title: 'Post Announcement?',
+      message: `Are you sure you want to publish "${form.title}" for ${targetBrgyName}? Registered residents will receive an instant notification in their mobile app with a direct "${meta.actionText || 'View'}" link.`,
       type: 'info',
-      confirmText: 'Oo, I-post na',
+      confirmText: 'Yes, Publish Now',
       onConfirm: async () => {
         const payload = {
           title: form.title.trim(),
@@ -176,10 +176,10 @@ export default function AnnouncementsPage() {
 
     setConfirmModal({
       isOpen: true,
-      title: 'I-save ang Pagbabago?',
-      message: 'Sigurado ka bang gusto mong baguhin ang anunsyong ito? Makikita ng mga residente ang "(Edited)" badge.',
+      title: 'Save Changes?',
+      message: 'Are you sure you want to save changes to this announcement? Residents will see an "(Edited)" status badge.',
       type: 'info',
-      confirmText: 'Oo, Baguhin',
+      confirmText: 'Yes, Save Changes',
       onConfirm: async () => {
         const payload = {
           title: form.title.trim(),
@@ -213,10 +213,10 @@ export default function AnnouncementsPage() {
   const requestDelete = (ann) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Burahin ang Anunsyo?',
-      message: `Sigurado ka bang gusto mong burahin ang anunsyong "${ann.title}"? Hindi na ito makikita ng mga residente.`,
+      title: 'Delete Announcement?',
+      message: `Are you sure you want to delete the announcement "${ann.title}"? It will no longer be visible to residents.`,
       type: 'danger',
-      confirmText: 'Oo, Burahin',
+      confirmText: 'Yes, Delete',
       onConfirm: async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/announcements/${ann.id || ann._id}`, {

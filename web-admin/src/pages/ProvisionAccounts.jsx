@@ -185,7 +185,7 @@ export default function ProvisionAccounts() {
   const handleProvisionRequest = (e) => {
     e.preventDefault();
     if (!name.trim() || !emailOrPhone.trim() || !password.trim() || !employeeId.trim() || !contactNum.trim()) {
-      setStatusMsg({ type: 'error', text: 'Paki-kumpleto ang lahat ng required account & employee fields.' });
+      setStatusMsg({ type: 'error', text: 'Please complete all required account and employee fields.' });
       return;
     }
 
@@ -209,7 +209,7 @@ export default function ProvisionAccounts() {
     setModal({
       isOpen: true,
       title: 'Lumikha ng Bagong Akawnt?',
-      message: `Sigurado ka bang gusto mong gawan ng opisyal na akawnt si "${name}" (${employeeId}) bilang ${roleTitle} (${locationText})?`,
+      message: `Are you sure you want to provision an official account for "${name}" (${employeeId}) as ${roleTitle} (${locationText})?`,
       type: 'info',
       confirmText: 'Oo, Lumikha ng Akawnt',
       onConfirm: executeProvision,
@@ -318,7 +318,7 @@ export default function ProvisionAccounts() {
     setModal({
       isOpen: true,
       title: isAct ? 'I-suspend ang Akawnt?' : 'I-reactivate ang Akawnt?',
-      message: `Sigurado ka bang gusto mong ${isAct ? 'i-suspend' : 'i-reactivate'} ang akawnt ni ${acc.name}? ${isAct ? 'Hindi na siya makakapag-access sa system.' : 'Muli siyang makakapag-access sa system.'}`,
+      message: `Are you sure you want to ${isAct ? 'suspend' : 'reactivate'} the account of ${acc.name}? ${isAct ? 'They will lose access to the system.' : 'They will regain access to the system.'}`,
       type: isAct ? 'danger' : 'success',
       confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
       onConfirm: async () => {
@@ -349,10 +349,10 @@ export default function ProvisionAccounts() {
   const requestDeleteAccount = (acc) => {
     setModal({
       isOpen: true,
-      title: 'Burahin ang Akawnt?',
-      message: `Sigurado ka bang gusto mong tuluyang BURAHIN ang akawnt ni ${acc.name} (${acc.emailOrPhone})? Hindi na ito mababawi.`,
+      title: 'Delete Account?',
+      message: `Are you sure you want to permanently DELETE the account of ${acc.name} (${acc.emailOrPhone})? This action cannot be undone.`,
       type: 'danger',
-      confirmText: 'Oo, Burahin Akawnt',
+      confirmText: 'Yes, Delete Account',
       onConfirm: async () => {
         try {
           const targetId = acc.id || acc._id;

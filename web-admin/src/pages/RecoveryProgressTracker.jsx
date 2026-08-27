@@ -98,10 +98,10 @@ export default function RecoveryProgressTracker() {
       {/* Universal Double Confirmation Modal */}
       <ConfirmModal
         isOpen={modal.isOpen}
-        title="I-update ang Recovery Stage?"
-        message={`Sigurado ka bang gusto mong palitan ang recovery stage ng pamilyang "${modal.hh?.head}" tungo sa "${modal.newStage?.label}"?`}
+        title="Update Recovery Stage?"
+        message={`Are you sure you want to change the recovery stage for household "${modal.hh?.head}" to "${modal.newStage?.label}"?`}
         type="info"
-        confirmText="Oo, I-update Stage"
+        confirmText="Yes, Update Stage"
         onConfirm={confirmStageUpdate}
         onCancel={() => setModal({ isOpen: false, hh: null, newStage: null })}
       />
@@ -130,10 +130,10 @@ export default function RecoveryProgressTracker() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--ink)', margin: '0 0 4px' }}>
-                  Pumili ng Bagong Recovery Stage
+                  Select New Recovery Stage
                 </h3>
                 <p style={{ fontSize: '13px', color: 'var(--ink-soft)', margin: 0 }}>
-                  Pamilya: <strong>{selectedHhForStage.head}</strong> ({selectedHhForStage.address})
+                  Household: <strong>{selectedHhForStage.head}</strong> ({selectedHhForStage.address})
                 </p>
               </div>
               <button
@@ -242,8 +242,8 @@ export default function RecoveryProgressTracker() {
         ) : households.length === 0 ? (
           <div className="clay-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
             <Users size={36} color="var(--ink-soft)" style={{ margin: '0 auto 12px', display: 'block' }} />
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>Walang Household Records</h2>
-            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>Lahat ng rehistradong pamilya sa Barangay {brgy} ay lalabas dito para ma-track ang kanilang recovery.</p>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>No Household Records Found</h2>
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>All registered households in Barangay {brgy} will appear here to track their recovery progression.</p>
           </div>
         ) : (
           households.map((hh, idx) => {

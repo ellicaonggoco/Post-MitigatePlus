@@ -156,7 +156,7 @@ export default function ReliefAllocationPage() {
       setConfirmModal({
         isOpen: true,
         title: 'Security Error',
-        message: 'Maling Security Passcode. I-type ang "CONFIRM" o "2026" upang mai-apply ang bagong relief formula.',
+        message: 'Invalid Security Passcode. Type "CONFIRM" or "2026" to apply the new relief formula.',
         type: 'danger',
         confirmText: 'Okay',
         onConfirm: () => setConfirmModal({ isOpen: false, eventData: null }),
@@ -205,7 +205,7 @@ export default function ReliefAllocationPage() {
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={confirmModal.title || "I-lunsod ang Distribution Event?"}
-        message={confirmModal.message || (confirmModal.eventData ? `Sigurado ka bang gusto mong buksan ang "${confirmModal.eventData.title}" sa ${confirmModal.eventData.location}? Magiging active ito agad para sa scanning ng Field Staff.` : '')}
+        message={confirmModal.message || (confirmModal.eventData ? `Are you sure you want to open "${confirmModal.eventData?.title}" at ${confirmModal.eventData?.location}? It will immediately become active for Field Staff QR scanning.` : '')}
         type={confirmModal.type || "success"}
         confirmText={confirmModal.confirmText || "Oo, I-launch na Event"}
         onConfirm={confirmModal.onConfirm || executeCreateEvent}
@@ -235,13 +235,13 @@ export default function ReliefAllocationPage() {
           <div className="clay-card page-animate" style={{ maxWidth: 500, width: '100%', padding: 28, borderLeft: '5px solid #D97706', background: 'var(--card)', boxShadow: '0 25px 60px rgba(0,0,0,0.45)', borderRadius: 'var(--radius-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#D97706', marginBottom: 12 }}>
               <ShieldAlert size={28} />
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ink)' }}>Babala: I-update ang Relief Policy?</h3>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ink)' }}>Warning: Update Relief Allocation Policy?</h3>
             </div>
             <p style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.6, marginBottom: 16 }}>
-              Baguhin ang <strong>Base Family Size Threshold (Max {policy.baseCoverage} members)</strong> at top-up multipliers. Ang pagbabagong ito ay <strong>maka-apekto sa lahat ng lalabas na ayuda</strong> sa buong Lungsod ng Maynila.
+              Modifying the <strong>Base Family Size Threshold (Max {policy.baseCoverage} members)</strong> and top-up multipliers will <strong>affect all relief allocations</strong> across the entire City of Manila.
             </p>
             <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: '12px 14px', borderRadius: 'var(--radius-inner)', fontSize: 12, color: '#92400E', marginBottom: 20 }}>
-              Step 1 of 2: Sigurado ka bang nais mong palitan ang opisyal na formula ng LGU SuperAdmin?
+              Step 1 of 2: Are you sure you want to update the official LGU SuperAdmin relief allocation policy?
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setPolicyModalStep(0)} className="clay-button-ghost" style={{ fontSize: 13 }}>Kanselahin</button>
@@ -278,18 +278,18 @@ export default function ReliefAllocationPage() {
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ink)' }}>Executive Authorization Required</h3>
             </div>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 14 }}>
-              I-type ang security word <strong>CONFIRM</strong> o passcode <strong>2026</strong> upang pinal na lagdaan at i-apply ang bagong Relief Allocation Policy.
+              Type the security confirmation <strong>CONFIRM</strong> or passcode <strong>2026</strong> to authorize and apply the new Relief Allocation Policy.
             </p>
             <input
               type="text"
-              placeholder='I-type ang "CONFIRM"'
+              placeholder='Type "CONFIRM"'
               value={secPin}
               onChange={e => setSecPin(e.target.value)}
               style={{ ...inputStyle, fontSize: 15, fontWeight: 800, textAlign: 'center', letterSpacing: 2, marginBottom: 20, border: '2px solid var(--manila-blue)' }}
             />
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => { setPolicyModalStep(0); setSecPin(''); }} className="clay-button-ghost" style={{ fontSize: 13 }}>Kanselahin</button>
-              <button onClick={handleExecutePolicySave} className="clay-button-approve" style={{ fontSize: 13 }}>Pinal na I-apply ang Policy</button>
+              <button onClick={handleExecutePolicySave} className="clay-button-approve" style={{ fontSize: 13 }}>Authorize & Apply Policy</button>
             </div>
           </div>
         </div>,
@@ -343,7 +343,7 @@ export default function ReliefAllocationPage() {
               style={{ ...inputStyle, border: '2px solid var(--manila-blue)', fontWeight: 800, marginTop: 6 }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
-              <strong>Klaripikasyon:</strong> Ang standard limit ng bilang ng tao sa pamilya na sakop ng 1 buong Base Relief Pack. Ang lahat ng lumagpas sa numerong ito ay bibigyan ng proportional Top-Up.
+              <strong>Clarification:</strong> The standard family size threshold covered by 1 Base Relief Pack. Any household exceeding this count will receive proportional Top-Up packs.
             </span>
           </div>
 
@@ -400,10 +400,10 @@ export default function ReliefAllocationPage() {
         {/* Live Test Simulation Panel */}
         <div style={{ background: 'var(--sampaguita)', padding: '18px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', marginBottom: 20 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)', textTransform: 'uppercase', marginBottom: 4 }}>
-            Live Simulation Test (Halimbawa ng Pamilya)
+            Live Formula Simulation (Sample Family Test)
           </div>
           <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '0 0 12px' }}>
-            I-test dito ang iba't ibang laki ng pamilya upang makita ang live breakdown ng formula bago i-save.
+            Simulate different household sizes to test the dynamic allocation breakdown prior to saving.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>

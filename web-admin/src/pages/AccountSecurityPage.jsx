@@ -80,7 +80,7 @@ export default function AccountSecurityPage() {
     setModal({
       isOpen: true,
       title: 'I-create ang Bagong Akawnt?',
-      message: `Sigurado ka bang gusto mong gawan ng akawnt si "${newName}" (${newEmail}) bilang ${roleTitle} (${brgyText})?`,
+      message: `Are you sure you want to provision an account for "${newName}" (${newEmail}) as ${roleTitle} (${brgyText})?`,
       type: 'info',
       confirmText: 'Oo, I-create',
       onConfirm: executeCreate,
@@ -134,7 +134,7 @@ export default function AccountSecurityPage() {
     setModal({
       isOpen: true,
       title: isAct ? 'I-suspend ang Account?' : 'I-reactivate ang Account?',
-      message: `Sigurado ka bang gusto mong ${isAct ? 'i-suspend' : 'i-reactivate'} ang account ni ${acc.name}? ${isAct ? 'Hindi na siya makakapag-login sa system.' : 'Muli siyang makakapag-access sa dashboard.'}`,
+      message: `Are you sure you want to ${isAct ? 'suspend' : 'reactivate'} the account of ${acc.name}? ${isAct ? 'They will no longer be able to log in.' : 'They will regain access to the dashboard.'}`,
       type: isAct ? 'danger' : 'success',
       confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
       onConfirm: () => {
@@ -149,10 +149,10 @@ export default function AccountSecurityPage() {
   const requestDelete = (acc) => {
     setModal({
       isOpen: true,
-      title: 'Burahin ang Account?',
-      message: `Sigurado ka bang gusto mong tuluyang BURAHIN ang account ni ${acc.name} (${acc.email || acc.emailOrPhone})? Hindi na ito mababawi.`,
+      title: 'Delete Account?',
+      message: `Are you sure you want to permanently DELETE the account of ${acc.name} (${acc.email || acc.emailOrPhone})? This action cannot be undone.`,
       type: 'danger',
-      confirmText: 'Oo, Burahin',
+      confirmText: 'Yes, Delete Account',
       onConfirm: () => {
         const updated = accounts.filter(a => a.id !== acc.id);
         saveToStorage(updated);

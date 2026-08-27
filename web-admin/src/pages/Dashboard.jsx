@@ -238,7 +238,7 @@ function BarangayDashboard({ token, user }) {
     <div className="page-container page-animate">
       <WelcomeBanner
         badge={`Barangay ${barangayCode} Operations Center`}
-        title={`Magandang araw, Barangay ${barangayCode}!`}
+        title={`Welcome, Barangay ${barangayCode}!`}
         sub={`Official Operations Panel for Barangay ${barangayCode}, Lungsod ng Maynila.`}
         gradient="linear-gradient(135deg, #090154 0%, #001275 60%, #1E40AF 100%)"
       />

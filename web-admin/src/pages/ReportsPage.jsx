@@ -488,7 +488,7 @@ export default function ReportsPage() {
                     ]);
                     exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_Manila_${selectedBrgy}`, headers, rows);
                   } else {
-                    alert('Walang natagpuang relief distribution records para sa napiling sakop.');
+                    alert('No relief distribution records found for the selected filter criteria.');
                   }
                 } catch (e) {
                   alert('Error exporting COA liquidation masterlist: ' + e.message);

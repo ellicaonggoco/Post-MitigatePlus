@@ -113,7 +113,7 @@ export default function DistributionEvents() {
         staff: availableTeam,
       }));
       setShowForm(true);
-      setToastMsg(`Deploy Relief Mode: Awtomatikong binuksan ang Event Creation para sa Barangay ${cleanCode}!`);
+      setToastMsg(`Deploy Relief Mode: Event Creation prefilled for Barangay ${cleanCode}!`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.search, location.state, events]);
@@ -215,10 +215,10 @@ export default function DistributionEvents() {
   const requestSendAnnouncement = (ev) => {
     setConfirmModal({
       isOpen: true,
-      title: 'I-broadcast ang Distribution Announcement?',
-      message: `Sigurado ka bang gusto mong i-broadcast ang official relief announcement para sa ${ev.barangay}? Awtomatiko itong malalathala sa Announcements Board at magdi-dispatch ng inventory stocks para sa ${ev.households} households.`,
+      title: 'Broadcast Distribution Announcement?',
+      message: `Are you sure you want to broadcast the official relief announcement for ${ev.barangay}? This will publish to the Announcements Board and dispatch warehouse inventory for ${ev.households} households.`,
       type: 'info',
-      confirmText: 'Oo, I-broadcast Now',
+      confirmText: 'Yes, Broadcast Announcement',
       onConfirm: () => {
         // Mark event as announcement sent
         const updatedMap = { ...sentAnnouncements, [ev.id]: true };
@@ -230,7 +230,7 @@ export default function DistributionEvents() {
         // Post announcement to API (could be implemented later)
 
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
-        setToastMsg(` Awtomatikong na-broadcast ang Announcement & Na-dispatch ang inventory stocks para sa ${ev.barangay}!`);
+        setToastMsg(` Announcement broadcasted & inventory stocks dispatched for ${ev.barangay}!`);
       },
     });
   };
@@ -242,14 +242,14 @@ export default function DistributionEvents() {
       Scheduled: `Ibalik sa Scheduled ang Event sa ${ev.barangay || ev.location}?`,
     };
     const statusMsgs = {
-      Ongoing: `Awtomatikong magiging "ONGOING" ang relief distribution. Kumpirmahin kung nakahanda na ang Field Staff.`,
-      Completed: `Awtomatikong magiging "COMPLETED" ang event at ma-a-audit ang kabuuang mga household na nabigyan ng ayuda.`,
+      Ongoing: `Relief distribution will be marked as "ONGOING". Please ensure Field Staff are ready on-site.`,
+      Completed: `Event will be marked as "COMPLETED" and all household claims will be finalized for audit.`,
       Scheduled: `I-revert ang status ng event pabalik sa Scheduled?`,
     };
 
     setConfirmModal({
       isOpen: true,
-      title: statusTitles[newStatus] || 'I-update ang Event Status?',
+      title: statusTitles[newStatus] || 'Update Event Status?',
       message: statusMsgs[newStatus] || `Gusto mo bang palitan ang status ng event sa ${newStatus}?`,
       type: newStatus === 'Completed' ? 'success' : 'warning',
       confirmText: `Oo, Gawing ${newStatus}`,
