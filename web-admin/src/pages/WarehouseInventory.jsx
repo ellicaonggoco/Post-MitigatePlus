@@ -244,63 +244,76 @@ export default function WarehouseInventory() {
 
       {/* Inventory Item Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 32 }}>
-        {inventory.map((item, idx) => {
-          const isLow = item.stock <= item.low;
-          const pct = Math.round((item.stock / item.capacity) * 100);
-          const ItemIcon = ITEM_ICONS[item.id] || Package;
+        {inventory.length === 0 ? (
+          <div className="clay-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 24px' }}>
+            <Warehouse size={36} color="var(--manila-blue)" style={{ margin: '0 auto 12px' }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>Loading Warehouse Inventory...</h3>
+            <p style={{ fontSize: '13px', color: 'var(--ink-soft)', margin: 0 }}>Syncing stock levels with Central Storage Facility.</p>
+          </div>
+        ) : (
+          inventory.map((item, idx) => {
+            const itemName = item.name || item.item || 'Relief Item';
+            const itemStock = Number(item.stock || 0);
+            const itemUnit = item.unit || 'packs';
+            const itemMin = Number(item.minStock || item.low || 100);
+            const itemCapacity = Number(item.capacity || (itemMin * 5) || 5000);
+            const isLow = itemStock <= itemMin;
+            const pct = Math.min(100, Math.round((itemStock / itemCapacity) * 100));
+            const ItemIcon = ITEM_ICONS[item.id] || ITEM_ICONS[idx + 1] || Package;
 
-          return (
-            <MotionCard key={item.id || idx} delay={idx * 0.05} className="clay-card" style={{ borderTop: `3px solid ${isLow ? '#DC2626' : item.stock / item.capacity < 0.4 ? '#D97706' : '#158A64'}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-inner)', background: 'var(--sampaguita)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ItemIcon size={20} color="var(--manila-blue)" />
+            return (
+              <MotionCard key={item._id || item.id || idx} delay={idx * 0.05} className="clay-card" style={{ borderTop: `3.5px solid ${isLow ? '#DC2626' : pct < 35 ? '#D97706' : '#158A64'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 'var(--radius-inner)', background: 'var(--sampaguita)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ItemIcon size={20} color="var(--manila-blue)" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>{itemName}</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>{item.category || 'Core Relief'} • Central Warehouse</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{item.item}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>Central Storage Facility</div>
+                  {isLow && <span style={{ background: '#FEF2F2', color: '#DC2626', fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>LOW STOCK</span>}
+                </div>
+
+                <div style={{ fontSize: 30, fontWeight: 900, color: isLow ? '#DC2626' : 'var(--ink)', lineHeight: 1.1, margin: '10px 0 6px' }}>
+                  {itemStock.toLocaleString()}
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', marginLeft: 6 }}>{itemUnit}</span>
+                </div>
+
+                <StockBar stock={itemStock} capacity={itemCapacity} low={itemMin} />
+
+                <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+                    {pct}% of capacity &nbsp;·&nbsp; Min Threshold: {itemMin}
+                  </div>
+
+                  {/* Stock Controls */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => openActionForm({ ...item, item: itemName, stock: itemStock, unit: itemUnit, minStock: itemMin }, 'restock')}
+                      title="Add Stock (+)"
+                      aria-label={`Add stock for ${itemName}`}
+                      className="clay-button-approve"
+                      style={{ fontSize: 11, padding: '4px 10px', gap: 4, height: 28 }}
+                    >
+                      <PlusCircle size={13} /> + Receive
+                    </button>
+                    <button
+                      onClick={() => openActionForm({ ...item, item: itemName, stock: itemStock, unit: itemUnit, minStock: itemMin }, 'dispatch')}
+                      title="Dispatch Stock (-)"
+                      aria-label={`Dispatch stock for ${itemName}`}
+                      className="clay-button-danger"
+                      style={{ fontSize: 11, padding: '4px 10px', gap: 4, height: 28 }}
+                    >
+                      <MinusCircle size={13} /> - Dispatch
+                    </button>
                   </div>
                 </div>
-                {isLow && <span style={{ background: '#FEF2F2', color: '#DC2626', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap' }}>LOW STOCK</span>}
-              </div>
-
-              <div style={{ fontSize: 32, fontWeight: 900, color: isLow ? '#DC2626' : 'var(--ink)', lineHeight: 1.1, margin: '8px 0' }}>
-                {item.stock.toLocaleString()}
-                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-soft)', marginLeft: 6 }}>{item.unit}</span>
-              </div>
-
-              <StockBar stock={item.stock} capacity={item.capacity} low={item.low} />
-
-              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
-                  {pct}% of capacity &nbsp;·&nbsp; Min: {item.low}
-                </div>
-
-                {/* Stock Controls */}
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    onClick={() => openActionForm(item, 'restock')}
-                    title="Add Stock (+)"
-                    aria-label={`Add stock for ${item.item}`}
-                    className="clay-button-approve"
-                    style={{ fontSize: 11, padding: '4px 8px', gap: 4, height: 26 }}
-                  >
-                    <PlusCircle size={12} /> + Add
-                  </button>
-                  <button
-                    onClick={() => openActionForm(item, 'dispatch')}
-                    title="Dispatch Stock (-)"
-                    aria-label={`Dispatch stock for ${item.item}`}
-                    className="clay-button-danger"
-                    style={{ fontSize: 11, padding: '4px 8px', gap: 4, height: 26 }}
-                  >
-                    <MinusCircle size={12} /> - Dispatch
-                  </button>
-                </div>
-              </div>
-            </MotionCard>
-          );
-        })}
+              </MotionCard>
+            );
+          })
+        )}
       </div>
 
       {/* Inventory Audit Trail & Log History */}
@@ -310,42 +323,48 @@ export default function WarehouseInventory() {
           <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>Stock Movement & Audit History</h2>
         </div>
 
-        <table className="clay-table">
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Item</th>
-              <th>Movement Type</th>
-              <th>Quantity</th>
-              <th>Remaining Stock</th>
-              <th>Reference / Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map(log => (
-              <tr key={log.id || log._id}>
-                <td style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{log.time || new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
-                <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{log.item || log.itemName}</td>
-                <td>
-                  {log.type === 'restock' ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(21,138,100,0.1)', color: '#047857', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>
-                      <ArrowUpRight size={12} /> Restock (+)
-                    </span>
-                  ) : (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#FEF2F2', color: '#991B1B', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>
-                      <ArrowDownRight size={12} /> Dispatch (-)
-                    </span>
-                  )}
-                </td>
-                <td style={{ fontWeight: 800, color: log.type === 'restock' ? '#047857' : '#991B1B' }}>
-                  {log.type === 'restock' ? `+${log.qty}` : `-${log.qty}`}
-                </td>
-                <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{log.updatedStock ? log.updatedStock.toLocaleString() : '-'}</td>
-                <td style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{log.note}</td>
+        {logs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--ink-soft)', fontSize: '13px' }}>
+            No stock movement history recorded yet. Use the <strong>+ Receive</strong> or <strong>- Dispatch</strong> buttons above to record shipments.
+          </div>
+        ) : (
+          <table className="clay-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Item</th>
+                <th>Movement Type</th>
+                <th>Quantity</th>
+                <th>Remaining Stock</th>
+                <th>Reference / Notes</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.map(log => (
+                <tr key={log.id || log._id}>
+                  <td style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{log.time || new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{log.item || log.itemName || (log.itemId?.name || 'Relief Item')}</td>
+                  <td>
+                    {log.action === 'restock' || log.type === 'restock' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(21,138,100,0.1)', color: '#047857', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>
+                        <ArrowUpRight size={12} /> Restock (+)
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#FEF2F2', color: '#991B1B', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>
+                        <ArrowDownRight size={12} /> Dispatch (-)
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ fontWeight: 800, color: (log.action === 'restock' || log.type === 'restock') ? '#047857' : '#991B1B' }}>
+                    {(log.action === 'restock' || log.type === 'restock') ? `+${log.quantity || log.qty}` : `-${log.quantity || log.qty}`}
+                  </td>
+                  <td style={{ fontWeight: 700, color: 'var(--ink)' }}>{log.updatedStock ? log.updatedStock.toLocaleString() : (log.remainingStock ? log.remainingStock.toLocaleString() : '—')}</td>
+                  <td style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{log.notes || log.note || 'Official Logistics Operation'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

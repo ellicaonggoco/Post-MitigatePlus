@@ -8,7 +8,18 @@ const { protect, requireRole } = require('../middleware/auth');
 // GET /api/warehouse - List all items
 router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'field_staff', 'barangay_official'), async (req, res) => {
   try {
-    const items = await WarehouseItem.find().sort({ category: 1, name: 1 });
+    let items = await WarehouseItem.find().sort({ category: 1, name: 1 });
+    if (items.length === 0) {
+      const defaultItems = [
+        { name: 'All-in-One Family Relief Pack', category: 'Food', stock: 2500, unit: 'packs', minStock: 500 },
+        { name: '5-Gallon Potable Drinking Water', category: 'Water', stock: 1800, unit: 'units', minStock: 300 },
+        { name: 'Emergency Medical & First Aid Kit', category: 'Medicine', stock: 950, unit: 'kits', minStock: 200 },
+        { name: 'Infant & Toddler Care Pack', category: 'Hygiene', stock: 600, unit: 'packs', minStock: 150 },
+        { name: 'Senior Maintenance & Nutrition Pack', category: 'Medicine', stock: 750, unit: 'packs', minStock: 150 },
+        { name: 'Emergency Family Shelter & Blanket Kit', category: 'Shelter', stock: 400, unit: 'kits', minStock: 100 },
+      ];
+      items = await WarehouseItem.insertMany(defaultItems);
+    }
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });
