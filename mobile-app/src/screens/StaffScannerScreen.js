@@ -180,7 +180,20 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
           );
         }
 
-        const entitlementText = `${Math.ceil((matchedHh.memberCount || 4) / 5)}x Family Food Pack (Standard Headcount)`;
+        const memberCount = Math.max(1, matchedHh.memberCount || 1);
+        const basePacks = Math.max(1, Math.floor(memberCount / 5));
+        const extraUnits = memberCount > 5 ? memberCount - (basePacks * 5) : 0;
+        const membersArr = Array.isArray(matchedHh.members) ? matchedHh.members : [];
+        const seniorCount = matchedHh.seniorCount || membersArr.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
+        const infantCount = matchedHh.infantCount || membersArr.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
+        const pwdCount = matchedHh.pwdCount || membersArr.filter(m => m.specialConditions?.includes('pwd')).length;
+
+        const entitlementSummary = `${basePacks}x Base All-in-One Pack (Covers up to 5 pax)` +
+          (extraUnits > 0 ? ` + ${extraUnits}x Extra Member Top-Up` : '') +
+          (seniorCount > 0 ? ` + ${seniorCount}x Senior Pack` : '') +
+          (infantCount > 0 ? ` + ${infantCount}x Infant Pack` : '') +
+          (pwdCount > 0 ? ` + ${pwdCount}x PWD Pack` : '');
+
         setScanResult({
           household: {
             _id: matchedHh._id || matchedHh.id,
@@ -188,9 +201,14 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
             name: matchedHh.name || 'Verified Beneficiary',
             qrCode: matchedHh.qrCode,
             address: matchedHh.address || 'Barangay 291, Manila',
-            familyHeadcount: matchedHh.memberCount || 1,
+            familyHeadcount: memberCount,
             priorityLevel: matchedHh.priorityLevel || 'High',
-            entitlement: entitlementText,
+            entitlement: entitlementSummary,
+            basePacks,
+            extraUnits,
+            seniorCount,
+            infantCount,
+            pwdCount,
             isVerified: true,
             isOfflineScanned: true,
           },
@@ -207,14 +225,19 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
       const res = await scanHouseholdQRCode(targetCode.trim(), token);
       if (res && res.household) {
         const hh = res.household;
-        let entitlementText = '';
-        if (res.recommendations && Object.keys(res.recommendations).length > 0) {
-          entitlementText = Object.entries(res.recommendations)
-            .map(([item, rec]) => `${rec.basePacks}x Base ${item}${rec.topUpUnits > 0 ? ` + ${rec.topUpUnits} Top-Up Units` : ''}`)
-            .join(' • ');
-        } else {
-          entitlementText = `${Math.ceil((hh.memberCount || 4) / 5)}x Family Food Pack`;
-        }
+        const memberCount = Math.max(1, hh.memberCount || 1);
+        const basePacks = Math.max(1, Math.floor(memberCount / 5));
+        const extraUnits = memberCount > 5 ? memberCount - (basePacks * 5) : 0;
+        const membersArr = Array.isArray(hh.members) ? hh.members : [];
+        const seniorCount = res.entitlement?.seniorCount ?? membersArr.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
+        const infantCount = res.entitlement?.infantCount ?? membersArr.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
+        const pwdCount = res.entitlement?.pwdCount ?? membersArr.filter(m => m.specialConditions?.includes('pwd')).length;
+
+        const entitlementSummary = `${basePacks}x Base All-in-One Pack (Covers up to 5 pax)` +
+          (extraUnits > 0 ? ` + ${extraUnits}x Extra Member Top-Up` : '') +
+          (seniorCount > 0 ? ` + ${seniorCount}x Senior Pack` : '') +
+          (infantCount > 0 ? ` + ${infantCount}x Infant Pack` : '') +
+          (pwdCount > 0 ? ` + ${pwdCount}x PWD Pack` : '');
 
         // Immediate Front-End Duplicate Check
         const selectedEvtId = String(selectedEvent?._id || selectedEvent?.id || '');
@@ -231,14 +254,6 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
           setDuplicateMessage(`Nakatanggap na ang pamilyang ito ng ayuda sa naturang event kaninang ${claimTime}. Bawal ang dobleng kuha.`);
         }
 
-        const requestedPackages = res.requestedPackages || {
-          food: true,
-          water: false,
-          medical: false,
-          infant: false,
-          senior: false,
-        };
-
         setScanResult({
           household: {
             _id: hh._id,
@@ -246,12 +261,15 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
             name: hh.headOfHouseholdUserId?.name || hh.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident'),
             qrCode: targetCode,
             address: hh.address ? `${hh.address}, ${hh.purok ? `Purok ${hh.purok}, ` : ''}Brgy ${hh.barangayCode || '291'}` : (lang === 'tl' ? 'Barangay 291, Maynila' : 'Barangay 291, Manila'),
-            familyHeadcount: hh.memberCount || 1,
+            familyHeadcount: memberCount,
             priorityLevel: res.priorityLevel || hh.priorityLevel || 'High',
-            entitlement: entitlementText,
+            entitlement: entitlementSummary,
+            basePacks,
+            extraUnits,
+            seniorCount,
+            infantCount,
+            pwdCount,
             isVerified: res.isVerified !== undefined ? res.isVerified : true,
-            requestedPackages,
-            activeRequests: res.activeRequests || [],
           },
           recommendations: res.recommendations,
           scannedAt: new Date().toLocaleTimeString(),
@@ -517,52 +535,72 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                 {/* Package Breakdown Checklist */}
                 <View style={{ marginTop: 10, padding: 10, backgroundColor: '#F8FAFC', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' }}>
                   <Text style={{ fontSize: 11, fontWeight: '800', color: '#1E293B', marginBottom: 6, textTransform: 'uppercase' }}>
-                    {lang === 'tl' ? '📦 TALAAN NG MGA IPAMAMAHAGING AYUDA' : '📦 AUTHORIZED PACKAGE CHECKLIST'}
+                    {lang === 'tl' ? '📦 TALAAN NG MGA IAABOT NA AYUDA' : '📦 AUTHORIZED ITEMS TO RELEASE'}
                   </Text>
                   
-                  <View style={{ gap: 4 }}>
+                  <View style={{ gap: 5 }}>
+                    {/* 1. Base All-in-One Family Relief Pack */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A' }}>
-                        🍚 {lang === 'tl' ? 'Pamilyang Food Pack' : 'Family Food Pack'} ({scanResult.household.familyHeadcount > 4 ? `${Math.ceil(scanResult.household.familyHeadcount / 4)} packs` : '1 pack'})
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
+                        🍱 {scanResult.household.basePacks || 1}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
                       </Text>
+                      <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#1557B0' }}>{lang === 'tl' ? 'Pagkain + Gamot + Tubig' : 'Food + Meds + Water'}</Text>
+                      </View>
                     </View>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.water ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
-                        {scanResult.household.requestedPackages?.water ? '✓' : '—'}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.water ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.water ? '700' : '400' }}>
-                        💧 {lang === 'tl' ? 'Inuming Tubig (Drinking Water)' : 'Drinking Water Pack'} {scanResult.household.requestedPackages?.water ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
-                      </Text>
-                    </View>
+                    {/* 2. Extra Member Food Top-Up */}
+                    {scanResult.household.extraUnits > 0 && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
+                          🍚 +{scanResult.household.extraUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
+                        </Text>
+                        <View style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>+{scanResult.household.extraUnits} pax</Text>
+                        </View>
+                      </View>
+                    )}
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.medical ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
-                        {scanResult.household.requestedPackages?.medical ? '✓' : '—'}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.medical ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.medical ? '700' : '400' }}>
-                        💊 {lang === 'tl' ? 'Medical & First Aid Kit' : 'Medical & First Aid Kit'} {scanResult.household.requestedPackages?.medical ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
-                      </Text>
-                    </View>
+                    {/* 3. Senior Citizen Maintenance & Nutrition Top-Up */}
+                    {scanResult.household.seniorCount > 0 && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
+                          🧓 +{scanResult.household.seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
+                        </Text>
+                        <View style={{ backgroundColor: '#FFFBEB', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#D97706' }}>{scanResult.household.seniorCount} Senior</Text>
+                        </View>
+                      </View>
+                    )}
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.infant ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
-                        {scanResult.household.requestedPackages?.infant ? '✓' : '—'}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.infant ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.infant ? '700' : '400' }}>
-                        👶 {lang === 'tl' ? 'Sanggol / Infant Care Pack' : 'Infant & Toddler Care Pack'} {scanResult.household.requestedPackages?.infant ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
-                      </Text>
-                    </View>
+                    {/* 4. Infant Care & Baby Nutrition Top-Up */}
+                    {scanResult.household.infantCount > 0 && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
+                          👶 +{scanResult.household.infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
+                        </Text>
+                        <View style={{ backgroundColor: '#FDF2F8', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#DB2777' }}>{scanResult.household.infantCount} Sanggol</Text>
+                        </View>
+                      </View>
+                    )}
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.senior ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
-                        {scanResult.household.requestedPackages?.senior ? '✓' : '—'}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.senior ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.senior ? '700' : '400' }}>
-                        🧓 {lang === 'tl' ? 'Senior & Hygiene Care Kit' : 'Senior & Hygiene Care Kit'} {scanResult.household.requestedPackages?.senior ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
-                      </Text>
-                    </View>
+                    {/* 5. PWD Health Support Top-Up */}
+                    {scanResult.household.pwdCount > 0 && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
+                          ♿ +{scanResult.household.pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
+                        </Text>
+                        <View style={{ backgroundColor: '#F5F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#7C3AED' }}>{scanResult.household.pwdCount} PWD</Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </View>
 

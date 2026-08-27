@@ -6,7 +6,7 @@ const AssistanceRequest = require('../models/AssistanceRequest');
 const AuditLog = require('../models/AuditLog');
 const { protect, requireRole, requireBarangayScope } = require('../middleware/auth');
 const { calculatePriorityIndex } = require('../utils/priorityIndex');
-const { calculateReliefAllocation } = require('../utils/reliefAllocation');
+const { calculateReliefAllocation, calculateHouseholdEntitlement } = require('../utils/reliefAllocation');
 const { detectAssistanceGaps } = require('../utils/gapDetection');
 
 // @route   GET /api/households/pending
@@ -215,10 +215,12 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const pastRequests = await AssistanceRequest.find({ householdId: household._id });
     const pastDistributions = await Distribution.find({ householdId: household._id });
 
+    const entitlement = calculateHouseholdEntitlement(household);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
     res.json({
       household,
+      entitlement,
       gapAnalysis,
       pastRequests,
       pastDistributions,
@@ -290,6 +292,7 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       recommendations['Hygiene Kit'] = calculateReliefAllocation(household.memberCount, 5, 'headcount_scaled');
     }
     
+    const entitlement = calculateHouseholdEntitlement(household);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
     res.json({
@@ -297,6 +300,7 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       isVerified: household.verificationStatus === 'verified',
       priorityLevel: household.priorityLevel,
       priorityScore: household.priorityScore,
+      entitlement,
       recommendations,
       pastDistributions,
       activeRequests,

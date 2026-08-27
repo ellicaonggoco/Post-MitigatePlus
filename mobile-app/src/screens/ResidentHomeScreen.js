@@ -176,9 +176,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas (High)' : 'High Priority');
   const isVerified = householdData?.verificationStatus === 'verified';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
-  const baseCoverage = 4; // 1 Base pack covers up to 4 members
+  const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
   const topUpUnits = headcount > baseCoverage ? (headcount - (basePacks * baseCoverage)) : 0;
+
+  const membersList = Array.isArray(householdData?.members) ? householdData.members : [];
+  const seniorCount = membersList.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
+  const infantCount = membersList.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
+  const pwdCount = membersList.filter(m => m.specialConditions?.includes('pwd')).length;
 
   return (
     <View style={styles.container}>
@@ -352,6 +357,125 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               )}
             </LinearGradient>
 
+            {/* ── Awtomatikong Nakatalagang Ayuda (Autonomous Entitlement Breakdown Card) ── */}
+            <View style={styles.entitlementBannerCard}>
+              <View style={styles.entitlementBannerHeader}>
+                <View style={styles.entitlementIconWell}>
+                  <Text style={{ fontSize: 18 }}>🍱</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.entitlementKicker}>
+                    {lang === 'tl' ? 'AWTOMATIKONG NAKATALAGANG ALOKASYON' : 'AUTOMATED RELIEF ENTITLEMENT'}
+                  </Text>
+                  <Text style={styles.entitlementTitleText}>
+                    {lang === 'tl' ? 'Ayuda Para sa Inyong Pamilya' : 'Right-Sized Relief Allocation'}
+                  </Text>
+                </View>
+                <View style={styles.entitlementAutoBadge}>
+                  <Text style={styles.entitlementAutoBadgeText}>
+                    {lang === 'tl' ? 'Auto-Computed' : 'Auto-Computed'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.entitlementExplainer}>
+                {lang === 'tl'
+                  ? `Batay sa ${headcount} rehistradong miyembro ng inyong pamilya sa Barangay ${brgyCode}, ito ang opisyal na iaabot ng Relief Staff kapag na-scan ang inyong QR Pass:`
+                  : `Computed from your ${headcount} registered household member(s) in Barangay ${brgyCode}. Present your QR Pass during release:`}
+              </Text>
+
+              {/* Specific Package Item Rows */}
+              <View style={styles.entitlementItemsList}>
+                {/* 1. Base All-in-One Family Relief Pack */}
+                <View style={styles.entitlementItemRow}>
+                  <View style={[styles.entitlementItemDot, { backgroundColor: '#1557B0' }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.entitlementItemName}>
+                      🍱 {basePacks}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
+                    </Text>
+                    <Text style={styles.entitlementItemDesc}>
+                      {lang === 'tl' ? 'Kumpletong Bigas/Pagkain, Gamot & First Aid, at Inuming Tubig (Sakop ang hanggang 5 miyembro)' : 'Core Food Pack, Medical/First Aid Kit, and Drinking Water (Covers up to 5 members)'}
+                    </Text>
+                  </View>
+                  <View style={[styles.entitlementQtyPill, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                    <Text style={[styles.entitlementQtyText, { color: '#1557B0' }]}>{basePacks} {basePacks > 1 ? 'packs' : 'pack'}</Text>
+                  </View>
+                </View>
+
+                {/* 2. Extra Member Top-Up (if headcount > 5) */}
+                {topUpUnits > 0 && (
+                  <View style={styles.entitlementItemRow}>
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#0284C7' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.entitlementItemName}>
+                        🍚 +{topUpUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
+                      </Text>
+                      <Text style={styles.entitlementItemDesc}>
+                        {lang === 'tl' ? `Karagdagang pagkain para sa ${topUpUnits} miyembrong lampas sa 5-pax base capacity` : `Additional food allocation for ${topUpUnits} member(s) beyond base 5-pax coverage`}
+                      </Text>
+                    </View>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#0284C7' }]}>+{topUpUnits} units</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* 3. Senior Citizen Maintenance & Nutrition Top-Up */}
+                {seniorCount > 0 && (
+                  <View style={styles.entitlementItemRow}>
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#D97706' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.entitlementItemName}>
+                        🧓 +{seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
+                      </Text>
+                      <Text style={styles.entitlementItemDesc}>
+                        {lang === 'tl' ? `Masustansyang pagkain at Maintenance Medicines para sa ${seniorCount} Senior Citizen` : `Nutritious food & maintenance medicines for ${seniorCount} Senior Citizen(s)`}
+                      </Text>
+                    </View>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#D97706' }]}>+{seniorCount} pack</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* 4. Infant Care & Baby Nutrition Top-Up */}
+                {infantCount > 0 && (
+                  <View style={styles.entitlementItemRow}>
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#EC4899' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.entitlementItemName}>
+                        👶 +{infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
+                      </Text>
+                      <Text style={styles.entitlementItemDesc}>
+                        {lang === 'tl' ? `Gatas/infant formula at baby food para sa ${infantCount} sanggol (0-2 yo)` : `Infant milk formula & baby nutrition for ${infantCount} infant(s)`}
+                      </Text>
+                    </View>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#FDF2F8', borderColor: '#FBCFE8' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#DB2777' }]}>+{infantCount} pack</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* 5. PWD Health Support Top-Up */}
+                {pwdCount > 0 && (
+                  <View style={styles.entitlementItemRow}>
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#7C3AED' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.entitlementItemName}>
+                        ♿ +{pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
+                      </Text>
+                      <Text style={styles.entitlementItemDesc}>
+                        {lang === 'tl' ? `Medikal at health support para sa ${pwdCount} PWD member` : `Medical & health care support for ${pwdCount} PWD member(s)`}
+                      </Text>
+                    </View>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#7C3AED' }]}>+{pwdCount} pack</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+
             {/* Quick Action Tiles Grid (2x2) with MotionPressable Spring Physics */}
             <View style={styles.quickActionGrid}>
               <MotionPressable
@@ -370,15 +494,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
               <MotionPressable
                 style={[styles.actionTile, { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }]}
-                onPress={() => setActiveTab('request')}
+                onPress={() => setShowQRModal(true)}
                 activeOpacity={0.85}
               >
                 <View style={[styles.actionTileIconWell, { backgroundColor: '#E0F2FE' }]}>
-                  <PackageIcon size={18} color="#0284C7" />
+                  <Text style={{ fontSize: 18 }}>📱</Text>
                 </View>
-                <Text style={[styles.actionTileTitle, { color: '#075985' }]}>{t.navAssistance}</Text>
+                <Text style={[styles.actionTileTitle, { color: '#075985' }]}>
+                  {lang === 'tl' ? 'Palakihin ang QR Pass' : 'View Full QR Pass'}
+                </Text>
                 <Text style={[styles.actionTileSub, { color: '#0284C7' }]}>
-                  {lang === 'tl' ? 'Humiling ng ayuda' : 'Request relief quota'}
+                  {lang === 'tl' ? 'I-save o i-presenta sa pila' : 'Save or show at venue'}
                 </Text>
               </MotionPressable>
 
@@ -524,19 +650,6 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               setActiveTab('home');
             }}
           />
-        ) : activeTab === 'request' ? (
-          <AssistanceRequestScreen
-            token={token}
-            lang={lang}
-            onBack={() => setActiveTab('home')}
-            onSubmitSuccess={() => {
-              Alert.alert(
-                lang === 'tl' ? 'Tagumpay' : 'Success',
-                lang === 'tl' ? 'Naisumite na ang kahilingan ng ayuda sa Barangay.' : 'Assistance request scheduled.'
-              );
-              setActiveTab('home');
-            }}
-          />
         ) : activeTab === 'history' ? (
           <ResidentClaimsHistoryScreen
             token={token}
@@ -558,12 +671,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         )}
       </View>
 
-      {/* 3. Iconly Dynamic Island Floating Nav Bar with Impeccable Spring Animations */}
+      {/* 3. Iconly Dynamic Island Floating Nav Bar with Impeccable Spring Animations (4 Clean Tabs) */}
       <View style={styles.floatingIslandNav}>
         {[
           { key: 'home', label: t.navHome, renderIcon: (isActive) => <HomeIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'damage', label: t.navDamage, renderIcon: (isActive) => <DamageIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'request', label: t.navAssistance, renderIcon: (isActive) => <PackageIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'history', label: t.navHistory, renderIcon: (isActive) => <HistoryIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'settings', label: t.navSettings, renderIcon: (isActive) => <SettingsIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
         ].map((item) => (
@@ -926,6 +1038,100 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     ...SHADOWS.sm,
+  },
+  entitlementBannerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#DBEAFE',
+    padding: 14,
+    marginBottom: 16,
+    ...SHADOWS.sm,
+  },
+  entitlementBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  entitlementIconWell: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  entitlementKicker: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#1557B0',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  entitlementTitleText: {
+    fontSize: 14,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0F172A',
+    marginTop: 1,
+  },
+  entitlementAutoBadge: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  entitlementAutoBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#047857',
+  },
+  entitlementExplainer: {
+    fontSize: 11.5,
+    color: '#64748B',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  entitlementItemsList: {
+    gap: 7,
+  },
+  entitlementItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    padding: 10,
+  },
+  entitlementItemDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  entitlementItemName: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  entitlementItemDesc: {
+    fontSize: 10.5,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 14,
+  },
+  entitlementQtyPill: {
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  entitlementQtyText: {
+    fontSize: 11,
+    fontWeight: '800',
   },
   qrInteractiveFrame: {
     alignItems: 'center',
