@@ -101,7 +101,8 @@ export default function App() {
     checkSessionExpiry();
   }, []);
 
-  const activeKey = userSession ? (userSession.role === 'staff' ? 'staff' : 'resident') : currentScreen;
+  const isStaff = userSession?.role === 'staff' || userSession?.role === 'field_staff';
+  const activeKey = userSession ? (isStaff ? 'staff' : 'resident') : currentScreen;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -116,15 +117,17 @@ export default function App() {
       <ScreenTransition transitionKey={activeKey}>
         {userSession ? (
           // Role-Based Operations Portal
-          userSession.role === 'staff' ? (
+          isStaff ? (
             <StaffScannerScreen
               token={userSession.token}
+              user={userSession}
               lang={lang}
               onSelectLang={handleSelectLang}
               onLogout={handleLogout}
             />
           ) : (
             <ResidentHomeScreen
+              user={userSession}
               household={userSession.household}
               token={userSession.token}
               lang={lang}

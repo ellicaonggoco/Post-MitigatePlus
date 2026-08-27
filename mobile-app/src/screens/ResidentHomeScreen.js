@@ -90,6 +90,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [activeTab, setActiveTab] = useState('home');
   const [showQRModal, setShowQRModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
+  const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
   const [inAppNotifs, setInAppNotifs] = useState([]);
   const [householdData, setHouseholdData] = useState(household || null);
   const [announcements, setAnnouncements] = useState([]);

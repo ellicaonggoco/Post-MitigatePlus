@@ -10,7 +10,7 @@ import { RADIUS, FONT_WEIGHT, SPACING, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable, MotionPulseBadge } from '../components/motion';
 
 
-export default function StaffScannerScreen({ token, onLogout, lang = 'en', onSelectLang }) {
+export default function StaffScannerScreen({ token, user, onLogout, lang = 'en', onSelectLang }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'scanner' | 'incident' | 'settings'
 
   // Selected Distribution Event State
