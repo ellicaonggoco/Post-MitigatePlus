@@ -242,6 +242,11 @@ router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_ad
       totalPacksDistributed: rows.reduce((sum, r) => sum + r.totalPacksReleased, 0),
       records: rows,
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating official liquidation report', error: error.message });
+  }
+});
+
 // @route   GET /api/reports/pre-event-assessment
 // @desc    Automated Barangay Relief Demand & Pre-Event Assessment Report
 router.get('/pre-event-assessment', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
