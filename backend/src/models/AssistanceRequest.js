@@ -3,12 +3,21 @@ const mongoose = require('mongoose');
 const assistanceRequestSchema = new mongoose.Schema({
   householdId: { type: mongoose.Schema.Types.ObjectId, ref: 'Household', required: true },
   itemType: { type: String, required: true }, // Food, Water, Medicine, Temporary Shelter, Clothing, Hygiene Kit, Shelter Repair Materials
+  packages: [
+    {
+      id: { type: String },
+      name: { type: String },
+      category: { type: String },
+      quantity: { type: Number, default: 1 },
+    }
+  ],
   status: {
     type: String,
-    enum: ['pending', 'under_review', 'approved', 'released', 'received'],
+    enum: ['pending', 'under_review', 'approved', 'released', 'received', 'rejected'],
     default: 'pending',
   },
   notes: { type: String, default: '' },
+  requestedBy: { type: String, default: '' },
   requestedAt: { type: Date, default: Date.now },
   decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   decidedAt: { type: Date, default: null },

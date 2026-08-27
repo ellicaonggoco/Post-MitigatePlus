@@ -231,6 +231,14 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
           setDuplicateMessage(`Nakatanggap na ang pamilyang ito ng ayuda sa naturang event kaninang ${claimTime}. Bawal ang dobleng kuha.`);
         }
 
+        const requestedPackages = res.requestedPackages || {
+          food: true,
+          water: false,
+          medical: false,
+          infant: false,
+          senior: false,
+        };
+
         setScanResult({
           household: {
             _id: hh._id,
@@ -242,6 +250,8 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
             priorityLevel: res.priorityLevel || hh.priorityLevel || 'High',
             entitlement: entitlementText,
             isVerified: res.isVerified !== undefined ? res.isVerified : true,
+            requestedPackages,
+            activeRequests: res.activeRequests || [],
           },
           recommendations: res.recommendations,
           scannedAt: new Date().toLocaleTimeString(),
@@ -503,6 +513,58 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                 <Text style={[styles.resultMeta, { marginTop: 4, color: '#D97706', fontWeight: '700' }]}>
                   Priority Level: {scanResult.household.priorityLevel}
                 </Text>
+
+                {/* Package Breakdown Checklist */}
+                <View style={{ marginTop: 10, padding: 10, backgroundColor: '#F8FAFC', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1E293B', marginBottom: 6, textTransform: 'uppercase' }}>
+                    {lang === 'tl' ? '📦 TALAAN NG MGA IPAMAMAHAGING AYUDA' : '📦 AUTHORIZED PACKAGE CHECKLIST'}
+                  </Text>
+                  
+                  <View style={{ gap: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}>✓</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A' }}>
+                        🍚 {lang === 'tl' ? 'Pamilyang Food Pack' : 'Family Food Pack'} ({scanResult.household.familyHeadcount > 4 ? `${Math.ceil(scanResult.household.familyHeadcount / 4)} packs` : '1 pack'})
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.water ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
+                        {scanResult.household.requestedPackages?.water ? '✓' : '—'}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.water ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.water ? '700' : '400' }}>
+                        💧 {lang === 'tl' ? 'Inuming Tubig (Drinking Water)' : 'Drinking Water Pack'} {scanResult.household.requestedPackages?.water ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.medical ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
+                        {scanResult.household.requestedPackages?.medical ? '✓' : '—'}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.medical ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.medical ? '700' : '400' }}>
+                        💊 {lang === 'tl' ? 'Medical & First Aid Kit' : 'Medical & First Aid Kit'} {scanResult.household.requestedPackages?.medical ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.infant ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
+                        {scanResult.household.requestedPackages?.infant ? '✓' : '—'}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.infant ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.infant ? '700' : '400' }}>
+                        👶 {lang === 'tl' ? 'Sanggol / Infant Care Pack' : 'Infant & Toddler Care Pack'} {scanResult.household.requestedPackages?.infant ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 13, color: scanResult.household.requestedPackages?.senior ? '#16A34A' : '#94A3B8', fontWeight: '800' }}>
+                        {scanResult.household.requestedPackages?.senior ? '✓' : '—'}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: scanResult.household.requestedPackages?.senior ? '#0F172A' : '#94A3B8', fontWeight: scanResult.household.requestedPackages?.senior ? '700' : '400' }}>
+                        🧓 {lang === 'tl' ? 'Senior & Hygiene Care Kit' : 'Senior & Hygiene Care Kit'} {scanResult.household.requestedPackages?.senior ? (lang === 'tl' ? '(Hiningi / Approved)' : '(Approved)') : (lang === 'tl' ? '(Hindi Hiningi)' : '(Not Requested)')}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
 
                 {/* Confirm Release Button with MotionPressable */}
                 <MotionPressable

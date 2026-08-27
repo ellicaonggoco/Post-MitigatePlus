@@ -8,8 +8,20 @@ const { protect, requireRole } = require('../middleware/auth');
 // @desc    Submit a new assistance request (Resident or Official on behalf of household)
 router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
-    const { itemType, items, reason, notes, resident, barangay, householdId } = req.body;
-    const requestedItem = itemType || items || 'Emergency Relief Package';
+    const { itemType, items, packages, reason, notes, resident, barangay, householdId } = req.body;
+    let formattedPackages = [];
+    if (Array.isArray(packages) && packages.length > 0) {
+      formattedPackages = packages.map(p => typeof p === 'string' ? { id: p, name: p, quantity: 1 } : p);
+    }
+
+    let requestedItem = itemType || items;
+    if (!requestedItem && formattedPackages.length > 0) {
+      requestedItem = formattedPackages.map(p => p.name || p.id).join(', ');
+    }
+    if (!requestedItem) {
+      requestedItem = 'Emergency Family Relief Package';
+    }
+
     const requestNotes = reason || notes || '';
 
     let targetHousehold = null;
@@ -26,7 +38,6 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
         const brgyCode = barangay || req.user.barangayCode || '291';
         targetHousehold = await Household.findOne({ barangayCode: brgyCode });
         if (!targetHousehold) {
-          // Find any verified household or create placeholder
           targetHousehold = await Household.findOne();
         }
       }
@@ -35,6 +46,7 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
     const request = await AssistanceRequest.create({
       householdId: targetHousehold ? targetHousehold._id : null,
       itemType: requestedItem,
+      packages: formattedPackages,
       notes: requestNotes,
       status: 'pending',
       requestedBy: req.user.role === 'resident' ? req.user.name : `Official: ${req.user.name}`,
@@ -43,6 +55,73 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
     res.status(201).json(request);
   } catch (error) {
     res.status(500).json({ message: 'Error submitting assistance request', error: error.message });
+  }
+});
+
+// @route   GET /api/assistance-requests/demand-summary
+// @desc    Get aggregated package demand totals for batch warehouse packaging & staff logistics
+router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
+  try {
+    const householdFilter = {};
+    if (req.user.role === 'barangay_official' || req.user.role === 'field_staff') {
+      householdFilter.barangayCode = req.user.barangayCode;
+    } else if (req.query.barangayCode) {
+      householdFilter.barangayCode = req.query.barangayCode;
+    }
+
+    let householdIds = null;
+    if (Object.keys(householdFilter).length > 0) {
+      const households = await Household.find(householdFilter).select('_id');
+      householdIds = households.map(h => h._id);
+    }
+
+    const query = householdIds ? { householdId: { $in: householdIds } } : {};
+    // Only count active (pending or approved/under_review) demands
+    const activeRequests = await AssistanceRequest.find({
+      ...query,
+      status: { $in: ['pending', 'under_review', 'approved'] },
+    }).populate('householdId', 'memberCount priorityLevel address barangayCode');
+
+    const summary = {
+      totalRequests: activeRequests.length,
+      pendingCount: activeRequests.filter(r => r.status === 'pending').length,
+      approvedCount: activeRequests.filter(r => r.status === 'approved' || r.status === 'under_review').length,
+      categories: {
+        food: { id: 'food', name: 'Basic Food Pack', count: 0, icon: '🍚' },
+        water: { id: 'water', name: 'Drinking Water Pack', count: 0, icon: '💧' },
+        medical: { id: 'medical', name: 'Medical Kit', count: 0, icon: '💊' },
+        infant: { id: 'infant', name: 'Baby/Infant Pack', count: 0, icon: '👶' },
+        senior: { id: 'senior', name: 'Senior/Hygiene Kit', count: 0, icon: '🧓' },
+      },
+    };
+
+    activeRequests.forEach((req) => {
+      const str = `${req.itemType || ''} ${req.notes || ''}`.toLowerCase();
+      const hasPkgs = Array.isArray(req.packages) && req.packages.length > 0;
+
+      // Check packages array first
+      if (hasPkgs) {
+        req.packages.forEach((pkg) => {
+          const pkgId = (pkg.id || pkg.name || '').toLowerCase();
+          if (pkgId.includes('food') || pkgId.includes('pagkain') || pkgId.includes('bigas')) summary.categories.food.count++;
+          if (pkgId.includes('water') || pkgId.includes('tubig')) summary.categories.water.count++;
+          if (pkgId.includes('med') || pkgId.includes('gamot') || pkgId.includes('first aid')) summary.categories.medical.count++;
+          if (pkgId.includes('infant') || pkgId.includes('baby') || pkgId.includes('gatas') || pkgId.includes('diaper')) summary.categories.infant.count++;
+          if (pkgId.includes('senior') || pkgId.includes('hygiene') || pkgId.includes('toiletries')) summary.categories.senior.count++;
+        });
+      } else {
+        // Fallback string matching
+        if (str.includes('food') || str.includes('pagkain') || str.includes('bigas') || str.includes('relief pack') || str.includes('package')) summary.categories.food.count++;
+        if (str.includes('water') || str.includes('tubig')) summary.categories.water.count++;
+        if (str.includes('med') || str.includes('gamot') || str.includes('first aid')) summary.categories.medical.count++;
+        if (str.includes('infant') || str.includes('baby') || str.includes('gatas') || str.includes('diaper')) summary.categories.infant.count++;
+        if (str.includes('senior') || str.includes('hygiene') || str.includes('toiletries')) summary.categories.senior.count++;
+      }
+    });
+
+    res.json(summary);
+  } catch (error) {
+    res.status(500).json({ message: 'Error calculating demand summary', error: error.message });
   }
 });
 

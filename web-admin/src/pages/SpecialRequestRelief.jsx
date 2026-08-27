@@ -20,8 +20,19 @@ export default function SpecialRequestRelief() {
   const isBarangay = role === ROLES.BARANGAY_OFFICIAL;
 
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'approved'
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all'); // 'all' | 'food' | 'water' | 'medical' | 'infant' | 'senior'
 
   const [requests, setRequests] = useState([]);
+  const [demandSummary, setDemandSummary] = useState({
+    categories: {
+      food: { id: 'food', name: 'Food Packs', count: 0, icon: '🍚', color: '#1557B0', bg: '#EFF6FF' },
+      water: { id: 'water', name: 'Water Containers', count: 0, icon: '💧', color: '#0284C7', bg: '#E0F2FE' },
+      medical: { id: 'medical', name: 'Medical Kits', count: 0, icon: '💊', color: '#DC2626', bg: '#FEF2F2' },
+      infant: { id: 'infant', name: 'Infant Packs', count: 0, icon: '👶', color: '#D97706', bg: '#FFFBEB' },
+      senior: { id: 'senior', name: 'Senior Care Kits', count: 0, icon: '🧓', color: '#7C3AED', bg: '#F5F3FF' },
+    },
+    totalRequests: 0,
+  });
   const [staffList, setStaffList] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ resident: '', reason: '', items: '', members: '' });
@@ -32,23 +43,57 @@ export default function SpecialRequestRelief() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, reqId: null, actionType: '', targetName: '', staffName: '' });
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchRequestsAndSummary = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/assistance-requests`, {
-          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-        });
-        const data = await res.json();
-        if (res.ok && Array.isArray(data)) {
+        const [resReq, resSummary] = await Promise.all([
+          fetch(`${API_BASE_URL}/assistance-requests`, {
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+          }),
+          fetch(`${API_BASE_URL}/assistance-requests/demand-summary`, {
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+          }).catch(() => null),
+        ]);
+
+        const data = await resReq.json();
+        if (resReq.ok && Array.isArray(data)) {
           setRequests(data);
         } else {
           setRequests([]);
+        }
+
+        if (resSummary && resSummary.ok) {
+          const summaryData = await resSummary.json();
+          if (summaryData && summaryData.categories) {
+            setDemandSummary(summaryData);
+          }
+        } else if (Array.isArray(data)) {
+          // Compute client-side demand counts if summary endpoint is offline
+          const counts = { food: 0, water: 0, medical: 0, infant: 0, senior: 0 };
+          data.forEach(r => {
+            const str = `${r.itemType || ''} ${r.notes || ''}`.toLowerCase();
+            if (str.includes('food') || str.includes('pagkain') || str.includes('bigas') || str.includes('pack')) counts.food++;
+            if (str.includes('water') || str.includes('tubig')) counts.water++;
+            if (str.includes('med') || str.includes('gamot')) counts.medical++;
+            if (str.includes('infant') || str.includes('baby') || str.includes('gatas') || str.includes('diaper')) counts.infant++;
+            if (str.includes('senior') || str.includes('hygiene')) counts.senior++;
+          });
+          setDemandSummary({
+            totalRequests: data.length,
+            categories: {
+              food: { id: 'food', name: 'Food Packs', count: counts.food, icon: '🍚', color: '#1557B0', bg: '#EFF6FF' },
+              water: { id: 'water', name: 'Water Containers', count: counts.water, icon: '💧', color: '#0284C7', bg: '#E0F2FE' },
+              medical: { id: 'medical', name: 'Medical Kits', count: counts.medical, icon: '💊', color: '#DC2626', bg: '#FEF2F2' },
+              infant: { id: 'infant', name: 'Infant Packs', count: counts.infant, icon: '👶', color: '#D97706', bg: '#FFFBEB' },
+              senior: { id: 'senior', name: 'Senior Care Kits', count: counts.senior, icon: '🧓', color: '#7C3AED', bg: '#F5F3FF' },
+            }
+          });
         }
       } catch (e) {
         console.error(e);
         setRequests([]);
       }
     };
-    if (token) fetchRequests();
+    if (token) fetchRequestsAndSummary();
   }, [token]);
 
   const saveRequests = (newList) => {
@@ -142,8 +187,18 @@ export default function SpecialRequestRelief() {
   };
 
   const visible = isBarangay ? requests.filter(r => r.barangay === (user?.barangayCode || '291')) : requests;
-  const pendingRequests = visible.filter(r => r.status === 'Pending');
-  const processedRequests = visible.filter(r => r.status !== 'Pending');
+  const filteredByCategory = visible.filter(r => {
+    if (selectedCategoryFilter === 'all') return true;
+    const str = `${r.itemType || ''} ${r.notes || ''}`.toLowerCase();
+    const hasPkgs = Array.isArray(r.packages) && r.packages.length > 0;
+    if (hasPkgs) {
+      return r.packages.some(p => (p.id || p.name || '').toLowerCase().includes(selectedCategoryFilter));
+    }
+    return str.includes(selectedCategoryFilter);
+  });
+
+  const pendingRequests = filteredByCategory.filter(r => (r.status || '').toLowerCase() === 'pending');
+  const processedRequests = filteredByCategory.filter(r => (r.status || '').toLowerCase() !== 'pending');
 
   return (
     <div className="page-container page-animate">
@@ -169,9 +224,9 @@ export default function SpecialRequestRelief() {
             <Star size={24} color="#fff" />
           </div>
           <div>
-            <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Special Relief Requests</h1>
+            <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Special Relief Requests & Demand Hub</h1>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              {isBarangay ? `Request extra relief for residents of Barangay ${user?.barangayCode} who cannot access the app.` : 'Review and approve special relief requests to dispatch door-to-door tasks to Field Staff Mobile App.'}
+              {isBarangay ? `Request extra relief for residents of Barangay ${user?.barangayCode} who cannot access the app.` : 'Aggregated citizen demand summary for batch warehouse packaging & door-to-door field dispatch.'}
             </p>
           </div>
         </div>
@@ -189,24 +244,84 @@ export default function SpecialRequestRelief() {
         </div>
       )}
 
-      {/* ── Web Admin Tabs: Pending Review vs Approved History ── */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <button
-          onClick={() => setActiveTab('pending')}
-          className={activeTab === 'pending' ? 'clay-button-primary' : 'clay-button-ghost'}
-          style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          <Inbox size={16} />
-          Pending Requests ({pendingRequests.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('approved')}
-          className={activeTab === 'approved' ? 'clay-button-primary' : 'clay-button-ghost'}
-          style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          <Smartphone size={16} />
-          Approved & Sent to Mobile Staff ({processedRequests.length})
-        </button>
+      {/* ── Aggregated Relief Demand Summary (Warehouse & Staff Batch Pre-Pack) ── */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+            📦 Batch Warehouse Demand Summary (Total Packs to Prepare)
+          </h3>
+          <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
+            Active Household Requests: <strong>{demandSummary.totalRequests || visible.length}</strong>
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+          {Object.entries(demandSummary.categories || {}).map(([key, cat]) => {
+            const isFilterActive = selectedCategoryFilter === key;
+            return (
+              <div
+                key={key}
+                onClick={() => setSelectedCategoryFilter(prev => prev === key ? 'all' : key)}
+                className="clay-card"
+                style={{
+                  padding: '14px 16px',
+                  background: isFilterActive ? cat.bg || '#F1F5F9' : 'var(--card)',
+                  border: `2px solid ${isFilterActive ? cat.color || 'var(--manila-blue)' : 'var(--border)'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  boxShadow: isFilterActive ? '0 4px 12px rgba(0,0,0,0.08)' : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 22 }}>{cat.icon || '📦'}</span>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: cat.color || 'var(--ink)' }}>
+                    {cat.count}
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>{cat.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 }}>
+                  {isFilterActive ? '✓ Filtering' : 'Click to filter list'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Filter / Tabs Bar ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={activeTab === 'pending' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <Inbox size={16} />
+            Pending Requests ({pendingRequests.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('approved')}
+            className={activeTab === 'approved' ? 'clay-button-primary' : 'clay-button-ghost'}
+            style={{ fontSize: 13, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <Smartphone size={16} />
+            Approved & Sent to Mobile Staff ({processedRequests.length})
+          </button>
+        </div>
+
+        {selectedCategoryFilter !== 'all' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--manila-blue-light)', padding: '4px 10px', borderRadius: 999 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)' }}>
+              Filtered: {demandSummary.categories[selectedCategoryFilter]?.name}
+            </span>
+            <button
+              onClick={() => setSelectedCategoryFilter('all')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, color: 'var(--manila-blue)' }}
+            >
+              ✕ Clear
+            </button>
+          </div>
+        )}
       </div>
 
       {showForm && isBarangay && (
@@ -255,15 +370,22 @@ export default function SpecialRequestRelief() {
           </div>
         ) : (
           (activeTab === 'pending' ? pendingRequests : processedRequests).map((req, idx) => {
-            const cfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.Pending;
+            const statusKey = (req.status || 'Pending').charAt(0).toUpperCase() + (req.status || 'pending').slice(1).toLowerCase();
+            const cfg = STATUS_CONFIG[statusKey] || STATUS_CONFIG.Pending;
             const StatusIcon = cfg.icon;
-            const residentName = req.resident || req.fullName || req.residentName || 'Resident';
-            const brgyCode = req.barangay || req.barangayCode || '291';
-            const requestedBy = typeof req.requestedBy === 'object' ? req.requestedBy?.name : (req.requestedBy || 'Barangay Official');
+            const residentName = req.resident || req.householdId?.headOfHouseholdUserId?.name || req.fullName || req.residentName || 'Resident';
+            const brgyCode = req.barangay || req.householdId?.barangayCode || '291';
+            const address = req.householdId?.address || 'Barangay 291, Manila';
+            const requestedBy = typeof req.requestedBy === 'object' ? req.requestedBy?.name : (req.requestedBy || 'Resident / Official');
             const assignedStaffName = typeof req.assignedStaff === 'object' ? req.assignedStaff?.name : req.assignedStaff;
-            const memberCount = req.members || req.memberCount || 1;
-            const reasonText = req.reason || req.description || 'Special assistance needed';
-            const itemsText = req.items || req.reliefType || 'Family Food Pack';
+            const memberCount = req.members || req.householdId?.memberCount || 1;
+            const reasonText = req.reason || req.notes || req.description || 'Special relief assistance needed';
+            const itemsText = req.items || req.itemType || 'Family Food Pack';
+
+            // Extract individual package items
+            const parsedPackages = Array.isArray(req.packages) && req.packages.length > 0
+              ? req.packages
+              : itemsText.split(',').map(name => ({ id: name.trim().toLowerCase(), name: name.trim() }));
 
             return (
               <MotionCard key={req.id || req._id || idx} delay={idx * 0.06} className="clay-card" style={{ borderLeft: `4px solid ${cfg.color}` }}>
@@ -273,14 +395,40 @@ export default function SpecialRequestRelief() {
                       <Star size={15} color={cfg.color} />
                       <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>{residentName}</span>
                       <span style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                        <StatusIcon size={12} /> {req.status}
+                        <StatusIcon size={12} /> {req.status || 'Pending'}
                       </span>
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 4 }}>
-                      <strong>Brgy {brgyCode}</strong> &nbsp;·&nbsp; Requested by: {requestedBy} &nbsp;·&nbsp; <Users size={12} style={{ verticalAlign: 'middle' }} /> {memberCount} members
+                    <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 6 }}>
+                      <strong>Brgy {brgyCode}</strong> &nbsp;·&nbsp; {address} &nbsp;·&nbsp; <Users size={12} style={{ verticalAlign: 'middle' }} /> {memberCount} members &nbsp;·&nbsp; By: {requestedBy}
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 4 }}>Reason: <span style={{ color: 'var(--ink)' }}>{reasonText}</span></div>
-                    <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Items Needed: <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{itemsText}</span></div>
+
+                    {/* Specific Requested Package Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {parsedPackages.map((pkg, pidx) => (
+                        <span
+                          key={pidx}
+                          style={{
+                            background: '#EFF6FF',
+                            border: '1px solid #BFDBFE',
+                            color: '#1E40AF',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          ✓ {pkg.name}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                      Note/Vulnerability: <span style={{ color: 'var(--ink)', fontStyle: 'italic' }}>{reasonText}</span>
+                    </div>
+
                     {assignedStaffName && (
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--radius-pill)', marginTop: 8 }}>
                         <UserCheck size={13} /> Sent to Mobile App: {assignedStaffName}
@@ -308,10 +456,10 @@ export default function SpecialRequestRelief() {
                     )}
                   </div>
 
-                  {isLguAdmin && req.status === 'Pending' && (
+                  {isLguAdmin && (req.status || '').toLowerCase() === 'pending' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--sampaguita)', padding: 12, borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', minWidth: 260 }}>
                       <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Assign Field Officer
+                        Assign Field Officer for Door-to-Door
                       </label>
 
                       {/* Clean Type/Select Autocomplete Input */}
@@ -335,7 +483,7 @@ export default function SpecialRequestRelief() {
 
                       <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                         <button onClick={() => requestApproveModal(req)} className="clay-button-approve" style={{ fontSize: 12, flex: 1, padding: '8px 10px', gap: 4 }}>
-                          <CheckCircle size={13} /> Approve & Assign Staff
+                          <CheckCircle size={13} /> Approve & Dispatch
                         </button>
                         <button onClick={() => requestRejectModal(req)} className="clay-button-danger" style={{ fontSize: 12, padding: '8px 10px', gap: 4 }}>
                           <XCircle size={13} /> Reject

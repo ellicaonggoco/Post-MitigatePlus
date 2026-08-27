@@ -239,8 +239,42 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       return res.status(404).json({ message: 'Household QR Code not found or invalid.' });
     }
 
-    const pastRequests = await AssistanceRequest.find({ householdId: household._id });
-    const pastDistributions = await Distribution.find({ householdId: household._id });
+    const pastRequests = await AssistanceRequest.find({ householdId: household._id }).sort({ requestedAt: -1 });
+    const pastDistributions = await Distribution.find({ householdId: household._id }).sort({ releasedAt: -1 });
+
+    // Active requests for this household
+    const activeRequests = pastRequests.filter(r => ['pending', 'approved', 'under_review'].includes(r.status));
+    
+    // Parse package breakdown for scanner screen
+    const requestedPackages = {
+      food: true, // Food pack is base entitlement for verified households
+      water: false,
+      medical: false,
+      infant: false,
+      senior: false,
+      customList: [],
+    };
+
+    activeRequests.forEach(req => {
+      if (Array.isArray(req.packages) && req.packages.length > 0) {
+        req.packages.forEach(p => {
+          const pid = (p.id || p.name || '').toLowerCase();
+          if (pid.includes('food')) requestedPackages.food = true;
+          if (pid.includes('water')) requestedPackages.water = true;
+          if (pid.includes('med')) requestedPackages.medical = true;
+          if (pid.includes('infant') || pid.includes('baby')) requestedPackages.infant = true;
+          if (pid.includes('senior') || pid.includes('hygiene')) requestedPackages.senior = true;
+          requestedPackages.customList.push(p.name || p.id);
+        });
+      } else if (req.itemType) {
+        const it = req.itemType.toLowerCase();
+        if (it.includes('water')) requestedPackages.water = true;
+        if (it.includes('med') || it.includes('gamot')) requestedPackages.medical = true;
+        if (it.includes('infant') || it.includes('baby')) requestedPackages.infant = true;
+        if (it.includes('senior') || it.includes('hygiene')) requestedPackages.senior = true;
+        requestedPackages.customList.push(req.itemType);
+      }
+    });
 
     // Compute standard relief quantity recommendation based on ReliefItemType configs
     const ReliefItemType = require('../models/ReliefItemType');
@@ -265,6 +299,8 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       priorityScore: household.priorityScore,
       recommendations,
       pastDistributions,
+      activeRequests,
+      requestedPackages,
       gapAnalysis,
     });
   } catch (error) {
