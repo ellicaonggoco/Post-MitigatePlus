@@ -105,10 +105,24 @@ export default function SpecialRequestRelief() {
       </div>
 
       {/* ── Barangay Selector Bar ── */}
-      <div className="clay-card" style={{ marginBottom: 20, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 280 }}>
+      <div
+        className="clay-card"
+        style={{
+          marginBottom: 20,
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16,
+          position: 'relative',
+          zIndex: 1000,
+          overflow: 'visible',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 280, position: 'relative', zIndex: 1001 }}>
           <Building2 size={20} color="var(--manila-blue)" />
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ flex: 1, position: 'relative', zIndex: 1002 }}>
             <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
               Target Assessment Barangay
             </label>
@@ -117,7 +131,7 @@ export default function SpecialRequestRelief() {
                 Barangay {user?.barangayCode || '291'} (Locked to Official Jurisdiction)
               </div>
             ) : (
-              <div style={{ position: 'relative', maxWidth: 360 }}>
+              <div style={{ position: 'relative', maxWidth: 360, zIndex: 1003 }}>
                 <input
                   type="text"
                   placeholder="Type Barangay number (e.g. 291, 653, 304)..."
@@ -136,29 +150,29 @@ export default function SpecialRequestRelief() {
                     fontWeight: 700,
                     outline: 'none',
                     background: 'var(--card)',
-                    color: 'var(--ink)'
+                    color: 'var(--ink)',
+                    boxSizing: 'border-box'
                   }}
                 />
                 {showSuggestions && matchingBarangays.length > 0 && (
                   <div style={{
                     position: 'absolute',
-                    top: '100%',
+                    top: 'calc(100% + 4px)',
                     left: 0,
                     right: 0,
-                    marginTop: 4,
                     background: 'var(--card)',
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-inner)',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                    zIndex: 9999,
-                    maxHeight: 200,
+                    boxShadow: '0 20px 45px rgba(0,0,0,0.3), 0 8px 18px rgba(0,0,0,0.15)',
+                    zIndex: 999999,
+                    maxHeight: 220,
                     overflowY: 'auto'
                   }}>
                     {matchingBarangays.map(b => (
                       <div
                         key={b}
                         onClick={() => handleSelectBrgy(b)}
-                        style={{ padding: '8px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderBottom: '1px solid var(--border)' }}
+                        style={{ padding: '9px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderBottom: '1px solid var(--border)', color: 'var(--ink)' }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sampaguita)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
@@ -182,7 +196,7 @@ export default function SpecialRequestRelief() {
       </div>
 
       {/* ── Automated Quota Demand KPI Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24, position: 'relative', zIndex: 1 }}>
         {/* Food Packs */}
         <div className="clay-card" style={{ padding: '16px', borderLeft: '4px solid #1557B0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>

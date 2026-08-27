@@ -283,7 +283,7 @@ export default function AnnouncementsPage() {
       </div>
 
       {showForm && (
-        <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid var(--manila-blue)' }}>
+        <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid var(--manila-blue)', position: 'relative', zIndex: 1000, overflow: 'visible' }}>
           <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 14, color: 'var(--ink)' }}>
             {editingId ? 'Edit Announcement' : 'Post Announcement with Smart Action Trigger'}
           </h2>
