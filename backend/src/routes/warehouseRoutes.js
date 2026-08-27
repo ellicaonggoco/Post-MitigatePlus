@@ -52,6 +52,7 @@ router.put('/:id', protect, requireRole('lgu_admin', 'lgu_superadmin'), async (r
 router.post('/:id/restock', protect, requireRole('lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const rawQty = req.body.quantity !== undefined ? req.body.quantity : req.body.qty;
+    const { purpose, destination, approvingOfficial, transporter, referenceNo } = req.body;
     const notes = req.body.notes || req.body.note || '';
     const quantity = Number(rawQty);
     if (isNaN(quantity) || quantity <= 0) {
@@ -64,8 +65,30 @@ router.post('/:id/restock', protect, requireRole('lgu_admin', 'lgu_superadmin'),
     item.lastRestocked = new Date();
     item.updatedBy = req.user._id;
     await item.save();
-    await WarehouseLog.create({ itemId: item._id, action: 'restock', quantity, notes, performedBy: req.user._id });
-    await AuditLog.create({ actorUserId: req.user._id, actorRole: req.user.role, action: 'RESTOCK_WAREHOUSE', targetType: 'WarehouseItem', targetId: item._id, notes: `Restocked ${quantity} ${item.unit}` });
+
+    await WarehouseLog.create({
+      itemId: item._id,
+      itemName: item.name,
+      action: 'restock',
+      quantity,
+      purpose: purpose || 'Standard Replenishment',
+      destination: destination || 'Central Warehouse Facility',
+      approvingOfficial: approvingOfficial || req.user.name || 'Logistics Officer',
+      transporter: transporter || 'DSWD / Supplier Delivery',
+      referenceNo: referenceNo || notes || '',
+      notes,
+      performedBy: req.user._id,
+      performedByName: req.user.name || 'System Admin',
+    });
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'RESTOCK_WAREHOUSE',
+      targetType: 'WarehouseItem',
+      targetId: item._id,
+      notes: `Restocked ${quantity} ${item.unit} for ${item.name} (Source: ${purpose || 'Standard'})`,
+    });
     res.json(item);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -76,6 +99,7 @@ router.post('/:id/restock', protect, requireRole('lgu_admin', 'lgu_superadmin'),
 router.post('/:id/dispatch', protect, requireRole('lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
   try {
     const rawQty = req.body.quantity !== undefined ? req.body.quantity : req.body.qty;
+    const { purpose, destination, approvingOfficial, transporter, referenceNo } = req.body;
     const notes = req.body.notes || req.body.note || '';
     const quantity = Number(rawQty);
     if (isNaN(quantity) || quantity <= 0) {
@@ -88,8 +112,30 @@ router.post('/:id/dispatch', protect, requireRole('lgu_admin', 'lgu_superadmin',
     item.stock -= quantity;
     item.updatedBy = req.user._id;
     await item.save();
-    await WarehouseLog.create({ itemId: item._id, action: 'dispatch', quantity, notes, performedBy: req.user._id });
-    await AuditLog.create({ actorUserId: req.user._id, actorRole: req.user.role, action: 'DISPATCH_WAREHOUSE', targetType: 'WarehouseItem', targetId: item._id, notes: `Dispatched ${quantity} ${item.unit}` });
+
+    await WarehouseLog.create({
+      itemId: item._id,
+      itemName: item.name,
+      action: 'dispatch',
+      quantity,
+      purpose: purpose || 'General Relief Operation',
+      destination: destination || 'Evacuation Site / Recipient Agency',
+      approvingOfficial: approvingOfficial || req.user.name || 'MDRRMO Officer',
+      transporter: transporter || 'LGU Transport Unit',
+      referenceNo: referenceNo || notes || '',
+      notes,
+      performedBy: req.user._id,
+      performedByName: req.user.name || 'System Admin',
+    });
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'DISPATCH_WAREHOUSE',
+      targetType: 'WarehouseItem',
+      targetId: item._id,
+      notes: `Dispatched ${quantity} ${item.unit} for ${item.name} (Destination: ${destination || 'Ground'})`,
+    });
     res.json(item);
   } catch (err) {
     res.status(400).json({ message: err.message });
