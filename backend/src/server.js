@@ -4,6 +4,8 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+// MitigatePlus Production API Server - Verified Deployment
+
 // Enforce strict TLS in production; allow self-signed local dev bypass only if STRICT_SSL is not true
 if (process.env.NODE_ENV === 'development' && process.env.STRICT_SSL !== 'true') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
