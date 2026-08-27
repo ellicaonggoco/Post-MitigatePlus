@@ -129,8 +129,15 @@ export default function DistributionEvents() {
       })
       .then(res => res.json())
       .then(data => {
-        if (data && data.demand) {
+        if (data && (data.totalHouseholds !== undefined || data.demand)) {
           setLiveAssessment(data);
+          // Awtomatikong itakda ang Target Households kung may verified households na na-detect
+          if (data.totalHouseholds > 0) {
+            setForm(prev => ({
+              ...prev,
+              households: String(data.totalHouseholds),
+            }));
+          }
         } else {
           setLiveAssessment(null);
         }
@@ -380,9 +387,41 @@ export default function DistributionEvents() {
             </div>
 
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Target Households</label>
-              <input type="number" placeholder="e.g. 150" value={form.households} onChange={e => setForm(p => ({ ...p, households: e.target.value }))}
-                style={{ width: '100%', padding: '9px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Target Households *
+                </label>
+                {liveAssessment?.totalHouseholds > 0 && (
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#158A64' }}>
+                    ✓ {liveAssessment.totalHouseholds} Verified Detected
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                placeholder={loadingAssessment ? "Kinakalkula..." : "e.g. 150"}
+                value={form.households}
+                onChange={e => setForm(p => ({ ...p, households: e.target.value }))}
+                style={{
+                  width: '100%',
+                  padding: '9px 12px',
+                  borderRadius: 'var(--radius-inner)',
+                  border: liveAssessment?.totalHouseholds > 0 ? '1.5px solid #158A64' : '1px solid var(--border)',
+                  fontSize: 13,
+                  outline: 'none',
+                  fontFamily: 'var(--font-sans)',
+                  background: 'var(--card)',
+                  color: 'var(--ink)',
+                  boxSizing: 'border-box',
+                  fontWeight: 800
+                }}
+                required
+              />
+              {liveAssessment?.totalHouseholds > 0 && (
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>
+                  Awtomatikong na-detect mula sa rehistradong pamilya sa Barangay {liveAssessment.barangayCode}.
+                </div>
+              )}
             </div>
           </div>
 
