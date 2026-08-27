@@ -38,23 +38,27 @@ export default function WarehouseInventory() {
   const { token } = useContext(AuthContext);
   const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchInventory = async () => {
     try {
+      setLoading(true);
       const [invRes, logsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/warehouse`, { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } }),
         fetch(`${API_BASE_URL}/warehouse/logs`, { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } }),
       ]);
       if (invRes.ok) {
         const invData = await invRes.json();
-        setInventory(invData);
+        setInventory(invData || []);
       }
       if (logsRes.ok) {
         const logsData = await logsRes.json();
-        setLogs(logsData);
+        setLogs(logsData || []);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to fetch warehouse inventory:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,7 +75,7 @@ export default function WarehouseInventory() {
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, data: null });
 
-  const lowItems = inventory.filter(i => i.stock <= i.low);
+  const lowItems = inventory.filter(i => (i.stock || 0) <= (i.minStock || i.low || 100));
 
   const openActionForm = (item, type) => {
     setSelectedItem(item);
@@ -87,15 +91,15 @@ export default function WarehouseInventory() {
     if (actionType === 'dispatch' && qty > selectedItem.stock) {
       setConfirmModal({
         isOpen: true,
-        title: 'Insufficient Stock',
-        message: `Hindi kasya ang stock! Meron lang ${selectedItem.stock} ${selectedItem.unit} na available.`,
+        title: 'Insufficient Warehouse Stock',
+        message: `Cannot dispatch! Only ${selectedItem.stock} ${selectedItem.unit || 'units'} currently available in storage.`,
         type: 'warning',
         data: null
       });
       return;
     }
 
-    const actionText = actionType === 'restock' ? 'Magdagdag (+)' : 'Magbawas / I-dispatch (-)';
+    const actionText = actionType === 'restock' ? 'Receive Incoming Stock (+)' : 'Dispatch Warehouse Stock (-)';
     const noteText = noteInput.trim() ? ` (${noteInput.trim()})` : '';
 
     setConfirmModal({
@@ -104,10 +108,10 @@ export default function WarehouseInventory() {
         item: selectedItem,
         type: actionType,
         qty,
-        note: noteInput.trim() || (actionType === 'restock' ? 'New Stock Arrival' : 'Relief Event Dispatch'),
+        note: noteInput.trim() || (actionType === 'restock' ? 'New Shipment Arrival' : 'Relief Operation Dispatch'),
       },
-      title: `${actionText} ng Stock?`,
-      message: `Sigurado ka bang gusto mong ${actionType === 'restock' ? 'magdagdag ng +' : 'magbawas ng -'}${qty} ${selectedItem.unit} sa "${selectedItem.item}"${noteText}?`,
+      title: `${actionText}?`,
+      message: `Are you sure you want to ${actionType === 'restock' ? 'add +' : 'deduct -'}${qty.toLocaleString()} ${selectedItem.unit || 'units'} for "${selectedItem.name || selectedItem.item}"${noteText}?`,
       type: actionType === 'restock' ? 'success' : 'warning',
     });
   };
@@ -150,7 +154,7 @@ export default function WarehouseInventory() {
         title={confirmModal.title}
         message={confirmModal.message}
         type={confirmModal.type}
-        confirmText={confirmModal.data?.type === 'restock' ? 'Oo, Dagdagan' : 'Oo, Bawasan'}
+        confirmText={confirmModal.data?.type === 'restock' ? 'Confirm Restock' : 'Confirm Dispatch'}
         onConfirm={executeStockChange}
         onCancel={() => setConfirmModal({ isOpen: false, data: null })}
       />
@@ -247,8 +251,21 @@ export default function WarehouseInventory() {
         {inventory.length === 0 ? (
           <div className="clay-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 24px' }}>
             <Warehouse size={36} color="var(--manila-blue)" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>Loading Warehouse Inventory...</h3>
-            <p style={{ fontSize: '13px', color: 'var(--ink-soft)', margin: 0 }}>Syncing stock levels with Central Storage Facility.</p>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>
+              {loading ? 'Loading Warehouse Inventory...' : 'No Warehouse Inventory Items Found'}
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--ink-soft)', margin: '0 0 16px' }}>
+              {loading ? 'Syncing stock levels with Central Storage Facility...' : 'Click below to reload and initialize standard city relief supplies.'}
+            </p>
+            {!loading && (
+              <button
+                onClick={fetchInventory}
+                className="clay-button-primary"
+                style={{ fontSize: 13, padding: '8px 16px', gap: 6, margin: '0 auto' }}
+              >
+                <RefreshCw size={14} /> Initialize / Refresh Central Supplies
+              </button>
+            )}
           </div>
         ) : (
           inventory.map((item, idx) => {
