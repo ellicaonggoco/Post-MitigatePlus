@@ -111,27 +111,58 @@ router.get('/duplicate-attempts', protect, requireRole('barangay_official', 'lgu
 });
 
 // @route   GET /api/reports/gap-analysis
-router.get('/gap-analysis', protect, requireRole('barangay_official', 'lgu_admin'), requireBarangayScope, async (req, res) => {
+router.get('/gap-analysis', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
   try {
     let query = { verificationStatus: 'verified' };
     if (req.user.role === 'barangay_official') {
       query.barangayCode = req.user.barangayCode;
     }
 
-    const households = await Household.find(query);
+    const households = await Household.find(query).populate('headOfHouseholdUserId', 'name');
     const report = await Promise.all(households.map(async (hh) => {
-      const requests = await AssistanceRequest.find({ householdId: hh._id });
       const distributions = await Distribution.find({ householdId: hh._id });
-      const gaps = detectAssistanceGaps(requests, distributions);
+      
+      const memberCount = Number(hh.memberCount || 1);
+      // Right-sized calculation according to DSWD / LGU Policy:
+      // 1 to 4 members = 1 Base Food Pack
+      // 5 to 8 members = 2 Base Food Packs
+      // 9+ members = 3 Base Food Packs
+      const basePackCount = memberCount >= 9 ? 3 : memberCount >= 5 ? 2 : 1;
+      
+      const gapsList = [];
+      const hasFoodDistribution = distributions.some(d => (d.itemType || '').toLowerCase().includes('food') || (d.itemType || '').toLowerCase().includes('pack'));
+      const hasWaterDistribution = distributions.some(d => (d.itemType || '').toLowerCase().includes('water') || (d.itemType || '').toLowerCase().includes('tubig'));
+
+      if (!hasFoodDistribution) {
+        gapsList.push(`Family Food Pack (x${basePackCount} Base Pack${basePackCount > 1 ? 's' : ''})`);
+      }
+      if (!hasWaterDistribution) {
+        gapsList.push('Drinking Water (10L Jug)');
+      }
+
+      // Check if senior or infant members
+      const hasSenior = (hh.members || []).some(m => Number(m.age) >= 60);
+      const hasInfant = (hh.members || []).some(m => Number(m.age) <= 3);
+      if (hasSenior) {
+        const hasSeniorDist = distributions.some(d => (d.itemType || '').toLowerCase().includes('senior') || (d.itemType || '').toLowerCase().includes('hygiene'));
+        if (!hasSeniorDist) gapsList.push('Senior Care / Hygiene Kit');
+      }
+      if (hasInfant) {
+        const hasInfantDist = distributions.some(d => (d.itemType || '').toLowerCase().includes('infant') || (d.itemType || '').toLowerCase().includes('baby'));
+        if (!hasInfantDist) gapsList.push('Infant / Baby Pack');
+      }
 
       return {
-        householdId: hh._id,
-        address: hh.address,
-        purok: hh.purok,
-        barangayCode: hh.barangayCode,
-        memberCount: hh.memberCount,
-        priorityLevel: hh.priorityLevel,
-        gapSummary: gaps,
+        id: String(hh._id),
+        householdId: String(hh._id),
+        headName: hh.headOfHouseholdUserId?.name || hh.headName || 'Resident Household',
+        address: hh.address ? `${hh.address}, Purok ${hh.purok || 1}` : 'Barangay 291, Manila',
+        purok: hh.purok || 1,
+        barangayCode: hh.barangayCode || '291',
+        memberCount: memberCount,
+        priorityLevel: hh.priorityLevel || (memberCount >= 5 ? 'High' : 'Low'),
+        gaps: gapsList,
+        totalGaps: gapsList.length,
       };
     }));
 

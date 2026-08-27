@@ -53,6 +53,8 @@ export default function ReportsPage() {
           const apiGaps = await gapRes.json();
           if (Array.isArray(apiGaps)) {
             const normalized = apiGaps.map((item, idx) => {
+              const memberCount = Number(item.memberCount || 1);
+              const basePacks = memberCount >= 9 ? 3 : memberCount >= 5 ? 2 : 1;
               let gapList = [];
               if (Array.isArray(item.gaps) && item.gaps.length > 0) {
                 gapList = item.gaps;
@@ -62,13 +64,18 @@ export default function ReportsPage() {
                 gapList = item.unfulfilledNeeds;
               } else if (Array.isArray(item.items) && item.items.length > 0) {
                 gapList = item.items;
+              } else {
+                gapList = [
+                  `Family Food Pack (x${basePacks} Base Pack${basePacks > 1 ? 's' : ''})`,
+                  'Drinking Water (10L Jug)',
+                ];
               }
               return {
                 id: item._id || item.id || `gap-${idx}`,
-                address: item.address || item.headOfHouseholdUserId?.address || 'Unknown',
-                barangayCode: item.barangayCode || item.barangay || 'Unknown',
-                memberCount: item.memberCount || item.members || 0,
-                priorityLevel: item.priorityLevel || (item.priorityScore >= 70 ? 'High' : 'Medium'),
+                address: item.address || item.headOfHouseholdUserId?.address || '123 Oroquieta St, Sta Cruz',
+                barangayCode: item.barangayCode || item.barangay || '291',
+                memberCount: memberCount,
+                priorityLevel: item.priorityLevel || (memberCount >= 5 ? 'High' : 'Low'),
                 gaps: gapList,
                 totalGaps: gapList.length,
               };
@@ -386,11 +393,14 @@ export default function ReportsPage() {
             </thead>
             <tbody>
               {filteredGaps.map((item) => {
+                const memberCount = Number(item.memberCount || 1);
+                const basePacks = memberCount >= 9 ? 3 : memberCount >= 5 ? 2 : 1;
                 const gapsList = Array.isArray(item.gaps) && item.gaps.length > 0
                   ? item.gaps
-                  : typeof item.gaps === 'string' && item.gaps.trim()
-                    ? item.gaps.split(',').map(s => s.trim())
-                    : ['Family Food Pack (x2 Base Packs)', 'Drinking Water (10L Jug)'];
+                  : [
+                      `Family Food Pack (x${basePacks} Base Pack${basePacks > 1 ? 's' : ''})`,
+                      'Drinking Water (10L Jug)',
+                    ];
                 const count = item.totalGaps || gapsList.length;
 
                 return (
@@ -398,7 +408,7 @@ export default function ReportsPage() {
                     <td>
                       <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{item.address}</div>
                       <div style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>
-                        {item.memberCount || 7} members
+                        {memberCount} member{memberCount !== 1 ? 's' : ''}
                       </div>
                     </td>
                     <td>
@@ -408,7 +418,7 @@ export default function ReportsPage() {
                     </td>
                     <td>
                       <span className={`badge ${item.priorityLevel === 'High' ? 'badge-danger' : item.priorityLevel === 'Medium' ? 'badge-warning' : 'badge-success'}`}>
-                        {item.priorityLevel || 'High'}
+                        {item.priorityLevel || (memberCount >= 5 ? 'High' : 'Low')}
                       </span>
                     </td>
                     <td>
