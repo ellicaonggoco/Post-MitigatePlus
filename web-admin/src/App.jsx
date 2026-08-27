@@ -49,6 +49,7 @@ const NOTIF_ICONS = {
   verification: { icon: UserCheck, color: "#2563EB", bg: "#EFF6FF" },
   fraud: { icon: Shield, color: "#DC2626", bg: "#FEF2F2" },
   distribution: { icon: Truck, color: "#158A64", bg: "rgba(21,138,100,0.1)" },
+  directive: { icon: Bell, color: "#D97706", bg: "#FFFBEB" },
   alert: { icon: AlertTriangle, color: "#D97706", bg: "#FFFBEB" },
   success: { icon: CheckCircle, color: "#158A64", bg: "rgba(21,138,100,0.1)" },
 };
@@ -178,6 +179,21 @@ function AppRoutes() {
 
   const notifRef = useRef(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleNotifUpdate = () => {
+      try {
+        const saved = localStorage.getItem('mitigateplus_user_notifications');
+        if (saved) setNotifsState(JSON.parse(saved));
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleNotifUpdate);
+    window.addEventListener('mitigateplus_notif_update', handleNotifUpdate);
+    return () => {
+      window.removeEventListener('storage', handleNotifUpdate);
+      window.removeEventListener('mitigateplus_notif_update', handleNotifUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     if (!notifOpen) return;

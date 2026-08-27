@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Shield, Filter, Search, BarChart2, Building2, Users, Truck } from 'lucide-react';
+import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2 } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
 import { IconlyShield } from '../components/Sidebar';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionNumberCounter } from '../components/motion';
@@ -9,7 +10,9 @@ import { MotionCard, MotionNumberCounter } from '../components/motion';
 export default function SmartPriorityDashboard() {
   const { token, user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const isLGU = user?.role === 'lgu_admin' || user?.role === 'lgu_superadmin';
+  const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
+  const isLguAdmin = user?.role === 'lgu_admin';
+  const isLGU = isLguAdmin || isSuperAdmin;
 
   const [viewMode, setViewMode] = useState(isLGU ? 'barangay' : 'household');
   const [households, setHouseholds] = useState([]);
@@ -17,6 +20,10 @@ export default function SmartPriorityDashboard() {
   const [filterLevel, setFilterLevel] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBarangayFilter, setSelectedBarangayFilter] = useState('ALL');
+
+  // ── Executive Directive State for SuperAdmin ──
+  const [directiveModal, setDirectiveModal] = useState({ isOpen: false, barangay: null });
+  const [successToast, setSuccessToast] = useState('');
 
   const fetchHouseholds = async () => {
     setLoading(true);
@@ -112,8 +119,72 @@ export default function SmartPriorityDashboard() {
     return 'badge badge-success';
   };
 
+  const handleSendDirective = async () => {
+    if (!directiveModal.barangay) return;
+    const bCode = directiveModal.barangay.code;
+    const familyCount = directiveModal.barangay.households.length;
+    
+    // Create new directive notification for LGU Admin
+    const newNotif = {
+      id: Date.now(),
+      type: "directive",
+      title: `🏛️ Executive Directive: Deploy Relief`,
+      body: `Inatasan ng City Mayor / SuperAdmin ang LGU Disaster Operations na mag-deploy ng relief sa Barangay ${bCode} (${familyCount} pamilya).`,
+      time: "Just now",
+      read: false,
+      link: `/distribution-events?barangay=${bCode}`,
+    };
+
+    try {
+      const saved = localStorage.getItem('mitigateplus_user_notifications');
+      const list = saved ? JSON.parse(saved) : [];
+      localStorage.setItem('mitigateplus_user_notifications', JSON.stringify([newNotif, ...list]));
+      window.dispatchEvent(new Event('mitigateplus_notif_update'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      await fetch(`${API_BASE_URL}/audit-logs`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'EXECUTIVE_RELIEF_DIRECTIVE',
+          targetType: 'Barangay',
+          targetId: String(bCode),
+          notes: `City Mayor issued priority relief deployment directive to LGU Admin for Barangay ${bCode}`,
+        })
+      });
+    } catch (e) {}
+
+    setSuccessToast(`✓ Executive Directive Sent! Naabisuhan na ang LGU Admin na mag-deploy ng relief sa Barangay ${bCode}.`);
+    setDirectiveModal({ isOpen: false, barangay: null });
+  };
+
   return (
     <div className="page-container page-animate">
+      {/* ── Universal Executive Directive Confirmation Modal ── */}
+      <ConfirmModal
+        isOpen={directiveModal.isOpen}
+        title="I-notify ang LGU Operations Admin?"
+        message={`Magpadala ng Executive Relief Directive sa LGU Disaster Operations Admin para sa agarang pag-deploy ng ayuda sa Barangay ${directiveModal.barangay?.code}? Makatatanggap ang Admin ng high-priority alert notification na magbubukas sa event creation.`}
+        type="warning"
+        confirmText="Oo, Ipadala ang Directive"
+        onConfirm={handleSendDirective}
+        onCancel={() => setDirectiveModal({ isOpen: false, barangay: null })}
+      />
+
+      {/* ── Success Toast Banner ── */}
+      {successToast && (
+        <div className="clay-card" style={{ marginBottom: 20, borderLeft: '4px solid #158A64', background: 'rgba(21,138,100,0.1)', color: '#158A64', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
+            <CheckCircle2 size={16} /> {successToast}
+          </div>
+          <button onClick={() => setSuccessToast('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: '#158A64' }}>✕</button>
+        </div>
+      )}
+
       {/* ── Page Header ── */}
       <div className="workflow-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -365,17 +436,50 @@ export default function SmartPriorityDashboard() {
                           >
                             <Users size={13} /> View Families
                           </button>
-                          <button
-                            onClick={() => {
-                              navigate(`/distribution-events?barangay=${b.code}`, {
-                                state: { prefillBarangay: b.code },
-                              });
-                            }}
-                            className="btn btn-primary btn-sm"
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px', background: 'var(--manila-blue)', color: '#fff', fontWeight: 700 }}
-                          >
-                            <Truck size={13} /> Deploy Relief
-                          </button>
+                          {isSuperAdmin ? (
+                            <button
+                              onClick={() => setDirectiveModal({ isOpen: true, barangay: b })}
+                              className="btn btn-sm"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                fontSize: '11.5px',
+                                padding: '6px 12px',
+                                background: 'linear-gradient(135deg, #D97706, #B45309)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 6px rgba(217,119,6,0.25)',
+                              }}
+                              title="Send Executive Directive to LGU Admin to Deploy Relief"
+                            >
+                              <Bell size={13} /> Notify Admin to Deploy
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                navigate(`/distribution-events?barangay=${b.code}`, {
+                                  state: { prefillBarangay: b.code },
+                                });
+                              }}
+                              className="btn btn-primary btn-sm"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '11.5px',
+                                padding: '5px 10px',
+                                background: 'var(--manila-blue)',
+                                color: '#fff',
+                                fontWeight: 700,
+                              }}
+                            >
+                              <Truck size={13} /> Deploy Relief
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
