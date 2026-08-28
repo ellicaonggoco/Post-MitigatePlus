@@ -55,7 +55,20 @@ export default function App() {
       try {
         const savedLang = await AsyncStorage.getItem('mitigateplus_user_lang');
         if (savedLang) setLang(savedLang);
-      } catch (e) {}
+
+        // ── Persistent Auto-Login Recovery from Storage ──
+        const savedToken = await AsyncStorage.getItem('mitigateplus_token');
+        const savedSessionJson = await AsyncStorage.getItem('mitigateplus_user_session');
+
+        if (savedToken && savedSessionJson) {
+          const parsedSession = JSON.parse(savedSessionJson);
+          if (parsedSession && parsedSession.token) {
+            setUserSession(parsedSession);
+          }
+        }
+      } catch (e) {
+        console.warn('Auto-login session restore error:', e);
+      }
     })();
   }, []);
 
@@ -71,6 +84,7 @@ export default function App() {
     if (session?.token) {
       try {
         await AsyncStorage.setItem('mitigateplus_token', session.token);
+        await AsyncStorage.setItem('mitigateplus_user_session', JSON.stringify(session));
         await AsyncStorage.setItem('mitigateplus_session_start', Date.now().toString());
       } catch (e) {}
     }
@@ -81,25 +95,10 @@ export default function App() {
     setCurrentScreen('login');
     try {
       await AsyncStorage.removeItem('mitigateplus_token');
+      await AsyncStorage.removeItem('mitigateplus_user_session');
       await AsyncStorage.removeItem('mitigateplus_session_start');
     } catch (e) {}
   };
-
-  // 12-Hour Session Expiry Check on App Startup / Active
-  useEffect(() => {
-    const checkSessionExpiry = async () => {
-      try {
-        const sessionStart = await AsyncStorage.getItem('mitigateplus_session_start');
-        if (sessionStart) {
-          const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-          if (Date.now() - parseInt(sessionStart, 10) > TWELVE_HOURS_MS) {
-            await handleLogout();
-          }
-        }
-      } catch (e) {}
-    };
-    checkSessionExpiry();
-  }, []);
 
   const isStaff = userSession?.role === 'staff' || userSession?.role === 'field_staff';
   const activeKey = userSession ? (isStaff ? 'staff' : 'resident') : currentScreen;
