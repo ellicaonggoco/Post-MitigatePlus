@@ -581,42 +581,45 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       )}
 
       <View style={styles.membersList}>
-        {members.map((mem) => (
-          <View key={mem.id} style={styles.memberCard}>
-            <View style={styles.memberCardTop}>
-              <View style={styles.memberAvatarWell}>
-                <UsersIcon size={16} color="#1557B0" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.memberName}>{mem.name}</Text>
-                <Text style={styles.memberRel}>{mem.relationship} • {mem.age} yrs</Text>
-              </View>
-              {mem.id !== 1 && (
-                <TouchableOpacity style={styles.removeMemberBtn} onPress={() => handleRemoveMember(mem.id)}>
-                  <TrashIcon size={14} color="#DC2626" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.conditionPromptText}>{lang === 'tl' ? 'Pindutin ang tag para i-update:' : 'Tap tag to toggle condition:'}</Text>
-            <View style={styles.conditionTagsRow}>
-              {CONDITION_PRESETS.map((preset) => {
-                const isActive = (mem.conditions || []).includes(preset.tag);
-                return (
-                  <TouchableOpacity
-                    key={preset.key}
-                    style={[styles.condTagBtn, isActive ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive]}
-                    onPress={() => handleToggleMemberCondition(mem.id, preset.tag)}
-                  >
-                    <Text style={[styles.condTagText, isActive ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' }]}>
-                      {isActive ? ' ' : '+ '}{preset.tag}
-                    </Text>
+        {members.map((mem, idx) => {
+          const memKey = mem.id || mem._id || `mem_${idx}`;
+          return (
+            <View key={memKey} style={styles.memberCard}>
+              <View style={styles.memberCardTop}>
+                <View style={styles.memberAvatarWell}>
+                  <UsersIcon size={16} color="#1557B0" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.memberName}>{mem.name}</Text>
+                  <Text style={styles.memberRel}>{mem.relationship} • {mem.age} yrs</Text>
+                </View>
+                {idx !== 0 && (
+                  <TouchableOpacity style={styles.removeMemberBtn} onPress={() => handleRemoveMember(memKey)}>
+                    <TrashIcon size={14} color="#DC2626" />
                   </TouchableOpacity>
-                );
-              })}
+                )}
+              </View>
+
+              <Text style={styles.conditionPromptText}>{lang === 'tl' ? 'Pindutin ang tag para i-update:' : 'Tap tag to toggle condition:'}</Text>
+              <View style={styles.conditionTagsRow}>
+                {CONDITION_PRESETS.map((preset, pIdx) => {
+                  const isActive = (mem.conditions || []).includes(preset.tag);
+                  return (
+                    <TouchableOpacity
+                      key={`${memKey}_${preset.key || pIdx}`}
+                      style={[styles.condTagBtn, isActive ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 } : styles.condTagBtnInactive]}
+                      onPress={() => handleToggleMemberCondition(memKey, preset.tag)}
+                    >
+                      <Text style={[styles.condTagText, isActive ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' }]}>
+                        {isActive ? ' ' : '+ '}{preset.tag}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
       <Text style={styles.sectionLabel}>{lang === 'tl' ? 'IMPORMASYON NG CONTACT' : 'CONTACT INFORMATION'}</Text>
