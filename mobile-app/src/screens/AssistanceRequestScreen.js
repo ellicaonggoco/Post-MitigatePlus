@@ -69,16 +69,19 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          message: text,
           symptomText: text,
+          text: text,
           barangayCode: '291',
         }),
       });
 
       const data = await res.json();
-      if (res.ok && data.triageResult) {
-        setAiResult(data.triageResult);
+      const result = data.triageResult || data;
+      if (res.ok && (result.urgencyLevel || result.suspectedCondition || result.voucherCode)) {
+        setAiResult(result);
       } else {
-        Alert.alert('Notice', data.message || 'Unable to complete AI triage at this moment.');
+        Alert.alert('Notice', data.message || 'Unable to complete triage analysis at this moment.');
       }
     } catch (e) {
       console.warn('AI Triage error:', e);

@@ -13,13 +13,18 @@ const { protect, requireRole } = require('../middleware/auth');
 // @access  Public / Protected
 router.post('/analyze', async (req, res) => {
   try {
-    const { message, barangayCode } = req.body;
-    if (!message || !message.trim()) {
+    const rawText = req.body.message || req.body.symptomText || req.body.text || req.body.symptom || '';
+    const barangayCode = req.body.barangayCode || '291';
+    if (!rawText || !rawText.trim()) {
       return res.status(400).json({ message: 'Please provide a message to analyze.' });
     }
 
-    const triageResult = analyzeHealthMessage(message.trim(), barangayCode || '344');
-    res.json(triageResult);
+    const triageResult = analyzeHealthMessage(rawText.trim(), barangayCode);
+    res.json({
+      success: true,
+      triageResult,
+      ...triageResult,
+    });
   } catch (error) {
     console.error('AI Triage error:', error);
     res.status(500).json({ message: 'Error analyzing health message', error: error.message });
@@ -31,11 +36,11 @@ router.post('/analyze', async (req, res) => {
 // @access  Protected (Resident)
 router.post('/submit-request', protect, async (req, res) => {
   try {
-    const { message, residentName, barangayCode, contactPhone } = req.body;
-    const userBarangay = barangayCode || req.user.barangayCode || '344';
-    const userName = residentName || req.user.name || 'Resident';
+    const rawText = req.body.message || req.body.symptomText || req.body.text || '';
+    const userBarangay = req.body.barangayCode || req.user?.barangayCode || '291';
+    const userName = req.body.residentName || req.user?.name || 'Resident';
 
-    const triageResult = analyzeHealthMessage(message || '', userBarangay);
+    const triageResult = req.body.triageResult || analyzeHealthMessage(rawText || '', userBarangay);
 
     // Find or link household
     let household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
@@ -47,7 +52,7 @@ router.post('/submit-request', protect, async (req, res) => {
       requestType: triageResult.prophylaxisRequired ? 'medical' : 'emergency',
       status: triageResult.deliveryMode === 'DOOR_TO_DOOR_DISPATCH' ? 'assigned' : 'approved',
       specialNeeds: triageResult.detectedSymptoms,
-      notes: `[AI NLP TRIAGE: ${triageResult.urgencyLevel}] ${triageResult.suspectedCondition} | Voucher: ${triageResult.voucherCode} | User Note: ${message}`,
+      notes: `[AI NLP TRIAGE: ${triageResult.urgencyLevel}] ${triageResult.suspectedCondition} | Voucher: ${triageResult.voucherCode} | User Note: ${rawText}`,
       createdAt: new Date(),
     });
 
