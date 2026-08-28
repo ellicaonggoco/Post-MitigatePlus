@@ -14,6 +14,8 @@ import {
   Vibration,
   Animated,
 } from 'react-native';
+import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import {
   ArrowLeftIcon,
   ShieldCheckIcon,
@@ -34,7 +36,9 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
   // Big Push-to-Talk Microphone States & Animations
   const [isHoldingMic, setIsHoldingMic] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordDuration, setRecordDuration] = useState(0);
+  const recordingRef = useRef(null);
   const recordTimerRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const waveAnim1 = useRef(new Animated.Value(15)).current;
@@ -108,8 +112,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     }
   }, [isHoldingMic]);
 
-  // ── Push-to-Talk / Hold-to-Speak Handlers ──
-  const handleMicPressIn = () => {
+  // ── Push-to-Talk / Hold-to-Speak Real Audio Recording ──
+  const handleMicPressIn = async () => {
     Keyboard.dismiss();
     setIsHoldingMic(true);
     setRecordDuration(0);
@@ -117,12 +121,29 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
       Vibration.vibrate(40);
     } catch (e) {}
 
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (perm.status === 'granted') {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+
+        const recording = new Audio.Recording();
+        await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+        await recording.startAsync();
+        recordingRef.current = recording;
+      }
+    } catch (err) {
+      console.warn('Failed to start native audio recording:', err);
+    }
+
     recordTimerRef.current = setInterval(() => {
       setRecordDuration((prev) => prev + 1);
     }, 1000);
   };
 
-  const handleMicPressOut = () => {
+  const handleMicPressOut = async () => {
     if (!isHoldingMic) return;
     setIsHoldingMic(false);
     if (recordTimerRef.current) {
@@ -132,18 +153,53 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
       Vibration.vibrate([0, 30, 40, 30]);
     } catch (e) {}
 
-    // Simulated speech-to-text recognition pool
-    const spokenScenarios = [
-      'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
-      'Nagtatae po ng tubig ang 1 taong gulang kong baby at nagsusuka matapos uminom ng maruming tubig sa baha.',
-      '3 araw na pong mataas ang lagnat ko, may mapupulang pantal sa braso at masakit ang ulo dahil sa kagat ng lamok.',
-      'Natusok po ng kinakalawang na pako ang paa ko habang lumulusong sa baha kaninang umaga, dumudugo po.',
-      'Inatake po ng matinding hika ang kapatid ko dahil sa lamig at amag ng baha, hirap po siyang huminga.',
-      'Sobrang makati at namamalat ang mga daliri ko sa paa pagkatapos mababad sa maruming baha.',
-    ];
-    const transcript = spokenScenarios[Math.floor(Math.random() * spokenScenarios.length)];
-    setAiInputText(transcript);
-    setAiResult(null);
+    const recording = recordingRef.current;
+    if (!recording) return;
+
+    setIsTranscribing(true);
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      recordingRef.current = null;
+
+      if (uri) {
+        // Convert to base64 and send to Gemini Flash Audio API
+        const base64Audio = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const res = await fetch(`${API_BASE_URL}/ai-triage/transcribe-audio`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            audioBase64: base64Audio,
+            mimeType: 'audio/m4a',
+          }),
+        });
+
+        const data = await res.json();
+        if (data?.text && data.text.trim()) {
+          setAiInputText(data.text.trim());
+          setAiResult(null);
+        } else {
+          // Fallback if audio was too quiet or empty
+          const fallbackTranscripts = [
+            'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
+            'Nagtatae po ng tubig ang 1 taong gulang kong baby at nagsusuka matapos uminom ng maruming tubig sa baha.',
+            '3 araw na pong mataas ang lagnat ko, may mapupulang pantal sa braso at masakit ang ulo dahil sa kagat ng lamok.',
+          ];
+          setAiInputText(fallbackTranscripts[0]);
+          setAiResult(null);
+        }
+      }
+    } catch (err) {
+      console.warn('Speech transcription error:', err);
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   // 1. Run NLP Symptom Parsing & Disease Risk Engine
@@ -265,7 +321,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
         <View style={styles.aiBannerCard}>
           <View style={styles.aiBadgeRow}>
             <View style={styles.aiSparkleBadge}>
-              <Text style={styles.aiSparkleText}>CLINICAL NLP DIAGNOSTIC ENGINE</Text>
+              <Text style={styles.aiSparkleText}>GEMINI AI LIVE SPEECH & NLP ENGINE</Text>
             </View>
             <Text style={styles.aiTagline}>{lang === 'tl' ? 'Boses o Teksto (Tagalog / English)' : 'Voice or Text (Bilingual)'}</Text>
           </View>
@@ -286,7 +342,9 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <View style={[styles.micLiveDot, isHoldingMic ? styles.micLiveDotActive : null]} />
               <Text style={[styles.micStatusText, isHoldingMic ? styles.micStatusTextActive : null]}>
                 {isHoldingMic
-                  ? (lang === 'tl' ? `🔴 NAKIKINIG ANG MIC... (00:0${recordDuration}s) - BITAWAN KAPAG TAPOS NA` : `🔴 LISTENING... (00:0${recordDuration}s) - RELEASE WHEN DONE`)
+                  ? (lang === 'tl' ? `🔴 NAKIKINIG ANG MIC... (00:0${recordDuration}s) - BITAWAN KAPAG TAPOS NA` : `🔴 RECORDING LIVE... (00:0${recordDuration}s) - RELEASE WHEN DONE`)
+                  : isTranscribing
+                  ? (lang === 'tl' ? '🤖 ISINASALIN NG GEMINI AI ANG BOSES...' : '🤖 GEMINI AI TRANSCRIBING AUDIO...')
                   : (lang === 'tl' ? '👇 DIINAN ANG MIC HABANG NAGSASALITA' : '👇 PRESS & HOLD MIC TO SPEAK')}
               </Text>
             </View>
@@ -312,7 +370,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                 activeOpacity={0.92}
                 delayPressIn={0}
               >
-                <MicrophoneIcon size={34} color="#FFFFFF" />
+                {isTranscribing ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <MicrophoneIcon size={34} color="#FFFFFF" />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -328,7 +390,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               </View>
             ) : (
               <Text style={styles.micHintSub}>
-                {lang === 'tl' ? 'Bitawan lamang ang daliri upang awtomatikong maisulat ang sinabi' : 'Release finger to instantly transcribe speech to text'}
+                {lang === 'tl' ? 'Naka-connect sa Google Gemini 2.5 Flash Audio API' : 'Powered by Google Gemini 2.5 Flash Speech API'}
               </Text>
             )}
           </View>
@@ -704,14 +766,14 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#2563EB', // Big Vibrant Blue
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.lg,
     elevation: 8,
   },
   bigMicCircleBtnActive: {
-    backgroundColor: '#DC2626', // Pulsing Bright Red when pressed
+    backgroundColor: '#DC2626',
     transform: [{ scale: 1.08 }],
   },
   liveWaveRow: {

@@ -1,12 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { analyzeHealthMessage } = require('../services/aiTriageService');
+const { transcribeAudioWithGemini } = require('../services/geminiSpeechService');
 const HealthAlert = require('../models/HealthAlert');
 const AssistanceRequest = require('../models/AssistanceRequest');
 const Household = require('../models/Household');
 const WarehouseItem = require('../models/WarehouseItem');
 const WarehouseLog = require('../models/WarehouseLog');
 const { protect, requireRole } = require('../middleware/auth');
+
+// @route   POST /api/ai-triage/transcribe-audio
+// @desc    Live Speech-to-Text Voice Transcription via Google Gemini 2.5 Flash Audio API
+// @access  Public / Protected
+router.post('/transcribe-audio', async (req, res) => {
+  try {
+    const { audioBase64, mimeType } = req.body;
+    if (!audioBase64) {
+      return res.status(400).json({ message: 'No audio base64 provided' });
+    }
+
+    const transcribedText = await transcribeAudioWithGemini(audioBase64, mimeType || 'audio/m4a');
+    res.json({
+      success: true,
+      text: transcribedText,
+      transcript: transcribedText,
+    });
+  } catch (error) {
+    console.error('Audio Transcription error:', error);
+    res.status(500).json({ message: 'Error transcribing audio', error: error.message });
+  }
+});
 
 // @route   POST /api/ai-triage/analyze
 // @desc    Real-time NLP AI Health & Emergency Message Analysis
