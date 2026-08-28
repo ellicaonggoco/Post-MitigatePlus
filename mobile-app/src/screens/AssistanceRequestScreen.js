@@ -36,15 +36,17 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
   // Big Push-to-Talk & Tap-to-Record Voice State
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [isSoundDetected, setIsSoundDetected] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordDuration, setRecordDuration] = useState(0);
+
   const recordingRef = useRef(null);
   const recordTimerRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const waveAnim1 = useRef(new Animated.Value(15)).current;
-  const waveAnim2 = useRef(new Animated.Value(25)).current;
-  const waveAnim3 = useRef(new Animated.Value(35)).current;
-  const waveAnim4 = useRef(new Animated.Value(20)).current;
+  const waveAnim1 = useRef(new Animated.Value(4)).current;
+  const waveAnim2 = useRef(new Animated.Value(4)).current;
+  const waveAnim3 = useRef(new Animated.Value(4)).current;
+  const waveAnim4 = useRef(new Animated.Value(4)).current;
 
   // Diverse Post-Disaster Health Scenarios
   const samplePrompts = [
@@ -85,36 +87,20 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     },
   ];
 
-  // Start animated pulse when recording
+  // Animated pulse triggers ONLY when real sound/voice is actively detected by microphone
   useEffect(() => {
-    if (isRecordingVoice) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.25, duration: 400, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1.0, duration: 400, useNativeDriver: true }),
-        ])
-      ).start();
-
-      const waveInterval = setInterval(() => {
-        waveAnim1.setValue(Math.floor(10 + Math.random() * 35));
-        waveAnim2.setValue(Math.floor(15 + Math.random() * 45));
-        waveAnim3.setValue(Math.floor(10 + Math.random() * 50));
-        waveAnim4.setValue(Math.floor(12 + Math.random() * 38));
-      }, 150);
-
-      return () => {
-        clearInterval(waveInterval);
-        pulseAnim.setValue(1);
-      };
+    if (isRecordingVoice && isSoundDetected) {
+      Animated.timing(pulseAnim, { toValue: 1.25, duration: 180, useNativeDriver: true }).start();
     } else {
-      pulseAnim.setValue(1);
+      Animated.timing(pulseAnim, { toValue: 1.0, duration: 200, useNativeDriver: true }).start();
     }
-  }, [isRecordingVoice]);
+  }, [isRecordingVoice, isSoundDetected]);
 
-  // ── Start Audio Recording ──
+  // ── Start Audio Recording with Real-time Voice Metering ──
   const startRecording = async () => {
     Keyboard.dismiss();
     setRecordDuration(0);
+    setIsSoundDetected(false);
     try {
       Vibration.vibrate(50);
     } catch (e) {}
@@ -137,7 +123,57 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
       });
 
       const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      const customOptions = {
+        isMeteringEnabled: true,
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/webm',
+          bitsPerSecond: 128000,
+        },
+      };
+
+      await recording.prepareToRecordAsync(customOptions);
+
+      // Real-time audio metering: Detect if the user is ACTUALLY speaking
+      recording.setOnRecordingStatusUpdate((status) => {
+        if (status.isRecording) {
+          const db = status.metering ?? -160;
+          // dB ranges from -160 (silence) to 0 (loud)
+          // Normal conversational speech is between -38dB to -10dB
+          if (db > -42) {
+            setIsSoundDetected(true);
+            const norm = Math.min(Math.max((db + 45) / 45, 0), 1);
+            waveAnim1.setValue(8 + norm * 26);
+            waveAnim2.setValue(12 + norm * 35);
+            waveAnim3.setValue(14 + norm * 40);
+            waveAnim4.setValue(10 + norm * 30);
+          } else {
+            setIsSoundDetected(false);
+            waveAnim1.setValue(4);
+            waveAnim2.setValue(4);
+            waveAnim3.setValue(4);
+            waveAnim4.setValue(4);
+          }
+        }
+      });
+
       await recording.startAsync();
       recordingRef.current = recording;
       setIsRecordingVoice(true);
@@ -152,10 +188,16 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     }
   };
 
-  // ── Stop Audio Recording & Send to Gemini 2.5 Flash ──
+  // ── Stop Audio Recording & Send to Gemini 2.5 Flash Speech API ──
   const stopRecording = async () => {
     if (!isRecordingVoice && !recordingRef.current) return;
     setIsRecordingVoice(false);
+    setIsSoundDetected(false);
+    waveAnim1.setValue(4);
+    waveAnim2.setValue(4);
+    waveAnim3.setValue(4);
+    waveAnim4.setValue(4);
+
     if (recordTimerRef.current) {
       clearInterval(recordTimerRef.current);
     }
@@ -196,18 +238,20 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             setAiInputText(data.text.trim());
             setAiResult(null);
           } else {
-            setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
-            setAiResult(null);
+            Alert.alert(
+              lang === 'tl' ? 'Walang Narinig na Boses' : 'No Speech Detected',
+              lang === 'tl'
+                ? 'Walang naitalang malinaw na boses. Pakilapit ang bibig sa mic at subukang magsalita muli.'
+                : 'No clear voice was captured. Please speak closer to the microphone and try again.'
+            );
           }
         } else {
-          setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
-          setAiResult(null);
+          Alert.alert('Notice', 'Voice transcription server error. Please try again.');
         }
       }
     } catch (err) {
       console.warn('Transcription network notice:', err);
-      setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
-      setAiResult(null);
+      Alert.alert('Notice', 'Could not reach voice transcription service. Please check your network.');
     } finally {
       setIsTranscribing(false);
     }
@@ -350,10 +394,12 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           <View style={[styles.micStationCard, isRecordingVoice && styles.micStationCardActive]}>
             {/* Live Indicator Header */}
             <View style={styles.micStatusRow}>
-              <View style={[styles.micLiveDot, isRecordingVoice ? styles.micLiveDotActive : null]} />
-              <Text style={[styles.micStatusText, isRecordingVoice ? styles.micStatusTextActive : null]}>
+              <View style={[styles.micLiveDot, isRecordingVoice ? (isSoundDetected ? styles.micLiveDotActive : styles.micLiveDotSilent) : null]} />
+              <Text style={[styles.micStatusText, isRecordingVoice ? (isSoundDetected ? styles.micStatusTextActive : styles.micStatusTextSilent) : null]}>
                 {isRecordingVoice
-                  ? (lang === 'tl' ? `NAKIKINIG ANG MIC... (00:0${recordDuration}s) - PINDUTIN PARA IHINTO` : `RECORDING LIVE... (00:0${recordDuration}s) - TAP TO STOP`)
+                  ? (isSoundDetected
+                      ? (lang === 'tl' ? `NARIRINIG ANG IYONG BOSES... (00:0${recordDuration}s)` : `VOICE DETECTED... (00:0${recordDuration}s)`)
+                      : (lang === 'tl' ? `NAKIKINIG (MAGSALITA NA)... (00:0${recordDuration}s)` : `LISTENING (SPEAK NOW)... (00:0${recordDuration}s)`))
                   : isTranscribing
                   ? (lang === 'tl' ? 'ISINASALIN ANG BOSES GAMIT ANG GEMINI AI...' : 'TRANSCRIBING AUDIO VIA GEMINI AI...')
                   : (lang === 'tl' ? 'PINDUTIN ANG MIC PARA MAGSALITA' : 'TAP MIC TO START SPEAKING')}
@@ -362,7 +408,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
             {/* Big Mic Button with Dynamic Pulsing Outer Rings */}
             <View style={styles.micButtonWrapper}>
-              {isRecordingVoice && (
+              {isRecordingVoice && isSoundDetected && (
                 <Animated.View
                   style={[
                     styles.micPulseRing,
@@ -375,7 +421,10 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               )}
 
               <TouchableOpacity
-                style={[styles.bigMicCircleBtn, isRecordingVoice && styles.bigMicCircleBtnActive]}
+                style={[
+                  styles.bigMicCircleBtn,
+                  isRecordingVoice && (isSoundDetected ? styles.bigMicCircleBtnActive : styles.bigMicCircleBtnListening),
+                ]}
                 onPress={() => {
                   if (isRecordingVoice) {
                     stopRecording();
@@ -393,7 +442,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               </TouchableOpacity>
             </View>
 
-            {/* Live Waveform Indicator */}
+            {/* Live Waveform Indicator (Rises ONLY when speech is heard) */}
             {isRecordingVoice ? (
               <View style={styles.liveWaveRow}>
                 <Animated.View style={[styles.liveWaveBar, { height: waveAnim1 }]} />
@@ -443,8 +492,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               }}
               placeholder={
                 lang === 'tl'
-                  ? 'Dito lalabas ang iyong sinabi sa mic, o maaari mo ring i-type nang mano-mano...'
-                  : 'Your voice transcript will appear here, or you can type manually...'
+                  ? 'Dito lalabas ang eksaktong sinabi mo sa mic, o maaari mo ring i-type nang mano-mano...'
+                  : 'Your exact spoken transcript will appear here, or you can type manually...'
               }
               placeholderTextColor="#94A3B8"
               multiline
@@ -752,6 +801,9 @@ const styles = StyleSheet.create({
   micLiveDotActive: {
     backgroundColor: '#DC2626',
   },
+  micLiveDotSilent: {
+    backgroundColor: '#F59E0B',
+  },
   micStatusText: {
     fontSize: 11,
     fontWeight: FONT_WEIGHT.black,
@@ -760,6 +812,9 @@ const styles = StyleSheet.create({
   },
   micStatusTextActive: {
     color: '#DC2626',
+  },
+  micStatusTextSilent: {
+    color: '#D97706',
   },
   micButtonWrapper: {
     width: 84,
@@ -789,6 +844,9 @@ const styles = StyleSheet.create({
   bigMicCircleBtnActive: {
     backgroundColor: '#DC2626',
     transform: [{ scale: 1.08 }],
+  },
+  bigMicCircleBtnListening: {
+    backgroundColor: '#D97706',
   },
   liveWaveRow: {
     flexDirection: 'row',

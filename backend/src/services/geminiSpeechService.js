@@ -55,7 +55,12 @@ async function transcribeAudioWithGemini(audioBase64, mimeType = 'audio/m4a') {
                 .replace(/\*+/g, '')
                 .replace(/^["']|["']$/g, '')
                 .trim();
-              resolve(text);
+
+              if (/^no\s*speech\.?$/i.test(text) || /^inaudible\.?$/i.test(text) || !text) {
+                resolve('');
+              } else {
+                resolve(text);
+              }
             } else {
               console.warn('Gemini Audio Error:', data);
               resolve('');
