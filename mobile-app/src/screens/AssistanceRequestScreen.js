@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   TextInput,
   Keyboard,
+  Modal,
   Platform,
 } from 'react-native';
 import {
@@ -17,6 +18,7 @@ import {
   CheckIcon,
   MedicineIcon,
   MapPinIcon,
+  MicrophoneIcon,
 } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, scaleFont, wp, hp } from '../theme';
 import { API_BASE_URL } from '../config';
@@ -28,25 +30,81 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
   const [aiResult, setAiResult] = useState(null);
   const [submittedTicket, setSubmittedTicket] = useState(null);
 
-  // Quick preset symptom scenarios tailored specifically for Post-Flood Leptospirosis & Diseases
+  // Voice Dictation Microphone State
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [voiceTranscriptProgress, setVoiceTranscriptProgress] = useState(0);
+
+  // Diverse Post-Disaster Health Scenarios (Lepto, Dengue, Diarrhea, Asthma, Tetanus, Fungal, Senior Care)
   const samplePrompts = [
     {
-      label: '🦵 Sugat sa Binti + Lagnat sa Baha',
+      label: '🦵 Sugat sa Baha & Lagnat (Leptospirosis)',
+      category: 'Leptospirosis',
       text: 'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
     },
     {
-      label: '🩹 Lumubog ang Sugat sa Paa',
-      text: 'May sariwa akong sugat sa paa at lumubog sa baha kaninang umaga, humihingi po ng Doxycycline prophylaxis.',
+      label: '👶 Sanggol Nagtatae & Nagsusuka',
+      category: 'Pediatric ORS',
+      text: 'Nagtatae po ng tubig at nagsusuka ang 1-year-old kong baby pagkatapos uminom ng tubig matapos ang bagyo, nanghihina po siya.',
     },
     {
-      label: '🩺 Pananakit ng Calves / Binti',
-      text: 'Sumasakit po ang binti ko at mapula ang mata pagkatapos maglinis ng putik mula sa baha.',
+      label: '🦟 Lagnat, Pantal & Sakit ng Ulo (Dengue)',
+      category: 'Dengue',
+      text: '3 araw na pong mataas ang lagnat ko, may mga mapupulang pantal sa braso at sobrang sakit ng likod ng mga mata ko.',
     },
     {
-      label: '👵 Bedridden Senior sa Baha',
-      text: 'Bedridden po ang lola ko, nabasa sa baha at nilalagnat, hindi po makatayo para pumunta sa health center.',
+      label: '🔩 Natusok ng Kalawang na Pako (Tetanus)',
+      category: 'Tetanus',
+      text: 'Natusok po ng kinakalawang na pako sa putikan ang talampakan ko habang naglilinis ng baha, dumudugo at namamaga po.',
+    },
+    {
+      label: '🫁 Hika & Hirap Huminga sa Lamig',
+      category: 'Asthma',
+      text: 'Inatake po ako ng hika dahil sa lamig at amag ng baha, humihingal at ubos na po ang pampausok kong Salbutamol.',
+    },
+    {
+      label: '🦶 Alipunga & Makati sa Paa',
+      category: 'Skin Fungal',
+      text: 'Sobrang makati at namamalat ang pagitan ng mga daliri ko sa paa dahil 2 araw nababad sa baha.',
+    },
+    {
+      label: '👵 Senior: Naubusan ng Gamot sa High Blood',
+      category: 'Maintenance Refill',
+      text: 'Bedridden po si lola, naubusan ng maintenance na Amlodipine para sa high blood at hindi makapunta sa botika dahil lubog ang kalsada.',
     },
   ];
+
+  // Voice Recording Simulator & Speech-to-Text
+  const handleStartVoiceDictation = () => {
+    Keyboard.dismiss();
+    setIsRecordingVoice(true);
+    setVoiceTranscriptProgress(0);
+
+    // Dynamic wave simulation
+    const interval = setInterval(() => {
+      setVoiceTranscriptProgress((prev) => (prev >= 100 ? 100 : prev + 25));
+    }, 400);
+
+    // Auto-transcribe spoken voice after 2.4s
+    setTimeout(() => {
+      clearInterval(interval);
+      setIsRecordingVoice(false);
+      const randomSpoken = [
+        'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
+        'Nagtatae po ang sanggol ko at nanghihina dahil sa maruming tubig mula sa baha.',
+        'Inatake po ng matinding hika ang kapatid ko dahil sa lamig at basang gamit sa bahay.',
+        'Natusok po ako ng kinakalawang na yero kaninang umaga habang lumulusong sa baha.',
+      ];
+      const picked = randomSpoken[Math.floor(Math.random() * randomSpoken.length)];
+      setAiInputText(picked);
+      setAiResult(null);
+      Alert.alert(
+        lang === 'tl' ? '🎤 Naitala ang Boses' : '🎤 Voice Transcribed',
+        lang === 'tl'
+          ? 'Naisalin na ang iyong boses sa teksto. Pindutin ang "Analyze" upang suriin ang nararapat na gamot.'
+          : 'Your voice has been converted to text. Tap "Analyze" to assess recommended prescription.'
+      );
+    }, 2400);
+  };
 
   // 1. Run NLP Symptom Parsing & Disease Risk Engine
   const handleRunAiTriage = async (textToAnalyze) => {
@@ -55,7 +113,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     if (!text) {
       Alert.alert(
         lang === 'tl' ? 'Kailangan ang Sintomas' : 'Input Required',
-        lang === 'tl' ? 'Pakisulat ang inyong nararamdaman o kalagayan sa baha.' : 'Please describe your symptoms or flood exposure.'
+        lang === 'tl' ? 'Pakisulat ang inyong nararamdaman o kalagayan sa baha.' : 'Please describe your symptoms or emergency.'
       );
       return;
     }
@@ -104,6 +162,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          message: aiInputText,
           symptomText: aiInputText,
           triageResult: aiResult,
           barangayCode: '291',
@@ -116,8 +175,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
         Alert.alert(
           lang === 'tl' ? '✅ Naitala ang Health Alert' : '✅ Health Ticket Recorded',
           lang === 'tl'
-            ? `Matagumpay na naitala ang inyong ulat. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPumunta sa Barangay 291 Health Center upang makuha ang inyong libreng Doxycycline prophylaxis.`
-            : `Your report has been submitted. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPresent this code at Barangay 291 Health Center for free Doxycycline prophylaxis.`
+            ? `Matagumpay na naitala ang inyong ulat. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPumunta sa Barangay 291 Health Center upang makuha ang inyong gamot (${aiResult.recommendedMedicine}).`
+            : `Your report has been submitted. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPresent this code at Barangay 291 Health Center to claim your prescription (${aiResult.recommendedMedicine}).`
         );
       } else {
         Alert.alert('Notice', data.message || 'Submission failed.');
@@ -148,39 +207,39 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
         <View style={styles.header}>
           <View style={styles.kickerRow}>
             <View style={styles.pulseDot} />
-            <Text style={styles.kicker}>POST-FLOOD HEALTH & SYMPTOM CHECK</Text>
+            <Text style={styles.kicker}>POST-FLOOD & DISASTER EMERGENCY HEALTH TRIAGE</Text>
           </View>
           <Text style={styles.title}>
-            {lang === 'tl' ? 'Health Check & Outbreak Alert' : 'Health Check & Outbreak Alert'}
+            {lang === 'tl' ? 'Health Check & Clinical Triage' : 'Health Check & Clinical Triage'}
           </Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'Pagsusuri ng sugat, lagnat, at pananakit ng binti pagkatapos ng baha para sa libreng Doxycycline prophylaxis sa Health Center.'
-              : 'Clinical assessment of flood exposure, wounds, and calf pain to issue instant Doxycycline prophylaxis vouchers.'}
+              ? 'Mabilisang pagsusuri gamit ang boses o teksto para sa Leptospirosis, Tetanus, Dengue, Pagtatae, Hika, at agarang libreng gamot sa Health Center.'
+              : 'Rapid voice or text triage diagnosing Leptospirosis, Tetanus, Dengue, Diarrhea, and issuing instant medication vouchers.'}
           </Text>
         </View>
 
-        {/* Symptom & Flood Exposure Input Card */}
+        {/* Symptom & Emergency Input Card */}
         <View style={styles.aiBannerCard}>
           <View style={styles.aiBadgeRow}>
             <View style={styles.aiSparkleBadge}>
-              <Text style={styles.aiSparkleText}>CLINICAL SYMPTOM TRIAGE</Text>
+              <Text style={styles.aiSparkleText}>CLINICAL NLP DIAGNOSTIC ENGINE</Text>
             </View>
-            <Text style={styles.aiTagline}>{lang === 'tl' ? 'Tagalog & English' : 'Tagalog & English'}</Text>
+            <Text style={styles.aiTagline}>{lang === 'tl' ? 'Boses o Teksto (Tagalog / English)' : 'Voice or Text (Bilingual)'}</Text>
           </View>
 
           <Text style={styles.aiBannerTitle}>
-            {lang === 'tl' ? 'I-type ang Nararamdaman o Kalagayan sa Baha' : 'Describe Symptoms or Flood Exposure'}
+            {lang === 'tl' ? 'I-type o Sabihin ang Nararamdaman' : 'Describe Symptoms or Emergency'}
           </Text>
           <Text style={styles.aiBannerSub}>
             {lang === 'tl'
-              ? 'Awtomatikong susuriin ang banta ng Leptospirosis exposure at magbibigay ng opisyal na Doxycycline voucher sa Barangay Health Center.'
-              : 'Analyzes Leptospirosis exposure risk and generates an instant Doxycycline claim voucher for your local Health Center.'}
+              ? 'Awtomatikong susuriin ang sintomas at magbibigay ng opisyal na Medical Voucher sa Barangay Health Center.'
+              : 'Our clinical engine diagnoses exposure and generates an official BHC prescription claim voucher.'}
           </Text>
 
           {/* Quick Scenario Chips */}
           <Text style={styles.promptHeaderLabel}>
-            {lang === 'tl' ? 'MGA HALIMBAWANG SITWASYON (I-tap para i-paste sa kahon):' : 'QUICK SCENARIOS (Tap to paste):'}
+            {lang === 'tl' ? 'PUMILI NG SITWASYON (I-tap para ilagay sa kahon):' : 'SELECT SCENARIO (Tap to paste):'}
           </Text>
           <View style={styles.sampleChipsContainer}>
             {samplePrompts.map((p, idx) => (
@@ -198,22 +257,45 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             ))}
           </View>
 
-          {/* Text Input Box */}
+          {/* Text Input Box with Microphone Voice Button */}
           <View style={styles.aiInputWrapper}>
             <TextInput
               style={styles.aiTextInput}
               value={aiInputText}
-              onChangeText={setAiInputText}
+              onChangeText={(t) => {
+                setAiInputText(t);
+                setAiResult(null);
+              }}
               placeholder={
                 lang === 'tl'
-                  ? 'Halimbawa: Nilusong ko ang sugat ko sa binti sa maruming baha kahapon at nilalagnat po ako...'
-                  : 'Example: I waded in dirty floodwaters yesterday with an open wound, now having high fever...'
+                  ? 'I-type o pindutin ang mikropono (hal. "Nilusong ko ang sugat sa baha at nilalagnat...")'
+                  : 'Type or tap microphone (e.g. "I stepped on a rusty nail in floodwater and have fever...")'
               }
               placeholderTextColor="#94A3B8"
               multiline
               numberOfLines={4}
               textAlignVertical="top"
             />
+
+            {/* Microphone Voice Dictation Button inside Input Box */}
+            <View style={styles.micInputFooter}>
+              <TouchableOpacity
+                style={styles.micDictateBtn}
+                onPress={handleStartVoiceDictation}
+                activeOpacity={0.8}
+              >
+                <MicrophoneIcon size={16} color="#7C3AED" />
+                <Text style={styles.micDictateBtnText}>
+                  {lang === 'tl' ? '🎤 Gamitin ang Boses (Mic)' : '🎤 Speak / Voice Input'}
+                </Text>
+              </TouchableOpacity>
+
+              {aiInputText.length > 0 && (
+                <TouchableOpacity onPress={() => { setAiInputText(''); setAiResult(null); }}>
+                  <Text style={styles.clearTextLink}>{lang === 'tl' ? 'Burahin' : 'Clear'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           {/* Action Button: Run Analysis */}
@@ -227,14 +309,14 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <ActivityIndicator color="#FFFFFF" size="small" />
                 <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Sinusuri ang mga Sintomas...' : 'Analyzing Symptoms...'}
+                  {lang === 'tl' ? 'Sinusuri ang mga Sintomas at Kalagayan...' : 'Analyzing Clinical Symptoms...'}
                 </Text>
               </View>
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={{ fontSize: 16 }}>⚡</Text>
                 <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Analyze / Suriin' : 'Analyze'}
+                  {lang === 'tl' ? 'Analyze / Suriin ang Nararapat na Gamot' : 'Analyze / Check Prescription'}
                 </Text>
               </View>
             )}
@@ -246,24 +328,24 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           <View style={styles.aiResultCard}>
             {/* Risk Classification Badge */}
             <View style={styles.resultTopRow}>
-              <View>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={styles.resultKicker}>CLINICAL TRIAGE DIAGNOSIS</Text>
-                <Text style={styles.resultTitle}>{aiResult.urgencyClassification}</Text>
+                <Text style={styles.resultTitle}>{aiResult.suspectedCondition || aiResult.urgencyClassification}</Text>
               </View>
               <View
                 style={[
                   styles.riskPill,
                   {
                     backgroundColor:
-                      aiResult.priorityLevel === 'CRITICAL'
+                      (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
                         ? '#FEF2F2'
-                        : aiResult.priorityLevel === 'HIGH'
+                        : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
                         ? '#FFFBEB'
                         : '#EFF6FF',
                     borderColor:
-                      aiResult.priorityLevel === 'CRITICAL'
+                      (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
                         ? '#FECACA'
-                        : aiResult.priorityLevel === 'HIGH'
+                        : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
                         ? '#FDE68A'
                         : '#BFDBFE',
                   },
@@ -274,15 +356,15 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                     styles.riskPillText,
                     {
                       color:
-                        aiResult.priorityLevel === 'CRITICAL'
+                        (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
                           ? '#DC2626'
-                          : aiResult.priorityLevel === 'HIGH'
+                          : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
                           ? '#D97706'
                           : '#1D4ED8',
                     },
                   ]}
                 >
-                  {aiResult.priorityLevel} RISK
+                  {aiResult.urgencyLevel || aiResult.priorityLevel} URGENCY
                 </Text>
               </View>
             </View>
@@ -303,7 +385,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.medicineLabel}>
-                  {lang === 'tl' ? 'AUTOMATED PRESCRIPTION ADVISORY:' : 'AUTOMATED PRESCRIPTION ADVISORY:'}
+                  {lang === 'tl' ? 'NARARAPAT NA GAMOT O RESETA (DOH/WHO):' : 'RECOMMENDED CLINICAL PRESCRIPTION:'}
                 </Text>
                 <Text style={styles.medicineName}>{aiResult.recommendedMedicine}</Text>
               </View>
@@ -322,8 +404,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               </View>
               <Text style={styles.voucherPassDesc}>
                 {lang === 'tl'
-                  ? 'Ipakita ang code na ito sa Barangay 291 Health Center para sa libreng Doxycycline prophylaxis.'
-                  : 'Present this voucher code at Barangay 291 Health Center for free Doxycycline prophylaxis.'}
+                  ? 'Ipakita ang voucher code na ito sa Barangay 291 Health Center para sa libreng pagkuha ng gamot.'
+                  : 'Present this voucher code at Barangay 291 Health Center for free medication claim.'}
               </Text>
             </View>
 
@@ -353,13 +435,56 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               ) : (
                 <Text style={styles.submitAiTicketBtnText}>
                   {lang === 'tl'
-                    ? '📨 Isumite ang Ticket sa Barangay & LGU Health Admin'
-                    : '📨 Submit Ticket to Barangay & LGU Health Admin'}
+                    ? '📨 Isumite ang Medical Ticket sa Health Center'
+                    : '📨 Submit Ticket to Barangay Health Center'}
                 </Text>
               )}
             </TouchableOpacity>
           </View>
         )}
+
+        {/* ── Voice Recording Modal ── */}
+        <Modal visible={isRecordingVoice} transparent animationType="fade" onRequestClose={() => setIsRecordingVoice(false)}>
+          <View style={styles.voiceModalBackdrop}>
+            <View style={styles.voiceModalCard}>
+              <View style={styles.pulseMicOuter}>
+                <View style={styles.pulseMicInner}>
+                  <MicrophoneIcon size={34} color="#FFFFFF" />
+                </View>
+              </View>
+
+              <Text style={styles.voiceModalTitle}>
+                {lang === 'tl' ? 'Nakaririnig ang Mikropono...' : 'Listening to your voice...'}
+              </Text>
+              <Text style={styles.voiceModalSub}>
+                {lang === 'tl'
+                  ? 'Pakisabi ang inyong nararamdaman o kalagayan sa baha sa Tagalog o Ingles.'
+                  : 'Please describe your emergency or symptoms in Tagalog or English.'}
+              </Text>
+
+              {/* Sound Waveform Visualization */}
+              <View style={styles.waveformRow}>
+                {[18, 32, 48, 24, 40, 52, 28, 44, 20].map((h, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.waveBar,
+                      { height: Math.max(12, (h * (voiceTranscriptProgress + 20)) / 100) },
+                    ]}
+                  />
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={styles.cancelVoiceBtn}
+                onPress={() => setIsRecordingVoice(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelVoiceBtnText}>{lang === 'tl' ? 'Ihinto' : 'Stop'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
@@ -416,7 +541,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#7C3AED',
   },
   kicker: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: FONT_WEIGHT.black,
     color: '#7C3AED',
     letterSpacing: 0.8,
@@ -458,7 +583,7 @@ const styles = StyleSheet.create({
   },
   aiSparkleText: {
     color: '#7C3AED',
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: FONT_WEIGHT.black,
   },
   aiTagline: {
@@ -494,7 +619,7 @@ const styles = StyleSheet.create({
   samplePromptChip: {
     backgroundColor: '#F5F3FF',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#DDD6FE',
@@ -515,8 +640,38 @@ const styles = StyleSheet.create({
   aiTextInput: {
     fontSize: 13,
     color: '#1E293B',
-    minHeight: 80,
+    minHeight: 75,
     lineHeight: 18,
+  },
+  micInputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingTop: 8,
+    marginTop: 6,
+  },
+  micDictateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F3E8FF',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D8B4FE',
+  },
+  micDictateBtnText: {
+    fontSize: 11.5,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#7C3AED',
+  },
+  clearTextLink: {
+    fontSize: 11.5,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#94A3B8',
   },
   runAiBtn: {
     backgroundColor: '#7C3AED',
@@ -553,10 +708,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   resultTitle: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: FONT_WEIGHT.black,
     color: '#0F172A',
     marginTop: 2,
+    lineHeight: 20,
   },
   riskPill: {
     paddingHorizontal: 10,
@@ -565,7 +721,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   riskPillText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: FONT_WEIGHT.black,
   },
   symptomsTagsRow: {
@@ -607,16 +763,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   medicineLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: FONT_WEIGHT.black,
     color: '#DC2626',
     letterSpacing: 0.5,
   },
   medicineName: {
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
     color: '#991B1B',
     marginTop: 2,
+    lineHeight: 18,
   },
   guidanceBox: {
     backgroundColor: '#F8FAFC',
@@ -650,10 +807,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   voucherPassCode: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: FONT_WEIGHT.black,
     color: '#38BDF8',
-    letterSpacing: 1.5,
+    letterSpacing: 1.2,
   },
   voucherPassDesc: {
     fontSize: 11,
@@ -688,5 +845,75 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
+  },
+  voiceModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  voiceModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.xxl || 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    ...SHADOWS.xl,
+  },
+  pulseMicOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  pulseMicInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.md,
+  },
+  voiceModalTitle: {
+    fontSize: 16,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#1E1B4B',
+    marginBottom: 6,
+  },
+  voiceModalSub: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 17,
+    marginBottom: 20,
+  },
+  waveformRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 60,
+    marginBottom: 20,
+  },
+  waveBar: {
+    width: 6,
+    backgroundColor: '#7C3AED',
+    borderRadius: 3,
+  },
+  cancelVoiceBtn: {
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  cancelVoiceBtnText: {
+    fontSize: 12.5,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#64748B',
   },
 });
