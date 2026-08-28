@@ -1,90 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, Alert, TextInput } from 'react-native';
-import { submitAssistanceRequest } from '../services/api';
-import NeumorphicInput from '../components/NeumorphicInput';
-import { CheckIcon, ShieldCheckIcon, FoodIcon, BabyIcon, MedicineIcon, HygieneIcon, WaterDropIcon, ArrowLeftIcon, MapPinIcon } from '../components/AppIcons';
-import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
-import { TRANSLATIONS } from '../i18n/translations';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import {
+  ArrowLeftIcon,
+  ShieldCheckIcon,
+  CheckIcon,
+  MedicineIcon,
+  MapPinIcon,
+} from '../components/AppIcons';
+import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
-export default function AssistanceRequestScreen({ token, lang = 'en', onBack, onSubmitSuccess }) {
-  const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
-
-  // Active Tab: 'packages' (Standard Relief) vs 'ai_triage' (AI Health & Epidemic Triage)
-  const [activeTab, setActiveTab] = useState('ai_triage');
-
-  const catalog = [
-    {
-      id: 'food',
-      name: lang === 'tl' ? 'Pamilyang Food Pack' : 'Family Food Pack',
-      desc: lang === 'tl' ? 'Bigas, de-lata, instant noodles, kape, at asukal' : 'Rice, canned goods, instant noodles, coffee, and sugar',
-      tag: lang === 'tl' ? 'Pangunahing Ayuda' : 'Core Relief',
-      tagColor: '#1557B0',
-      tagBg: '#EFF6FF',
-      IconComponent: FoodIcon,
-    },
-    {
-      id: 'water',
-      name: lang === 'tl' ? 'Inuming Tubig (Drinking Water)' : 'Potable Drinking Water Pack',
-      desc: lang === 'tl' ? '5-Gallon purified water container / clean bottled water' : '5-Gallon purified drinking water container / clean water pack',
-      tag: lang === 'tl' ? 'Tubig at Kalinisan' : 'Hydration',
-      tagColor: '#0284C7',
-      tagBg: '#E0F2FE',
-      IconComponent: WaterDropIcon,
-    },
-    {
-      id: 'medical',
-      name: lang === 'tl' ? 'Emergency Medical & First Aid Kit' : 'Emergency Medical & First Aid Kit',
-      desc: lang === 'tl' ? 'Paracetamol, oral rehydration salts, betadine, gasa, alcohol' : 'Paracetamol, ORS packets, povidone-iodine, bandages, antiseptic alcohol',
-      tag: lang === 'tl' ? 'Medikal' : 'Medical',
-      tagColor: '#DC2626',
-      tagBg: '#FEF2F2',
-      IconComponent: MedicineIcon,
-    },
-    {
-      id: 'infant',
-      name: lang === 'tl' ? 'Sanggol & Infant Care Pack' : 'Infant & Toddler Care Pack',
-      desc: lang === 'tl' ? 'Baby diapers, gatas/infant formula, baby wipes, baby soap' : 'Baby diapers, milk formula, hypoallergenic wipes, gentle baby soap',
-      tag: lang === 'tl' ? 'Para sa Sanggol' : 'Infant Care',
-      tagColor: '#D97706',
-      tagBg: '#FFFBEB',
-      IconComponent: BabyIcon,
-    },
-    {
-      id: 'senior',
-      name: lang === 'tl' ? 'Senior & Hygiene Care Kit' : 'Senior & Hygiene Care Kit',
-      desc: lang === 'tl' ? 'Adult diapers, sabon, shampoo, toothpaste, sanitary essentials' : 'Adult incontinence pads, bath soap, shampoo, toothpaste, hygiene essentials',
-      tag: lang === 'tl' ? 'Senior / PWD' : 'Senior / PWD',
-      tagColor: '#7C3AED',
-      tagBg: '#F5F3FF',
-      IconComponent: HygieneIcon,
-    },
-  ];
-
-  // Standard Package State
-  const [selectedIds, setSelectedIds] = useState(['food', 'water']);
-  const [notes, setNotes] = useState('');
+export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, onSubmitSuccess }) {
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  // ── AI Health Triage State ──
   const [aiInputText, setAiInputText] = useState('');
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState(null);
-  const [aiSubmittedVoucher, setAiSubmittedVoucher] = useState(null);
+  const [submittedTicket, setSubmittedTicket] = useState(null);
 
+  // Quick preset symptom scenarios tailored specifically for Post-Flood Leptospirosis & Diseases
   const samplePrompts = [
-    { label: '🦵 Nilusong ang sugat sa baha at nilalagnat', text: 'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon. Ngayon sumasakit ang kalamnan ko at nilalagnat po ako.' },
-    { label: '👶 Sanggol may diarrhea sa maruming tubig', text: 'Nagtatae po ang sanggol kong anak dahil sa maruming tubig sa baha, kailangan po namin ng gamot at malinis na tubig.' },
-    { label: '👵 Bedridden lola nawalan ng maintenance', text: 'Bedridden po ang lola ko at naubusan ng gamot sa high blood at diabetes dahil sa baha, hindi po siya makalabas ng bahay.' },
-    { label: '🩹 May sugat sa binti pero walang lagnat', text: 'Natusok po ng maruming pako at may bukas na sugat ang paa ko sa baha, humihingi po ng Doxycycline prophylaxis.' },
+    {
+      label: '🦵 Sugat sa Binti + Lagnat sa Baha',
+      text: 'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
+    },
+    {
+      label: '🩹 Lumubog ang Sugat sa Paa',
+      text: 'May sariwa akong sugat sa paa at lumubog sa baha kaninang umaga, humihingi po ng Doxycycline prophylaxis.',
+    },
+    {
+      label: '🩺 Pananakit ng Calves / Binti',
+      text: 'Sumasakit po ang binti ko at mapula ang mata pagkatapos maglinis ng putik mula sa baha.',
+    },
+    {
+      label: '👵 Bedridden Senior sa Baha',
+      text: 'Bedridden po ang lola ko, nabasa sa baha at nilalagnat, hindi po makatayo para pumunta sa health center.',
+    },
   ];
 
-  const handleRunAiTriage = async (customText) => {
-    const textToAnalyze = customText || aiInputText;
-    if (!textToAnalyze.trim()) {
-      Alert.alert(lang === 'tl' ? 'Kulang na Impormasyon' : 'Input Required', lang === 'tl' ? 'Pakilagay ang inyong nararamdaman o kalagayan sa baha.' : 'Please describe symptoms or emergency situation.');
+  // 1. Run NLP Symptom Parsing & Disease Risk Engine
+  const handleRunAiTriage = async (textToAnalyze) => {
+    const text = (textToAnalyze || aiInputText).trim();
+    if (!text) {
+      Alert.alert(
+        lang === 'tl' ? 'Kailangan ang Sintomas' : 'Input Required',
+        lang === 'tl' ? 'Pakisulat ang inyong nararamdaman o kalagayan sa baha.' : 'Please describe your symptoms or flood exposure.'
+      );
       return;
     }
 
@@ -92,36 +64,31 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
     try {
       const res = await fetch(`${API_BASE_URL}/ai-triage/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToAnalyze, barangayCode: '344' }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          symptomText: text,
+          barangayCode: '291',
+        }),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        setAiResult(data);
+      if (res.ok && data.triageResult) {
+        setAiResult(data.triageResult);
       } else {
-        Alert.alert('AI Error', data.message || 'Could not analyze message.');
+        Alert.alert('Notice', data.message || 'Unable to complete AI triage at this moment.');
       }
     } catch (e) {
-      // Fallback in-app NLP logic if offline
-      const isLepto = /sugat|binti|kalamnan|lagnat|lumusong|baha/i.test(textToAnalyze);
-      setAiResult({
-        urgencyLevel: isLepto ? 'CRITICAL' : 'HIGH',
-        suspectedCondition: isLepto ? 'High Probability of Leptospirosis Exposure (Post-Flood)' : 'Post-Disaster Medical Assistance',
-        diseaseRisk: isLepto ? 'CRITICAL_LEPTOSPIROSIS' : 'GENERAL_HEALTH',
-        detectedSymptoms: isLepto ? ['Flood Water Exposure', 'Open Skin Wound', 'Calf Muscle Pain'] : ['Post-Disaster Needs'],
-        deliveryMode: /bedridden|paralyzed|hindi makatayo/i.test(textToAnalyze) ? 'DOOR_TO_DOOR_DISPATCH' : 'LOCAL_BHC_PICKUP',
-        prophylaxisRequired: isLepto,
-        recommendedMedicine: isLepto ? 'Doxycycline 200mg Capsules (Prophylaxis Protocol)' : 'First Aid & Hydration Supplies',
-        medicalGuidance: isLepto 
-          ? '⚠️ CRITICAL: Agad kunin ang libreng Doxycycline prophylaxis sa Barangay 344 Health Center sa loob ng 24-48 oras.'
-          : 'Pumunta sa pinakamalapit na Barangay Health Center para sa libreng konsultasyon.',
-        voucherCode: `MED-344-LEPTO-${Math.floor(1000 + Math.random() * 9000)}`,
-      });
+      console.warn('AI Triage error:', e);
+      Alert.alert('Connection Notice', 'Could not reach the AI Triage server. Please check your network.');
     } finally {
       setAiAnalyzing(false);
     }
   };
 
+  // 2. Submit Official Triage Ticket & Claim Voucher to Barangay Health Center
   const handleSubmitAiTriageRequest = async () => {
     if (!aiResult) return;
     setLoading(true);
@@ -133,128 +100,30 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          message: aiInputText || aiResult.suspectedCondition,
-          barangayCode: '344',
+          symptomText: aiInputText,
+          triageResult: aiResult,
+          barangayCode: '291',
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      setAiSubmittedVoucher(aiResult.voucherCode);
-      setSubmitted(true);
-      if (onSubmitSuccess) onSubmitSuccess();
-    } catch (e) {
-      setAiSubmittedVoucher(aiResult.voucherCode);
-      setSubmitted(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const togglePackage = (id) => {
-    if (selectedIds.includes(id)) {
-      if (selectedIds.length === 1) {
+      const data = await res.json();
+      if (res.ok) {
+        setSubmittedTicket(data.triage);
         Alert.alert(
-          lang === 'tl' ? 'Kailangan ng Kahilingan' : 'Selection Required',
-          lang === 'tl' ? 'Pumili ng kahit isang (1) uri ng relief package bago magpatuloy.' : 'Please keep at least one (1) relief package selected.'
+          lang === 'tl' ? '✅ Naitala ang Health Alert' : '✅ Health Ticket Recorded',
+          lang === 'tl'
+            ? `Matagumpay na naitala ang inyong ulat. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPumunta sa Barangay 291 Health Center upang makuha ang inyong libreng Doxycycline prophylaxis.`
+            : `Your report has been submitted. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPresent this code at Barangay 291 Health Center for free Doxycycline prophylaxis.`
         );
-        return;
+      } else {
+        Alert.alert('Notice', data.message || 'Submission failed.');
       }
-      setSelectedIds(prev => prev.filter(item => item !== id));
-    } else {
-      setSelectedIds(prev => [...prev, id]);
-    }
-  };
-
-  const handleSubmitRequest = async () => {
-    if (selectedIds.length === 0) {
-      Alert.alert(
-        lang === 'tl' ? 'Pumili ng Ayuda' : 'No Items Selected',
-        lang === 'tl' ? 'Pumili ng kahit isang relief package na kailangan ng inyong pamilya.' : 'Please select at least one relief package.'
-      );
-      return;
-    }
-
-    const selectedPackages = catalog
-      .filter(item => selectedIds.includes(item.id))
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.tag,
-        quantity: 1,
-      }));
-
-    const formattedItemType = selectedPackages.map(p => p.name).join(', ');
-    setLoading(true);
-
-    try {
-      await submitAssistanceRequest(
-        {
-          itemType: formattedItemType,
-          packages: selectedPackages,
-          notes,
-        },
-        token
-      );
-      setSubmitted(true);
-      if (onSubmitSuccess) onSubmitSuccess();
-    } catch (err) {
-      console.error('Assistance request submission error:', err);
-      const msg = err.data?.message || err.message || (lang === 'tl' ? 'Hindi naipadala ang kahilingan sa ayuda. Pakisubukang muli.' : 'Failed to submit assistance request. Please try again.');
-      Alert.alert(lang === 'tl' ? 'Hindi Naipadala ang Kahilingan' : 'Request Failed', msg);
+    } catch (e) {
+      Alert.alert('Error', 'Network error while submitting health ticket.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (submitted) {
-    return (
-      <View style={styles.submittedContainer}>
-        <View style={styles.successIconCircle}>
-          <CheckIcon size={36} color="#FFFFFF" />
-        </View>
-        <Text style={styles.successTitle}>
-          {aiSubmittedVoucher ? (lang === 'tl' ? 'Naitala ang AI Health Triage Ticket!' : 'AI Health Triage Logged!') : (lang === 'tl' ? 'Naitala ang Inyong Kahilingan!' : 'Relief Request Submitted!')}
-        </Text>
-        <Text style={styles.successSub}>
-          {aiSubmittedVoucher 
-            ? (lang === 'tl' ? 'Matagumpay na naitala sa Barangay 344 Health Center at LGU City Health Command Center.' : 'Successfully submitted to Barangay 344 Health Center and City Health Command Center.')
-            : (lang === 'tl' ? 'Matagumpay na naitala sa Manila LGU Relief Queue ang inyong request.' : 'Successfully submitted to Manila LGU Relief Queue.')}
-        </Text>
-
-        {aiSubmittedVoucher ? (
-          <View style={styles.voucherBoxCard}>
-            <Text style={styles.voucherBoxKicker}>{lang === 'tl' ? 'OPISYAL NA MEDICAL CLAIM VOUCHER' : 'OFFICIAL MEDICAL CLAIM VOUCHER'}</Text>
-            <Text style={styles.voucherBoxCode}>{aiSubmittedVoucher}</Text>
-            <View style={styles.voucherDivider} />
-            <Text style={styles.voucherBoxGuidance}>
-              {aiResult?.medicalGuidance || (lang === 'tl' ? 'Ipakita ang code na ito kasama ang inyong QR Pass sa Barangay Health Center upang makuha agad ang libreng gamot.' : 'Present this code along with your QR Pass at the Barangay Health Center to receive free medicine.')}
-            </Text>
-            <View style={styles.voucherPickupPill}>
-              <Text style={styles.voucherPickupText}>
-                {aiResult?.deliveryMode === 'DOOR_TO_DOOR_DISPATCH' 
-                  ? (lang === 'tl' ? '🚚 Ihahatid ng Barangay Field Staff (Door-to-Door)' : '🚚 Door-to-Door Barangay Staff Delivery')
-                  : (lang === 'tl' ? '🏥 Instant Pickup sa Brgy 344 Health Center' : '🏥 Instant Pickup at Brgy 344 Health Center')}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        <MotionPressable
-          style={styles.resetBtn}
-          onPress={() => {
-            setSubmitted(false);
-            setNotes('');
-            setAiResult(null);
-            setAiInputText('');
-            setAiSubmittedVoucher(null);
-            if (onBack) onBack();
-          }}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.resetBtnText}>{lang === 'tl' ? 'Bumalik sa Tahanan' : 'Return to Home'}</Text>
-        </MotionPressable>
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView
@@ -262,287 +131,231 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
     >
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Back Button with MotionPressable */}
         <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#1557B0" />
           </View>
-          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
+          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
         </MotionPressable>
 
+        {/* ── Page Header: Pure AI Novelty ── */}
         <View style={styles.header}>
-          <Text style={styles.kicker}>MITIGATEPLUS HEALTH CHECK</Text>
-          <Text style={styles.title}>{lang === 'tl' ? 'Health Check' : 'Health Check'}</Text>
+          <View style={styles.kickerRow}>
+            <View style={styles.pulseDot} />
+            <Text style={styles.kicker}>AI POST-FLOOD EPIDEMIC SURVEILLANCE</Text>
+          </View>
+          <Text style={styles.title}>
+            {lang === 'tl' ? 'AI Health Check & Outbreak Alert' : 'AI Health Check & Outbreak Alert'}
+          </Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'I-check ang inyong kalusugan gamit ang AI para sa agarang gamot sa baha (gaya ng Doxycycline) o humiling ng pamilyang ayuda.'
-              : 'Check your health status with AI for immediate post-flood medicine (such as Doxycycline) or request family relief packages.'}
+              ? 'Natural Language Processing (NLP) AI para sa agarang pagsusuri ng sugat, lagnat, at pananakit ng binti pagkatapos ng baha para sa libreng Doxycycline prophylaxis sa Health Center.'
+              : 'Natural Language Processing (NLP) AI assessing flood exposure, wounds, and calf pain to issue instant Doxycycline prophylaxis vouchers.'}
           </Text>
         </View>
 
-        {/* ── Mode Switcher Tabs ── */}
-        <View style={styles.tabBarRow}>
-          <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'ai_triage' && styles.tabBtnActive]}
-            onPress={() => setActiveTab('ai_triage')}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.tabBtnText, activeTab === 'ai_triage' && styles.tabBtnTextActive]}>
-              🤖 AI Health Check
-            </Text>
-            {activeTab === 'ai_triage' && <View style={styles.tabIndicator} />}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'packages' && styles.tabBtnActive]}
-            onPress={() => setActiveTab('packages')}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.tabBtnText, activeTab === 'packages' && styles.tabBtnTextActive]}>
-              📦 Karagdagang Ayuda
-            </Text>
-            {activeTab === 'packages' && <View style={styles.tabIndicator} />}
-          </TouchableOpacity>
-        </View>
-
-        {activeTab === 'ai_triage' ? (
-          /* ── AI HEALTH & SYMPTOM TRIAGE TAB ── */
-          <View>
-            <View style={styles.aiBannerCard}>
-              <View style={styles.aiBadgeRow}>
-                <View style={styles.aiSparkleBadge}>
-                  <Text style={styles.aiSparkleText}>✨ NLP AI CLINICAL TRIAGE ENGINE</Text>
-                </View>
-                <Text style={styles.aiTagline}>{lang === 'tl' ? 'Tagalog & English' : 'Tagalog & English'}</Text>
-              </View>
-              <Text style={styles.aiBannerTitle}>
-                {lang === 'tl' ? 'I-type ang Inyong Nararamdaman o Kalagayan sa Baha' : 'Describe Symptoms or Post-Flood Emergency'}
-              </Text>
-              <Text style={styles.aiBannerSub}>
-                {lang === 'tl'
-                  ? 'Awtomatikong susuriin ng AI ang banta ng Leptospirosis, Dengue, o dehydration at maglalabas ng instant voucher para sa Barangay Health Center.'
-                  : 'Our AI analyzes Leptospirosis exposure, Dengue, or pediatric dehydration to issue immediate Barangay Health Center medicine vouchers.'}
-              </Text>
-
-              {/* Sample Prompts Chips */}
-              <Text style={styles.promptHeaderLabel}>{lang === 'tl' ? 'MGA HALIMBAWANG SITWASYON (I-tap para subukan):' : 'QUICK SCENARIOS (Tap to test):'}</Text>
-              <View style={styles.sampleChipsContainer}>
-                {samplePrompts.map((p, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={styles.samplePromptChip}
-                    onPress={() => {
-                      setAiInputText(p.text);
-                      handleRunAiTriage(p.text);
-                    }}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.samplePromptChipText}>{p.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Text Input Area */}
-              <View style={styles.aiInputWrapper}>
-                <TextInput
-                  style={styles.aiTextInput}
-                  value={aiInputText}
-                  onChangeText={setAiInputText}
-                  placeholder={lang === 'tl' ? 'hal. "Nilusong ko sa maruming baha ang sugat ko sa binti, nilalagnat po ako at kasama ko ang lola ko..."' : 'e.g. "I waded in flood with an open wound, experiencing calf pain and high fever with my elderly grandmother..."'}
-                  placeholderTextColor="#94A3B8"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-              </View>
-
-              <MotionPressable
-                style={[styles.aiAnalyzeBtn, aiAnalyzing && { opacity: 0.7 }]}
-                onPress={() => handleRunAiTriage()}
-                disabled={aiAnalyzing}
-                activeOpacity={0.85}
-              >
-                {aiAnalyzing ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                    <Text style={styles.aiAnalyzeBtnText}>{lang === 'tl' ? 'Sinusuri ng AI...' : 'AI Analyzing Symptoms...'}</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.aiAnalyzeBtnText}>
-                    {lang === 'tl' ? '🤖 Suriin Gamit ang AI (Analyze with AI)' : '🤖 Analyze with Clinical AI'}
-                  </Text>
-                )}
-              </MotionPressable>
+        {/* ── AI Symptom & Flood Exposure Input Card ── */}
+        <View style={styles.aiBannerCard}>
+          <View style={styles.aiBadgeRow}>
+            <View style={styles.aiSparkleBadge}>
+              <Text style={styles.aiSparkleText}>🤖 NLP & EPIDEMIOLOGICAL RISK AI</Text>
             </View>
+            <Text style={styles.aiTagline}>{lang === 'tl' ? 'Tagalog & English' : 'Tagalog & English'}</Text>
+          </View>
 
-            {/* ── AI Clinical Assessment Result Card ── */}
-            {aiResult && (
-              <View style={styles.aiResultCard}>
-                <View style={styles.resultHeaderRow}>
-                  <View style={[
-                    styles.urgencyPill, 
-                    aiResult.urgencyLevel === 'CRITICAL' ? styles.urgencyCritical : styles.urgencyHigh
-                  ]}>
-                    <Text style={styles.urgencyPillText}>
-                      {aiResult.urgencyLevel === 'CRITICAL' ? '🚨 CRITICAL OUTBREAK RISK' : '⚠️ HIGH VULNERABILITY'}
-                    </Text>
-                  </View>
-                  <Text style={styles.voucherPill}>{aiResult.voucherCode}</Text>
-                </View>
+          <Text style={styles.aiBannerTitle}>
+            {lang === 'tl' ? 'I-type ang Nararamdaman o Kalagayan sa Baha' : 'Describe Symptoms or Flood Exposure'}
+          </Text>
+          <Text style={styles.aiBannerSub}>
+            {lang === 'tl'
+              ? 'Awtomatikong susuriin ng AI ang banta ng Leptospirosis exposure at magbibigay ng opisyal na Doxycycline voucher sa Barangay Health Center.'
+              : 'Our AI analyzes Leptospirosis exposure risk and generates an instant Doxycycline claim voucher for your local Health Center.'}
+          </Text>
 
-                <Text style={styles.conditionTitle}>{aiResult.suspectedCondition}</Text>
+          {/* Quick Scenario Chips */}
+          <Text style={styles.promptHeaderLabel}>
+            {lang === 'tl' ? 'MGA HALIMBAWANG SITWASYON (I-tap para subukan):' : 'QUICK SCENARIOS (Tap to test):'}
+          </Text>
+          <View style={styles.sampleChipsContainer}>
+            {samplePrompts.map((p, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={styles.samplePromptChip}
+                onPress={() => {
+                  setAiInputText(p.text);
+                  handleRunAiTriage(p.text);
+                }}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.samplePromptChipText}>{p.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-                {/* Detected Symptoms Chips */}
-                <View style={styles.symptomsListRow}>
-                  {aiResult.detectedSymptoms?.map((symp, i) => (
-                    <View key={i} style={styles.symptomBadge}>
-                      <Text style={styles.symptomBadgeText}>✓ {symp}</Text>
-                    </View>
-                  ))}
-                </View>
+          {/* Text Input Box */}
+          <View style={styles.aiInputWrapper}>
+            <TextInput
+              style={styles.aiTextInput}
+              value={aiInputText}
+              onChangeText={setAiInputText}
+              placeholder={
+                lang === 'tl'
+                  ? 'Halimbawa: Nilusong ko ang sugat ko sa binti sa maruming baha kahapon at nilalagnat po ako...'
+                  : 'Example: I waded in dirty floodwaters yesterday with an open wound, now having high fever...'
+              }
+              placeholderTextColor="#94A3B8"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
 
-                {/* Recommended Medicine Protocol */}
-                <View style={styles.medicineCardRow}>
-                  <MedicineIcon size={20} color="#DC2626" />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.medicineLabel}>{lang === 'tl' ? 'Inirerekomendang Gamot / Prophylaxis:' : 'Recommended Protocol:'}</Text>
-                    <Text style={styles.medicineName}>{aiResult.recommendedMedicine}</Text>
-                  </View>
-                </View>
-
-                {/* Medical Guidance */}
-                <View style={styles.guidanceBox}>
-                  <Text style={styles.guidanceText}>{aiResult.medicalGuidance}</Text>
-                </View>
-
-                {/* Logistics Channel Note */}
-                <View style={styles.logisticsNotice}>
-                  <MapPinIcon size={16} color="#1557B0" />
-                  <Text style={styles.logisticsNoticeText}>
-                    {aiResult.deliveryMode === 'DOOR_TO_DOOR_DISPATCH'
-                      ? (lang === 'tl' ? '🚚 Ihahatid ng Barangay Field Staff sa mismong bahay dahil sa limitasyon sa pagkilos.' : '🚚 Door-to-Door Barangay Staff delivery due to mobility constraint.')
-                      : (lang === 'tl' ? '🏥 Kunin agad sa Barangay 344 Health Center gamit ang Voucher Code na ito.' : '🏥 Instant Pickup at Barangay 344 Health Center with this Voucher Code.')}
-                  </Text>
-                </View>
-
-                {/* Final Submit Button */}
-                <MotionPressable
-                  style={[styles.submitAiTicketBtn, loading && { opacity: 0.75 }]}
-                  onPress={handleSubmitAiTriageRequest}
-                  disabled={loading}
-                  activeOpacity={0.85}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.submitAiTicketBtnText}>
-                      {lang === 'tl' ? '📨 Isumite ang Ticket sa Barangay & City Health' : '📨 Submit Ticket to Barangay & City Health'}
-                    </Text>
-                  )}
-                </MotionPressable>
+          {/* Action Button: Run AI Analysis */}
+          <MotionPressable
+            style={[styles.runAiBtn, aiAnalyzing && { opacity: 0.8 }]}
+            onPress={() => handleRunAiTriage()}
+            disabled={aiAnalyzing}
+            activeOpacity={0.85}
+          >
+            {aiAnalyzing ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ActivityIndicator color="#FFFFFF" size="small" />
+                <Text style={styles.runAiBtnText}>
+                  {lang === 'tl' ? 'Sinusuri ng AI ang mga Sintomas...' : 'AI Analyzing Symptoms...'}
+                </Text>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 16 }}>⚡</Text>
+                <Text style={styles.runAiBtnText}>
+                  {lang === 'tl' ? 'Suriin Gamit ang NLP AI' : 'Analyze with NLP AI'}
+                </Text>
               </View>
             )}
-          </View>
-        ) : (
-          /* ── STANDARD RELIEF PACKAGES TAB ── */
-          <View>
-            {/* Selected Count Indicator Badge */}
-            <View style={styles.selectionSummaryRow}>
-              <View style={styles.selectedCountBadge}>
-                <Text style={styles.selectedCountText}>
-                  {selectedIds.length} {lang === 'tl' ? 'Uri ng Ayuda ang Napili' : 'Package Types Selected'}
+          </MotionPressable>
+        </View>
+
+        {/* ── AI Clinical Diagnosis & Prescription Advisory Card (When Analysis Completes) ── */}
+        {aiResult && (
+          <View style={styles.aiResultCard}>
+            {/* Risk Classification Badge */}
+            <View style={styles.resultTopRow}>
+              <View>
+                <Text style={styles.resultKicker}>CLINICAL AI TRIAGE DIAGNOSIS</Text>
+                <Text style={styles.resultTitle}>{aiResult.urgencyClassification}</Text>
+              </View>
+              <View
+                style={[
+                  styles.riskPill,
+                  {
+                    backgroundColor:
+                      aiResult.priorityLevel === 'CRITICAL'
+                        ? '#FEF2F2'
+                        : aiResult.priorityLevel === 'HIGH'
+                        ? '#FFFBEB'
+                        : '#EFF6FF',
+                    borderColor:
+                      aiResult.priorityLevel === 'CRITICAL'
+                        ? '#FECACA'
+                        : aiResult.priorityLevel === 'HIGH'
+                        ? '#FDE68A'
+                        : '#BFDBFE',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.riskPillText,
+                    {
+                      color:
+                        aiResult.priorityLevel === 'CRITICAL'
+                          ? '#DC2626'
+                          : aiResult.priorityLevel === 'HIGH'
+                          ? '#D97706'
+                          : '#1D4ED8',
+                    },
+                  ]}
+                >
+                  {aiResult.priorityLevel} RISK
                 </Text>
               </View>
-              <Text style={styles.tapToToggleHint}>
-                {lang === 'tl' ? 'I-tap para i-check/uncheck' : 'Tap cards to toggle'}
-              </Text>
             </View>
 
-            {/* Multi-Select Catalog Checklist */}
-            <View style={styles.catalogList}>
-              {catalog.map((item) => {
-                const isSelected = selectedIds.includes(item.id);
-                return (
-                  <MotionPressable
-                    key={item.id}
-                    style={[
-                      styles.catalogCard,
-                      isSelected && styles.catalogCardSelected,
-                    ]}
-                    onPress={() => togglePackage(item.id)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.catalogCardLeft}>
-                      {/* Modern Checkbox Box */}
-                      <View style={[styles.checkboxSquare, isSelected && styles.checkboxSquareSelected]}>
-                        {isSelected && <CheckIcon size={14} color="#FFFFFF" />}
-                      </View>
-
-                      {/* Icon Badge */}
-                      <View style={[styles.catalogIconBadge, isSelected ? { backgroundColor: item.tagBg } : null]}>
-                        <item.IconComponent size={20} color={isSelected ? item.tagColor : '#64748B'} />
-                      </View>
-
-                      {/* Text Details & Category Tag */}
-                      <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                          <Text style={[styles.catalogName, isSelected && { color: '#0F172A', fontWeight: '800' }]}>
-                            {item.name}
-                          </Text>
-                          <View style={[styles.categoryPill, { backgroundColor: item.tagBg }]}>
-                            <Text style={[styles.categoryPillText, { color: item.tagColor }]}>
-                              {item.tag}
-                            </Text>
-                          </View>
-                        </View>
-                        <Text style={styles.catalogDesc}>{item.desc}</Text>
-                      </View>
-                    </View>
-                  </MotionPressable>
-                );
-              })}
+            {/* Extracted Symptoms Tags */}
+            <View style={styles.symptomsTagsRow}>
+              {aiResult.detectedSymptoms.map((symp, sIdx) => (
+                <View key={sIdx} style={styles.symptomBadge}>
+                  <Text style={styles.symptomBadgeText}>✓ {symp}</Text>
+                </View>
+              ))}
             </View>
 
-            {/* Automated Right-Sized Quota Notice Card */}
-            <View style={styles.quotaInfoCard}>
-              <View style={styles.quotaHeaderRow}>
-                <ShieldCheckIcon size={18} color="#D97706" />
-                <Text style={styles.quotaTitle}>
-                  {lang === 'tl' ? 'Smart Right-Sized Quota Allocation' : 'Smart Right-Sized Quota Allocation'}
-                </Text>
+            {/* Automated Prescription Protocol */}
+            <View style={styles.medicineCardRow}>
+              <View style={styles.medicineIconSquare}>
+                <MedicineIcon size={22} color="#DC2626" />
               </View>
-              <Text style={styles.quotaBody}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.medicineLabel}>
+                  {lang === 'tl' ? 'AUTOMATED PRESCRIPTION ADVISORY:' : 'AUTOMATED PRESCRIPTION ADVISORY:'}
+                </Text>
+                <Text style={styles.medicineName}>{aiResult.recommendedMedicine}</Text>
+              </View>
+            </View>
+
+            {/* Official Medical Guidance */}
+            <View style={styles.guidanceBox}>
+              <Text style={styles.guidanceText}>{aiResult.medicalGuidance}</Text>
+            </View>
+
+            {/* Digital Claim Voucher Pass for Barangay Health Center */}
+            <View style={styles.voucherPassCard}>
+              <View style={styles.voucherPassHeader}>
+                <Text style={styles.voucherPassKicker}>OPISYAL NA BHC CLAIM VOUCHER</Text>
+                <Text style={styles.voucherPassCode}>{aiResult.voucherCode}</Text>
+              </View>
+              <Text style={styles.voucherPassDesc}>
                 {lang === 'tl'
-                  ? 'Tanging ang mga piniling relief pack lamang ang ihahanda ng Barangay Staff para sa inyong pamilya batay sa bilang ng inyong rehistradong pamilya.'
-                  : 'Relief volume is right-sized to your registered composition to avoid supply wastage.'}
+                  ? 'Ipakita ang code na ito sa Barangay 291 Health Center para sa libreng Doxycycline prophylaxis.'
+                  : 'Present this voucher code at Barangay 291 Health Center for free Doxycycline prophylaxis.'}
               </Text>
             </View>
 
-            {/* Notes Field */}
-            <NeumorphicInput
-              label={lang === 'tl' ? 'KARAGDAGANG IMPORMASYON O SPECIFIC NA PANGANGAILANGAN' : 'ADDITIONAL VULNERABILITIES OR SPECIFIC NEEDS'}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder={lang === 'tl' ? 'hal. May sanggol na may allergy, kailangan ng maintenance medicine, o emergency food substitute...' : 'e.g. Household has an infant with milk allergy or family member on specific maintenance medication...'}
-              helperText={lang === 'tl' ? `${notes.length}/200 characters (Opsyonal na karagdagang medikal o nutrisyon)` : `${notes.length}/200 characters (Optional medical notes or nutritional requests)`}
-              maxLength={200}
-              multiline
-              numberOfLines={3}
-            />
+            {/* Logistics Routing Mode */}
+            <View style={styles.logisticsNotice}>
+              <MapPinIcon size={16} color="#1557B0" />
+              <Text style={styles.logisticsNoticeText}>
+                {aiResult.deliveryMode === 'DOOR_TO_DOOR_DISPATCH'
+                  ? (lang === 'tl'
+                      ? '🚚 Ihahatid ng Barangay Field Staff sa mismong bahay dahil sa limitasyon sa pagkilos (Bedridden/Trapped).'
+                      : '🚚 Door-to-Door Barangay Staff delivery due to mobility constraint.')
+                  : (lang === 'tl'
+                      ? '🏥 Kunin agad sa Barangay 291 Health Center gamit ang Voucher Code sa itaas.'
+                      : '🏥 Instant Pickup at Barangay 291 Health Center with the Voucher Code above.')}
+              </Text>
+            </View>
 
-            {/* Submit Button with MotionPressable */}
+            {/* Submit Official Ticket to LGU Command Center */}
             <MotionPressable
-              style={[styles.submitBtn, loading && { opacity: 0.7 }]}
-              onPress={handleSubmitRequest}
+              style={[styles.submitAiTicketBtn, loading && { opacity: 0.75 }]}
+              onPress={handleSubmitAiTriageRequest}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.submitBtnText}>
-                  {lang === 'tl' ? `Isumite ang Kahilingan (${selectedIds.length} Napili)` : `Submit Request (${selectedIds.length} Selected)`}
+                <Text style={styles.submitAiTicketBtnText}>
+                  {lang === 'tl'
+                    ? '📨 Isumite ang Ticket sa Barangay & LGU Health Admin'
+                    : '📨 Submit Ticket to Barangay & LGU Health Admin'}
                 </Text>
               )}
             </MotionPressable>
@@ -554,466 +367,327 @@ export default function AssistanceRequestScreen({ token, lang = 'en', onBack, on
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9F7' },
-  content: {
-    paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 14,
-    paddingBottom: hp(14),
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  header: { marginBottom: 14 },
+  content: {
+    padding: SPACING.lg,
+    paddingBottom: hp(12),
+  },
   backBtnPill: {
-    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    alignSelf: 'flex-start',
     backgroundColor: '#EFF6FF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: '#BFDBFE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 12,
-    ...SHADOWS.sm,
+    marginBottom: SPACING.md,
+    gap: 6,
   },
   backIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  backBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0', letterSpacing: 0.2 },
-  kicker: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#1557B0',
-    letterSpacing: 0.8,
-    marginBottom: 3,
-    textTransform: 'uppercase',
-  },
-  title: { fontSize: 22, fontWeight: FONT_WEIGHT.black, color: '#172B4D', letterSpacing: -0.3 },
-  sub: { fontSize: 12, color: '#64748B', marginTop: 4, lineHeight: 17 },
-
-  tabBarRow: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...SHADOWS.sm,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 20,
+    height: 20,
     borderRadius: 10,
-    position: 'relative',
+    backgroundColor: '#DBEAFE',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tabBtnActive: {
-    backgroundColor: '#EFF6FF',
-  },
-  tabBtnText: {
+  backBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  tabBtnTextActive: {
+    fontWeight: FONT_WEIGHT.bold,
     color: '#1557B0',
-    fontWeight: '800',
   },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    width: 24,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: '#1557B0',
+  header: {
+    marginBottom: SPACING.lg,
   },
-
-  // AI Banner Card
+  kickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  pulseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#7C3AED',
+  },
+  kicker: {
+    fontSize: 10.5,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#7C3AED',
+    letterSpacing: 0.8,
+  },
+  title: {
+    fontSize: RESPONSIVE.font(20),
+    fontWeight: FONT_WEIGHT.black,
+    color: COLORS.ink,
+    letterSpacing: -0.3,
+  },
+  sub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    lineHeight: 18,
+    marginTop: 4,
+  },
   aiBannerCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-    marginBottom: 16,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    borderWidth: 1.5,
+    borderColor: '#DDD6FE',
+    marginBottom: SPACING.lg,
     ...SHADOWS.md,
   },
   aiBadgeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 10,
   },
   aiSparkleBadge: {
     backgroundColor: '#F5F3FF',
-    borderWidth: 1,
-    borderColor: '#DDD6FE',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
   },
   aiSparkleText: {
-    fontSize: 9.5,
-    fontWeight: '800',
     color: '#7C3AED',
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: FONT_WEIGHT.black,
   },
   aiTagline: {
     fontSize: 11,
-    fontWeight: '700',
     color: '#64748B',
+    fontWeight: FONT_WEIGHT.bold,
   },
   aiBannerTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
-    marginBottom: 4,
+    color: '#1E1B4B',
   },
   aiBannerSub: {
     fontSize: 12,
     color: '#64748B',
     lineHeight: 17,
-    marginBottom: 12,
+    marginTop: 4,
+    marginBottom: 14,
   },
   promptHeaderLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#475569',
-    letterSpacing: 0.4,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#7C3AED',
+    letterSpacing: 0.5,
     marginBottom: 6,
   },
   sampleChipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   samplePromptChip: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+    backgroundColor: '#F5F3FF',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
   },
   samplePromptChipText: {
     fontSize: 11,
-    color: '#334155',
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#6D28D9',
   },
   aiInputWrapper: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: '#CBD5E1',
-    padding: 10,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 14,
   },
   aiTextInput: {
     fontSize: 13,
-    color: '#0F172A',
+    color: '#1E293B',
     minHeight: 80,
+    lineHeight: 18,
   },
-  aiAnalyzeBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 12,
-    paddingVertical: 12,
+  runAiBtn: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 13,
+    borderRadius: RADIUS.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.sm,
-  },
-  aiAnalyzeBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-
-  // AI Result Card
-  aiResultCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#DC2626',
-    marginBottom: 20,
     ...SHADOWS.md,
   },
-  resultHeaderRow: {
+  runAiBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: FONT_WEIGHT.black,
+  },
+  aiResultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    borderWidth: 1.5,
+    borderColor: '#7C3AED',
+    marginBottom: SPACING.lg,
+    ...SHADOWS.lg,
+  },
+  resultTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
-  urgencyPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+  resultKicker: {
+    fontSize: 9.5,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#7C3AED',
+    letterSpacing: 0.6,
   },
-  urgencyCritical: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  urgencyHigh: {
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  urgencyPillText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#DC2626',
-    letterSpacing: 0.5,
-  },
-  voucherPill: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#1557B0',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  conditionTitle: {
+  resultTitle: {
     fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
     color: '#0F172A',
-    marginBottom: 8,
+    marginTop: 2,
   },
-  symptomsListRow: {
+  riskPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  riskPillText: {
+    fontSize: 11,
+    fontWeight: FONT_WEIGHT.black,
+  },
+  symptomsTagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   symptomBadge: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   symptomBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#991B1B',
+    fontSize: 11,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#334155',
   },
   medicineCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     backgroundColor: '#FEF2F2',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: 12,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: '#FECACA',
+    marginBottom: 12,
+  },
+  medicineIconSquare: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   medicineLabel: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#7F1D1D',
+    fontSize: 10,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#DC2626',
+    letterSpacing: 0.5,
   },
   medicineName: {
-    fontSize: 12.5,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: FONT_WEIGHT.black,
     color: '#991B1B',
+    marginTop: 2,
   },
   guidanceBox: {
     backgroundColor: '#F8FAFC',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: RADIUS.md,
     borderLeftWidth: 3,
-    borderLeftColor: '#DC2626',
-    marginBottom: 10,
+    borderLeftColor: '#7C3AED',
+    marginBottom: 12,
   },
   guidanceText: {
-    fontSize: 11.5,
+    fontSize: 12,
     color: '#334155',
     lineHeight: 17,
+  },
+  voucherPassCard: {
+    backgroundColor: '#0F172A',
+    borderRadius: RADIUS.lg,
+    padding: 14,
+    marginBottom: 12,
+  },
+  voucherPassHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  voucherPassKicker: {
+    fontSize: 9.5,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+  },
+  voucherPassCode: {
+    fontSize: 15,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#38BDF8',
+    letterSpacing: 1.5,
+  },
+  voucherPassDesc: {
+    fontSize: 11,
+    color: '#CBD5E1',
+    lineHeight: 15,
   },
   logisticsNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#EFF6FF',
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 14,
+    borderRadius: RADIUS.md,
+    marginBottom: 16,
   },
   logisticsNoticeText: {
     fontSize: 11.5,
     color: '#1E40AF',
-    fontWeight: '700',
+    fontWeight: FONT_WEIGHT.medium,
     flex: 1,
+    lineHeight: 16,
   },
   submitAiTicketBtn: {
-    backgroundColor: '#DC2626',
-    borderRadius: 12,
-    paddingVertical: 12,
+    backgroundColor: '#1557B0',
+    paddingVertical: 14,
+    borderRadius: RADIUS.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.sm,
+    ...SHADOWS.md,
   },
   submitAiTicketBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
     color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: FONT_WEIGHT.black,
   },
-
-  // Standard Catalog
-  selectionSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  selectedCountBadge: {
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  selectedCountText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
-  tapToToggleHint: { fontSize: 11, color: '#94A3B8' },
-  catalogList: { gap: 10, marginBottom: 16 },
-  catalogCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    ...SHADOWS.sm,
-  },
-  catalogCardSelected: {
-    borderColor: '#1557B0',
-    backgroundColor: '#F8FAFC',
-  },
-  catalogCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  checkboxSquare: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxSquareSelected: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
-  },
-  catalogIconBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catalogName: { fontSize: 13.5, fontWeight: '700', color: '#334155' },
-  categoryPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  categoryPillText: { fontSize: 9.5, fontWeight: '800' },
-  catalogDesc: { fontSize: 11.5, color: '#64748B', marginTop: 2 },
-  quotaInfoCard: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    marginBottom: 16,
-  },
-  quotaHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  quotaTitle: { fontSize: 12, fontWeight: '800', color: '#92400E' },
-  quotaBody: { fontSize: 11, color: '#78350F', lineHeight: 16 },
-  submitBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    ...SHADOWS.md,
-  },
-  submitBtnText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
-
-  // Submitted Success
-  submittedContainer: {
-    flex: 1,
-    backgroundColor: '#F8F9F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: RESPONSIVE.padding,
-  },
-  successIconCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#16A34A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    ...SHADOWS.md,
-  },
-  successTitle: { fontSize: 20, fontWeight: FONT_WEIGHT.black, color: '#0F172A', textAlign: 'center', marginBottom: 6 },
-  successSub: { fontSize: 12.5, color: '#64748B', textAlign: 'center', marginBottom: 16, lineHeight: 18 },
-  voucherBoxCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    width: '100%',
-    borderWidth: 1.5,
-    borderColor: '#1557B0',
-    alignItems: 'center',
-    marginBottom: 20,
-    ...SHADOWS.md,
-  },
-  voucherBoxKicker: { fontSize: 10, fontWeight: '800', color: '#1557B0', letterSpacing: 0.5, marginBottom: 4 },
-  voucherBoxCode: { fontSize: 22, fontWeight: FONT_WEIGHT.black, color: '#0F172A', letterSpacing: 1 },
-  voucherDivider: { width: '100%', height: 1, backgroundColor: '#E2E8F0', marginVertical: 10 },
-  voucherBoxGuidance: { fontSize: 11.5, color: '#334155', textAlign: 'center', lineHeight: 16, marginBottom: 10 },
-  voucherPickupPill: {
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  voucherPickupText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
-  resetBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.md,
-  },
-  resetBtnText: { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
 });
