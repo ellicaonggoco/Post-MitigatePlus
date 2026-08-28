@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Keyboard,
   Modal,
   Platform,
+  Vibration,
+  Animated,
 } from 'react-native';
 import {
   ArrowLeftIcon,
@@ -30,9 +32,15 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
   const [aiResult, setAiResult] = useState(null);
   const [submittedTicket, setSubmittedTicket] = useState(null);
 
-  // Voice Dictation Microphone State
-  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
-  const [voiceTranscriptProgress, setVoiceTranscriptProgress] = useState(0);
+  // Big Push-to-Talk Microphone States & Animations
+  const [isHoldingMic, setIsHoldingMic] = useState(false);
+  const [recordDuration, setRecordDuration] = useState(0);
+  const recordTimerRef = useRef(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const waveAnim1 = useRef(new Animated.Value(15)).current;
+  const waveAnim2 = useRef(new Animated.Value(25)).current;
+  const waveAnim3 = useRef(new Animated.Value(35)).current;
+  const waveAnim4 = useRef(new Animated.Value(20)).current;
 
   // Diverse Post-Disaster Health Scenarios (Lepto, Dengue, Diarrhea, Asthma, Tetanus, Fungal, Senior Care)
   const samplePrompts = [
@@ -73,37 +81,69 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     },
   ];
 
-  // Voice Recording Simulator & Speech-to-Text
-  const handleStartVoiceDictation = () => {
+  // Start animated pulse when holding mic
+  useEffect(() => {
+    if (isHoldingMic) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.22, duration: 350, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.0, duration: 350, useNativeDriver: true }),
+        ])
+      ).start();
+
+      // Waveform dancing animation
+      const waveInterval = setInterval(() => {
+        waveAnim1.setValue(Math.floor(10 + Math.random() * 35));
+        waveAnim2.setValue(Math.floor(15 + Math.random() * 45));
+        waveAnim3.setValue(Math.floor(10 + Math.random() * 50));
+        waveAnim4.setValue(Math.floor(12 + Math.random() * 38));
+      }, 150);
+
+      return () => {
+        clearInterval(waveInterval);
+        pulseAnim.setValue(1);
+      };
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isHoldingMic]);
+
+  // ── Push-to-Talk / Hold-to-Speak Handlers ──
+  const handleMicPressIn = () => {
     Keyboard.dismiss();
-    setIsRecordingVoice(true);
-    setVoiceTranscriptProgress(0);
+    setIsHoldingMic(true);
+    setRecordDuration(0);
+    try {
+      Vibration.vibrate(40);
+    } catch (e) {}
 
-    // Dynamic wave simulation
-    const interval = setInterval(() => {
-      setVoiceTranscriptProgress((prev) => (prev >= 100 ? 100 : prev + 25));
-    }, 400);
+    recordTimerRef.current = setInterval(() => {
+      setRecordDuration((prev) => prev + 1);
+    }, 1000);
+  };
 
-    // Auto-transcribe spoken voice after 2.4s
-    setTimeout(() => {
-      clearInterval(interval);
-      setIsRecordingVoice(false);
-      const randomSpoken = [
-        'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
-        'Nagtatae po ang sanggol ko at nanghihina dahil sa maruming tubig mula sa baha.',
-        'Inatake po ng matinding hika ang kapatid ko dahil sa lamig at basang gamit sa bahay.',
-        'Natusok po ako ng kinakalawang na yero kaninang umaga habang lumulusong sa baha.',
-      ];
-      const picked = randomSpoken[Math.floor(Math.random() * randomSpoken.length)];
-      setAiInputText(picked);
-      setAiResult(null);
-      Alert.alert(
-        lang === 'tl' ? '🎤 Naitala ang Boses' : '🎤 Voice Transcribed',
-        lang === 'tl'
-          ? 'Naisalin na ang iyong boses sa teksto. Pindutin ang "Analyze" upang suriin ang nararapat na gamot.'
-          : 'Your voice has been converted to text. Tap "Analyze" to assess recommended prescription.'
-      );
-    }, 2400);
+  const handleMicPressOut = () => {
+    if (!isHoldingMic) return;
+    setIsHoldingMic(false);
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+    }
+    try {
+      Vibration.vibrate([0, 30, 40, 30]);
+    } catch (e) {}
+
+    // Simulated speech-to-text recognition pool
+    const spokenScenarios = [
+      'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
+      'Nagtatae po ng tubig ang 1 taong gulang kong baby at nagsusuka matapos uminom ng maruming tubig sa baha.',
+      '3 araw na pong mataas ang lagnat ko, may mapupulang pantal sa braso at masakit ang ulo dahil sa kagat ng lamok.',
+      'Natusok po ng kinakalawang na pako ang paa ko habang lumulusong sa baha kaninang umaga, dumudugo po.',
+      'Inatake po ng matinding hika ang kapatid ko dahil sa lamig at amag ng baha, hirap po siyang huminga.',
+      'Sobrang makati at namamalat ang mga daliri ko sa paa pagkatapos mababad sa maruming baha.',
+    ];
+    const transcript = spokenScenarios[Math.floor(Math.random() * spokenScenarios.length)];
+    setAiInputText(transcript);
+    setAiResult(null);
   };
 
   // 1. Run NLP Symptom Parsing & Disease Risk Engine
@@ -113,7 +153,9 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     if (!text) {
       Alert.alert(
         lang === 'tl' ? 'Kailangan ang Sintomas' : 'Input Required',
-        lang === 'tl' ? 'Pakisulat ang inyong nararamdaman o kalagayan sa baha.' : 'Please describe your symptoms or emergency.'
+        lang === 'tl'
+          ? 'Pakisulat o pindutin at diinan ang Mic habang nagsasalita.'
+          : 'Please describe your symptoms or hold the Mic button to speak.'
       );
       return;
     }
@@ -229,17 +271,71 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           </View>
 
           <Text style={styles.aiBannerTitle}>
-            {lang === 'tl' ? 'I-type o Sabihin ang Nararamdaman' : 'Describe Symptoms or Emergency'}
+            {lang === 'tl' ? 'Sabihin sa Boses o I-type ang Nararamdaman' : 'Hold Mic to Speak or Type Symptoms'}
           </Text>
           <Text style={styles.aiBannerSub}>
             {lang === 'tl'
-              ? 'Awtomatikong susuriin ang sintomas at magbibigay ng opisyal na Medical Voucher sa Barangay Health Center.'
-              : 'Our clinical engine diagnoses exposure and generates an official BHC prescription claim voucher.'}
+              ? 'Pindutin at diinan ang malaking asul na Microphone button habang nagsasalita, at bitawan kapag tapos na.'
+              : 'Press and hold the big blue Microphone button while speaking, then release when finished.'}
           </Text>
+
+          {/* ── BIG CIRCULAR PUSH-TO-TALK MICROPHONE STATION ── */}
+          <View style={[styles.micStationCard, isHoldingMic && styles.micStationCardActive]}>
+            {/* Live Indicator Header */}
+            <View style={styles.micStatusRow}>
+              <View style={[styles.micLiveDot, isHoldingMic ? styles.micLiveDotActive : null]} />
+              <Text style={[styles.micStatusText, isHoldingMic ? styles.micStatusTextActive : null]}>
+                {isHoldingMic
+                  ? (lang === 'tl' ? `🔴 NAKIKINIG ANG MIC... (00:0${recordDuration}s) - BITAWAN KAPAG TAPOS NA` : `🔴 LISTENING... (00:0${recordDuration}s) - RELEASE WHEN DONE`)
+                  : (lang === 'tl' ? '👇 DIINAN ANG MIC HABANG NAGSASALITA' : '👇 PRESS & HOLD MIC TO SPEAK')}
+              </Text>
+            </View>
+
+            {/* Big Mic Button with Dynamic Pulsing Outer Rings */}
+            <View style={styles.micButtonWrapper}>
+              {isHoldingMic && (
+                <Animated.View
+                  style={[
+                    styles.micPulseRing,
+                    {
+                      transform: [{ scale: pulseAnim }],
+                      opacity: 0.45,
+                    },
+                  ]}
+                />
+              )}
+
+              <TouchableOpacity
+                style={[styles.bigMicCircleBtn, isHoldingMic && styles.bigMicCircleBtnActive]}
+                onPressIn={handleMicPressIn}
+                onPressOut={handleMicPressOut}
+                activeOpacity={0.92}
+                delayPressIn={0}
+              >
+                <MicrophoneIcon size={34} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Live Waveform Indicator */}
+            {isHoldingMic ? (
+              <View style={styles.liveWaveRow}>
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim1 }]} />
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim2 }]} />
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim3 }]} />
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim4 }]} />
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim2 }]} />
+                <Animated.View style={[styles.liveWaveBar, { height: waveAnim1 }]} />
+              </View>
+            ) : (
+              <Text style={styles.micHintSub}>
+                {lang === 'tl' ? 'Bitawan lamang ang daliri upang awtomatikong maisulat ang sinabi' : 'Release finger to instantly transcribe speech to text'}
+              </Text>
+            )}
+          </View>
 
           {/* Quick Scenario Chips */}
           <Text style={styles.promptHeaderLabel}>
-            {lang === 'tl' ? 'PUMILI NG SITWASYON (I-tap para ilagay sa kahon):' : 'SELECT SCENARIO (Tap to paste):'}
+            {lang === 'tl' ? 'O PUMILI SA MGA HALIMBAWA (I-tap para ilagay sa kahon):' : 'OR SELECT SCENARIO (Tap to paste):'}
           </Text>
           <View style={styles.sampleChipsContainer}>
             {samplePrompts.map((p, idx) => (
@@ -257,7 +353,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             ))}
           </View>
 
-          {/* Text Input Box with Microphone Voice Button */}
+          {/* Text Input Box with Live Transcribed Text */}
           <View style={styles.aiInputWrapper}>
             <TextInput
               style={styles.aiTextInput}
@@ -268,8 +364,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               }}
               placeholder={
                 lang === 'tl'
-                  ? 'I-type o pindutin ang mikropono (hal. "Nilusong ko ang sugat sa baha at nilalagnat...")'
-                  : 'Type or tap microphone (e.g. "I stepped on a rusty nail in floodwater and have fever...")'
+                  ? 'Dito lalabas ang iyong sinabi sa mic, o maaari mo ring i-type nang mano-mano...'
+                  : 'Your voice transcript will appear here, or you can type manually...'
               }
               placeholderTextColor="#94A3B8"
               multiline
@@ -277,25 +373,14 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               textAlignVertical="top"
             />
 
-            {/* Microphone Voice Dictation Button inside Input Box */}
-            <View style={styles.micInputFooter}>
-              <TouchableOpacity
-                style={styles.micDictateBtn}
-                onPress={handleStartVoiceDictation}
-                activeOpacity={0.8}
-              >
-                <MicrophoneIcon size={16} color="#7C3AED" />
-                <Text style={styles.micDictateBtnText}>
-                  {lang === 'tl' ? '🎤 Gamitin ang Boses (Mic)' : '🎤 Speak / Voice Input'}
-                </Text>
-              </TouchableOpacity>
-
-              {aiInputText.length > 0 && (
+            {aiInputText.length > 0 && (
+              <View style={styles.textInputFooter}>
+                <Text style={styles.textCountLabel}>{aiInputText.length} characters</Text>
                 <TouchableOpacity onPress={() => { setAiInputText(''); setAiResult(null); }}>
                   <Text style={styles.clearTextLink}>{lang === 'tl' ? 'Burahin' : 'Clear'}</Text>
                 </TouchableOpacity>
-              )}
-            </View>
+              </View>
+            )}
           </View>
 
           {/* Action Button: Run Analysis */}
@@ -442,49 +527,6 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             </TouchableOpacity>
           </View>
         )}
-
-        {/* ── Voice Recording Modal ── */}
-        <Modal visible={isRecordingVoice} transparent animationType="fade" onRequestClose={() => setIsRecordingVoice(false)}>
-          <View style={styles.voiceModalBackdrop}>
-            <View style={styles.voiceModalCard}>
-              <View style={styles.pulseMicOuter}>
-                <View style={styles.pulseMicInner}>
-                  <MicrophoneIcon size={34} color="#FFFFFF" />
-                </View>
-              </View>
-
-              <Text style={styles.voiceModalTitle}>
-                {lang === 'tl' ? 'Nakaririnig ang Mikropono...' : 'Listening to your voice...'}
-              </Text>
-              <Text style={styles.voiceModalSub}>
-                {lang === 'tl'
-                  ? 'Pakisabi ang inyong nararamdaman o kalagayan sa baha sa Tagalog o Ingles.'
-                  : 'Please describe your emergency or symptoms in Tagalog or English.'}
-              </Text>
-
-              {/* Sound Waveform Visualization */}
-              <View style={styles.waveformRow}>
-                {[18, 32, 48, 24, 40, 52, 28, 44, 20].map((h, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.waveBar,
-                      { height: Math.max(12, (h * (voiceTranscriptProgress + 20)) / 100) },
-                    ]}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={styles.cancelVoiceBtn}
-                onPress={() => setIsRecordingVoice(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.cancelVoiceBtnText}>{lang === 'tl' ? 'Ihinto' : 'Stop'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
     </View>
   );
@@ -603,6 +645,96 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 14,
   },
+
+  /* ── BIG MIC STATION ── */
+  micStationCard: {
+    backgroundColor: '#F0F7FF',
+    borderRadius: RADIUS.xl,
+    padding: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    marginBottom: 16,
+  },
+  micStationCardActive: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  micStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 14,
+  },
+  micLiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2563EB',
+  },
+  micLiveDotActive: {
+    backgroundColor: '#DC2626',
+  },
+  micStatusText: {
+    fontSize: 11,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#1E40AF',
+    letterSpacing: 0.5,
+  },
+  micStatusTextActive: {
+    color: '#DC2626',
+  },
+  micButtonWrapper: {
+    width: 84,
+    height: 84,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    marginVertical: 4,
+  },
+  micPulseRing: {
+    position: 'absolute',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#F87171',
+  },
+  bigMicCircleBtn: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#2563EB', // Big Vibrant Blue
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.lg,
+    elevation: 8,
+  },
+  bigMicCircleBtnActive: {
+    backgroundColor: '#DC2626', // Pulsing Bright Red when pressed
+    transform: [{ scale: 1.08 }],
+  },
+  liveWaveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 45,
+    marginTop: 10,
+  },
+  liveWaveBar: {
+    width: 5,
+    backgroundColor: '#DC2626',
+    borderRadius: 3,
+  },
+  micHintSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 8,
+    fontWeight: FONT_WEIGHT.medium,
+    textAlign: 'center',
+  },
+
+  /* ── Input Box & Chips ── */
   promptHeaderLabel: {
     fontSize: 10,
     fontWeight: FONT_WEIGHT.black,
@@ -640,10 +772,10 @@ const styles = StyleSheet.create({
   aiTextInput: {
     fontSize: 13,
     color: '#1E293B',
-    minHeight: 75,
+    minHeight: 70,
     lineHeight: 18,
   },
-  micInputFooter: {
+  textInputFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -652,26 +784,14 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     marginTop: 6,
   },
-  micDictateBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F3E8FF',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  micDictateBtnText: {
-    fontSize: 11.5,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#7C3AED',
+  textCountLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
   },
   clearTextLink: {
     fontSize: 11.5,
     fontWeight: FONT_WEIGHT.bold,
-    color: '#94A3B8',
+    color: '#DC2626',
   },
   runAiBtn: {
     backgroundColor: '#7C3AED',
@@ -686,6 +806,8 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     fontWeight: FONT_WEIGHT.black,
   },
+
+  /* ── Diagnosis Card ── */
   aiResultCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.xl,
@@ -845,75 +967,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
-  },
-  voiceModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  voiceModalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xxl || 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 340,
-    alignItems: 'center',
-    ...SHADOWS.xl,
-  },
-  pulseMicOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#EDE9FE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  pulseMicInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#7C3AED',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.md,
-  },
-  voiceModalTitle: {
-    fontSize: 16,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#1E1B4B',
-    marginBottom: 6,
-  },
-  voiceModalSub: {
-    fontSize: 12,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 17,
-    marginBottom: 20,
-  },
-  waveformRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 60,
-    marginBottom: 20,
-  },
-  waveBar: {
-    width: 6,
-    backgroundColor: '#7C3AED',
-    borderRadius: 3,
-  },
-  cancelVoiceBtn: {
-    backgroundColor: '#F1F5F9',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-  },
-  cancelVoiceBtnText: {
-    fontSize: 12.5,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#64748B',
   },
 });
