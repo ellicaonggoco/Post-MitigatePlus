@@ -1,0 +1,48 @@
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="pf_01" name="01. Citizen Registration & ID Verification Flow">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+<mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;ACTIVITY 01: Citizen Registration, SMS OTP &amp;amp; Barangay ID Verification Process Flow&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+  <mxGeometry x="50" y="20" width="1550" height="40" as="geometry" />
+</mxCell>
+<mxCell id="pool" value="Citizen Registration &amp;amp; Verification Pool" style="swimlane;startSize=26;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1E3A8A;" vertex="1" parent="1">
+  <mxGeometry x="50" y="70" width="1550" height="520" as="geometry" />
+</mxCell>
+<mxCell id="lane_res" value="Resident / Citizen (Mobile App)" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#93C5FD;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="30" width="1530" height="150" as="geometry"/></mxCell>
+<mxCell id="lane_sys" value="MitigatePlus Backend &amp;amp; Semaphore SMS" style="swimlane;startSize=24;fillColor=#F8FAFC;strokeColor=#93C5FD;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="180" width="1530" height="160" as="geometry"/></mxCell>
+<mxCell id="lane_bg" value="Barangay Official (Web Admin Portal)" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#93C5FD;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="340" width="1530" height="170" as="geometry"/></mxCell>
+
+<!-- Nodes -->
+<mxCell id="n1" value="Start: Opens App&lt;br&gt;&amp;amp; Taps Register" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="20" y="45" width="100" height="55" as="geometry"/></mxCell>
+<mxCell id="n2" value="Fills Household Info&lt;br&gt;(Address, Members)&lt;br&gt;&amp;amp; Uploads Gov ID" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="150" y="45" width="130" height="55" as="geometry"/></mxCell>
+<mxCell id="n3" value="Generates 6-Digit OTP&lt;br&gt;&amp;amp; Dispatches SMS via Semaphore Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="310" y="50" width="150" height="55" as="geometry"/></mxCell>
+<mxCell id="n4" value="Enters Received OTP&lt;br&gt;in Mobile App Screen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="490" y="45" width="130" height="55" as="geometry"/></mxCell>
+<mxCell id="n5" value="Validates OTP Match&lt;br&gt;&amp;amp; Sets Household Status:&lt;br&gt;'PENDING_VERIFICATION'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="650" y="50" width="150" height="55" as="geometry"/></mxCell>
+<mxCell id="n6" value="Opens Verification Queue&lt;br&gt;&amp;amp; Inspects Gov ID Photo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_bg"><mxGeometry x="830" y="50" width="140" height="55" as="geometry"/></mxCell>
+<mxCell id="n7" value="Valid Resident&lt;br&gt;&amp;amp; Clear ID?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontStyle=1;fontSize=10;" vertex="1" parent="lane_bg"><mxGeometry x="1000" y="45" width="110" height="65" as="geometry"/></mxCell>
+<mxCell id="n8" value="Rejects with Reason&lt;br&gt;&amp;amp; Logs Audit Record" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;fontSize=10;" vertex="1" parent="lane_bg"><mxGeometry x="1140" y="20" width="130" height="50" as="geometry"/></mxCell>
+<mxCell id="n9" value="Approves Household&lt;br&gt;&amp;amp; Marks isVerified=true" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontSize=10;" vertex="1" parent="lane_bg"><mxGeometry x="1140" y="95" width="130" height="50" as="geometry"/></mxCell>
+<mxCell id="n10" value="Generates Encrypted Digital&lt;br&gt;QR Code Token (SHA-256)&lt;br&gt;&amp;amp; Saves to MongoDB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="1300" y="50" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n11" value="Receives Notification &amp;amp;&lt;br&gt;Accesses Verified QR Pass" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="1300" y="45" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n12" value="End: Verified&lt;br&gt;Beneficiary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="1480" y="47" width="90" height="50" as="geometry"/></mxCell>
+
+<!-- Connectors -->
+<mxCell id="e1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n2" target="n3"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n3" target="n4"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n4" target="n5"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n5" target="n6"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e6" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n6" target="n7"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e7_no" value="[No]" style="endArrow=classic;html=1;strokeColor=#EF4444;fontColor=#EF4444;fontSize=9;strokeWidth=1.5;" edge="1" parent="pool" source="n7" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e7_yes" value="[Yes]" style="endArrow=classic;html=1;strokeColor=#10B981;fontColor=#10B981;fontSize=9;strokeWidth=1.5;" edge="1" parent="pool" source="n7" target="n9"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e8" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n9" target="n10"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e9" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n10" target="n11"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e10" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n11" target="n12"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

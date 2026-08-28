@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MitigatePlus — Individual Process Flows Directory</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: #F1F5F9; padding: 40px 20px; display: flex; justify-content: center; }
+  .container { width: 1400px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); padding: 40px; }
+  .header-title { font-size: 26px; font-weight: 900; color: #0F172A; text-align: center; }
+  .header-sub { font-size: 14px; color: #64748B; text-align: center; margin-top: 6px; margin-bottom: 35px; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .card { border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 20px; background: #F8FAFC; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
+  .card:hover { border-color: #2563EB; box-shadow: 0 8px 20px rgba(37,99,235,0.08); background: #FFF; }
+  
+  .badge { align-self: flex-start; font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; }
+  .badge-mob { background: #DCFCE7; color: #15803D; }
+  .badge-web { background: #DBEAFE; color: #1E40AF; }
+  .badge-both { background: #F3E8FF; color: #6B21A8; }
+
+  .card-title { font-size: 15px; font-weight: 800; color: #1E293B; margin-bottom: 8px; }
+  .card-desc { font-size: 12px; color: #64748B; line-height: 1.45; margin-bottom: 16px; }
+
+  .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
+  .file-name { font-size: 11px; font-weight: 700; color: #475569; font-family: monospace; }
+  .btn-open { background: #2563EB; color: #FFF; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 6px; text-decoration: none; }
+  .btn-open:hover { background: #1D4ED8; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-title">MITIGATEPLUS — INDIVIDUAL ACTIVITY PROCESS FLOWS</div>
+  <div class="header-sub">Complete 14 Separated Process Flow Diagrams for Every Single System &amp; Mobile Activity (Draw.io Ready)</div>
+
+  <div class="grid">
+
+    <!-- Act 1 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile &amp; Web Admin</span>
+        <div class="card-title">01. Citizen Registration, SMS OTP &amp; Barangay ID Verification</div>
+        <div class="card-desc">Resident inputs household data, uploads Government ID, verifies 6-digit Semaphore SMS OTP, and Barangay Official inspects and approves registration to generate encrypted QR pass.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_01_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 2 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile &amp; Web Admin</span>
+        <div class="card-title">02. User Authentication, Login &amp; Forgot Password Reset</div>
+        <div class="card-desc">JWT authentication across all 5 user roles, Bcrypt credential verification, and SMS/Email OTP password recovery mechanism.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_02_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 3 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-mob">Mobile App Offline</span>
+        <div class="card-title">03. Digital QR Relief Pass &amp; Offline AsyncStorage Sync</div>
+        <div class="card-desc">Online token fetch from MongoDB with fallback to local encrypted AsyncStorage cache so residents can present their relief pass even during total cellular blackout.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_03_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 4 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-mob">Mobile AI Feature</span>
+        <div class="card-title">04. Post-Flood AI Clinical Health Triage &amp; Prescription Voucher</div>
+        <div class="card-desc">Push-to-Talk voice dictation via Google Gemini 2.5 Flash Audio API, real-time dB metering, Leptospirosis/Dengue/Tetanus triage, and BHC-291 free medication voucher issuance.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_04_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 5 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-mob">Mobile App &amp; GIS</span>
+        <div class="card-title">05. Disaster Damage Reporting &amp; Priority Score Calculation</div>
+        <div class="card-desc">Camera photo capture, auto-detected GPS coordinates, Cloudinary upload, priority formula computation, and real-time MongoDB geospatial recording.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_05_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 6 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-web">Web Admin Command</span>
+        <div class="card-title">06. Relief Distribution Event Scheduling &amp; Right-Sized Policy</div>
+        <div class="card-desc">Admin schedules distribution drive, defines entitlement formula per family size, checks warehouse buffer stocks, and broadcasts push advisories to target barangay.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_06_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 7 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile Staff &amp; Anti-Fraud</span>
+        <div class="card-title">07. Field Staff QR Scanning &amp; Anti-Duplicate Interception</div>
+        <div class="card-desc">Field staff scans QR code with camera, system queries compound index (householdId+eventId), blocks duplicate claims instantly to fraud stream, and dispenses right-sized packs.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_07_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 8 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile &amp; Dispatch</span>
+        <div class="card-title">08. Special Assistance Request &amp; Door-to-Door Delivery</div>
+        <div class="card-desc">Bedridden, senior, and PWD citizens submit special relief requests; LGU Admin assigns available Field Staff; staff receives mobile tasks and logs doorstep delivery handoff.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_08_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 9 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile Staff &amp; Socket.IO</span>
+        <div class="card-title">09. Field Staff On-Ground Incident &amp; Hazard Reporting</div>
+        <div class="card-desc">Staff logs road floods, blockades, or unrest; Socket.IO broadcasts instant audio-visual alert banner to Web Admin Command Dashboard for responder dispatch.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_09_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 10 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-web">Web Admin GIS</span>
+        <div class="card-title">10. GIS Flood Risk Heatmap &amp; Inundation Zone Canvas</div>
+        <div class="card-desc">Leaflet.js interactive map plotting damage reports as color-coded dots (Red/Orange/Yellow/Green), water inundation polygons, and Smart Priority household ranking.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_10_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 11 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-web">Web Admin Warehouse</span>
+        <div class="card-title">11. Warehouse Inventory Management &amp; Buffer Stock Alert</div>
+        <div class="card-desc">Inward stock logging (STOCK_IN), automated release deductions (STOCK_OUT), real-time low buffer threshold warning banner, and emergency procurement triggers.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_11_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 12 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-web">Web SuperAdmin</span>
+        <div class="card-title">12. SuperAdmin User Provisioning &amp; System Audit Trail</div>
+        <div class="card-desc">LGU SuperAdmin provisions official accounts, enforces role hierarchy, bcrypt password hashing, and logs immutable records into the System Audit Trail.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_12_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 13 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-both">Mobile &amp; Web Admin</span>
+        <div class="card-title">13. Disaster Recovery Stepper &amp; Announcements Broadcast</div>
+        <div class="card-desc">Admin advances disaster recovery phase stepper (Emergency → Immediate Relief → Rehabilitation) and broadcasts instant announcements to all mobile users.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_13_...drawio</span>
+      </div>
+    </div>
+
+    <!-- Act 14 -->
+    <div class="card">
+      <div>
+        <span class="badge badge-mob">Mobile App Settings</span>
+        <div class="card-title">14. Household Profile Members &amp; Bilingual i18n Switcher</div>
+        <div class="card-desc">Resident updates household member count for relief formula recalculation and toggles full app interface between Tagalog and English.</div>
+      </div>
+      <div class="card-footer">
+        <span class="file-name">ProcessFlow_14_...drawio</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="pf_05" name="05. Damage Reporting & Priority Scoring Flow">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+<mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;ACTIVITY 05: Disaster Damage Reporting, GPS/Photo Proof &amp;amp; Priority Score Calculation Process Flow&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+  <mxGeometry x="50" y="20" width="1550" height="40" as="geometry" />
+</mxCell>
+<mxCell id="pool" value="Disaster Damage Reporting Pool" style="swimlane;startSize=26;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#14532D;" vertex="1" parent="1">
+  <mxGeometry x="50" y="70" width="1550" height="480" as="geometry" />
+</mxCell>
+<mxCell id="lane_res" value="Resident / Citizen (Mobile Device)" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#BBF7D0;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="30" width="1530" height="140" as="geometry"/></mxCell>
+<mxCell id="lane_sys" value="Backend Cloudinary &amp;amp; Priority Scoring Algorithm" style="swimlane;startSize=24;fillColor=#F8FAFC;strokeColor=#BBF7D0;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="170" width="1530" height="150" as="geometry"/></mxCell>
+<mxCell id="lane_adm" value="LGU Admin / Barangay Command Center" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#BBF7D0;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="320" width="1530" height="150" as="geometry"/></mxCell>
+
+<mxCell id="n1" value="Start: Opens Report Damage" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="20" y="40" width="110" height="50" as="geometry"/></mxCell>
+<mxCell id="n2" value="Captures Live Camera Photo &amp;amp;&lt;br&gt;Auto-Detects Expo GPS Coordinates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="160" y="40" width="170" height="50" as="geometry"/></mxCell>
+<mxCell id="n3" value="Selects Damage Severity Level&lt;br&gt;(Minor / Moderate / Severe / Total)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_res"><mxGeometry x="360" y="40" width="170" height="50" as="geometry"/></mxCell>
+<mxCell id="n4" value="Uploads Image to Cloudinary CDN&lt;br&gt;&amp;amp; Saves Geo-JSON Coordinates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="560" y="40" width="170" height="50" as="geometry"/></mxCell>
+<mxCell id="n5" value="Calculates Priority Score:&lt;br&gt;Score = (Damage * Weight) + (Members * W)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="760" y="40" width="180" height="50" as="geometry"/></mxCell>
+<mxCell id="n6" value="Updates Household Priority Index&lt;br&gt;in MongoDB Collection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="970" y="40" width="160" height="50" as="geometry"/></mxCell>
+<mxCell id="n7" value="Plots Damage Dot on Leaflet Heatmap&lt;br&gt;&amp;amp; Ranks on Smart Priority Queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontSize=10;" vertex="1" parent="lane_adm"><mxGeometry x="1160" y="40" width="180" height="50" as="geometry"/></mxCell>
+<mxCell id="n8" value="End: Targeted Relief&lt;br&gt;Mobilized" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_adm"><mxGeometry x="1370" y="40" width="110" height="50" as="geometry"/></mxCell>
+
+<mxCell id="e1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n2" target="n3"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n3" target="n4"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n4" target="n5"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n5" target="n6"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e6" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n6" target="n7"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e7" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n7" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

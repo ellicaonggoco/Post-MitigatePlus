@@ -1,0 +1,34 @@
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="pf_12" name="12. SuperAdmin User Provisioning & Audit Trail Flow">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+<mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;ACTIVITY 12: SuperAdmin Official Provisioning, Role Governance &amp;amp; Audit Logs Process Flow&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+  <mxGeometry x="50" y="20" width="1550" height="40" as="geometry" />
+</mxCell>
+<mxCell id="pool" value="User Governance &amp;amp; Audit Trail Pool" style="swimlane;startSize=26;fillColor=#FFFBEB;strokeColor=#F59E0B;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#78350F;" vertex="1" parent="1">
+  <mxGeometry x="50" y="70" width="1550" height="480" as="geometry" />
+</mxCell>
+<mxCell id="lane_sup" value="LGU SuperAdmin (Web Admin)" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#FDE68A;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="30" width="1530" height="140" as="geometry"/></mxCell>
+<mxCell id="lane_sys" value="Security Middleware &amp;amp; Audit Engine" style="swimlane;startSize=24;fillColor=#F8FAFC;strokeColor=#FDE68A;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="170" width="1530" height="150" as="geometry"/></mxCell>
+<mxCell id="lane_usr" value="Provisioned LGU Admin / Barangay Official" style="swimlane;startSize=24;fillColor=#FFFFFF;strokeColor=#FDE68A;fontStyle=1;fontSize=11;" vertex="1" parent="pool"><mxGeometry x="10" y="320" width="1530" height="150" as="geometry"/></mxCell>
+
+<mxCell id="n1" value="Start: Opens Provision Accounts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_sup"><mxGeometry x="20" y="40" width="130" height="50" as="geometry"/></mxCell>
+<mxCell id="n2" value="Fills Official Credentials &amp;amp;&lt;br&gt;Selects Role (e.g. barangay_official)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sup"><mxGeometry x="180" y="40" width="170" height="50" as="geometry"/></mxCell>
+<mxCell id="n3" value="Hashes Password via Bcrypt (salt=10)&lt;br&gt;&amp;amp; Enforces RBAC Hierarchy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="380" y="40" width="180" height="50" as="geometry"/></mxCell>
+<mxCell id="n4" value="Writes Immutable AuditLog Record:&lt;br&gt;Action: 'PROVISION_ACCOUNT'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=10;" vertex="1" parent="lane_sys"><mxGeometry x="590" y="40" width="180" height="50" as="geometry"/></mxCell>
+<mxCell id="n5" value="Official Logs In with Assigned Role&lt;br&gt;&amp;amp; Accesses Permitted Modules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontSize=10;" vertex="1" parent="lane_usr"><mxGeometry x="800" y="40" width="180" height="50" as="geometry"/></mxCell>
+<mxCell id="n6" value="End: Secure Official&lt;br&gt;Access Granted" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontStyle=1;fontSize=10;" vertex="1" parent="lane_sup"><mxGeometry x="1010" y="40" width="120" height="50" as="geometry"/></mxCell>
+
+<mxCell id="e1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n2" target="n3"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n3" target="n4"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n4" target="n5"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="pool" source="n5" target="n6"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
