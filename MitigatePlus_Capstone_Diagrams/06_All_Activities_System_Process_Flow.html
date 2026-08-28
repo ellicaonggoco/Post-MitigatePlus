@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MitigatePlus — Complete Activities Process Flow</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: #F8FAFC; padding: 30px 20px; display: flex; justify-content: center; }
+  .canvas { width: 1600px; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); padding: 40px 30px; }
+  .title { text-align: center; font-size: 22px; font-weight: 900; color: #0F172A; }
+  .sub { text-align: center; font-size: 13px; color: #64748B; margin-top: 4px; margin-bottom: 30px; }
+
+  .act-card { border: 2px solid #CBD5E1; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: #FFF; }
+  .act-header { padding: 12px 18px; font-size: 13.5px; font-weight: 800; color: #FFF; display: flex; justify-content: space-between; }
+  .act-blue { background: #1E40AF; border-color: #1E40AF; }
+  .act-amber { background: #B45309; border-color: #B45309; }
+  .act-green { background: #15803D; border-color: #15803D; }
+  .act-purple { background: #6B21A8; border-color: #6B21A8; }
+  .act-rose { background: #BE123C; border-color: #BE123C; }
+  .act-indigo { background: #4338CA; border-color: #4338CA; }
+  .act-emerald { background: #047857; border-color: #047857; }
+  .act-slate { background: #334155; border-color: #334155; }
+
+  .flow-row { display: flex; align-items: center; padding: 18px 14px; gap: 10px; overflow-x: auto; background: #F8FAFC; }
+  .step-box { background: #FFFFFF; border: 1.5px solid #000; border-radius: 8px; padding: 10px 12px; min-width: 170px; max-width: 220px; font-size: 11px; font-weight: 700; line-height: 1.35; text-align: center; }
+  .step-box.start { background: #DCFCE7; border-color: #16A34A; color: #14532D; }
+  .step-box.decision { background: #FEF3C7; border-color: #D97706; color: #78350F; transform: rotate(0deg); }
+  .step-box.system { background: #EFF6FF; border-color: #2563EB; color: #1E3A8A; }
+  .step-box.alert { background: #FEE2E2; border-color: #DC2626; color: #991B1B; }
+  .step-box.end { background: #DCFCE7; border-color: #16A34A; color: #14532D; }
+  
+  .step-role { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748B; margin-bottom: 4px; }
+  .arrow { font-size: 20px; font-weight: 900; color: #64748B; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+  <div class="title">MITIGATEPLUS SYSTEM — COMPLETE SYSTEM ACTIVITIES PROCESS FLOW</div>
+  <div class="sub">Comprehensive End-to-End Operational Lifecycle Across All System Functions &amp; User Roles</div>
+
+  <!-- Activity 1 -->
+  <div class="act-card">
+    <div class="act-header act-blue">ACTIVITY 1: Citizen Registration, SMS OTP Verification &amp; Barangay ID Approval Process</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">Resident</div>Opens Mobile App &amp; Taps Register</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Resident</div>Fills Household Form &amp; Uploads Gov ID</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Semaphore SMS</div>Sends 6-Digit Verification OTP</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Resident</div>Submits OTP Code in App</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">System</div>Saves Record: PENDING_VERIFICATION</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Barangay Official</div>Reviews ID Photo in Verification Queue</div>
+      <div class="arrow">→</div>
+      <div class="step-box decision"><div class="step-role">Decision</div>Valid Resident &amp; ID?</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">System</div>Generates Encrypted Digital QR Token</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">Resident</div>Receives Notification &amp; Accesses QR Pass</div>
+    </div>
+  </div>
+
+  <!-- Activity 2 -->
+  <div class="act-card">
+    <div class="act-header act-amber">ACTIVITY 2: Relief Distribution Lifecycle, Right-Sized Entitlement &amp; Staff QR Anti-Duplicate Interception</div>
+    <div class="flow-row">
+      <div class="step-box"><div class="step-role">LGU Admin</div>Creates Distribution Event &amp; Formula</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Resident</div>Presents Digital QR Code Pass</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Field Staff</div>Scans QR with Mobile Camera Scanner</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Anti-Fraud Engine</div>Checks Compound Index (householdId+eventId)</div>
+      <div class="arrow">→</div>
+      <div class="step-box decision"><div class="step-role">Decision</div>Already Claimed?</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">System</div>Computes Entitlement (Base+Members)</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Field Staff</div>Hands Relief Pack &amp; Taps 'Confirm'</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Backend &amp; Socket</div>Deducts Warehouse &amp; Updates Web Live</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">Beneficiary</div>Claims History Recorded Transparently</div>
+    </div>
+  </div>
+
+  <!-- Activity 3 -->
+  <div class="act-card">
+    <div class="act-header act-green">ACTIVITY 3: Citizen Disaster Damage Reporting, GPS/Camera Proof &amp; GIS Inundation Heatmap</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">Resident</div>Opens Damage Screen &amp; Captures Photo</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Resident</div>Selects Severity &amp; Confirms GPS</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Cloudinary CDN</div>Uploads Image Proof with Coordinates</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Priority Engine</div>Calculates Priority Score (Damage + Members)</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">LGU Admin</div>Opens Interactive Leaflet Heatmap</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">LGU Command</div>Ranks High-Need Zones &amp; Directs Relief</div>
+    </div>
+  </div>
+
+  <!-- Activity 4 -->
+  <div class="act-card">
+    <div class="act-header act-purple">ACTIVITY 4: Post-Flood AI Clinical Health Triage, Voice NLP (Gemini 2.5 Flash) &amp; BHC Claim Voucher</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">Resident</div>Holds Mic Button &amp; Speaks Symptoms</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Gemini 2.5 Flash</div>Transcribes Audio with dB Metering</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Clinical NLP</div>Triages Risk (Lepto, Dengue, Tetanus, Asthma)</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Prescription Engine</div>Generates BHC-291 Medication Claim Voucher</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Resident</div>Presents Voucher at Barangay 291 Health Center</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">Health Center</div>Dispenses Free DOH Antibiotics &amp; Care</div>
+    </div>
+  </div>
+
+  <!-- Activity 5 -->
+  <div class="act-card">
+    <div class="act-header act-rose">ACTIVITY 5: Special Assistance Request for Vulnerable Citizens &amp; Field Staff Door-to-Door Delivery</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">Vulnerable Resident</div>Submits Special Assistance Request (Bedridden)</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">LGU Admin</div>Reviews Request in Web Admin &amp; Assigns Staff</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Field Staff</div>Receives Task Assignment on Mobile</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Field Staff</div>Delivers Relief Package Door-to-Door</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">System</div>Marks 'RECEIVED' with Audit Timestamp</div>
+    </div>
+  </div>
+
+  <!-- Activity 6 -->
+  <div class="act-card">
+    <div class="act-header act-indigo">ACTIVITY 6: Field Staff On-Ground Incident &amp; Hazard Logging to Command Center</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">Field Staff</div>Encounters On-Ground Flood Hazard / Blockade</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">Field Staff</div>Submits Incident Report via Mobile App</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Socket.IO</div>Emits Real-Time Broadcast to Web Admin</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">DRRMO Command</div>Dispatches Responders &amp; Reroutes Relief</div>
+    </div>
+  </div>
+
+  <!-- Activity 7 -->
+  <div class="act-card">
+    <div class="act-header act-emerald">ACTIVITY 7: Warehouse Inventory Management, Stock Tracking &amp; Low Buffer Alerts</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">LGU Admin</div>Logs Stock Arrival (Food Packs, Water, Meds)</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Warehouse DB</div>Tracks Stock-In &amp; Automatic Stock-Out Deductions</div>
+      <div class="arrow">→</div>
+      <div class="step-box decision"><div class="step-role">Decision</div>Stock &lt; Minimum Buffer Threshold?</div>
+      <div class="arrow">→</div>
+      <div class="step-box alert"><div class="step-role">System</div>Triggers Urgent Low Buffer Warning Banner</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">SuperAdmin</div>Procures Emergency Stock Replenishment</div>
+    </div>
+  </div>
+
+  <!-- Activity 8 & 9 -->
+  <div class="act-card">
+    <div class="act-header act-slate">ACTIVITY 8 &amp; 9: Official Provisioning, System Audit Logs &amp; Recovery Phase Stepper Broadcast</div>
+    <div class="flow-row">
+      <div class="step-box start"><div class="step-role">SuperAdmin</div>Provisions Official Role with Encrypted Auth</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Audit Middleware</div>Records Immutable Action in System Audit Trail</div>
+      <div class="arrow">→</div>
+      <div class="step-box"><div class="step-role">LGU Admin</div>Advances Recovery Phase Stepper (Emergency → Relief → Rehab)</div>
+      <div class="arrow">→</div>
+      <div class="step-box system"><div class="step-role">Push Gateway</div>Broadcasts Emergency Advisory to All Citizens</div>
+      <div class="arrow">→</div>
+      <div class="step-box end"><div class="step-role">Community</div>Displays Real-Time Recovery Status in App</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
