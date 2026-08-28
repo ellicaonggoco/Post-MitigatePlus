@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
 } from 'react-native';
 import {
@@ -19,7 +19,6 @@ import {
   MapPinIcon,
 } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
-import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
 export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, onSubmitSuccess }) {
@@ -51,6 +50,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
   // 1. Run NLP Symptom Parsing & Disease Risk Engine
   const handleRunAiTriage = async (textToAnalyze) => {
+    Keyboard.dismiss();
     const text = (textToAnalyze || aiInputText).trim();
     if (!text) {
       Alert.alert(
@@ -90,6 +90,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
   // 2. Submit Official Triage Ticket & Claim Voucher to Barangay Health Center
   const handleSubmitAiTriageRequest = async () => {
+    Keyboard.dismiss();
     if (!aiResult) return;
     setLoading(true);
     try {
@@ -126,26 +127,21 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
-    >
+    <View style={styles.container}>
       <ScrollView
-        style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Back Button with MotionPressable */}
-        <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#1557B0" />
           </View>
           <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
-        </MotionPressable>
+        </TouchableOpacity>
 
-        {/* ── Page Header: Pure AI Novelty ── */}
+        {/* Page Header: Pure AI Novelty */}
         <View style={styles.header}>
           <View style={styles.kickerRow}>
             <View style={styles.pulseDot} />
@@ -161,7 +157,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           </Text>
         </View>
 
-        {/* ── AI Symptom & Flood Exposure Input Card ── */}
+        {/* AI Symptom & Flood Exposure Input Card */}
         <View style={styles.aiBannerCard}>
           <View style={styles.aiBadgeRow}>
             <View style={styles.aiSparkleBadge}>
@@ -218,7 +214,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           </View>
 
           {/* Action Button: Run AI Analysis */}
-          <MotionPressable
+          <TouchableOpacity
             style={[styles.runAiBtn, aiAnalyzing && { opacity: 0.8 }]}
             onPress={() => handleRunAiTriage()}
             disabled={aiAnalyzing}
@@ -239,10 +235,10 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                 </Text>
               </View>
             )}
-          </MotionPressable>
+          </TouchableOpacity>
         </View>
 
-        {/* ── AI Clinical Diagnosis & Prescription Advisory Card (When Analysis Completes) ── */}
+        {/* AI Clinical Diagnosis & Prescription Advisory Card */}
         {aiResult && (
           <View style={styles.aiResultCard}>
             {/* Risk Classification Badge */}
@@ -290,7 +286,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
             {/* Extracted Symptoms Tags */}
             <View style={styles.symptomsTagsRow}>
-              {aiResult.detectedSymptoms.map((symp, sIdx) => (
+              {aiResult.detectedSymptoms && aiResult.detectedSymptoms.map((symp, sIdx) => (
                 <View key={sIdx} style={styles.symptomBadge}>
                   <Text style={styles.symptomBadgeText}>✓ {symp}</Text>
                 </View>
@@ -343,7 +339,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             </View>
 
             {/* Submit Official Ticket to LGU Command Center */}
-            <MotionPressable
+            <TouchableOpacity
               style={[styles.submitAiTicketBtn, loading && { opacity: 0.75 }]}
               onPress={handleSubmitAiTriageRequest}
               disabled={loading}
@@ -358,11 +354,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                     : '📨 Submit Ticket to Barangay & LGU Health Admin'}
                 </Text>
               )}
-            </MotionPressable>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -373,7 +369,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SPACING.lg,
-    paddingBottom: hp(12),
+    paddingBottom: hp(14),
   },
   backBtnPill: {
     flexDirection: 'row',
