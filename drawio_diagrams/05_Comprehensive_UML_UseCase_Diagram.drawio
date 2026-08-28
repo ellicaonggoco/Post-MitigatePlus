@@ -1,243 +1,353 @@
 <mxfile host="app.diagrams.net" version="24.0.7" type="device">
-  <diagram id="usecase_mitigateplus" name="MitigatePlus UML Use Case Diagram">
-    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2300" pageHeight="1650" math="0" shadow="0">
+  <diagram id="mitigateplus_exact_usecase" name="MitigatePlus UML Use Case Diagram">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1600" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <!-- Title Banner -->
-        <mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size: 20px;&quot;&gt;MITIGATEPLUS SYSTEM — COMPREHENSIVE UML USE CASE DIAGRAM&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#4B5563&quot;&gt;5 System Actors, System Boundary, &amp;lt;&amp;lt;include&amp;gt;&amp;gt; and &amp;lt;&amp;lt;extend&amp;gt;&amp;gt; Relationship Specifications&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="150" y="20" width="2000" height="50" as="geometry" />
+        <!-- ============================================================== -->
+        <!-- SYSTEM BOUNDARY BOX (Center Rounded Container)                -->
+        <!-- ============================================================== -->
+        <mxCell id="sys_box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#FFFFFF;strokeColor=#94A3B8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="280" y="50" width="1380" height="1480" as="geometry" />
         </mxCell>
 
-        <!-- System Boundary Box -->
-        <mxCell id="system_boundary" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;MitigatePlus System Boundary&lt;/font&gt;&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#F8FAFC;strokeColor=#1E293B;strokeWidth=2.5;fontStyle=1;fontSize=14;fontColor=#0F172A;" vertex="1" parent="1">
-          <mxGeometry x="360" y="90" width="1580" height="1500" as="geometry" />
+        <!-- System Header Title -->
+        <mxCell id="sys_title" value="&lt;b&gt;&lt;font color=&quot;#475569&quot; style=&quot;font-size: 26px;&quot;&gt;MitigatePlus&lt;br&gt;System&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;lineHeight=1.2;" vertex="1" parent="1">
+          <mxGeometry x="720" y="70" width="500" height="70" as="geometry" />
         </mxCell>
 
-        <!-- ACTORS -->
-        <mxCell id="act_superadmin" value="&lt;b&gt;LGU SuperAdmin&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(System Head)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DBEAFE;strokeColor=#1D4ED8;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="110" y="180" width="65" height="110" as="geometry" />
+
+        <!-- ============================================================== -->
+        <!-- LEFT ACTORS: RESIDENT & FIELD STAFF                            -->
+        <!-- ============================================================== -->
+
+        <!-- Actor 1: Community Resident (Top Left) -->
+        <mxCell id="act_resident_icon" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/1077/1077114.png;" vertex="1" parent="1">
+          <mxGeometry x="110" y="320" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_resident_badge" value="&lt;b&gt;Community&lt;br&gt;Resident&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CBD5E1;strokeColor=none;fontSize=12;fontFamily=Helvetica;fontColor=#FFFFFF;align=center;arcSize=25;" vertex="1" parent="1">
+          <mxGeometry x="75" y="390" width="130" height="42" as="geometry" />
         </mxCell>
 
-        <mxCell id="act_admin" value="&lt;b&gt;LGU Admin&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(DRRMO Officer)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DBEAFE;strokeColor=#1D4ED8;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="110" y="530" width="65" height="110" as="geometry" />
+        <!-- Actor 2: LGU Field Staff (Bottom Left) -->
+        <mxCell id="act_staff_icon" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/1077/1077114.png;" vertex="1" parent="1">
+          <mxGeometry x="110" y="1040" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_staff_badge" value="&lt;b&gt;LGU Field&lt;br&gt;Staff&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CBD5E1;strokeColor=none;fontSize=12;fontFamily=Helvetica;fontColor=#FFFFFF;align=center;arcSize=25;" vertex="1" parent="1">
+          <mxGeometry x="75" y="1110" width="130" height="42" as="geometry" />
         </mxCell>
 
-        <mxCell id="act_barangay" value="&lt;b&gt;Barangay Official&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Barangay 291)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DBEAFE;strokeColor=#1D4ED8;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="110" y="960" width="65" height="110" as="geometry" />
+
+        <!-- ============================================================== -->
+        <!-- RIGHT ACTORS: SUPER ADMIN, ADMIN, BARANGAY OFFICIAL            -->
+        <!-- ============================================================== -->
+
+        <!-- Actor 3: Super Admin (Top Right) -->
+        <mxCell id="act_superadmin_icon" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/1077/1077114.png;" vertex="1" parent="1">
+          <mxGeometry x="1770" y="140" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_superadmin_badge" value="&lt;b&gt;Super Admin&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CBD5E1;strokeColor=none;fontSize=12;fontFamily=Helvetica;fontColor=#FFFFFF;align=center;arcSize=25;" vertex="1" parent="1">
+          <mxGeometry x="1735" y="210" width="130" height="36" as="geometry" />
         </mxCell>
 
-        <mxCell id="act_resident" value="&lt;b&gt;Resident / Citizen&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Beneficiary)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="2070" y="320" width="65" height="110" as="geometry" />
+        <!-- Actor 4: Admin / DRRMO (Middle Right) -->
+        <mxCell id="act_admin_icon" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/1077/1077114.png;" vertex="1" parent="1">
+          <mxGeometry x="1770" y="580" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_admin_badge" value="&lt;b&gt;Admin&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CBD5E1;strokeColor=none;fontSize=12;fontFamily=Helvetica;fontColor=#FFFFFF;align=center;arcSize=25;" vertex="1" parent="1">
+          <mxGeometry x="1735" y="650" width="130" height="36" as="geometry" />
         </mxCell>
 
-        <mxCell id="act_staff" value="&lt;b&gt;Field Staff&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Distribution / Inspector)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="2070" y="1020" width="65" height="110" as="geometry" />
+        <!-- Actor 5: Barangay Official (Bottom Right) -->
+        <mxCell id="act_barangay_icon" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/1077/1077114.png;" vertex="1" parent="1">
+          <mxGeometry x="1770" y="1120" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act_barangay_badge" value="&lt;b&gt;Barangay Official&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CBD5E1;strokeColor=none;fontSize=12;fontFamily=Helvetica;fontColor=#FFFFFF;align=center;arcSize=25;" vertex="1" parent="1">
+          <mxGeometry x="1735" y="1190" width="130" height="36" as="geometry" />
         </mxCell>
 
-        <!-- USE CASES -->
-        <mxCell id="uc_login" value="&lt;b&gt;Login to System&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="70" y="50" width="220" height="60" as="geometry" />
+
+        <!-- ============================================================== -->
+        <!-- USE CASES: LEFT SIDE (COMMUNITY RESIDENT & STAFF)              -->
+        <!-- ============================================================== -->
+
+        <!-- UC 1: Register Account -->
+        <mxCell id="uc_register" value="&lt;b&gt;Register Household Account &amp;amp;&lt;br&gt;Upload Valid Government ID&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="160" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_verify_creds" value="&lt;b&gt;Verify Credentials &amp;amp; RBAC Role&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="400" y="50" width="240" height="60" as="geometry" />
+        <!-- UC 1 Included: OTP Verification -->
+        <mxCell id="uc_otp" value="&lt;b&gt;Verify OTP via Semaphore&lt;br&gt;SMS / Email Gateway&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="160" width="220" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_register" value="&lt;b&gt;Register Household Account&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1260" y="50" width="240" height="60" as="geometry" />
+        <!-- UC 2: Forgot Password -->
+        <mxCell id="uc_forgot" value="&lt;b&gt;Forgot Password &amp;amp;&lt;br&gt;OTP Reset&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="240" width="260" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_verify_otp" value="&lt;b&gt;Verify OTP via Semaphore SMS / Email&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="840" y="50" width="270" height="60" as="geometry" />
+        <!-- UC 3: View Recovery Progress & QR Pass -->
+        <mxCell id="uc_qr_pass" value="&lt;b&gt;Access Digital QR Relief Pass &amp;amp;&lt;br&gt;Beneficiary Profile&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="315" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_upload_id" value="&lt;b&gt;Upload Valid Government ID Photo&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1030" y="130" width="250" height="60" as="geometry" />
+        <!-- UC 3 Extended: Offline Sync -->
+        <mxCell id="uc_offline_sync" value="&lt;b&gt;Download &amp;amp; Sync Offline QR&lt;br&gt;Token in AsyncStorage&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="315" width="220" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_provision" value="&lt;b&gt;Provision Official &amp;amp; Admin Accounts&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="160" width="260" height="65" as="geometry" />
+        <!-- UC 4: Post-Flood AI Health Triage -->
+        <mxCell id="uc_ai_triage" value="&lt;b&gt;Perform Post-Flood AI Clinical&lt;br&gt;Health &amp;amp; Symptom Triage&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="395" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_global_policy" value="&lt;b&gt;Configure Global Relief Policy &amp;amp; Formulas&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="245" width="280" height="65" as="geometry" />
+        <!-- UC 4 Included: Voucher Issuance -->
+        <mxCell id="uc_bhc_voucher" value="&lt;b&gt;Issue BHC-291 Free&lt;br&gt;Medication Claim Voucher&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="395" width="220" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_audit_logs" value="&lt;b&gt;View System Audit Trail &amp;amp; Fraud Stream&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="330" width="280" height="65" as="geometry" />
+        <!-- UC 4 Extended: Gemini Voice Audio -->
+        <mxCell id="uc_voice_gemini" value="&lt;b&gt;Transcribe Push-to-Talk Voice&lt;br&gt;via Gemini 2.5 Flash Audio API&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="465" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_create_event" value="&lt;b&gt;Manage Relief Distribution Events&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="420" width="270" height="65" as="geometry" />
+        <!-- UC 5: Submit Damage Report -->
+        <mxCell id="uc_damage" value="&lt;b&gt;Submit Disaster Damage Report&lt;br&gt;&amp;amp; Live GPS Coordinates&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="475" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_compute_entitlement" value="&lt;b&gt;Compute Right-Sized Entitlement Formula&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="410" y="420" width="280" height="65" as="geometry" />
+        <!-- UC 5 Included: Photo & Priority Score -->
+        <mxCell id="uc_photo_score" value="&lt;b&gt;Upload Photo to Cloudinary &amp;amp;&lt;br&gt;Auto-Compute Priority Score&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="535" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_warehouse" value="&lt;b&gt;Manage Warehouse Stock &amp;amp; Inventory Logs&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="510" width="280" height="65" as="geometry" />
+        <!-- UC 6: Request Relief Supplies -->
+        <mxCell id="uc_special_req" value="&lt;b&gt;Request Special Assistance Relief&lt;br&gt;(Bedridden / Vulnerable Care)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="555" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_buffer_alert" value="&lt;b&gt;Trigger Low Stock Buffer Warning&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="430" y="510" width="250" height="65" as="geometry" />
+        <!-- UC 7: Claims History & Bulletins -->
+        <mxCell id="uc_claims" value="&lt;b&gt;View Relief Claims History &amp;amp;&lt;br&gt;Emergency Bulletins&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="635" width="260" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_heatmap" value="&lt;b&gt;View GIS Flood &amp;amp; Risk Heatmap Canvas&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="600" width="280" height="65" as="geometry" />
+        <!-- UC 8: Login & Authenticate Session (Shared Center Pivot) -->
+        <mxCell id="uc_login" value="&lt;b&gt;Login &amp;amp; Authenticate Session&lt;br&gt;(Role-Based Token Authentication)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontSize=12;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="720" width="280" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_filter_heatmap" value="&lt;b&gt;Filter Heatmap by Damage Level &amp;amp; Barangay&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="420" y="600" width="270" height="65" as="geometry" />
+        <!-- UC 9: Scan Beneficiary QR Code -->
+        <mxCell id="uc_scan_qr" value="&lt;b&gt;Scan Beneficiary QR Relief Pass&lt;br&gt;via Mobile Camera Scanner&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="825" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_review_special" value="&lt;b&gt;Review Special Assistance Requests&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="690" width="270" height="65" as="geometry" />
+        <!-- UC 9 Included: Release Relief & Deduct -->
+        <mxCell id="uc_release_deduct" value="&lt;b&gt;Release Relief Goods &amp;amp;&lt;br&gt;Deduct Warehouse Stock&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="630" y="825" width="220" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_assign_staff" value="&lt;b&gt;Assign Field Staff to Vulnerable Resident&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="420" y="690" width="270" height="65" as="geometry" />
+        <!-- UC 10: Intercept Duplicate Claim Fraud -->
+        <mxCell id="uc_fraud_intercept" value="&lt;b&gt;Intercept Duplicate Relief Claim&lt;br&gt;&amp;amp; Stream Real-Time Fraud Alert&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="905" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_stepper" value="&lt;b&gt;Update Recovery Phase Progress Stepper&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="780" width="280" height="65" as="geometry" />
+        <!-- UC 11: Log Relief Package Distribution -->
+        <mxCell id="uc_log_dist" value="&lt;b&gt;Log Relief Package Distribution&lt;br&gt;&amp;amp; Timestamp Audit Record&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="985" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_verify_queue" value="&lt;b&gt;Process Household Verification Queue&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="870" width="280" height="65" as="geometry" />
+        <!-- UC 12: Field Staff Incident Report -->
+        <mxCell id="uc_staff_hazard" value="&lt;b&gt;Report On-Ground Incidents,&lt;br&gt;Flood Water Rise &amp;amp; Hazards&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1065" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_generate_qr_token" value="&lt;b&gt;Generate Encrypted Digital QR Token&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="420" y="870" width="260" height="65" as="geometry" />
+        <!-- UC 13: Door-to-Door Delivery -->
+        <mxCell id="uc_door_delivery" value="&lt;b&gt;Deliver Special Assistance&lt;br&gt;Packages Door-to-Door&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1145" width="260" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_reject_reason" value="&lt;b&gt;Reject Registration with Reason Audit&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="750" y="870" width="260" height="65" as="geometry" />
+
+        <!-- ============================================================== -->
+        <!-- USE CASES: RIGHT SIDE (SUPER ADMIN, ADMIN, BARANGAY OFFICIAL)  -->
+        <!-- ============================================================== -->
+
+        <!-- UC 14: User & Admin Governance -->
+        <mxCell id="uc_gov" value="&lt;b&gt;User and Admin Account&lt;br&gt;Governance &amp;amp; Role Provisioning&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="140" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_directory" value="&lt;b&gt;View Beneficiary Household Directory&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="960" width="270" height="65" as="geometry" />
+        <!-- UC 15: Global Policy Config -->
+        <mxCell id="uc_global_policy" value="&lt;b&gt;Configure Global Relief Formulas&lt;br&gt;&amp;amp; Disaster Risk Thresholds&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="990" y="215" width="280" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_announcements" value="&lt;b&gt;Publish Emergency Announcements&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="60" y="1050" width="270" height="65" as="geometry" />
+        <!-- UC 16: Audit Trail & Restoration -->
+        <mxCell id="uc_audit_trail" value="&lt;b&gt;System Archives Audit Trail&lt;br&gt;and Fraud Data Logs&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="990" y="290" width="280" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_view_qr" value="&lt;b&gt;Access Digital QR Relief Pass&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="240" width="250" height="65" as="geometry" />
+        <!-- UC 17: Household Verification Queue -->
+        <mxCell id="uc_verify_hh" value="&lt;b&gt;Resident Household Account&lt;br&gt;Verification Queue (ID Review)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="390" width="270" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_offline_qr" value="&lt;b&gt;Download &amp;amp; Sync Offline QR Pass&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="900" y="240" width="260" height="65" as="geometry" />
+        <!-- UC 17 Included: Generate Token -->
+        <mxCell id="uc_gen_qr" value="&lt;b&gt;Generate Encrypted Digital&lt;br&gt;QR Code Beneficiary Token&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="360" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_ai_triage" value="&lt;b&gt;Perform AI Post-Flood Health Triage&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1230" y="340" width="270" height="70" as="geometry" />
+        <!-- UC 17 Extended: Reject Reason -->
+        <mxCell id="uc_rej_reason" value="&lt;b&gt;Reject Registration with&lt;br&gt;Official Reason Audit Log&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="425" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_ai_voice" value="&lt;b&gt;Transcribe Voice via Gemini 2.5 Flash&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="890" y="340" width="260" height="65" as="geometry" />
+        <!-- UC 18: Distribution Events & Allocation -->
+        <mxCell id="uc_dist_events" value="&lt;b&gt;Relief Distribution Events &amp;amp;&lt;br&gt;Allocation Policy Management&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="990" y="500" width="280" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_ai_nlp" value="&lt;b&gt;Diagnose Condition &amp;amp; Issue BHC Voucher&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="890" y="420" width="270" height="65" as="geometry" />
+        <!-- UC 18 Included: Compute Entitlement -->
+        <mxCell id="uc_comp_entitlement" value="&lt;b&gt;Compute Right-Sized Relief&lt;br&gt;Entitlement Per Family Size&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="505" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_damage_report" value="&lt;b&gt;Submit Disaster Damage Report&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="520" width="260" height="65" as="geometry" />
+        <!-- UC 19: Damage Verification & Incident Queue -->
+        <mxCell id="uc_damage_inc_queue" value="&lt;b&gt;Damage Report Verification and&lt;br&gt;Incident Queue Management&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="990" y="590" width="280" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_gps_score" value="&lt;b&gt;Capture GPS Coordinates &amp;amp; Priority Score&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="880" y="520" width="280" height="65" as="geometry" />
+        <!-- UC 20: GIS Map & Hazard Zone -->
+        <mxCell id="uc_gis_hazard" value="&lt;b&gt;GIS Map and Hazard Zone&lt;br&gt;Inundation Management&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="680" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_special_req" value="&lt;b&gt;Submit Special Assistance Request&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="610" width="260" height="65" as="geometry" />
+        <!-- UC 20 Extended: Filter Heatmap -->
+        <mxCell id="uc_filter_heat" value="&lt;b&gt;Filter Inundation Map by&lt;br&gt;Severity &amp;amp; Barangay Zone&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="682" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_claims_history" value="&lt;b&gt;View Claims History &amp;amp; Event Details&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="700" width="260" height="65" as="geometry" />
+        <!-- UC 21: Warehouse Inventory & Buffer -->
+        <mxCell id="uc_wh_inv" value="&lt;b&gt;Warehouse Inventory Stock &amp;amp;&lt;br&gt;Buffer Supply Tracking&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="765" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_view_announcements" value="&lt;b&gt;Receive Announcements &amp;amp; Push Alerts&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="790" width="260" height="65" as="geometry" />
+        <!-- UC 21 Extended: Low Buffer Warning -->
+        <mxCell id="uc_low_buffer" value="&lt;b&gt;Trigger Low Stock Buffer Warning&lt;br&gt;(Below Critical Threshold)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="767" width="230" height="55" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_manage_profile" value="&lt;b&gt;Manage Household Members &amp;amp; i18n&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="880" width="260" height="65" as="geometry" />
+        <!-- UC 22: Special Request Assignment -->
+        <mxCell id="uc_spec_assign" value="&lt;b&gt;Review Special Assistance &amp;amp;&lt;br&gt;Assign Field Staff to Cases&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="850" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_scan_qr" value="&lt;b&gt;Scan Beneficiary QR Code&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="1000" width="260" height="65" as="geometry" />
+        <!-- UC 23: Assistance Gap Analytics & CSV -->
+        <mxCell id="uc_analytics_csv" value="&lt;b&gt;Assistance Gap Analytics and&lt;br&gt;CSV / Report Data Export&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="935" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_fraud_interception" value="&lt;b&gt;Intercept Duplicate Claims &amp;amp; Log Fraud&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F2;strokeColor=#E11D48;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="860" y="1000" width="280" height="65" as="geometry" />
+        <!-- UC 24: Recovery Progress Stepper -->
+        <mxCell id="uc_stepper_admin" value="&lt;b&gt;Advance Disaster Recovery Phase&lt;br&gt;(Emergency &amp;rarr; Relief &amp;rarr; Rehab)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1020" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_release_relief" value="&lt;b&gt;Release Relief Pack &amp;amp; Deduct Stock&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontSize=11;" vertex="1" parent="system_boundary">
-          <mxGeometry x="870" y="1080" width="270" height="65" as="geometry" />
+        <!-- UC 25: Beneficiary Directory -->
+        <mxCell id="uc_directory_bg" value="&lt;b&gt;Beneficiary Household Directory&lt;br&gt;&amp;amp; Family Member Registry&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1105" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_staff_incident" value="&lt;b&gt;Submit On-Ground Incident &amp;amp; Hazard Log&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="1130" width="270" height="65" as="geometry" />
+        <!-- UC 26: Publish Announcements -->
+        <mxCell id="uc_announcements_bg" value="&lt;b&gt;Publish Emergency Bulletins &amp;amp;&lt;br&gt;Barangay 291 Announcements&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11.5;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1190" width="270" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="uc_staff_tasks" value="&lt;b&gt;Deliver Special Assistance Door-to-Door&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="system_boundary">
-          <mxGeometry x="1240" y="1220" width="270" height="65" as="geometry" />
-        </mxCell>
 
-        <!-- ASSOCIATIONS -->
-        <mxCell id="rel_sa_login" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_sa_prov" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin" target="uc_provision"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_sa_policy" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin" target="uc_global_policy"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_sa_audit" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin" target="uc_audit_logs"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- ============================================================== -->
+        <!-- SOLID CONNECTION LINES: ACTORS TO USE CASES                    -->
+        <!-- ============================================================== -->
 
-        <mxCell id="rel_adm_login" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_adm_event" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_create_event"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_adm_wh" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_warehouse"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_adm_heat" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_heatmap"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_adm_spec" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_review_special"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_adm_step" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_admin" target="uc_stepper"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Resident Connections -->
+        <mxCell id="c_res_1" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_register"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_2" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_forgot"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_3" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_qr_pass"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_4" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_ai_triage"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_5" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_damage"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_6" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_special_req"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_7" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_claims"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_res_8" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_resident_icon" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
 
-        <mxCell id="rel_bg_login" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_bg_queue" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay" target="uc_verify_queue"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_bg_dir" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay" target="uc_directory"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_bg_ann" style="endArrow=none;html=1;strokeColor=#1D4ED8;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay" target="uc_announcements"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Staff Connections -->
+        <mxCell id="c_stf_1" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_stf_2" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_scan_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_stf_3" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_fraud_intercept"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_stf_4" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_log_dist"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_stf_5" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_staff_hazard"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_stf_6" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_staff_icon" target="uc_door_delivery"><mxGeometry relative="1" as="geometry"/></mxCell>
 
-        <mxCell id="rel_res_reg" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_register"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_qr" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_view_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_ai" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_ai_triage"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_dam" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_damage_report"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_spec" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_special_req"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_hist" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_claims_history"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_ann" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_view_announcements"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_res_prof" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_resident" target="uc_manage_profile"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Super Admin Connections -->
+        <mxCell id="c_sa_1" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin_icon" target="uc_gov"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_sa_2" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin_icon" target="uc_global_policy"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_sa_3" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin_icon" target="uc_audit_trail"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_sa_4" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_superadmin_icon" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
 
-        <mxCell id="rel_st_scan" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_staff" target="uc_scan_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_st_inc" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_staff" target="uc_staff_incident"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="rel_st_tsk" style="endArrow=none;html=1;strokeColor=#16A34A;strokeWidth=1.5;" edge="1" parent="1" source="act_staff" target="uc_staff_tasks"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Admin Connections -->
+        <mxCell id="c_adm_1" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_2" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_verify_hh"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_3" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_dist_events"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_4" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_damage_inc_queue"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_5" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_gis_hazard"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_6" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_wh_inv"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_7" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_spec_assign"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_8" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_analytics_csv"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_adm_9" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_admin_icon" target="uc_stepper_admin"><mxGeometry relative="1" as="geometry"/></mxCell>
 
-        <!-- <<include>> -->
-        <mxCell id="inc_login_creds" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_login" target="uc_verify_creds"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_reg_otp" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_register" target="uc_verify_otp"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_reg_id" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_register" target="uc_upload_id"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_event_formula" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_create_event" target="uc_compute_entitlement"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_queue_token" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_verify_queue" target="uc_generate_qr_token"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_ai_voucher" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_ai_triage" target="uc_ai_nlp"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_dam_gps" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_damage_report" target="uc_gps_score"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="inc_scan_release" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=10;" edge="1" parent="system_boundary" source="uc_scan_qr" target="uc_release_relief"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Barangay Official Connections -->
+        <mxCell id="c_bg_1" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay_icon" target="uc_login"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_bg_2" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay_icon" target="uc_verify_hh"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_bg_3" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay_icon" target="uc_directory_bg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_bg_4" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="act_barangay_icon" target="uc_announcements_bg"><mxGeometry relative="1" as="geometry"/></mxCell>
 
-        <!-- <<extend>> -->
-        <mxCell id="ext_wh_buffer" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_buffer_alert" target="uc_warehouse"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_heat_filter" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_filter_heatmap" target="uc_heatmap"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_spec_staff" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_assign_staff" target="uc_review_special"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_queue_reject" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_reject_reason" target="uc_verify_queue"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_qr_offline" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_offline_qr" target="uc_view_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_ai_voice" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_ai_voice" target="uc_ai_triage"><mxGeometry relative="1" as="geometry"/></mxCell>
-        <mxCell id="ext_scan_fraud" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=10;" edge="1" parent="system_boundary" source="uc_fraud_interception" target="uc_scan_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ============================================================== -->
+        <!-- DASHED ARROWS: <<include>> AND <<extend>>                      -->
+        <!-- ============================================================== -->
+
+        <!-- <<include>> Register -> OTP -->
+        <mxCell id="inc_reg_otp" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_register" target="uc_otp"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> QR Pass -> Offline Sync -->
+        <mxCell id="ext_qr_sync" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_offline_sync" target="uc_qr_pass"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<include>> AI Triage -> Voucher -->
+        <mxCell id="inc_ai_vouch" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_ai_triage" target="uc_bhc_voucher"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> AI Triage -> Voice -->
+        <mxCell id="ext_ai_voice" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_voice_gemini" target="uc_ai_triage"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<include>> Damage -> Photo & Score -->
+        <mxCell id="inc_dam_score" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_damage" target="uc_photo_score"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<include>> Scan QR -> Release Relief -->
+        <mxCell id="inc_scan_rel" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_scan_qr" target="uc_release_deduct"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> Scan QR -> Duplicate Intercept -->
+        <mxCell id="ext_scan_fraud" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_fraud_intercept" target="uc_scan_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<include>> Verification Queue -> Generate Token -->
+        <mxCell id="inc_ver_token" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_verify_hh" target="uc_gen_qr"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> Verification Queue -> Reject Reason -->
+        <mxCell id="ext_ver_rej" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_rej_reason" target="uc_verify_hh"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<include>> Events -> Compute Formula -->
+        <mxCell id="inc_dist_form" value="&lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#2563EB;fontSize=9.5;" edge="1" parent="1" source="uc_dist_events" target="uc_comp_entitlement"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> GIS Hazard -> Filter -->
+        <mxCell id="ext_gis_filt" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_filter_heat" target="uc_gis_hazard"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- <<extend>> Warehouse -> Low Buffer -->
+        <mxCell id="ext_wh_buf" value="&lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&lt;/b&gt;" style="dashed=1;endArrow=open;html=1;strokeColor=#E11D48;strokeWidth=1.5;fontColor=#E11D48;fontSize=9.5;" edge="1" parent="1" source="uc_low_buffer" target="uc_wh_inv"><mxGeometry relative="1" as="geometry"/></mxCell>
 
       </root>
     </mxGraphModel>

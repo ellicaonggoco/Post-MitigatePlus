@@ -5,179 +5,201 @@
 <title>MitigatePlus — UML Use Case Diagram</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-  body { background: #F8FAFC; padding: 30px 20px; display: flex; justify-content: center; }
-  .canvas { width: 1580px; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); padding: 40px 30px; }
-  .title { text-align: center; font-size: 22px; font-weight: 900; color: #0F172A; }
-  .sub { text-align: center; font-size: 13px; color: #64748B; margin-top: 4px; margin-bottom: 25px; }
-
-  .legend-bar { display: flex; justify-content: center; gap: 25px; background: #F1F5F9; padding: 10px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #E2E8F0; }
-  .leg-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
-  .leg-box-base { width: 24px; height: 16px; border: 2px solid #000; border-radius: 10px; background: #FFF; }
-  .leg-box-inc { width: 24px; height: 16px; border: 1.5px solid #2563EB; border-radius: 10px; background: #EFF6FF; }
-  .leg-box-ext { width: 24px; height: 16px; border: 1.5px solid #E11D48; border-radius: 10px; background: #FFF1F2; }
-  .leg-line-inc { width: 30px; height: 2px; border-top: 2px dashed #2563EB; }
-  .leg-line-ext { width: 30px; height: 2px; border-top: 2px dashed #E11D48; }
-
-  .diagram-layout { display: flex; justify-content: space-between; align-items: flex-start; }
+  body { background: #F8FAFC; padding: 30px 15px; display: flex; justify-content: center; }
+  .canvas { width: 1700px; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); padding: 40px 30px; position: relative; }
   
-  /* Actors */
-  .actors-col { width: 180px; display: flex; flex-direction: column; gap: 55px; }
-  .actor-card { display: flex; flex-direction: column; align-items: center; text-align: center; background: #F8FAFC; border: 1.5px solid #CBD5E1; padding: 14px 10px; border-radius: 10px; }
-  .actor-card.admin-side { border-color: #93C5FD; background: #EFF6FF; }
-  .actor-card.resident-side { border-color: #86EFAC; background: #F0FDF4; }
-  .actor-icon { width: 38px; height: 38px; margin-bottom: 6px; }
-  .actor-name { font-size: 12.5px; font-weight: 800; color: #0F172A; }
-  .actor-role { font-size: 10px; color: #64748B; font-weight: 600; }
-
-  /* System Boundary */
-  .system-box { width: 1140px; border: 2.5px solid #1E293B; border-radius: 12px; background: #FAFAFA; padding: 25px 20px; }
-  .system-header { font-size: 15px; font-weight: 900; color: #1E293B; letter-spacing: 0.5px; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 8px; }
-
-  .uc-grid { display: flex; flex-direction: column; gap: 14px; }
-  .uc-row { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 10px; }
+  .diagram-layout { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
   
-  .uc-bubble { border: 2px solid #000; background: #FFF; border-radius: 999px; padding: 8px 16px; font-size: 11.5px; font-weight: 800; color: #000; text-align: center; min-width: 220px; }
-  .uc-bubble-inc { border: 1.5px solid #2563EB; background: #EFF6FF; border-radius: 999px; padding: 6px 14px; font-size: 11px; font-weight: 700; color: #1E40AF; text-align: center; }
-  .uc-bubble-ext { border: 1.5px solid #E11D48; background: #FFF1F2; border-radius: 999px; padding: 6px 14px; font-size: 11px; font-weight: 700; color: #9F1239; text-align: center; }
+  /* Left Actors */
+  .col-left-actors { width: 140px; display: flex; flex-direction: column; justify-content: space-between; height: 1200px; padding-top: 180px; }
+  /* Right Actors */
+  .col-right-actors { width: 140px; display: flex; flex-direction: column; justify-content: space-between; height: 1200px; padding-top: 60px; }
 
-  .rel-tag { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; }
-  .rel-inc { color: #2563EB; background: #DBEAFE; }
-  .rel-ext { color: #E11D48; background: #FFE4E6; }
+  .actor-block { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .actor-icon-svg { width: 55px; height: 55px; margin-bottom: 8px; }
+  .actor-badge { background: #CBD5E1; color: #FFFFFF; font-size: 11.5px; font-weight: 800; padding: 8px 14px; border-radius: 8px; width: 130px; text-align: center; line-height: 1.25; }
+
+  /* System Box */
+  .system-box { width: 1340px; border: 2px solid #94A3B8; border-radius: 16px; background: #FFFFFF; padding: 30px 25px; min-height: 1300px; position: relative; }
+  .system-header { text-align: center; margin-bottom: 30px; }
+  .system-title { font-size: 26px; font-weight: 900; color: #475569; letter-spacing: -0.5px; line-height: 1.15; }
+  
+  .uc-columns { display: flex; justify-content: space-between; gap: 20px; }
+  .uc-col-left { width: 48%; display: flex; flex-direction: column; gap: 14px; }
+  .uc-col-right { width: 48%; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Use Case Oval Pills */
+  .uc-oval { border: 2px solid #000; background: #FFF; border-radius: 999px; padding: 10px 18px; font-size: 11px; font-weight: 800; color: #000; text-align: center; line-height: 1.3; min-height: 48px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .uc-oval.login-shared { border: 2.5px solid #000; background: #FFF; }
+
+  /* Sub-relations row */
+  .sub-rel-row { display: flex; align-items: center; gap: 8px; }
+  .sub-oval-inc { border: 1.5px solid #2563EB; background: #EFF6FF; border-radius: 999px; padding: 6px 12px; font-size: 10px; font-weight: 700; color: #1E40AF; text-align: center; flex: 1; line-height: 1.2; }
+  .sub-oval-ext { border: 1.5px solid #E11D48; background: #FFF1F2; border-radius: 999px; padding: 6px 12px; font-size: 10px; font-weight: 700; color: #9F1239; text-align: center; flex: 1; line-height: 1.2; }
+  .tag-inc { font-size: 9px; font-weight: 900; color: #2563EB; }
+  .tag-ext { font-size: 9px; font-weight: 900; color: #E11D48; }
+
+  /* Legend */
+  .legend-bar { display: flex; justify-content: center; gap: 30px; background: #F1F5F9; padding: 10px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #E2E8F0; }
+  .leg-item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 800; }
+  .leg-box-base { width: 22px; height: 14px; border: 2px solid #000; border-radius: 8px; background: #FFF; }
+  .leg-box-inc { width: 22px; height: 14px; border: 1.5px solid #2563EB; border-radius: 8px; background: #EFF6FF; }
+  .leg-box-ext { width: 22px; height: 14px; border: 1.5px solid #E11D48; border-radius: 8px; background: #FFF1F2; }
 </style>
 </head>
 <body>
 
 <div class="canvas">
-  <div class="title">MITIGATEPLUS SYSTEM — UML USE CASE ARCHITECTURE</div>
-  <div class="sub">5 System Actors, System Boundary, &lt;&lt;include&gt;&gt; Mandatory Inclusions, and &lt;&lt;extend&gt;&gt; Optional Extension Use Cases</div>
-
   <div class="legend-bar">
-    <div class="leg-item"><div class="leg-box-base"></div> Primary Use Case</div>
-    <div class="leg-item"><div class="leg-line-inc"></div> <div class="leg-box-inc"></div> &lt;&lt;include&gt;&gt; Mandatory Sub-Action</div>
-    <div class="leg-item"><div class="leg-line-ext"></div> <div class="leg-box-ext"></div> &lt;&lt;extend&gt;&gt; Conditional / Optional Extension</div>
+    <div class="leg-item"><div class="leg-box-base"></div> Base System Use Case</div>
+    <div class="leg-item"><span style="color:#2563EB; font-weight:900;">- - &lt;&lt;include&gt;&gt; - -&gt;</span> <div class="leg-box-inc"></div> Mandatory Included Action</div>
+    <div class="leg-item"><span style="color:#E11D48; font-weight:900;">- - &lt;&lt;extend&gt;&gt; - -&gt;</span> <div class="leg-box-ext"></div> Conditional Extension Action</div>
   </div>
 
   <div class="diagram-layout">
     
-    <!-- Left Actors (Admin & Officials) -->
-    <div class="actors-col">
-      <div class="actor-card admin-side">
-        <svg class="actor-icon" viewBox="0 0 24 24" fill="#1D4ED8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <div class="actor-name">LGU SuperAdmin</div>
-        <div class="actor-role">System Head</div>
+    <!-- 1. LEFT ACTORS (COMMUNITY RESIDENT & LGU FIELD STAFF) -->
+    <div class="col-left-actors">
+      <div class="actor-block">
+        <svg class="actor-icon-svg" viewBox="0 0 24 24" fill="#000"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="actor-badge">Community<br>Resident</div>
       </div>
 
-      <div class="actor-card admin-side">
-        <svg class="actor-icon" viewBox="0 0 24 24" fill="#1D4ED8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <div class="actor-name">LGU Admin</div>
-        <div class="actor-role">DRRMO Officer</div>
-      </div>
-
-      <div class="actor-card admin-side">
-        <svg class="actor-icon" viewBox="0 0 24 24" fill="#1D4ED8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <div class="actor-name">Barangay Official</div>
-        <div class="actor-role">Barangay 291</div>
+      <div class="actor-block" style="margin-top: 400px;">
+        <svg class="actor-icon-svg" viewBox="0 0 24 24" fill="#000"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="actor-badge">LGU Field<br>Staff</div>
       </div>
     </div>
 
-    <!-- Center System Boundary -->
+    <!-- 2. CENTER: MITIGATEPLUS SYSTEM BOUNDARY -->
     <div class="system-box">
-      <div class="system-header">MITIGATEPLUS SYSTEM BOUNDARY (WEB & MOBILE PORTAL)</div>
+      <div class="system-header">
+        <div class="system-title">MitigatePlus<br>System</div>
+      </div>
 
-      <div class="uc-grid">
+      <div class="uc-columns">
         
-        <!-- Auth & Registration -->
-        <div class="uc-row">
-          <div class="uc-bubble">Login to System (Web / Mobile)</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Verify Credentials &amp; Role-Based Access Control (RBAC)</div>
+        <!-- LEFT COLUMN: RESIDENT & STAFF USE CASES -->
+        <div class="uc-col-left">
+          
+          <div class="uc-oval">Register Household Account &amp; Upload Government ID</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Verify OTP via Semaphore SMS / Email Gateway</div>
+          </div>
+
+          <div class="uc-oval">Forgot Password &amp; OTP Reset</div>
+
+          <div class="uc-oval">Access Digital QR Relief Pass &amp; Beneficiary Profile</div>
+          <div class="sub-rel-row">
+            <span class="tag-ext">&lt;&lt;extend&gt;&gt;</span>
+            <div class="sub-oval-ext">Download &amp; Sync Offline QR Token (AsyncStorage)</div>
+          </div>
+
+          <div class="uc-oval">Perform Post-Flood AI Clinical Health &amp; Symptom Triage</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Issue BHC-291 Free Medication Claim Voucher</div>
+            <span class="tag-ext">&lt;&lt;extend&gt;&gt;</span>
+            <div class="sub-oval-ext">Transcribe Voice via Gemini 2.5 Flash Audio API</div>
+          </div>
+
+          <div class="uc-oval">Submit Disaster Damage Report &amp; Geolocation</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Upload Photo to Cloudinary &amp; Auto-Compute Priority Score</div>
+          </div>
+
+          <div class="uc-oval">Request Special Assistance Relief (Bedridden / Vulnerable Care)</div>
+
+          <div class="uc-oval">View Relief Claims History &amp; Emergency Bulletins</div>
+
+          <!-- Shared Login Pivot -->
+          <div class="uc-oval login-shared">Login &amp; Authenticate Session (Role-Based Token Verification)</div>
+
+          <div class="uc-oval">Scan Beneficiary QR Relief Pass via Mobile Camera Scanner</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Release Relief Goods &amp; Deduct Warehouse Stock</div>
+          </div>
+
+          <div class="uc-oval">Intercept Duplicate Relief Claim &amp; Stream Real-Time Fraud Alert</div>
+
+          <div class="uc-oval">Log Relief Package Distribution &amp; Timestamp Audit Record</div>
+
+          <div class="uc-oval">Report On-Ground Incidents, Flood Water Rise &amp; Hazards</div>
+
+          <div class="uc-oval">Deliver Special Assistance Packages Door-to-Door</div>
+
         </div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">Register Household Account</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Verify OTP via Semaphore SMS / Email &amp; Upload Gov ID Photo</div>
-        </div>
+        <!-- RIGHT COLUMN: ADMIN & OFFICIAL USE CASES -->
+        <div class="uc-col-right">
+          
+          <div class="uc-oval">User and Admin Account Governance &amp; Role Provisioning</div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">Process Household Verification Queue</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Generate Encrypted Digital QR Token (isVerified=true)</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Reject Registration with Reason Audit Log</div>
-        </div>
+          <div class="uc-oval">Configure Global Relief Formulas &amp; Disaster Risk Thresholds</div>
 
-        <!-- Relief Distribution Lifecycle -->
-        <div class="uc-row">
-          <div class="uc-bubble">Manage Relief Distribution Events</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Compute Right-Sized Entitlement Formula Per Household</div>
-        </div>
+          <div class="uc-oval">System Archives Audit Trail and Fraud Data Logs</div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">Scan Beneficiary QR Code (Staff)</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Release Relief Pack &amp; Deduct Warehouse Inventory</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Trigger Duplicate Claim Fraud Alert &amp; Interception Stream</div>
-        </div>
+          <div class="uc-oval">Resident Household Account Verification Queue (ID Review)</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Generate Encrypted Digital QR Code Beneficiary Token</div>
+            <span class="tag-ext">&lt;&lt;extend&gt;&gt;</span>
+            <div class="sub-oval-ext">Reject Registration with Official Reason Audit Log</div>
+          </div>
 
-        <!-- AI Health Triage -->
-        <div class="uc-row">
-          <div class="uc-bubble">Perform AI Post-Flood Health Triage</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Diagnose Clinical Risk &amp; Issue BHC-291 Medication Claim Voucher</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Transcribe Push-to-Talk Voice Audio (Gemini 2.5 Flash API)</div>
-        </div>
+          <div class="uc-oval">Relief Distribution Events &amp; Allocation Policy Management</div>
+          <div class="sub-rel-row">
+            <span class="tag-inc">&lt;&lt;include&gt;&gt;</span>
+            <div class="sub-oval-inc">Compute Right-Sized Relief Entitlement Per Family Size</div>
+          </div>
 
-        <!-- Damage & GIS Heatmap -->
-        <div class="uc-row">
-          <div class="uc-bubble">Submit Disaster Damage Report</div>
-          <span class="rel-tag rel-inc">&lt;&lt;include&gt;&gt;</span>
-          <div class="uc-bubble-inc">Capture Geolocation GPS &amp; Auto-Compute Priority Score</div>
-        </div>
+          <div class="uc-oval">Damage Report Verification and Incident Queue Management</div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">View GIS Flood &amp; Risk Heatmap Canvas</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Filter Heatmap by Damage Severity &amp; Inundation Level</div>
-        </div>
+          <div class="uc-oval">GIS Map and Hazard Zone Inundation Management</div>
+          <div class="sub-rel-row">
+            <span class="tag-ext">&lt;&lt;extend&gt;&gt;</span>
+            <div class="sub-oval-ext">Filter Inundation Map by Severity &amp; Barangay Zone</div>
+          </div>
 
-        <!-- Special Assistance & Warehouse -->
-        <div class="uc-row">
-          <div class="uc-bubble">Review Special Assistance Requests</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Assign Field Staff for Door-to-Door Vulnerable Delivery</div>
-        </div>
+          <div class="uc-oval">Warehouse Inventory Stock &amp; Buffer Supply Tracking</div>
+          <div class="sub-rel-row">
+            <span class="tag-ext">&lt;&lt;extend&gt;&gt;</span>
+            <div class="sub-oval-ext">Trigger Low Stock Buffer Warning (Below Critical Threshold)</div>
+          </div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">Manage Warehouse Inventory &amp; Stock Logs</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Trigger Low Buffer Stock Warning (Below Critical Threshold)</div>
-        </div>
+          <div class="uc-oval">Review Special Assistance &amp; Assign Field Staff to Cases</div>
 
-        <div class="uc-row">
-          <div class="uc-bubble">Access Digital QR Relief Pass (Resident)</div>
-          <span class="rel-tag rel-ext">&lt;&lt;extend&gt;&gt;</span>
-          <div class="uc-bubble-ext">Download &amp; Sync Offline QR Token in AsyncStorage</div>
+          <div class="uc-oval">Assistance Gap Analytics and CSV / Report Data Export</div>
+
+          <div class="uc-oval">Advance Disaster Recovery Phase (Emergency → Relief → Rehab)</div>
+
+          <div class="uc-oval">Beneficiary Household Directory &amp; Family Member Registry</div>
+
+          <div class="uc-oval">Publish Emergency Bulletins &amp; Barangay 291 Announcements</div>
+
         </div>
 
       </div>
     </div>
 
-    <!-- Right Actors (Residents & Field Staff) -->
-    <div class="actors-col">
-      <div class="actor-card resident-side">
-        <svg class="actor-icon" viewBox="0 0 24 24" fill="#16A34A"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        <div class="actor-name">Resident / Citizen</div>
-        <div class="actor-role">Beneficiary</div>
+    <!-- 3. RIGHT ACTORS (SUPER ADMIN, ADMIN, BARANGAY OFFICIAL) -->
+    <div class="col-right-actors">
+      <div class="actor-block">
+        <svg class="actor-icon-svg" viewBox="0 0 24 24" fill="#000"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="actor-badge">Super Admin</div>
       </div>
 
-      <div class="actor-card resident-side" style="margin-top: 180px;">
-        <svg class="actor-icon" viewBox="0 0 24 24" fill="#16A34A"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <div class="actor-name">Field Staff</div>
-        <div class="actor-role">Distribution / Inspector</div>
+      <div class="actor-block" style="margin-top: 320px;">
+        <svg class="actor-icon-svg" viewBox="0 0 24 24" fill="#000"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="actor-badge">Admin</div>
+      </div>
+
+      <div class="actor-block" style="margin-top: 360px;">
+        <svg class="actor-icon-svg" viewBox="0 0 24 24" fill="#000"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="actor-badge">Barangay Official</div>
       </div>
     </div>
 
