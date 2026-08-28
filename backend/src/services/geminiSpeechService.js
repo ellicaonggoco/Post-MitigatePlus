@@ -47,10 +47,14 @@ async function transcribeAudioWithGemini(audioBase64, mimeType = 'audio/m4a') {
           try {
             const parsed = JSON.parse(data);
             if (res.statusCode >= 200 && res.statusCode < 300) {
-              const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-              // Strip surrounding quotes or formatting
-              const cleanText = text.replace(/^["']|["']$/g, '').trim();
-              resolve(cleanText);
+              let text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+              // Clean preamble and markdown asterisks
+              text = text
+                .replace(/^(\*+\s*)?(okay,?\s*)?(here'?s\s+(the\s+)?transcription:?|transcription:?|here\s+is\s+the\s+transcript:?)\s*/i, '')
+                .replace(/\*+/g, '')
+                .replace(/^["']|["']$/g, '')
+                .trim();
+              resolve(text);
             } else {
               console.warn('Gemini Audio Error:', data);
               resolve('');
