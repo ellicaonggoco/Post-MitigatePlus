@@ -180,7 +180,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
           {/* Quick Scenario Chips */}
           <Text style={styles.promptHeaderLabel}>
-            {lang === 'tl' ? 'MGA HALIMBAWANG SITWASYON (I-tap para subukan):' : 'QUICK SCENARIOS (Tap to test):'}
+            {lang === 'tl' ? 'MGA HALIMBAWANG SITWASYON (I-tap para i-paste sa kahon):' : 'QUICK SCENARIOS (Tap to paste):'}
           </Text>
           <View style={styles.sampleChipsContainer}>
             {samplePrompts.map((p, idx) => (
@@ -189,7 +189,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                 style={styles.samplePromptChip}
                 onPress={() => {
                   setAiInputText(p.text);
-                  handleRunAiTriage(p.text);
+                  setAiResult(null);
                 }}
                 activeOpacity={0.75}
               >
