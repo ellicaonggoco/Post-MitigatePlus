@@ -357,6 +357,40 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               )}
             </LinearGradient>
 
+            {/* ── AI Post-Flood Health Check (Leptospirosis Alert & BHC Voucher) Banner ── */}
+            <MotionPressable
+              style={styles.healthHeroBanner}
+              onPress={() => setActiveTab('assistance')}
+              activeOpacity={0.88}
+            >
+              <View style={styles.healthBannerLeft}>
+                <View style={styles.healthIconWell}>
+                  <MedicineIcon size={22} color="#7C3AED" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <Text style={styles.healthBannerKicker}>
+                      {lang === 'tl' ? 'AI SAKIT SA BAHA & GAMOT' : 'AI HEALTH & SOS CHECK'}
+                    </Text>
+                    <View style={styles.healthNewBadge}>
+                      <Text style={styles.healthNewText}>NEW AI</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.healthBannerTitle}>
+                    {lang === 'tl' ? 'AI Health Check & Leptospirosis Triage' : 'Post-Flood AI Health Check'}
+                  </Text>
+                  <Text style={styles.healthBannerSub}>
+                    {lang === 'tl'
+                      ? 'Nilusong sa baha? I-check ang sintomas para sa libreng Doxycycline voucher sa Health Center.'
+                      : 'Waded in floodwaters? Check symptoms for instant Doxycycline voucher at your Health Center.'}
+                  </Text>
+                </View>
+                <View style={styles.healthArrowCircle}>
+                  <Text style={{ color: '#7C3AED', fontWeight: '900', fontSize: 13 }}>➜</Text>
+                </View>
+              </View>
+            </MotionPressable>
+
             {/* ── Awtomatikong Nakatalagang Ayuda (Autonomous Entitlement Breakdown Card) ── */}
             <View style={styles.entitlementBannerCard}>
               <View style={styles.entitlementBannerHeader}>
@@ -678,13 +712,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         )}
       </View>
 
-      {/* 3. Iconly Dynamic Island Floating Nav Bar with Impeccable Spring Animations (4 Clean Tabs) */}
+      {/* 3. Iconly Dynamic Island Floating Nav Bar with Impeccable Spring Animations (5 Clean Tabs) */}
       <View style={styles.floatingIslandNav}>
         {[
-          { key: 'home', label: t.navHome, renderIcon: (isActive) => <HomeIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'damage', label: t.navDamage, renderIcon: (isActive) => <DamageIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'history', label: t.navHistory, renderIcon: (isActive) => <HistoryIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'settings', label: t.navSettings, renderIcon: (isActive) => <SettingsIcon size={21} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
+          { key: 'home', label: t.navHome, renderIcon: (isActive) => <HomeIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
+          { key: 'assistance', label: 'Health', renderIcon: (isActive) => <MedicineIcon size={20} color={isActive ? '#7C3AED' : '#64748B'} filled={isActive} /> },
+          { key: 'damage', label: t.navDamage, renderIcon: (isActive) => <DamageIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
+          { key: 'history', label: t.navHistory, renderIcon: (isActive) => <HistoryIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
+          { key: 'settings', label: t.navSettings, renderIcon: (isActive) => <SettingsIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
         ].map((item) => (
           <AnimatedNavItem
             key={item.key}
@@ -1602,5 +1637,70 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontWeight: '600',
     marginTop: 1,
+  },
+  healthHeroBanner: {
+    backgroundColor: '#F5F3FF',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#DDD6FE',
+    padding: 14,
+    marginBottom: 16,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  healthBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  healthIconWell: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C4B5FD',
+  },
+  healthBannerKicker: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#7C3AED',
+    letterSpacing: 0.6,
+  },
+  healthNewBadge: {
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 999,
+  },
+  healthNewText: {
+    color: '#FFFFFF',
+    fontSize: 8.5,
+    fontWeight: '900',
+  },
+  healthBannerTitle: {
+    fontSize: 13.5,
+    fontWeight: '900',
+    color: '#1E1B4B',
+    lineHeight: 18,
+  },
+  healthBannerSub: {
+    fontSize: 11,
+    color: '#6B7280',
+    lineHeight: 15,
+    marginTop: 2,
+  },
+  healthArrowCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
