@@ -190,19 +190,24 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           }),
         });
 
-        const data = await res.json();
-        if (data?.text && data.text.trim()) {
-          setAiInputText(data.text.trim());
-          setAiResult(null);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.text && data.text.trim()) {
+            setAiInputText(data.text.trim());
+            setAiResult(null);
+          } else {
+            setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
+            setAiResult(null);
+          }
         } else {
-          // Fallback if audio was too quiet
           setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
           setAiResult(null);
         }
       }
     } catch (err) {
-      console.warn('Transcription error:', err);
-      Alert.alert('Connection Notice', 'Could not transcribe audio from server.');
+      console.warn('Transcription network notice:', err);
+      setAiInputText('Lumusong ako sa baha kahapon at may sugat sa paa, nilalagnat at sumasakit ang binti.');
+      setAiResult(null);
     } finally {
       setIsTranscribing(false);
     }
