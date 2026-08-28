@@ -18,7 +18,7 @@ import {
   MedicineIcon,
   MapPinIcon,
 } from '../components/AppIcons';
-import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
+import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, scaleFont, wp, hp } from '../theme';
 import { API_BASE_URL } from '../config';
 
 export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, onSubmitSuccess }) {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   title: {
-    fontSize: RESPONSIVE.font(20),
+    fontSize: scaleFont(20),
     fontWeight: FONT_WEIGHT.black,
     color: COLORS.ink,
     letterSpacing: -0.3,
