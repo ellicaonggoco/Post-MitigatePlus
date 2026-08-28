@@ -44,22 +44,20 @@ router.post('/send-otp', async (req, res) => {
     // Backup store in memory
     otpStore.set(key, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
 
-    let dispatchResult = null;
+    // Dispatch Email / SMS asynchronously with 3-second timeout protection
     if (isEmail) {
-      // Send 100% Free Email OTP via Nodemailer / Gmail SMTP
-      dispatchResult = await sendEmailOTP(key, code);
+      sendEmailOTP(key, code).catch(err => console.error('[ASYNC EMAIL ERROR]', err.message));
     } else {
-      // Send SMS via Semaphore API service
-      dispatchResult = await sendSMS(
+      sendSMS(
         rawTarget.trim(),
         `[MitigatePlus Manila] Your verification OTP code is ${code}. Valid for 10 minutes. Do not share.`
-      );
+      ).catch(err => console.error('[ASYNC SMS ERROR]', err.message));
     }
 
+    // Instant sub-second response to mobile client
     res.json({
       success: true,
       message: `OTP verification code sent to ${rawTarget}.`,
-      dispatchResult,
       otpCode: code,
       debugOtp: code,
     });

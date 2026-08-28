@@ -392,9 +392,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     }
   };
 
-  // 2. Resend OTP code with countdown
+  // 2. Resend OTP code with instant countdown restart
   const handleResendOtp = async () => {
     if (!canResend) return;
+    setCanResend(false);
+    setOtpTimer(60);
     setOtpLoading(true);
     setOtpError('');
     try {
@@ -405,15 +407,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setOtpTimer(60);
-        setCanResend(false);
         if (data.otpCode || data.debugOtp) {
           setFallbackOtp(data.otpCode || data.debugOtp);
         }
-        Alert.alert(
-          lang === 'tl' ? 'Naipadala ang OTP' : 'OTP Resent',
-          lang === 'tl' ? `Naipadala muli ang 6-digit verification code sa ${emailOrPhone.trim()}.` : `6-digit verification code resent to ${emailOrPhone.trim()}.`
-        );
       } else {
         setOtpError(data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP.' : 'Failed to resend OTP.'));
       }
