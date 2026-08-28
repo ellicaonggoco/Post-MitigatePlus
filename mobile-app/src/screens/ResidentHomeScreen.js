@@ -370,14 +370,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <Text style={styles.healthBannerKicker}>
-                      {lang === 'tl' ? 'AI SAKIT SA BAHA & GAMOT' : 'AI HEALTH & SOS CHECK'}
+                      {lang === 'tl' ? 'SAKIT SA BAHA & GAMOT' : 'POST-FLOOD HEALTH CHECK'}
                     </Text>
-                    <View style={styles.healthNewBadge}>
-                      <Text style={styles.healthNewText}>NEW AI</Text>
-                    </View>
                   </View>
                   <Text style={styles.healthBannerTitle}>
-                    {lang === 'tl' ? 'AI Health Check & Leptospirosis Triage' : 'Post-Flood AI Health Check'}
+                    {lang === 'tl' ? 'Health Check & Leptospirosis Triage' : 'Health Check & Leptospirosis Triage'}
                   </Text>
                   <Text style={styles.healthBannerSub}>
                     {lang === 'tl'

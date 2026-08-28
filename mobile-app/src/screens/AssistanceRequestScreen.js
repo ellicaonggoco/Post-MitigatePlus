@@ -141,27 +141,27 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
         </TouchableOpacity>
 
-        {/* Page Header: Pure AI Novelty */}
+        {/* Page Header */}
         <View style={styles.header}>
           <View style={styles.kickerRow}>
             <View style={styles.pulseDot} />
-            <Text style={styles.kicker}>AI POST-FLOOD EPIDEMIC SURVEILLANCE</Text>
+            <Text style={styles.kicker}>POST-FLOOD HEALTH & SYMPTOM CHECK</Text>
           </View>
           <Text style={styles.title}>
-            {lang === 'tl' ? 'AI Health Check & Outbreak Alert' : 'AI Health Check & Outbreak Alert'}
+            {lang === 'tl' ? 'Health Check & Outbreak Alert' : 'Health Check & Outbreak Alert'}
           </Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'Natural Language Processing (NLP) AI para sa agarang pagsusuri ng sugat, lagnat, at pananakit ng binti pagkatapos ng baha para sa libreng Doxycycline prophylaxis sa Health Center.'
-              : 'Natural Language Processing (NLP) AI assessing flood exposure, wounds, and calf pain to issue instant Doxycycline prophylaxis vouchers.'}
+              ? 'Pagsusuri ng sugat, lagnat, at pananakit ng binti pagkatapos ng baha para sa libreng Doxycycline prophylaxis sa Health Center.'
+              : 'Clinical assessment of flood exposure, wounds, and calf pain to issue instant Doxycycline prophylaxis vouchers.'}
           </Text>
         </View>
 
-        {/* AI Symptom & Flood Exposure Input Card */}
+        {/* Symptom & Flood Exposure Input Card */}
         <View style={styles.aiBannerCard}>
           <View style={styles.aiBadgeRow}>
             <View style={styles.aiSparkleBadge}>
-              <Text style={styles.aiSparkleText}>🤖 NLP & EPIDEMIOLOGICAL RISK AI</Text>
+              <Text style={styles.aiSparkleText}>CLINICAL SYMPTOM TRIAGE</Text>
             </View>
             <Text style={styles.aiTagline}>{lang === 'tl' ? 'Tagalog & English' : 'Tagalog & English'}</Text>
           </View>
@@ -171,8 +171,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           </Text>
           <Text style={styles.aiBannerSub}>
             {lang === 'tl'
-              ? 'Awtomatikong susuriin ng AI ang banta ng Leptospirosis exposure at magbibigay ng opisyal na Doxycycline voucher sa Barangay Health Center.'
-              : 'Our AI analyzes Leptospirosis exposure risk and generates an instant Doxycycline claim voucher for your local Health Center.'}
+              ? 'Awtomatikong susuriin ang banta ng Leptospirosis exposure at magbibigay ng opisyal na Doxycycline voucher sa Barangay Health Center.'
+              : 'Analyzes Leptospirosis exposure risk and generates an instant Doxycycline claim voucher for your local Health Center.'}
           </Text>
 
           {/* Quick Scenario Chips */}
@@ -213,7 +213,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             />
           </View>
 
-          {/* Action Button: Run AI Analysis */}
+          {/* Action Button: Run Analysis */}
           <TouchableOpacity
             style={[styles.runAiBtn, aiAnalyzing && { opacity: 0.8 }]}
             onPress={() => handleRunAiTriage()}
@@ -224,27 +224,27 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <ActivityIndicator color="#FFFFFF" size="small" />
                 <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Sinusuri ng AI ang mga Sintomas...' : 'AI Analyzing Symptoms...'}
+                  {lang === 'tl' ? 'Sinusuri ang mga Sintomas...' : 'Analyzing Symptoms...'}
                 </Text>
               </View>
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={{ fontSize: 16 }}>⚡</Text>
                 <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Suriin Gamit ang NLP AI' : 'Analyze with NLP AI'}
+                  {lang === 'tl' ? 'Analyze / Suriin' : 'Analyze'}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* AI Clinical Diagnosis & Prescription Advisory Card */}
+        {/* Clinical Diagnosis & Prescription Advisory Card */}
         {aiResult && (
           <View style={styles.aiResultCard}>
             {/* Risk Classification Badge */}
             <View style={styles.resultTopRow}>
               <View>
-                <Text style={styles.resultKicker}>CLINICAL AI TRIAGE DIAGNOSIS</Text>
+                <Text style={styles.resultKicker}>CLINICAL TRIAGE DIAGNOSIS</Text>
                 <Text style={styles.resultTitle}>{aiResult.urgencyClassification}</Text>
               </View>
               <View
