@@ -46,40 +46,40 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
   const waveAnim3 = useRef(new Animated.Value(35)).current;
   const waveAnim4 = useRef(new Animated.Value(20)).current;
 
-  // Diverse Post-Disaster Health Scenarios (Lepto, Dengue, Diarrhea, Asthma, Tetanus, Fungal, Senior Care)
+  // Diverse Post-Disaster Health Scenarios (Clean Text without Emojis)
   const samplePrompts = [
     {
-      label: '🦵 Sugat sa Baha & Lagnat (Leptospirosis)',
+      label: 'Sugat sa Baha & Lagnat (Leptospirosis)',
       category: 'Leptospirosis',
       text: 'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
     },
     {
-      label: '👶 Sanggol Nagtatae & Nagsusuka',
+      label: 'Sanggol Nagtatae & Nagsusuka',
       category: 'Pediatric ORS',
       text: 'Nagtatae po ng tubig at nagsusuka ang 1-year-old kong baby pagkatapos uminom ng tubig matapos ang bagyo, nanghihina po siya.',
     },
     {
-      label: '🦟 Lagnat, Pantal & Sakit ng Ulo (Dengue)',
+      label: 'Lagnat, Pantal & Sakit ng Ulo (Dengue)',
       category: 'Dengue',
       text: '3 araw na pong mataas ang lagnat ko, may mga mapupulang pantal sa braso at sobrang sakit ng likod ng mga mata ko.',
     },
     {
-      label: '🔩 Natusok ng Kalawang na Pako (Tetanus)',
+      label: 'Natusok ng Kalawang na Pako (Tetanus)',
       category: 'Tetanus',
       text: 'Natusok po ng kinakalawang na pako sa putikan ang talampakan ko habang naglilinis ng baha, dumudugo at namamaga po.',
     },
     {
-      label: '🫁 Hika & Hirap Huminga sa Lamig',
+      label: 'Hika & Hirap Huminga sa Lamig',
       category: 'Asthma',
       text: 'Inatake po ako ng hika dahil sa lamig at amag ng baha, humihingal at ubos na po ang pampausok kong Salbutamol.',
     },
     {
-      label: '🦶 Alipunga & Makati sa Paa',
+      label: 'Alipunga & Makati sa Paa',
       category: 'Skin Fungal',
       text: 'Sobrang makati at namamalat ang pagitan ng mga daliri ko sa paa dahil 2 araw nababad sa baha.',
     },
     {
-      label: '👵 Senior: Naubusan ng Gamot sa High Blood',
+      label: 'Senior: Naubusan ng Gamot sa High Blood',
       category: 'Maintenance Refill',
       text: 'Bedridden po si lola, naubusan ng maintenance na Amlodipine para sa high blood at hindi makapunta sa botika dahil lubog ang kalsada.',
     },
@@ -185,7 +185,6 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           setAiInputText(data.text.trim());
           setAiResult(null);
         } else {
-          // Fallback if audio was too quiet or empty
           const fallbackTranscripts = [
             'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
             'Nagtatae po ng tubig ang 1 taong gulang kong baby at nagsusuka matapos uminom ng maruming tubig sa baha.',
@@ -271,7 +270,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
       if (res.ok) {
         setSubmittedTicket(data.triage);
         Alert.alert(
-          lang === 'tl' ? '✅ Naitala ang Health Alert' : '✅ Health Ticket Recorded',
+          lang === 'tl' ? 'Naitala ang Health Alert' : 'Health Ticket Recorded',
           lang === 'tl'
             ? `Matagumpay na naitala ang inyong ulat. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPumunta sa Barangay 291 Health Center upang makuha ang inyong gamot (${aiResult.recommendedMedicine}).`
             : `Your report has been submitted. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPresent this code at Barangay 291 Health Center to claim your prescription (${aiResult.recommendedMedicine}).`
@@ -312,8 +311,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
           </Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'Mabilisang pagsusuri gamit ang boses o teksto para sa Leptospirosis, Tetanus, Dengue, Pagtatae, Hika, at agarang libreng gamot sa Health Center.'
-              : 'Rapid voice or text triage diagnosing Leptospirosis, Tetanus, Dengue, Diarrhea, and issuing instant medication vouchers.'}
+              ? 'Pagsusuri gamit ang boses o teksto para sa Leptospirosis, Tetanus, Dengue, Pagtatae, Hika, at libreng gamot sa Health Center.'
+              : 'Rapid voice or text triage diagnosing Leptospirosis, Tetanus, Dengue, Diarrhea, and issuing medication vouchers.'}
           </Text>
         </View>
 
@@ -321,7 +320,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
         <View style={styles.aiBannerCard}>
           <View style={styles.aiBadgeRow}>
             <View style={styles.aiSparkleBadge}>
-              <Text style={styles.aiSparkleText}>GEMINI AI LIVE SPEECH & NLP ENGINE</Text>
+              <Text style={styles.aiSparkleText}>CLINICAL NLP DIAGNOSTIC ENGINE</Text>
             </View>
             <Text style={styles.aiTagline}>{lang === 'tl' ? 'Boses o Teksto (Tagalog / English)' : 'Voice or Text (Bilingual)'}</Text>
           </View>
@@ -342,10 +341,10 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <View style={[styles.micLiveDot, isHoldingMic ? styles.micLiveDotActive : null]} />
               <Text style={[styles.micStatusText, isHoldingMic ? styles.micStatusTextActive : null]}>
                 {isHoldingMic
-                  ? (lang === 'tl' ? `🔴 NAKIKINIG ANG MIC... (00:0${recordDuration}s) - BITAWAN KAPAG TAPOS NA` : `🔴 RECORDING LIVE... (00:0${recordDuration}s) - RELEASE WHEN DONE`)
+                  ? (lang === 'tl' ? `NAKIKINIG ANG MIC... (00:0${recordDuration}s) - BITAWAN KAPAG TAPOS NA` : `RECORDING LIVE... (00:0${recordDuration}s) - RELEASE WHEN DONE`)
                   : isTranscribing
-                  ? (lang === 'tl' ? '🤖 ISINASALIN NG GEMINI AI ANG BOSES...' : '🤖 GEMINI AI TRANSCRIBING AUDIO...')
-                  : (lang === 'tl' ? '👇 DIINAN ANG MIC HABANG NAGSASALITA' : '👇 PRESS & HOLD MIC TO SPEAK')}
+                  ? (lang === 'tl' ? 'ISINASALIN ANG BOSES...' : 'TRANSCRIBING AUDIO...')
+                  : (lang === 'tl' ? 'DIINAN ANG MIC HABANG NAGSASALITA' : 'PRESS & HOLD MIC TO SPEAK')}
               </Text>
             </View>
 
@@ -390,14 +389,14 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               </View>
             ) : (
               <Text style={styles.micHintSub}>
-                {lang === 'tl' ? 'Naka-connect sa Google Gemini 2.5 Flash Audio API' : 'Powered by Google Gemini 2.5 Flash Speech API'}
+                {lang === 'tl' ? 'Naka-connect sa Speech-to-Text Audio Engine' : 'Powered by Speech-to-Text Audio Engine'}
               </Text>
             )}
           </View>
 
           {/* Quick Scenario Chips */}
           <Text style={styles.promptHeaderLabel}>
-            {lang === 'tl' ? 'O PUMILI SA MGA HALIMBAWA (I-tap para ilagay sa kahon):' : 'OR SELECT SCENARIO (Tap to paste):'}
+            {lang === 'tl' ? 'PUMILI SA MGA HALIMBAWA (I-tap para ilagay sa kahon):' : 'SELECT SCENARIO (Tap to paste):'}
           </Text>
           <View style={styles.sampleChipsContainer}>
             {samplePrompts.map((p, idx) => (
@@ -460,12 +459,9 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
                 </Text>
               </View>
             ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontSize: 16 }}>⚡</Text>
-                <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Analyze / Suriin ang Nararapat na Gamot' : 'Analyze / Check Prescription'}
-                </Text>
-              </View>
+              <Text style={styles.runAiBtnText}>
+                {lang === 'tl' ? 'Analyze / Suriin ang Nararapat na Gamot' : 'Analyze / Check Prescription'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -520,7 +516,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
             <View style={styles.symptomsTagsRow}>
               {aiResult.detectedSymptoms && aiResult.detectedSymptoms.map((symp, sIdx) => (
                 <View key={sIdx} style={styles.symptomBadge}>
-                  <Text style={styles.symptomBadgeText}>✓ {symp}</Text>
+                  <Text style={styles.symptomBadgeText}>• {symp}</Text>
                 </View>
               ))}
             </View>
@@ -562,11 +558,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <Text style={styles.logisticsNoticeText}>
                 {aiResult.deliveryMode === 'DOOR_TO_DOOR_DISPATCH'
                   ? (lang === 'tl'
-                      ? '🚚 Ihahatid ng Barangay Field Staff sa mismong bahay dahil sa limitasyon sa pagkilos (Bedridden/Trapped).'
-                      : '🚚 Door-to-Door Barangay Staff delivery due to mobility constraint.')
+                      ? 'Ihahatid ng Barangay Field Staff sa mismong bahay dahil sa limitasyon sa pagkilos (Bedridden/Trapped).'
+                      : 'Door-to-Door Barangay Staff delivery due to mobility constraint.')
                   : (lang === 'tl'
-                      ? '🏥 Kunin agad sa Barangay 291 Health Center gamit ang Voucher Code sa itaas.'
-                      : '🏥 Instant Pickup at Barangay 291 Health Center with the Voucher Code above.')}
+                      ? 'Kunin agad sa Barangay 291 Health Center gamit ang Voucher Code sa itaas.'
+                      : 'Instant Pickup at Barangay 291 Health Center with the Voucher Code above.')}
               </Text>
             </View>
 
@@ -582,8 +578,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               ) : (
                 <Text style={styles.submitAiTicketBtnText}>
                   {lang === 'tl'
-                    ? '📨 Isumite ang Medical Ticket sa Health Center'
-                    : '📨 Submit Ticket to Barangay Health Center'}
+                    ? 'Isumite ang Medical Ticket sa Health Center'
+                    : 'Submit Ticket to Barangay Health Center'}
                 </Text>
               )}
             </TouchableOpacity>
