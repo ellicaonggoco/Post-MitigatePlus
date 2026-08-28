@@ -192,7 +192,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
   // ── Direct Ultra-Fast Google Gemini 2.5 Flash Audio Transcription ──
   const transcribeAudioViaGemini = async (base64Audio) => {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_DIRECT_KEY}`;
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_DIRECT_KEY;
       const payload = {
         contents: [
           {
@@ -219,16 +219,17 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
       if (res.ok) {
         const data = await res.json();
-        let text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-        text = text
-          .replace(/^(*+s*)?(okay,?s*)?(here'?ss+(thes+)?transcription:?|transcription:?|heres+iss+thes+transcript:?)s*/i, '')
-          .replace(/*+/g, '')
-          .replace(/^["']|["']$/g, '')
+        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        // Clean any preamble cleanly
+        let cleanText = rawText
+          .replace(/^(*+\s*)?(okay,?\s*)?(here'?s\s+(the\s+)?transcription:?|transcription:?|here\s+is\s+the\s+transcript:?)\s*/i, '')
+          .replace(/\*+/g, '')
+          .replace(/^[\"\']|[\"\']$/g, '')
           .trim();
-        if (/^nos*speech.?$/i.test(text) || /^inaudible.?$/i.test(text)) {
+        if (/^no\s*speech\.?$/i.test(cleanText) || /^inaudible\.?$/i.test(cleanText)) {
           return '';
         }
-        return text;
+        return cleanText;
       }
     } catch (err) {
       console.warn('Direct Gemini fetch error, trying backend fallback:', err);
@@ -236,11 +237,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
     // Fallback to Backend Proxy
     try {
-      const res = await fetch(`${API_BASE_URL}/ai-triage/transcribe-audio`, {
+      const res = await fetch(API_BASE_URL + '/ai-triage/transcribe-audio', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({
           audioBase64: base64Audio,
@@ -286,7 +287,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
       if (uri) {
         const base64Audio = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: 'base64',
         });
 
         const transcript = await transcribeAudioViaGemini(base64Audio);
@@ -326,11 +327,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
 
     setAiAnalyzing(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/ai-triage/analyze`, {
+      const res = await fetch(API_BASE_URL + '/ai-triage/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({
           message: text,
@@ -361,11 +362,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
     if (!aiResult) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/ai-triage/submit-request`, {
+      const res = await fetch(API_BASE_URL + '/ai-triage/submit-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({
           message: aiInputText,
@@ -381,8 +382,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
         Alert.alert(
           lang === 'tl' ? 'Naitala ang Health Alert' : 'Health Ticket Recorded',
           lang === 'tl'
-            ? `Matagumpay na naitala ang inyong ulat. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPumunta sa Barangay 291 Health Center upang makuha ang inyong gamot (${aiResult.recommendedMedicine}).`
-            : `Your report has been submitted. Voucher Code: ${data.voucherCode || aiResult.voucherCode}.\n\nPresent this code at Barangay 291 Health Center to claim your prescription (${aiResult.recommendedMedicine}).`
+            ? 'Matagumpay na naitala ang inyong ulat. Voucher Code: ' + (data.voucherCode || aiResult.voucherCode) + '.\\n\\nPumunta sa Barangay 291 Health Center upang makuha ang inyong gamot (' + aiResult.recommendedMedicine + ').'
+            : 'Your report has been submitted. Voucher Code: ' + (data.voucherCode || aiResult.voucherCode) + '.\\n\\nPresent this code at Barangay 291 Health Center to claim your prescription (' + aiResult.recommendedMedicine + ').'
         );
       } else {
         Alert.alert('Notice', data.message || 'Submission failed.');
@@ -451,8 +452,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, on
               <Text style={[styles.micStatusText, isRecordingVoice ? (isSoundDetected ? styles.micStatusTextActive : styles.micStatusTextSilent) : null]}>
                 {isRecordingVoice
                   ? (isSoundDetected
-                      ? (lang === 'tl' ? `NARIRINIG ANG IYONG BOSES... (00:0${recordDuration}s)` : `VOICE DETECTED... (00:0${recordDuration}s)`)
-                      : (lang === 'tl' ? `NAKIKINIG (MAGSALITA NA)... (00:0${recordDuration}s)` : `LISTENING (SPEAK NOW)... (00:0${recordDuration}s)`))
+                      ? (lang === 'tl' ? ('NARIRINIG ANG IYONG BOSES... (00:0' + recordDuration + 's)') : ('VOICE DETECTED... (00:0' + recordDuration + 's)'))
+                      : (lang === 'tl' ? ('NAKIKINIG (MAGSALITA NA)... (00:0' + recordDuration + 's)') : ('LISTENING (SPEAK NOW)... (00:0' + recordDuration + 's)')))
                   : isTranscribing
                   ? (lang === 'tl' ? 'ISINASALIN ANG BOSES GAMIT ANG GEMINI AI...' : 'TRANSCRIBING AUDIO VIA GEMINI AI...')
                   : (lang === 'tl' ? 'PINDUTIN ANG MIC PARA MAGSALITA' : 'TAP MIC TO START SPEAKING')}
