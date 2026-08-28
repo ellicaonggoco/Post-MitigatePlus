@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, SafeAreaView, Animated } from 'react-native';
+import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -104,7 +104,7 @@ export default function App() {
   const activeKey = userSession ? (isStaff ? 'staff' : 'resident') : currentScreen;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style="dark" />
 
       {/* 1. Minimal Pure White Splash Screen with Cross-Fade Transition */}
@@ -158,7 +158,7 @@ export default function App() {
           />
         )}
       </ScreenTransition>
-    </SafeAreaView>
+    </View>
   );
 }
 
