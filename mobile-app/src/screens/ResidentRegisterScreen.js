@@ -1396,7 +1396,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1628',
+    backgroundColor: '#F8F9F7',
   },
   scroll: {
     flex: 1,
@@ -1424,7 +1424,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 12,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   backBtnText: {
     fontSize: 12.5,
@@ -1434,12 +1434,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: FONT_WEIGHT.black,
-    color: '#F0F6FF',
+    color: '#172B4D',
     letterSpacing: -0.3,
   },
   stepCounterText: {
     fontSize: 12,
-    color: '#F59E0B',
+    color: '#1557B0',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -1476,14 +1476,12 @@ const styles = StyleSheet.create({
   registerCard: {
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
-    backgroundColor: '#0F2040',
-    borderWidth: 1,
-    borderColor: '#1E3A5F',
+    backgroundColor: '#FFFFFF',
     borderRadius: RESPONSIVE.borderRadius + 2,
     borderWidth: 1,
     borderColor: '#D9E2EC',
     padding: RESPONSIVE.cardPadding,
-    ...SHADOWS.md,
+    ...SHADOWS.card,
   },
   cardHeaderGroup: {
     borderBottomWidth: 1,
@@ -1494,11 +1492,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: FONT_WEIGHT.black,
-    color: '#F0F6FF',
+    color: '#172B4D',
   },
   cardSub: {
     fontSize: 11.5,
-    color: '#94A3C0',
+    color: '#64748B',
     marginTop: 2,
     lineHeight: 16,
   },

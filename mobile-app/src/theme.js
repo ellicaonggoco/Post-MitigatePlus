@@ -56,69 +56,67 @@ export const RESPONSIVE = {
 };
 
 // ============================================================================
-// PREMIUM DARK NAVY + GOLD CIVIC SYSTEM
-// - 60% Deep Navy Surfaces: #0A1628 (canvas), #0F2040 (cards), #162035 (elevated)
-// - 30% Midnight Blue Structural: #1A3A6B (borders), #243B6E (dividers)
-// - 10% Manila Gold Accents: #F59E0B (primary gold), #FBBF24 (bright gold), #FCD34D (soft gold)
-// Premium feel: Government VIP / High-Authority Civic App
+// INTENTIONAL COLOR SYSTEM (60-30-10 CIVIC HARMONY)
+// - 60% Canvas & Surfaces: Pearl White & Clean Card White (#F8F9F7, #FFFFFF)
+// - 30% Structural Blue & Slate Navy: Authority & Readability (#1557B0, #172B4D)
+// - 10% Purposeful Accents: Manila Gold (#D97706), Emerald (#16A34A), Coral (#DC2626)
 // ============================================================================
 export const COLORS = {
-  // 60% Deep Navy Canvas & Surfaces
-  bg: '#0A1628',
-  surface: '#0F2040',
-  card: '#0F2040',
-  cardAlt: '#162850',
-  well: '#071020',
-  wellDark: '#050D1A',
+  // 60% Canvas & Surfaces
+  bg: '#F8F9F7', // Pearl White Canvas
+  surface: '#FFFFFF', // Pure White Elevated Surfaces
+  card: '#FFFFFF',
+  cardAlt: '#F1F5F9',
+  well: '#F8F9F7',
+  wellDark: '#E8F2FF',
 
-  // 30% Structural Navy Borders & Dividers
-  primary: '#F59E0B',
-  royalNavy: '#1A3A6B',
-  navyDark: '#0D2444',
-  navyDeep: '#071020',
-  blueLight: '#1A2E4A',
-  blueBorder: '#1E3A5F',
-  info: '#60A5FA',
+  // 30% Structural Authority & Typography
+  primary: '#1557B0', // Manila Primary Blue
+  royalNavy: '#1557B0',
+  navyDark: '#0B2E59', // Deep Institutional Navy
+  navyDeep: '#0B2E59',
+  blueLight: '#E8F2FF', // Soft Sky Blue Tint
+  blueBorder: '#BFDBFE',
+  info: '#2563EB',
 
-  // High-Contrast Typography (white on dark)
-  textDark: '#F0F6FF',
-  textSecondary: '#94A3C0',
-  textMuted: '#5A7498',
+  // High-Contrast WCAG AAA Typography
+  textDark: '#172B4D', // Primary Text (Slate Navy)
+  textSecondary: '#475569', // Secondary Text (Slate Gray)
+  textMuted: '#64748B', // Tertiary / Helper Text
   pureWhite: '#FFFFFF',
 
-  // 10% Manila Gold Prestige Accents
-  manilaGold: '#F59E0B',
-  goldDark: '#D97706',
-  goldBright: '#FBBF24',
-  goldLight: '#1E1A00',
-  goldBorder: '#92620A',
-  goldGlow: 'rgba(245,158,11,0.18)',
+  // 10% Semantic & Prestige Accents (Used strictly with purpose)
+  manilaGold: '#D97706',
+  goldDark: '#B45309',
+  goldBright: '#F59E0B',
+  goldLight: '#FEF3C7',
+  goldBorder: '#FDE68A',
 
   // Emerald Resilience
-  success: '#10B981',
-  emeraldLight: '#052E1A',
-  emeraldBorder: '#065F46',
-  emeraldText: '#34D399',
+  success: '#16A34A',
+  emeraldLight: '#ECFDF5',
+  emeraldBorder: '#A7F3D0',
+  emeraldText: '#16A34A',
 
   // Alert Red
-  emergency: '#EF4444',
-  crimsonLight: '#1F0808',
-  crimsonBorder: '#7F1D1D',
-  crimsonText: '#FCA5A5',
+  emergency: '#DC2626',
+  crimsonLight: '#FEE2E2',
+  crimsonBorder: '#FCA5A5',
+  crimsonText: '#DC2626',
 
   // Amber Advisory
   warning: '#F59E0B',
-  amberLight: '#1C1200',
-  amberBorder: '#78350F',
-  amberText: '#FCD34D',
+  amberLight: '#FFFBEB',
+  amberBorder: '#FCD34D',
+  amberText: '#D97706',
 
-  // Structural dividers
-  border: '#1E3A5F',
-  borderLight: '#162040',
-  borderDark: '#243B6E',
-  borderFocus: '#F59E0B',
+  // Razor-sharp 1px structural dividers
+  border: '#D9E2EC',
+  borderLight: '#EDF2F7',
+  borderDark: '#CBD5E1',
+  borderFocus: '#1557B0',
 
-  shadowColor: '#000000',
+  shadowColor: '#0F172A',
 };
 
 // ============================================================================
@@ -237,51 +235,47 @@ export const SHADOWS = {
 };
 
 // ============================================================================
-// CARD VARIANTS (Premium dark surfaces)
+// ============================================================================
+// RESPONSIVE CARD HELPERS & BUTTON VARIANTS
 // ============================================================================
 export const NEUMORPHIC = {
   raised: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1E3A5F',
-    ...SHADOWS.md,
+    borderColor: '#D9E2EC',
+    ...SHADOWS.card,
   },
   sunken: {
-    backgroundColor: '#071020',
+    backgroundColor: '#F8F9F7',
     borderWidth: 1,
-    borderColor: '#162040',
+    borderColor: '#D9E2EC',
   },
   pressed: {
-    backgroundColor: '#162040',
+    backgroundColor: '#E8F2FF',
     borderWidth: 1.5,
-    borderColor: '#F59E0B',
-  },
-  gold: {
-    backgroundColor: '#0F2040',
-    borderWidth: 1.5,
-    borderColor: '#92620A',
+    borderColor: '#1557B0',
   },
 };
 
 export const BUTTON_VARIANTS = {
   primary: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#D97706',
-    textColor: '#0A1628',
+    backgroundColor: '#1557B0',
+    borderColor: '#1557B0',
+    textColor: '#FFFFFF',
   },
   secondary: {
-    backgroundColor: '#162850',
-    borderColor: '#1E3A5F',
-    textColor: '#F0F6FF',
+    backgroundColor: '#E8F2FF',
+    borderColor: '#BFDBFE',
+    textColor: '#1557B0',
   },
   danger: {
-    backgroundColor: '#EF4444',
-    borderColor: '#B91C1C',
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
     textColor: '#FFFFFF',
   },
   ghost: {
     backgroundColor: 'transparent',
-    borderColor: '#1E3A5F',
-    textColor: '#F0F6FF',
+    borderColor: 'transparent',
+    textColor: '#172B4D',
   },
 };

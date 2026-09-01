@@ -1683,7 +1683,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A1628' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 8,
@@ -1699,7 +1699,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   profileHeaderCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#D9E2EC',
@@ -1707,7 +1707,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   avatarSection: { alignItems: 'center', gap: 4 },
   avatarContainer: { position: 'relative' },
@@ -1753,15 +1753,15 @@ const styles = StyleSheet.create({
 
   // ── Roster Summary Card ──
   rosterSummaryCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#D9E2EC',
-    padding: 12,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   rosterIconCircle: {
     width: 40,
@@ -1799,13 +1799,13 @@ const styles = StyleSheet.create({
 
   // ── Common Settings Group ──
   settingCardGroup: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#D9E2EC',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   settingRowItem: {
     flexDirection: 'row',
@@ -1874,20 +1874,21 @@ const styles = StyleSheet.create({
   langRow: { flexDirection: 'row', gap: 10 },
   langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5 },
   langBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#1557B0' },
-  langBtnInactive: { backgroundColor: '#0F2040', borderColor: '#CBD5E1' },
+  langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#CBD5E1' },
   langText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
   langTextActive: { color: '#1557B0', fontWeight: FONT_WEIGHT.black },
 
   // ── Hotlines ──
   hotlineList: { gap: 8 },
   hotlineCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    ...SHADOWS.card,
   },
   phoneIconWell: {
     width: 36,
@@ -1935,7 +1936,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   rosterModalSheet: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 18,
@@ -1976,7 +1977,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
     padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -2000,13 +2001,13 @@ const styles = StyleSheet.create({
   addMemberFullBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 
   memberManageCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
     paddingVertical: 9,
     paddingHorizontal: 11,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   memberManageTop: {
     flexDirection: 'row',
@@ -2087,7 +2088,7 @@ const styles = StyleSheet.create({
 
   // ── Member Form Modal ──
   memberFormCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -2123,7 +2124,7 @@ const styles = StyleSheet.create({
 
   // ── Password Modal ──
   passwordModalCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -2142,7 +2143,7 @@ const styles = StyleSheet.create({
 
   // ── Privacy Modal ──
   privacyModalCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     margin: 20,
@@ -2154,7 +2155,7 @@ const styles = StyleSheet.create({
 
   // ── Avatar Action Sheet ──
   avatarActionSheet: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -2168,7 +2169,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E3A5F',
+    borderColor: '#E2E8F0',
     padding: 12,
   },
   avatarOptionIconWell: {
@@ -2243,13 +2244,13 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   dropdownOptionsCard: {
-    backgroundColor: '#0F2040',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#E2E8F0',
     borderRadius: 10,
     marginTop: 4,
     overflow: 'hidden',
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   dropdownOptionItem: {
     flexDirection: 'row',
