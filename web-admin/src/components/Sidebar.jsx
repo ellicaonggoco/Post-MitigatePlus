@@ -225,7 +225,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       title: t.brgyTools || 'BARANGAY TOOLS',
       items: [
         { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
-        { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
+        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
         { label: t.reports || 'Reports', path: '/reports', icon: IconlyFileText },
