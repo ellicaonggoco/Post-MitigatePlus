@@ -1525,12 +1525,12 @@ const styles = StyleSheet.create({
   actionTile: {
     width: '48%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 13,
+    padding: 14,
     marginBottom: 12,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   actionTileIconWell: {
     width: 38,
@@ -1586,12 +1586,12 @@ const styles = StyleSheet.create({
   },
   announcementCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 14,
-    marginBottom: 8,
-    ...SHADOWS.sm,
+    borderColor: '#E2E8F0',
+    padding: 15,
+    marginBottom: 10,
+    ...SHADOWS.card,
   },
   announcementCardUrgent: {
     borderColor: '#FCA5A5',
