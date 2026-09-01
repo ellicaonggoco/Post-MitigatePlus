@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, Act
 import * as ImagePicker from 'expo-image-picker';
 import { submitDamageReport } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon, MapPinIcon, LockIcon } from '../components/AppIcons';
+import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon, MapPinIcon } from '../components/AppIcons';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionSeverityTile, MotionPressable } from '../components/motion';
@@ -347,18 +347,12 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         </View>
         <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
 
-        {/* Auto-Detected Verified Registered Household Location (Locked / Disabled Gray) */}
+        {/* Verified Registered Household Location */}
         <View style={styles.autoLocationCard}>
           <View style={styles.autoLocationHeader}>
             <Text style={styles.autoLocationLabel}>
-              {lang === 'tl' ? 'LOKASYON NG TAHANAN (AUTO-DETECTED)' : 'REGISTERED HOUSEHOLD LOCATION *'}
+              {lang === 'tl' ? 'LOKASYON NG TAHANAN' : 'REGISTERED HOUSEHOLD LOCATION *'}
             </Text>
-            <View style={styles.autoLocationBadge}>
-              <LockIcon size={11} color="#64748B" />
-              <Text style={styles.autoLocationBadgeText}>
-                {lang === 'tl' ? 'Awtomatikong Nakakandado' : 'Auto-Locked'}
-              </Text>
-            </View>
           </View>
 
           <View style={styles.autoLocationBody}>
@@ -378,12 +372,6 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
               </Text>
             </View>
           </View>
-
-          <Text style={styles.autoLocationFootnote}>
-            {lang === 'tl'
-              ? 'Awtomatikong nakatala sa iyong rehistradong tirahan upang maging tumpak ang pagresponde ng LGU.'
-              : 'Auto-detected and locked to your registered residence for exact GIS command center mapping.'}
-          </Text>
         </View>
 
         <NeumorphicInput
@@ -414,7 +402,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A1628' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 95 },
   backBtnPill: {
     alignSelf: 'flex-start',
@@ -446,45 +434,31 @@ const styles = StyleSheet.create({
   sectionHeader: { marginBottom: 8 },
   sectionLabel: { fontSize: 10.5, fontWeight: '800', color: '#172B4D', letterSpacing: 0.5 },
   autoLocationCard: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D9E2EC',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
+    ...SHADOWS.sm,
   },
   autoLocationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 10,
   },
   autoLocationLabel: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#475569',
+    color: '#172B4D',
     letterSpacing: 0.5,
-  },
-  autoLocationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#E2E8F0',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-  },
-  autoLocationBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#475569',
   },
   autoLocationBody: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#FFFFFF',
-    padding: 10,
+    backgroundColor: '#F8FAFC',
+    padding: 12,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -507,12 +481,6 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
     fontWeight: '600',
-  },
-  autoLocationFootnote: {
-    fontSize: 10.5,
-    color: '#64748B',
-    marginTop: 8,
-    lineHeight: 14,
   },
   severityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   severityTile: {
