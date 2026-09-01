@@ -127,18 +127,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
         if (pData.projects && pData.projects.length > 0) {
           setActiveProject(pData.projects[0]);
         } else {
-          setActiveProject({
-            _id: 'default_cfw_01',
-            title: 'Post-Typhoon Drainage and Debris Clearing Drive',
-            description: 'Emergency 10-day community recovery and rehabilitation work program for affected families.',
-            barangayCode: '291',
-            targetWorksite: 'Zone 27 Main Streets and Public Facilities',
-            dailyWageRate: 500,
-            durationDays: 10,
-            totalSlots: 25,
-            filledSlots: 14,
-            status: 'approved_active',
-          });
+          setActiveProject(null);
         }
       }
 
@@ -361,6 +350,21 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
         {/* STATE 1: APPLICATION FORM */}
         {!userApplication && (
           <>
+            {!activeProject ? (
+              <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24 }}>
+                <Text style={{ fontSize: 40, marginBottom: 16 }}>🏗️</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#172B4D', textAlign: 'center', marginBottom: 8 }}>
+                  {lang === 'tl' ? 'Walang Aktibong Proyekto' : 'No Active CFW Project'}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', lineHeight: 20 }}>
+                  {lang === 'tl'
+                    ? 'Walang Cash-for-Work na proyekto ang naka-publish para sa inyong barangay sa ngayon. Mangyaring bumalik mamaya o makipag-ugnayan sa inyong Barangay Council.'
+                    : 'There are no Cash-for-Work projects posted for your barangay at this time. Please check back later or contact your Barangay Council.'}
+                </Text>
+              </View>
+            ) : (
+              <>
+
             <View style={styles.projectCard}>
               <View style={styles.projectKickerRow}>
                 <View style={styles.projectLiveDot} />
@@ -482,8 +486,11 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
                 </Text>
               )}
             </TouchableOpacity>
+            </>
+          )}
           </>
         )}
+
       </ScrollView>
 
       {/* POP-UP MODAL: DIGITAL PAYOUT VOUCHER CARD */}

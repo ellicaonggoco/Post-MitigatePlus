@@ -399,14 +399,33 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
     }
   };
 
-  const handleSaveContact = () => {
+  const handleSaveContact = async () => {
+    if (!contact.trim()) return;
     setSaveLoading(true);
-    setTimeout(() => {
+    try {
+      const token = await AsyncStorage.getItem('mitigateplus_token');
+      if (!token) {
+        Alert.alert('Session Expired', lang === 'tl' ? 'Kailangang mag-login muli.' : 'Please sign in again.');
+        return;
+      }
+      const res = await fetch(`${API_BASE_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ emailOrPhone: contact.trim() }),
+      });
+      if (res.ok) {
+        setIsEditingContact(false);
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 3000);
+      } else {
+        const data = await res.json();
+        Alert.alert('Notice', data.message || 'Unable to save contact info.');
+      }
+    } catch (err) {
+      Alert.alert('Network Error', 'Unable to reach server to save contact.');
+    } finally {
       setSaveLoading(false);
-      setIsEditingContact(false);
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
-    }, 600);
+    }
   };
 
   // Sync member updates to backend
@@ -568,7 +587,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       }
 
       const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -597,19 +616,45 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   };
 
   // Sync Offline Cache
-  const handleSyncOfflineData = () => {
+  const handleSyncOfflineData = async () => {
     setSyncing(true);
-    setTimeout(() => {
-      setSyncing(false);
+    try {
+      const token = await AsyncStorage.getItem('mitigateplus_token');
+      if (!token) {
+        Alert.alert('Session Expired', lang === 'tl' ? 'Kailangang mag-login muli.' : 'Please sign in again.');
+        return;
+      }
+      // Pull any pending offline claims stored by the staff scanner
+      const raw = await AsyncStorage.getItem('mitigateplus_offline_claims');
+      const pendingClaims = raw ? JSON.parse(raw) : [];
+
+      const res = await fetch(`${API_BASE_URL}/distributions/sync-offline-claims`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ claims: pendingClaims }),
+      });
+
       const now = new Date();
       setLastSyncTime(`${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')} ${now.getHours() >= 12 ? 'PM' : 'AM'}`);
-      Alert.alert(
-        lang === 'tl' ? 'Na-sync ang Data' : 'Data Synced',
-        lang === 'tl'
-          ? 'Matagumpay na na-update ang pinakabagong talaan ng ayuda at QR pass para sa offline mode.'
-          : 'Latest relief ledger and QR pass successfully refreshed for offline mode.'
-      );
-    }, 1000);
+
+      if (res.ok) {
+        // Clear the offline queue after a successful sync
+        await AsyncStorage.removeItem('mitigateplus_offline_claims');
+        Alert.alert(
+          lang === 'tl' ? 'Na-sync ang Data' : 'Data Synced',
+          lang === 'tl'
+            ? 'Matagumpay na na-update ang pinakabagong talaan ng ayuda at QR pass para sa offline mode.'
+            : 'Latest relief ledger and QR pass successfully refreshed for offline mode.'
+        );
+      } else {
+        const data = await res.json();
+        Alert.alert('Sync Notice', data.message || 'Sync completed with warnings.');
+      }
+    } catch (err) {
+      Alert.alert('Network Error', 'Unable to reach server. Your offline data is still saved locally.');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   // Secure QR Renewal with Password Verification
