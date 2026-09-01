@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="act_mob_01" name="Citizen Registration &amp; SMS OTP Verification Activity">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title Box -->
+        <mxCell id="tbox" value="Process Flow [ACT-M01]: Citizen Registration &amp; SMS OTP Verification Activity" style="text;html=1;strokeColor=#1E293B;strokeWidth=1.5;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#0F172A;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="60" y="25" width="1520" height="40" as="geometry" />
+        </mxCell>
+        <!-- Pool Container -->
+        <mxCell id="p1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="60" y="75" width="1520" height="475" as="geometry" />
+        </mxCell>
+
+        <!-- Lanes -->
+        <mxCell id="l_0" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="0" width="1460" height="156" as="geometry"/></mxCell>
+        <mxCell id="lh_0" value="LANE 1: RESIDENT (MOBILE APP)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="48" width="156" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="l_1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="156" width="1460" height="156" as="geometry"/></mxCell>
+        <mxCell id="lh_1" value="LANE 2: MITIGATEPLUS BACKEND API" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="204" width="156" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="l_2" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="312" width="1460" height="156" as="geometry"/></mxCell>
+        <mxCell id="lh_2" value="LANE 3: SEMAPHORE SMS GATEWAY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="360" width="156" height="60" as="geometry"/></mxCell>
+
+        <!-- Nodes -->
+        <mxCell id="n1" value="START" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="130" y="125" width="55" height="45" as="geometry"/></mxCell>
+        <mxCell id="n2" value="Open App,&lt;br&gt;Tap Register" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="210" y="120" width="105" height="55" as="geometry"/></mxCell>
+        <mxCell id="n3" value="Fill Household Form&lt;br&gt;&amp;amp; Attach Valid ID" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="340" y="120" width="135" height="55" as="geometry"/></mxCell>
+        
+        <mxCell id="n4" value="Validate Form Fields&lt;br&gt;&amp;amp; Barangay Scope" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="340" y="275" width="135" height="50" as="geometry"/></mxCell>
+        <mxCell id="n5" value="Form&lt;br&gt;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.15;" vertex="1" parent="1"><mxGeometry x="350" y="350" width="115" height="65" as="geometry"/></mxCell>
+        <mxCell id="n6" value="Show Validation Error&lt;br&gt;&amp;amp; Highlight Field" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="190" y="355" width="130" height="55" as="geometry"/></mxCell>
+        
+        <mxCell id="n7" value="Submit Phone Number&lt;br&gt;for OTP Verification" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="500" y="120" width="135" height="55" as="geometry"/></mxCell>
+        <mxCell id="n8" value="Generate 6-Digit OTP&lt;br&gt;(Crypto, 5-min exp)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="500" y="275" width="135" height="50" as="geometry"/></mxCell>
+        <mxCell id="n9" value="Dispatch OTP via&lt;br&gt;Semaphore SMS API" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="500" y="430" width="135" height="50" as="geometry"/></mxCell>
+        <mxCell id="n10" value="SMS Delivered&lt;br&gt;to Citizen Phone" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="660" y="430" width="130" height="50" as="geometry"/></mxCell>
+        
+        <mxCell id="n11" value="Enter 6-Digit OTP&lt;br&gt;Code in Mobile App" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="815" y="120" width="135" height="55" as="geometry"/></mxCell>
+        <mxCell id="n12" value="Verify OTP Match&lt;br&gt;&amp;amp; Expiration" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="815" y="275" width="135" height="50" as="geometry"/></mxCell>
+        <mxCell id="n13" value="OTP&lt;br&gt;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.15;" vertex="1" parent="1"><mxGeometry x="825" y="350" width="115" height="65" as="geometry"/></mxCell>
+        <mxCell id="n14" value="Show OTP Invalid&lt;br&gt;&amp;amp; Resend Button" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="665" y="355" width="130" height="55" as="geometry"/></mxCell>
+        
+        <mxCell id="n15" value="Create Household in DB&lt;br&gt;(PENDING_VERIFICATION)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="980" y="275" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="n16" value="Display &quot;Submitted&quot;&lt;br&gt;Wait for Barangay Review" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="1170" y="120" width="155" height="55" as="geometry"/></mxCell>
+        <mxCell id="n17" value="END (Pending)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="1355" y="125" width="95" height="45" as="geometry"/></mxCell>
+
+        <!-- Connections -->
+        <mxCell id="c_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n2" target="n3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n3" target="n4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n4" target="n5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        
+        <!-- Form Invalid (Left loopback) -->
+        <mxCell id="c_4" value="No (Invalid)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=9.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="n5" target="n6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_5" value="Correct" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=9;exitX=0.5;exitY=0;entryX=0;entryY=0.5;" edge="1" parent="1" source="n6" target="n3">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="255" y="220"/><mxPoint x="320" y="220"/><mxPoint x="320" y="147"/></Array></mxGeometry>
+        </mxCell>
+        
+        <!-- Form Valid (Right & Up) -->
+        <mxCell id="c_6" value="Yes (Valid)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=1.8;fontColor=#1557B0;fontStyle=1;fontSize=9.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n5" target="n7">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="480" y="382"/><mxPoint x="480" y="147"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="c_7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n7" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n8" target="n9"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n9" target="n10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="805" y="455"/><mxPoint x="805" y="147"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="c_11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n11" target="n12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="n12" target="n13"><mxGeometry relative="1" as="geometry"/></mxCell>
+        
+        <!-- OTP Invalid (Left retry) -->
+        <mxCell id="c_13" value="No (Expired)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=9.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="n13" target="n14"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_14" value="Retry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=1.5;fontColor=#DC2626;fontSize=9;exitX=0.5;exitY=0;entryX=0;entryY=0.5;" edge="1" parent="1" source="n14" target="n11">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="730" y="220"/><mxPoint x="795" y="220"/><mxPoint x="795" y="147"/></Array></mxGeometry>
+        </mxCell>
+        
+        <!-- OTP Valid (Right & Up) -->
+        <mxCell id="c_15" value="Yes (Valid)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=1.8;fontColor=#1557B0;fontStyle=1;fontSize=9.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n13" target="n15">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="382"/><mxPoint x="960" y="300"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="c_16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n15" target="n16">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1155" y="300"/><mxPoint x="1155" y="147"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="c_17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n16" target="n17"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

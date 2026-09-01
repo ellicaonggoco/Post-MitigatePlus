@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/User');
 const Household = require('../models/Household');
 const Distribution = require('../models/Distribution');
 const AssistanceRequest = require('../models/AssistanceRequest');
@@ -352,6 +353,16 @@ router.post('/regenerate-qr', protect, async (req, res) => {
     const { householdId, reason } = req.body;
 
     if (req.user.role === 'resident') {
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ message: 'Kailangan ang inyong account password upang ma-renew ang inyong QR Pass.' });
+      }
+      const user = await User.findById(req.user._id);
+      if (!user) return res.status(404).json({ message: 'User account not found.' });
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Maling password. Hindi mapalitan ang QR Pass nang walang tamang password para sa inyong seguridad.' });
+      }
       household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
     } else if (['barangay_official', 'lgu_admin', 'lgu_superadmin'].includes(req.user.role)) {
       if (!householdId) {

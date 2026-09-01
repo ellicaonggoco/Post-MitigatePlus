@@ -48,7 +48,7 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
         ...(scopedHouseholdIds ? [{ $match: { householdId: { $in: scopedHouseholdIds } } }] : []),
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]).catch(() => []),
-      // Real count, not hardcoded — matches the same action name /duplicate-attempts already queries
+      // Real count, not hardcoded - matches the same action name /duplicate-attempts already queries
       AuditLog.countDocuments({
         action: 'DUPLICATE_CLAIM_BLOCKED',
         ...(scopedHouseholdIds ? { targetId: { $in: scopedHouseholdIds.map(id => id.toString()) } } : {}),
@@ -234,7 +234,7 @@ router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_ad
 
     res.json({
       success: true,
-      reportTitle: 'Republic of the Philippines — City of Manila Disaster Relief Assistance Liquidation Masterlist',
+      reportTitle: 'Republic of the Philippines - City of Manila Disaster Relief Assistance Liquidation Masterlist',
       complianceStandard: 'Commission on Audit (COA) Circular 2014-002 / DSWD DROMIC Relief Distribution Standards',
       generatedAt: new Date().toISOString(),
       generatedBy: req.user.name,

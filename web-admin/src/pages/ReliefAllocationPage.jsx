@@ -421,7 +421,7 @@ export default function ReliefAllocationPage() {
             </div>
           </div>
 
-          {/* Output box — teal bordered */}
+          {/* Output box - teal bordered */}
           <div style={{
             background: 'rgba(21,138,100,0.06)',
             border: '2px solid rgba(21,138,100,0.35)',
@@ -439,7 +439,7 @@ export default function ReliefAllocationPage() {
             <div style={{ display: 'grid', gap: '6px', background: 'var(--card)', padding: '10px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: '12px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, color: 'var(--ink)' }}>
                 <span>Standard Full Base Relief Pack</span>
-                <span style={{ color: 'var(--manila-blue)', background: 'var(--manila-blue-light)', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 }}>{basePacks} Pack (Covers 1–{policy.baseCoverage} pax)</span>
+                <span style={{ color: 'var(--manila-blue)', background: 'var(--manila-blue-light)', padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 }}>{basePacks} Pack (Covers 1-{policy.baseCoverage} pax)</span>
               </div>
               {excessMembers > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--ink)' }}>
@@ -462,7 +462,7 @@ export default function ReliefAllocationPage() {
             </div>
 
             <div style={{ fontSize: '11px', color: 'var(--ink)', lineHeight: 1.4, background: 'var(--card)', padding: '8px 10px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)' }}>
-              <strong>Klaripikasyon sa Pamamahagi:</strong> Ang pamilyang may {n} miyembro ay makakatanggap ng <strong>1 buong Standard Base Relief Pack</strong>, kasama ang <strong>{extraMemberTopUps} Supplemental Top-Up Pack(s)</strong> para sa {excessMembers} karagdagang miyembro{seniorBonusPacks > 0 ? ` + ${seniorBonusPacks} Senior Bonus` : ''}{pwdBonusPacks > 0 ? ` + ${pwdBonusPacks} PWD Bonus` : ''} — <em>hindi ito 3 buong base relief packs.</em>
+              <strong>Klaripikasyon sa Pamamahagi:</strong> Ang pamilyang may {n} miyembro ay makakatanggap ng <strong>1 buong Standard Base Relief Pack</strong>, kasama ang <strong>{extraMemberTopUps} Supplemental Top-Up Pack(s)</strong> para sa {excessMembers} karagdagang miyembro{seniorBonusPacks > 0 ? ` + ${seniorBonusPacks} Senior Bonus` : ''}{pwdBonusPacks > 0 ? ` + ${pwdBonusPacks} PWD Bonus` : ''} - <em>hindi ito 3 buong base relief packs.</em>
             </div>
           </div>
         </div>

@@ -549,7 +549,7 @@ export default function SmartPriorityDashboard() {
                           fontWeight: 700, fontSize: '13px',
                           color: hh.damageLevel === 'Totally Damaged' || hh.damageLevel === 'Severe' ? 'var(--danger)' : 'var(--ink)',
                         }}>
-                          {hh.damageLevel || '—'}
+                          {hh.damageLevel || '-'}
                         </span>
                       </td>
                       <td>

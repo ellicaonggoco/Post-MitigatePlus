@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MitigatePlus - Master Per-Activity Process Flows</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: #FFFFFF; padding: 40px 20px; display: flex; justify-content: center; color: #0F172A; }
+  .container { width: 1480px; background: #FFFFFF; border: 2px solid #1E293B; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 40px; }
+  
+  .header-box { border: 2px solid #1E293B; padding: 20px; text-align: center; margin-bottom: 30px; background: #FFFFFF; }
+  .header-title { font-size: 24px; font-weight: 900; color: #0F172A; text-transform: uppercase; }
+  .header-sub { font-size: 13px; color: #475569; margin-top: 6px; font-weight: 600; }
+
+  .palette-badge { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid #1557B0; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 800; color: #1557B0; margin-top: 10px; }
+  .color-dot { width: 12px; height: 12px; border-radius: 2px; }
+  .dot-navy { background: #1557B0; border: 1px solid #0F172A; }
+  .dot-white { background: #FFFFFF; border: 1px solid #1E293B; }
+
+  .section-title { font-size: 16px; font-weight: 900; color: #1557B0; border-bottom: 2px solid #1557B0; padding-bottom: 6px; margin-top: 25px; margin-bottom: 15px; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .card { border: 1.5px solid #1E293B; border-radius: 6px; padding: 16px; background: #FFFFFF; display: flex; flex-direction: column; justify-content: space-between; }
+  
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .card-num { font-size: 10.5px; font-weight: 900; background: #1557B0; color: #FFFFFF; padding: 2px 7px; border-radius: 3px; }
+  .card-lane-tag { font-size: 9.5px; font-weight: 800; color: #475569; border: 1px solid #CBD5E1; padding: 2px 6px; border-radius: 3px; }
+
+  .card-title { font-size: 13.5px; font-weight: 800; color: #0F172A; line-height: 1.3; margin-bottom: 6px; }
+  .card-desc { font-size: 11px; color: #475569; line-height: 1.45; margin-bottom: 12px; }
+
+  .card-footer { border-top: 1px solid #E2E8F0; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .file-name { font-size: 10px; font-family: monospace; font-weight: 700; color: #1557B0; }
+  .file-badge { font-size: 9px; font-weight: 800; color: #0F172A; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 2px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <div class="header-box">
+    <div class="header-title">MitigatePlus - Master Per-Activity Process Flows</div>
+    <div class="header-sub">Exhaustive End-to-End Activity Flows across Web &amp; Mobile Operations • ZERO Empty Lanes</div>
+    <div class="palette-badge">
+      <span>Two-Tone Palette:</span>
+      <div class="color-dot dot-navy"></div> <span>Deep Navy Blue (#1557B0)</span>
+      <div class="color-dot dot-white"></div> <span>Pure White (#FFFFFF)</span>
+    </div>
+  </div>
+
+  <div class="section-title">📱 GROUP A: MOBILE APPLICATION ACTIVITIES (10 ACTIVITIES)</div>
+  <div class="grid">
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M01</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Citizen Registration & SMS OTP Verification Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_01_Citizen_Registration_SMS_OTP_Verification.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M02</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Citizen Authentication & Password Reset Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_02_Citizen_Authentication_Password_Reset.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M03</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Digital QR Relief Pass & Offline Sync Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_03_Digital_QR_Pass_Offline_Sync.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M04</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Post-Disaster Livelihood & Cash-For-Work Grants</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_04_Post_Disaster_Cash_For_Work_Employment.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M05</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Disaster Damage Reporting & Live GPS Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_05_Disaster_Damage_Reporting_GPS_Photo.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M06</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Relief Claims History & Distribution Receipts Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_06_Relief_Claims_History_Tracking.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M07</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Household Member Count & Bilingual Switcher Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_07_Household_Profile_Members_i18n_Update.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M08</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Field Staff QR Scanner & Anti-Duplicate Relief Release Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_08_Staff_QR_Scan_Anti_Duplicate_Release.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M09</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Door-to-Door Special Assistance Delivery Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_09_Special_Assistance_Door_to_Door_Delivery.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-M10</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Field Staff On-Ground Incident & Hazard Reporting Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_10_Field_Staff_Incident_Hazard_Reporting.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+  </div>
+
+  <div class="section-title" style="margin-top: 35px;">🏛️ GROUP B: WEB ADMIN APPLICATION ACTIVITIES (14 ACTIVITIES)</div>
+  <div class="grid">
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W01</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Barangay Household Verification Queue & ID Review Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_11_Barangay_Household_Verification_Queue.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W02</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Relief Distribution Event Scheduling & Lifecycle Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_12_Relief_Distribution_Event_Scheduling.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W03</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Right-Sized Relief Allocation Policy & Quota Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_13_Right_Sized_Relief_Allocation_Policy.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W04</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Real-Time Fraud Interception & Suspect Claims Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_14_Fraud_Interception_Duplicate_Stream.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W05</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Warehouse Inventory Stock Tracking & Buffer Alert Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_15_Warehouse_Inventory_Buffer_Alert.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W06</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">GIS Flood Risk Heatmap & Inundation Mapping Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_16_GIS_Flood_Risk_Heatmap_Mapping.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W07</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Smart Priority Vulnerability Ranking & Data Export Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_17_Smart_Priority_Vulnerability_Ranking.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W08</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Special Assistance Review & Staff Dispatch Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_18_Special_Assistance_Staff_Dispatch.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W09</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Emergency Bulletins & Announcements Broadcast Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_19_Emergency_Bulletins_Announcements_Broadcast.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W10</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Official Account Provisioning & Role Governance Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_20_Official_Account_Provisioning_Governance.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W11</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Global Relief Policy & Thresholds Configuration Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_21_Global_Relief_Policy_Thresholds_Config.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W12</span>
+            <span class="card-lane-tag">3 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Disaster Recovery Phase Stepper Milestone Transition Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_22_Disaster_Recovery_Phase_Milestone_Transition.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W13</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">Relief Assistance Gap Analysis & City-Wide Reporting Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_23_Relief_Assistance_Gap_Analysis_Reporting.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+      <div class="card">
+        <div>
+          <div class="card-top">
+            <span class="card-num">ACT-W14</span>
+            <span class="card-lane-tag">2 Active Swimlanes</span>
+          </div>
+          <div class="card-title">System Security Audit Trail & COA Compliance Archiving Activity</div>
+        </div>
+        <div class="card-footer">
+          <span class="file-name">Activity_24_System_Security_Audit_Trail_Archiving.drawio</span>
+          <span class="file-badge">Draw.io XML</span>
+        </div>
+      </div>
+    
+  </div>
+
+</div>
+
+</body>
+</html>

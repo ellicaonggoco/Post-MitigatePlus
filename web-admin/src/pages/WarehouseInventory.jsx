@@ -214,7 +214,7 @@ export default function WarehouseInventory() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               {actionType === 'restock' ? <PackageCheck size={18} color="#158A64" /> : <Send size={18} color="#DC2626" />}
-              {actionType === 'restock' ? 'Receive Incoming Stock' : 'Authorized Warehouse Dispatch'} — {selectedItem.name || selectedItem.item}
+              {actionType === 'restock' ? 'Receive Incoming Stock' : 'Authorized Warehouse Dispatch'} - {selectedItem.name || selectedItem.item}
             </h3>
             <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
               Current Available: <strong>{selectedItem.stock.toLocaleString()} {selectedItem.unit}</strong>
@@ -501,7 +501,7 @@ export default function WarehouseInventory() {
                       {log.approvingOfficial || log.performedByName || (log.performedBy?.name || 'Authorized Officer')}
                     </td>
                     <td style={{ padding: '10px 12px', fontSize: 12, color: 'var(--ink-soft)' }}>
-                      {log.referenceNo || log.notes || '—'}
+                      {log.referenceNo || log.notes || '-'}
                     </td>
                   </tr>
                 ))}

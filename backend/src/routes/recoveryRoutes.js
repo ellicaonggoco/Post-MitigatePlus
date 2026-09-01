@@ -73,6 +73,14 @@ router.put('/:householdId', protect, requireRole('lgu_admin', 'lgu_superadmin', 
       await recovery.save();
     }
     await AuditLog.create({ actorUserId: req.user._id, actorRole: req.user.role, action: 'UPDATE_RECOVERY_STATUS', targetType: 'Household', targetId: req.params.householdId, notes: `Status changed to ${status}` });
+    
+    // Broadcast real-time update to mobile resident & web admin
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`household:${recovery.householdId}`).emit('recovery_status_updated', status);
+      io.emit('recovery_updated', { householdId: recovery.householdId, status });
+    }
+
     res.json(recovery);
   } catch (err) {
     res.status(400).json({ message: err.message });

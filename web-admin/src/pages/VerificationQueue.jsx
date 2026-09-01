@@ -176,7 +176,7 @@ export default function VerificationQueue() {
               Resident Account Verification Queue
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
-              First layer of relief fairness — official confirmation before relief access unlocks.
+              First layer of relief fairness - official confirmation before relief access unlocks.
             </p>
           </div>
         </div>
@@ -465,7 +465,7 @@ export default function VerificationQueue() {
                   )}
                 </div>
 
-                {/* Card Footer — actions */}
+                {/* Card Footer - actions */}
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <input
                     type="text"
@@ -499,7 +499,7 @@ export default function VerificationQueue() {
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, padding: '12px 18px', background: 'var(--card)', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-            Showing <strong>{startIndex + 1}–{Math.min(startIndex + ITEMS_PER_PAGE, households.length)}</strong> of <strong>{households.length}</strong> pending households
+            Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, households.length)}</strong> of <strong>{households.length}</strong> pending households
           </div>
 
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

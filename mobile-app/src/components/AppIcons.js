@@ -157,6 +157,22 @@ export function ChevronLeftIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
+export function ChevronDownIcon({ size = 18, color = '#1557B0' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="6 9 12 15 18 9" />
+    </Svg>
+  );
+}
+
+export function ChevronUpIcon({ size = 18, color = '#1557B0' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="18 15 12 9 6 15" />
+    </Svg>
+  );
+}
+
 export function CheckIcon({ size = 16, color = '#059669' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -298,6 +314,28 @@ export function DownloadIcon({ size = 18, color = '#FFFFFF' }) {
       <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <Polyline points="7 10 12 15 17 10" />
       <Line x1="12" y1="15" x2="12" y2="3" />
+    </Svg>
+  );
+}
+
+export function PrinterIcon({ size = 18, color = '#1557B0' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="6 9 6 2 18 2 18 9" />
+      <Path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <Rect x="6" y="14" width="12" height="8" />
+    </Svg>
+  );
+}
+
+export function FileTextIcon({ size = 18, color = '#1557B0' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Polyline points="14 2 14 8 20 8" />
+      <Line x1="16" y1="13" x2="8" y2="13" />
+      <Line x1="16" y1="17" x2="8" y2="17" />
+      <Polyline points="10 9 9 9 8 9" />
     </Svg>
   );
 }
@@ -451,3 +489,75 @@ export function MicrophoneIcon({ size = 18, color = '#7C3AED' }) {
   );
 }
 
+
+export function ShovelIcon({ size = 20, color = '#B45309' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M2 22v-5l5-5 5 5-5 5z" />
+      <Path d="M9.5 14.5L16 8" />
+      <Path d="M17 2l5 5-3.5 3.5-5-5z" />
+      <Path d="M2 22h8" />
+    </Svg>
+  );
+}
+
+export function BroomIcon({ size = 20, color = '#0F766E' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M18 3l3 3-9 9-3-3 9-9z" />
+      <Path d="M9 12l-6 6 3 3 6-6" />
+      <Line x1="3" y1="21" x2="9" y2="15" />
+      <Path d="M13 18c2 0 3 1 4 1s2-1 4-1" />
+    </Svg>
+  );
+}
+
+export function SprayIcon({ size = 20, color = '#7C3AED' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M10 8h6v12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V8z" />
+      <Path d="M10 8V5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v3" />
+      <Path d="M7 5h3" />
+      <Line x1="5" y1="3" x2="3" y2="5" />
+      <Line x1="6" y1="2" x2="6" y2="3" />
+    </Svg>
+  );
+}
+
+export function BoxPackageIcon({ size = 20, color = '#C2410C' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <Polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <Line x1="12" y1="22.08" x2="12" y2="12" />
+    </Svg>
+  );
+}
+
+export function HammerToolIcon({ size = 20, color = '#B45309' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M15 12l-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9" />
+      <Path d="M17.64 4.36L20.46 7.18a2 2 0 0 1 0 2.82l-1.41 1.41-5.66-5.66 1.41-1.41a2 2 0 0 1 2.84 0z" />
+      <Line x1="2" y1="2" x2="5" y2="5" />
+    </Svg>
+  );
+}
+
+export function BriefcaseIcon({ size = 20, color = '#1557B0', filled = false }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.2 : 2.0} strokeLinecap="round" strokeLinejoin="round">
+      {/* Hammer Handle & Head */}
+      <Path d="M15 12l-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9" fill={filled ? color + '20' : 'none'} />
+      <Path d="M17.64 4.36L20.46 7.18a2 2 0 0 1 0 2.82l-1.41 1.41-5.66-5.66 1.41-1.41a2 2 0 0 1 2.84 0z" fill={filled ? color : 'none'} />
+      {/* Crossed Wrench Head & Grip */}
+      <Path d="M6 3.5a3 3 0 0 0 3 3l1.5-1.5-2-2-1.5 1.5A1.5 1.5 0 0 1 6 3.5z" fill={filled ? color : 'none'} />
+      <Line x1="8" y1="5.5" x2="19" y2="16.5" strokeWidth={filled ? 2.3 : 2.0} />
+      <Path d="M19 16.5l1.5 1.5a1.5 1.5 0 0 1-2.12 2.12L17 18.5" />
+    </Svg>
+  );
+}
+
+export function LivelihoodIcon(props) {
+  return <BriefcaseIcon {...props} />;
+}

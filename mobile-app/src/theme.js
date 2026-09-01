@@ -56,64 +56,69 @@ export const RESPONSIVE = {
 };
 
 // ============================================================================
-// INTENTIONAL COLOR SYSTEM (60-30-10 CIVIC HARMONY)
-// - 60% Canvas & Surfaces: Pearl White & Clean Card White (#F8F9F7, #FFFFFF)
-// - 30% Structural Blue & Slate Navy: Authority & Readability (#1557B0, #172B4D)
-// - 10% Purposeful Accents: Manila Gold (#D97706), Emerald (#16A34A), Coral (#DC2626)
+// PREMIUM DARK NAVY + GOLD CIVIC SYSTEM
+// - 60% Deep Navy Surfaces: #0A1628 (canvas), #0F2040 (cards), #162035 (elevated)
+// - 30% Midnight Blue Structural: #1A3A6B (borders), #243B6E (dividers)
+// - 10% Manila Gold Accents: #F59E0B (primary gold), #FBBF24 (bright gold), #FCD34D (soft gold)
+// Premium feel: Government VIP / High-Authority Civic App
 // ============================================================================
 export const COLORS = {
-  // 60% Canvas & Surfaces
-  bg: '#F8F9F7', // Pearl White Canvas
-  surface: '#FFFFFF', // Pure White Elevated Surfaces
-  card: '#FFFFFF',
-  cardAlt: '#F1F5F9',
-  well: '#F8F9F7',
-  wellDark: '#E8F2FF',
+  // 60% Deep Navy Canvas & Surfaces
+  bg: '#0A1628',
+  surface: '#0F2040',
+  card: '#0F2040',
+  cardAlt: '#162850',
+  well: '#071020',
+  wellDark: '#050D1A',
 
-  // 30% Structural Authority & Typography
-  primary: '#1557B0', // Manila Primary Blue
-  royalNavy: '#1557B0',
-  navyDark: '#0B2E59', // Deep Institutional Navy
-  navyDeep: '#0B2E59',
-  blueLight: '#E8F2FF', // Soft Sky Blue Tint
-  blueBorder: '#BFDBFE',
-  info: '#2563EB',
+  // 30% Structural Navy Borders & Dividers
+  primary: '#F59E0B',
+  royalNavy: '#1A3A6B',
+  navyDark: '#0D2444',
+  navyDeep: '#071020',
+  blueLight: '#1A2E4A',
+  blueBorder: '#1E3A5F',
+  info: '#60A5FA',
 
-  // High-Contrast WCAG AAA Typography
-  textDark: '#172B4D', // Primary Text (Slate Navy)
-  textSecondary: '#475569', // Secondary Text (Slate Gray)
-  textMuted: '#64748B', // Tertiary / Helper Text
+  // High-Contrast Typography (white on dark)
+  textDark: '#F0F6FF',
+  textSecondary: '#94A3C0',
+  textMuted: '#5A7498',
   pureWhite: '#FFFFFF',
 
-  // 10% Semantic & Prestige Accents (Used strictly with purpose)
-  // 1. Manila Metallic Gold (Official Priority Index & QR Security Seal)
-  manilaGold: '#D97706',
-  goldDark: '#B45309',
-  goldLight: '#FEF3C7',
-  goldBorder: '#FDE68A',
+  // 10% Manila Gold Prestige Accents
+  manilaGold: '#F59E0B',
+  goldDark: '#D97706',
+  goldBright: '#FBBF24',
+  goldLight: '#1E1A00',
+  goldBorder: '#92620A',
+  goldGlow: 'rgba(245,158,11,0.18)',
 
-  // 2. Emerald Resilience (Verified Status, Claimed Ayuda, Active Checks)
-  success: '#16A34A',
-  emeraldLight: '#ECFDF5',
-  emeraldBorder: '#A7F3D0',
+  // Emerald Resilience
+  success: '#10B981',
+  emeraldLight: '#052E1A',
+  emeraldBorder: '#065F46',
+  emeraldText: '#34D399',
 
-  // 3. Coral / Crimson Alert (Emergency Hotlines, Severe Damage, Urgent Alerts)
-  emergency: '#DC2626',
-  crimsonLight: '#FEE2E2',
-  crimsonBorder: '#FCA5A5',
+  // Alert Red
+  emergency: '#EF4444',
+  crimsonLight: '#1F0808',
+  crimsonBorder: '#7F1D1D',
+  crimsonText: '#FCA5A5',
 
-  // 4. Amber Advisory (Pending Reviews, Moderation Alerts)
+  // Amber Advisory
   warning: '#F59E0B',
-  amberLight: '#FFFBEB',
-  amberBorder: '#FCD34D',
+  amberLight: '#1C1200',
+  amberBorder: '#78350F',
+  amberText: '#FCD34D',
 
-  // Razor-sharp 1px structural dividers
-  border: '#D9E2EC',
-  borderLight: '#EDF2F7',
-  borderDark: '#CBD5E1',
-  borderFocus: '#1557B0',
+  // Structural dividers
+  border: '#1E3A5F',
+  borderLight: '#162040',
+  borderDark: '#243B6E',
+  borderFocus: '#F59E0B',
 
-  shadowColor: '#0F172A',
+  shadowColor: '#000000',
 };
 
 // ============================================================================
@@ -156,84 +161,98 @@ export const RADIUS = {
   md: 12,
   lg: 16,
   xl: 20,
+  inner: 10,
+  card: 16,
   pill: 9999,
 };
 
 // ============================================================================
-// CUSTOM SOFT DIFFUSED SHADOWS (Layered, Subtle & Non-Harsh)
+// PREMIUM DARK SHADOWS (Deeper, richer on dark background)
 // ============================================================================
 export const SHADOWS = {
   sm: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.30,
+    shadowRadius: 4,
     elevation: 3,
   },
-  lg: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
+  md: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.40,
+    shadowRadius: 12,
     elevation: 6,
   },
-  floating: {
-    shadowColor: '#0B2E59',
+  lg: {
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 24,
-    elevation: 10,
+    shadowOpacity: 0.50,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  floating: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.60,
+    shadowRadius: 28,
+    elevation: 18,
+  },
+  gold: {
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 7,
   },
 };
 
 // ============================================================================
-// RESPONSIVE CARD HELPERS
+// CARD VARIANTS (Premium dark surfaces)
 // ============================================================================
 export const NEUMORPHIC = {
   raised: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#1E3A5F',
     ...SHADOWS.md,
   },
   sunken: {
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#071020',
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#162040',
   },
   pressed: {
-    backgroundColor: '#E8F2FF',
+    backgroundColor: '#162040',
     borderWidth: 1.5,
-    borderColor: '#1557B0',
+    borderColor: '#F59E0B',
+  },
+  gold: {
+    backgroundColor: '#0F2040',
+    borderWidth: 1.5,
+    borderColor: '#92620A',
   },
 };
 
 export const BUTTON_VARIANTS = {
   primary: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
-    textColor: '#FFFFFF',
+    backgroundColor: '#F59E0B',
+    borderColor: '#D97706',
+    textColor: '#0A1628',
   },
   secondary: {
-    backgroundColor: '#E8F2FF',
-    borderColor: '#BFDBFE',
-    textColor: '#1557B0',
+    backgroundColor: '#162850',
+    borderColor: '#1E3A5F',
+    textColor: '#F0F6FF',
   },
   danger: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
+    backgroundColor: '#EF4444',
+    borderColor: '#B91C1C',
     textColor: '#FFFFFF',
   },
   ghost: {
     backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    textColor: '#172B4D',
+    borderColor: '#1E3A5F',
+    textColor: '#F0F6FF',
   },
 };

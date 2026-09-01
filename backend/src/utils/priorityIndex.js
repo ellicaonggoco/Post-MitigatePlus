@@ -12,7 +12,7 @@
  *   +3 per child
  *   +5 if medical needs flagged
  * assistanceReceivedPenalty: flat -10 if household already received substantial assistance
- *   this cycle (NOT scaled by count of past distributions — a household that legitimately
+ *   this cycle (NOT scaled by count of past distributions - a household that legitimately
  *   needs food AND medicine AND shelter shouldn't be penalized multiple times just for
  *   having multiple distinct needs already partly met).
  * 
@@ -49,7 +49,7 @@ function calculatePriorityIndex(household, createdDate = null, assistanceReceive
   const daysPending = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   const pendingPoints = Math.min(daysPending, 30);
 
-  // Flat penalty, not scaled by count — see note above.
+  // Flat penalty, not scaled by count - see note above.
   const assistanceReceivedPenalty = assistanceReceivedCount > 0 ? 10 : 0;
 
   const priorityScore = (damageWeight * 10) + vulnerabilityPoints + pendingPoints - assistanceReceivedPenalty;

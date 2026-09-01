@@ -21,6 +21,7 @@ const WarehouseInventory = lazy(() => import("./pages/WarehouseInventory"));
 const FraudInterception = lazy(() => import("./pages/FraudInterception"));
 const RecoveryProgressTracker = lazy(() => import("./pages/RecoveryProgressTracker"));
 const SpecialRequestRelief = lazy(() => import("./pages/SpecialRequestRelief"));
+const LivelihoodAssistance = lazy(() => import("./pages/LivelihoodAssistance"));
 const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
 const GlobalPolicyConfig = lazy(() => import("./pages/GlobalPolicyConfig"));
 const AccountSecurityPage = lazy(() => import("./pages/AccountSecurityPage"));
@@ -219,7 +220,7 @@ function AppRoutes() {
     "/warehouse-inventory": "Warehouse Inventory",
     "/fraud-interception": "Fraud Interception",
     "/recovery-progress": "Recovery Progress Tracker",
-    "/special-request-relief": "Special Request Relief",
+    "/special-request-relief": "Livelihood Assistance (Cash-for-Work)",
     "/announcements": "Announcements",
     "/global-policy": "Global Policy Configuration",
     "/system-audit-logs": "System Audit Logs",
@@ -357,6 +358,7 @@ function AppRoutes() {
             <Route path="/warehouse-inventory" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><WarehouseInventory /></RoleProtectedRoute>} />
             <Route path="/fraud-interception" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><FraudInterception /></RoleProtectedRoute>} />
             <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
+            <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
             <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
             <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
             <Route path="/provision-accounts" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ProvisionAccounts /></RoleProtectedRoute>} />

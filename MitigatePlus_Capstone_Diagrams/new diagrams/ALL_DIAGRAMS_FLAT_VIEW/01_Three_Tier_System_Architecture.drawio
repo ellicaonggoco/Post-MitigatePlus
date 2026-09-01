@@ -1,0 +1,231 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="mitigateplus_3tier_arch" name="MitigatePlus 3-Tier System Architecture">
+    <mxGraphModel dx="1608" dy="945" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1050" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="web_title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontFamily=Helvetica;fontColor=#000000;lineHeight=1.2;" value="&lt;b&gt;(WEB USER)&lt;/b&gt;&lt;br&gt;&lt;b&gt;LGU SUPERADMIN / ADMIN &amp;amp;&lt;br&gt;BARANGAY OFFICIALS&lt;/b&gt;" vertex="1">
+          <mxGeometry height="58" width="230" x="125" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="web_container" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;" value="" vertex="1">
+          <mxGeometry height="660" width="300" x="65" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="web_login" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;fontFamily=Helvetica;" value="&lt;b&gt;LOGIN &amp;amp; SECURE AUTH&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="270" x="80" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="web_arrow1" edge="1" parent="1" source="web_login" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="web_dashboard" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="215" y="235" as="sourcePoint" />
+            <mxPoint x="215" y="265" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="web_dashboard" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;EXECUTIVE COMMAND DASHBOARD&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(City KPIs, Phase Stepper, Active Events)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="web_verification" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;HOUSEHOLD VERIFICATION QUEUE&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Gov ID Inspection, Approval/Rejection)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="web_distribution" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;DISTRIBUTION &amp;amp; RELIEF ALLOCATION&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Right-Sized Formula, Event Lifecycle)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="web_heatmap" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;GIS RISK HEATMAP &amp;amp; INUNDATION&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Leaflet Map, Damage Dots, Smart Priority)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="505" as="geometry" />
+        </mxCell>
+        <mxCell id="web_warehouse" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;WAREHOUSE INVENTORY MANAGEMENT&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Stock Levels, In/Out Logs, Buffer Stock)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="web_archive" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;SYSTEM AUDIT LOGS &amp;amp; GLOBAL POLICY&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Fraud Stream, Policy Thresholds, Archive)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="665" as="geometry" />
+        </mxCell>
+        <mxCell id="web_accounts" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;USER PROVISIONING &amp;amp; ANNOUNCEMENTS&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#4B5563&quot;&gt;(Role Provisioning, Emergency Broadcasts)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="270" x="80" y="745" as="geometry" />
+        </mxCell>
+        <mxCell id="server_title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontFamily=Helvetica;" value="&lt;font color=&quot;#1557b0&quot;&gt;&lt;u&gt;&lt;b&gt;SERVER SIDE&lt;/b&gt;&lt;/u&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="25" width="130" x="495" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="server_node_express" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontSize=14;fontFamily=Helvetica;" value="&lt;b&gt;node &lt;font color=&quot;#339933&quot;&gt;(JS)&lt;/font&gt;   +   EXPRESS &lt;font color=&quot;#F7DF1E&quot;&gt;Js&lt;/font&gt;   +   Socket.io&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="310" x="440" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="business_title" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontFamily=Helvetica;" value="&lt;font color=&quot;#1557b0&quot;&gt;&lt;u&gt;&lt;b&gt;BUSINESS LAYER&lt;/b&gt;&lt;/u&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="25" width="150" x="400" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="business_container" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;" value="" vertex="1">
+          <mxGeometry height="310" width="390" x="400" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_auth" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;AUTHENTICATION &amp;amp;&lt;br&gt;RBAC JWT SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="415" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_hh" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;HOUSEHOLD VERIFICATION&lt;br&gt;&amp;amp; ID AUDIT SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="600" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_qr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;QR PASS GENERATOR &amp;amp;&lt;br&gt;ANTI-DUPLICATE ENGINE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="415" y="318" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_gis" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;GIS RISK HEATMAP &amp;amp;&lt;br&gt;SMART PRIORITY ENGINE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="600" y="318" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_alloc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;RIGHT-SIZED RELIEF&lt;br&gt;ALLOCATION SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="415" y="372" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_wh" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;WAREHOUSE INVENTORY&lt;br&gt;&amp;amp; BUFFER STOCK SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="600" y="372" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_damage" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;DAMAGE REPORTING &amp;amp;&lt;br&gt;FIELD INCIDENT SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="415" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_sms" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;SEMAPHORE SMS OTP &amp;amp;&lt;br&gt;EMAIL DISPATCH SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="42" width="175" x="600" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_ai" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;CASH-FOR-WORK EMPLOYMENT &amp;amp;&lt;br&gt;AI DISASTER TRIAGE ADVISORY SERVICE&lt;/b&gt;" vertex="1">
+          <mxGeometry height="48" width="360" x="415" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_node_biz_down" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="580" y="210" as="sourcePoint" />
+            <mxPoint x="580" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_node_biz_up" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="605" y="250" as="sourcePoint" />
+            <mxPoint x="605" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="storage_title" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontFamily=Helvetica;" value="&lt;font color=&quot;#1557b0&quot;&gt;&lt;u&gt;&lt;b&gt;STORAGE LAYER&lt;/b&gt;&lt;/u&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="25" width="130" x="400" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="isp_box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=13;fontFamily=Helvetica;" value="&lt;b&gt;ISP&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="60" x="565" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="isp_label" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontFamily=Helvetica;fontColor=#000000;" value="&lt;b&gt;(INTERNET SERVICE PROVIDER)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="25" width="180" x="630" y="587" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_biz_isp_down" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="585" y="560" as="sourcePoint" />
+            <mxPoint x="585" y="580" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_biz_isp_up" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="605" y="580" as="sourcePoint" />
+            <mxPoint x="605" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mongo_logo" parent="1" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn.iconscout.com/icon/free/png-512/free-mongodb-logo-icon-download-in-svg-png-gif-file-formats--brand-social-media-card-pack-logos-icons-1175138.png;" value="" vertex="1">
+          <mxGeometry height="32" width="32" x="410" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="mongo_text" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontColor=#000000;lineHeight=1.1;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;mongoDB&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;Atlas Cloud Cluster&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="95" x="445" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="indexeddb_logo" parent="1" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/4248/4248443.png;" value="" vertex="1">
+          <mxGeometry height="42" width="36" x="720" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="indexeddb_text" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontFamily=Helvetica;fontColor=#000000;lineHeight=1.1;" value="&lt;b&gt;AsyncStorage&lt;br&gt;&lt;font style=&quot;font-size: 9px;&quot; color=&quot;#4B5563&quot;&gt;(Offline SQLite Cache)&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="125" x="675" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_isp_mongo" edge="1" parent="1" source="isp_box" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=classic;startFill=1;endArrow=classic;endFill=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.9;entryY=0.5;entryDx=0;entryDy=0;" target="mongo_text" value="&lt;b&gt;&lt;font color=&quot;#FF0000&quot; style=&quot;font-size: 10px;&quot;&gt;(IF ONLINE)&lt;/font&gt;&lt;/b&gt;">
+          <mxGeometry relative="1" x="-0.2" y="-10" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="580" y="640" />
+              <mxPoint x="565" y="640" />
+              <mxPoint x="565" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_isp_indexeddb" edge="1" parent="1" source="isp_box" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=classic;startFill=1;endArrow=classic;endFill=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="indexeddb_logo" value="&lt;b&gt;&lt;font color=&quot;#FF0000&quot; style=&quot;font-size: 10px;&quot;&gt;(IF OFFLINE)&lt;/font&gt;&lt;/b&gt;">
+          <mxGeometry relative="1" x="-0.2" y="10" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="610" y="640" />
+              <mxPoint x="625" y="640" />
+              <mxPoint x="625" y="691" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mob_title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontFamily=Helvetica;fontColor=#000000;lineHeight=1.2;" value="&lt;b&gt;(MOBILE USER)&lt;/b&gt;&lt;br&gt;&lt;b&gt;MANILA RESIDENTS/COMMUNITY&lt;br&gt;&amp;amp; ON-GROUND FIELD STAFF&lt;/b&gt;" vertex="1">
+          <mxGeometry height="58" width="310" x="915" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_container" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;" value="" vertex="1">
+          <mxGeometry height="660" width="410" x="840" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_login" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;fontFamily=Helvetica;" value="&lt;b&gt;LOGIN&lt;/b&gt;" vertex="1">
+          <mxGeometry height="48" width="165" x="855" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_register" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontSize=12;fontFamily=Helvetica;" value="&lt;b&gt;REGISTER + OTP&lt;/b&gt;" vertex="1">
+          <mxGeometry height="48" width="165" x="1065" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_reg_login" edge="1" parent="1" source="mob_register" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="mob_login" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1055" y="209" as="sourcePoint" />
+            <mxPoint x="1030" y="209" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_login_profile" edge="1" parent="1" source="mob_login" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.23;entryY=0;entryDx=0;entryDy=0;" target="mob_m1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="937" y="233" as="sourcePoint" />
+            <mxPoint x="937" y="255" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mob_m1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;DIGITAL QR RELIEF PASS PROFILE&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Encrypted Token, Offline Sync, Beneficiary Info)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;CASH-FOR-WORK &amp; LIVELIHOOD ASSISTANCE&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(CFW Project Apply, Attendance QR Scan, Wage Payroll)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;DAMAGE REPORTING WITH GPS &amp;amp; CAMERA&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Live Photo Upload, Severity Tagger, Auto-Geolocation)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="354" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;SPECIAL RELIEF ASSISTANCE REQUEST&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Bedridden / Vulnerable Citizen Care, Medical Needs)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;STAFF QR SCANNER &amp;amp; RELIEF DISPATCH&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Anti-Duplicate Verification, Instant Pack Release)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="458" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;FIELD STAFF INCIDENT &amp;amp; HAZARD LOGGER&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(On-Ground Broadcast to LGU Command Center)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;RELIEF CLAIMS HISTORY &amp;amp; STATUS TRACKER&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Timestamps, Items Claimed, Distribution Events)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="562" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;LGU ANNOUNCEMENTS &amp;amp; ADVISORY HUB&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Push Notifications, Evacuation &amp; Relief Alerts)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="614" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;RECOVERY PHASE PROGRESS STEPPER&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Emergency &amp;rarr; Relief &amp;rarr; Rehabilitation Status)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="666" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;HOUSEHOLD SETTINGS &amp;amp; BILINGUAL i18n&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(Update Members, Password Reset, Tagalog/English)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="718" as="geometry" />
+        </mxCell>
+        <mxCell id="mob_m11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=10.5;fontFamily=Helvetica;" value="&lt;b&gt;ONE-TAP EMERGENCY DIRECTORY &amp;amp; HOTLINES&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9.5px;&quot; color=&quot;#4B5563&quot;&gt;(MDRRMO Rescue, EMS Ambulance, BFP, 911 PNP)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="375" x="855" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_web_to_server" edge="1" parent="1" source="web_container" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="server_node_express" value="&lt;b&gt;&lt;font color=&quot;#1557b0&quot; style=&quot;font-size: 8px;&quot;&gt;USER REQUEST (HTTPS / REST API)&lt;/font&gt;&lt;/b&gt;">
+          <mxGeometry relative="1" x="0.5385" y="5" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="385" y="500" />
+              <mxPoint x="385" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn_server_to_mobile" edge="1" parent="1" source="server_node_express" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="mob_container" value="&lt;b&gt;&lt;font color=&quot;#1557b0&quot; style=&quot;font-size: 8px;&quot;&gt;USER REQUEST (HTTPS / WebSockets)&lt;/font&gt;&lt;/b&gt;">
+          <mxGeometry relative="1" x="-0.4569" y="-15" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="815" y="185" />
+              <mxPoint x="815" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XuoaocdILxfZRDyTYNBp-1" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.users;" value="" vertex="1">
+          <mxGeometry height="42" width="42" x="915" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="XuoaocdILxfZRDyTYNBp-2" parent="1" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.users.administrator;" value="" vertex="1">
+          <mxGeometry height="36.69" width="38" x="100" y="110.65" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

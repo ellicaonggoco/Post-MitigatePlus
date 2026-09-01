@@ -126,7 +126,7 @@ const seedData = async () => {
 
     console.log('✓ Created Household & Recovery Record for Juan Dela Cruz.');
 
-    // 3. Seed Relief Items — names must match gapDetection.js STANDARD_RELIEF_ITEMS exactly
+    // 3. Seed Relief Items - names must match gapDetection.js STANDARD_RELIEF_ITEMS exactly
     await ReliefItemType.create([
       { name: 'Family Food Pack', category: 'headcount_scaled', baseCoverage: 5, topUpUnitSize: 1, unit: 'pack', currentBaseStock: 500, currentTopUpStock: 1000 },
       { name: 'Water', category: 'headcount_scaled', baseCoverage: 5, topUpUnitSize: 1, unit: 'liter', currentBaseStock: 600, currentTopUpStock: 1200 },
@@ -153,7 +153,7 @@ const seedData = async () => {
 
     // 5. Seed Announcement
     await Announcement.create({
-      title: 'Relief Distribution Schedule — Barangay 291',
+      title: 'Relief Distribution Schedule - Barangay 291',
       body: 'Distribution for Family Food Packs is ongoing at the Covered Court. Please present your household QR Code.',
       barangayCode: '291',
       postedBy: official291._id,

@@ -585,7 +585,7 @@ export default function ProvisionAccounts() {
                               background: 'var(--card)',
                               border: '1.5px solid var(--border)',
                               borderRadius: 'var(--radius-inner)',
-                              zIndex: 9999,
+                              zIndex: 9999999,
                               maxHeight: 160,
                               overflowY: 'auto',
                               boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
@@ -720,7 +720,7 @@ export default function ProvisionAccounts() {
                         <input type="text" value="City-Wide Manila" disabled style={{ ...inputStyle, background: 'var(--sampaguita)', color: 'var(--ink-soft)' }} />
                       </div>
                     ) : (
-                      /* field_staff — structured team assignment and role designation */
+                      /* field_staff - structured team assignment and role designation */
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, gridColumn: 'span 2' }}>
                         <div style={fieldGroupStyle}>
                           <label style={labelStyle}>Assigned Field Team / Unit *</label>
@@ -1101,7 +1101,7 @@ export default function ProvisionAccounts() {
                           </span>
                         </div>
                       ) : (
-                        <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>—</span>
+                        <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>-</span>
                       )}
                     </td>
                     <td>
@@ -1158,7 +1158,7 @@ export default function ProvisionAccounts() {
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', background: 'var(--card)', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
               <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Showing <strong>{startIndex + 1}–{Math.min(startIndex + ITEMS_PER_PAGE, filteredAccounts.length)}</strong> of <strong>{filteredAccounts.length}</strong> accounts
+                Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredAccounts.length)}</strong> of <strong>{filteredAccounts.length}</strong> accounts
               </div>
 
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

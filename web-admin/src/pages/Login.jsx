@@ -86,11 +86,14 @@ export default function Login() {
               </div>
 
               <MotionButton className="login-submit" type="submit" disabled={loading} style={{ marginTop: 20 }}>
-                {loading ? 'Signing in…' : <>Sign in <ArrowRight size={18} /></>}
+                {loading ? 'Signing in...' : <>Sign in <ArrowRight size={18} /></>}
               </MotionButton>
             </form>
+            <div style={{ marginTop: 14, fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
+              By logging in, you agree to official LGU Data Security Protocols and the Philippine Data Privacy Act of 2012 (RA 10173).
+            </div>
           </MotionCard>
-          <small className="login-footer" style={{ marginTop: 24, textAlign: 'center' }}>© 2026 City of Manila · MitigatePlus</small>
+          <small className="login-footer" style={{ marginTop: 24, textAlign: 'center' }}>© 2026 City of Manila - MitigatePlus</small>
         </section>
 
         <section className="login-showcase" style={{

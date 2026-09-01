@@ -1,4 +1,4 @@
-// MitigatePlus Mobile App — Modern Tagalog (Taglish) & English Translations
+// MitigatePlus Mobile App  -  Modern Tagalog (Taglish) & English Translations
 // Designed specifically for Manila City residents for maximum clarity and friendliness
 
 export const TRANSLATIONS = {
@@ -11,7 +11,7 @@ export const TRANSLATIONS = {
 
     // Header & Greeting
     greeting: 'Kumusta,',
-    citySystem: 'City of Manila — LGU Recovery System',
+    citySystem: 'City of Manila  -  LGU Recovery System',
     priorityHigh: 'High Priority',
     priorityMedium: 'Medium Priority',
     priorityLow: 'Low Priority',
@@ -117,7 +117,7 @@ export const TRANSLATIONS = {
   },
 
   tl: {
-    // Nav Bar — Modern Conversational Tagalog
+    // Nav Bar  -  Modern Conversational Tagalog
     navJourney: 'Pass at Biyahe',
     navDamage: 'Ulat sa Sira',
     navRequest: 'Humingi ng Tulong',
@@ -125,7 +125,7 @@ export const TRANSLATIONS = {
 
     // Header & Greeting
     greeting: 'Kumusta,',
-    citySystem: 'Lungsod ng Maynila — LGU Recovery System',
+    citySystem: 'Lungsod ng Maynila  -  LGU Recovery System',
     priorityHigh: 'Mataas na Priyoridad',
     priorityMedium: 'Katamtamang Priyoridad',
     priorityLow: 'Regular na Priyoridad',

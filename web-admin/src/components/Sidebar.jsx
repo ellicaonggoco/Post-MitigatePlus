@@ -122,6 +122,17 @@ function IconlySpecial({ size = 20, color = 'currentColor' }) {
   );
 }
 
+function IconlyBriefcase({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="7" width="20" height="14" rx="2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 7V5C16 3.89543 15.1046 3 14 3H10C8.89543 3 8 3.89543 8 5V7" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 12V12.01" stroke={color} strokeWidth="2.2" strokeLinecap="round"/>
+      <path d="M2 13H22" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 function IconlyAnnounce({ size = 20, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -177,7 +188,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   }
   navGroups.push({ title: t.mainMenu || 'MAIN MENU', items: mainItems });
 
-  // ── LGU SUPERADMIN — Executive Tools
+  // ── LGU SUPERADMIN - Executive Tools
   if (isSuperAdmin) {
     navGroups.push({
       title: t.execTools || 'EXECUTIVE TOOLS',
@@ -192,31 +203,31 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     });
   }
 
-  // ── LGU ADMIN — City Operations
+  // -- LGU ADMIN - City Operations
   if (isLguAdmin) {
     navGroups.push({
       title: t.cityOps || 'CITY OPERATIONS',
       items: [
         { label: t.heatmap || 'Barangay Heatmap', path: '/heatmap', icon: IconlyMapPin },
-        { label: t.distributionEvents || 'Distribution Events', path: '/distribution-events', icon: IconlyTruck },
+        { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
+        { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.warehouseInventory || 'Warehouse Inventory', path: '/warehouse-inventory', icon: IconlyWarehouse },
-        { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
-        { label: 'Pre-Event Assessment', path: '/special-request-relief', icon: IconlySpecial },
-        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
+        { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },
-        {label: 'Manage Accounts', path: '/provision-accounts', icon: IconlyUserPlus },
+        { label: 'Manage Accounts', path: '/provision-accounts', icon: IconlyUserPlus },
       ],
     });
   }
 
-  // ── BARANGAY OFFICIAL — Barangay Tools
+  // -- BARANGAY OFFICIAL - Barangay Tools
   if (role === ROLES.BARANGAY_OFFICIAL) {
     navGroups.push({
       title: t.brgyTools || 'BARANGAY TOOLS',
       items: [
         { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
-        { label: 'Pre-Event Assessment', path: '/special-request-relief', icon: IconlySpecial },
-        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
+        { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
+        { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
+        { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
         { label: t.reports || 'Reports', path: '/reports', icon: IconlyFileText },
       ],
     });
@@ -469,7 +480,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             </button>
           </div>
         ) : (
-          /* User Card — click to go to Settings */
+          /* User Card - click to go to Settings */
           <NavLink to="/settings" style={{ textDecoration: 'none' }}>
             <div
               className="sidebar-user-card"

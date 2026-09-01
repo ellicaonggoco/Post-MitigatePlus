@@ -10,10 +10,16 @@ const distributionEventSchema = new mongoose.Schema({
   scheduledDate: { type: String, default: null },
   scheduledTime: { type: String, default: null },
   targetHouseholds: { type: Number, default: 0 },
+  announcementMessage: { type: String, default: '' },
+  status: {
+    type: String,
+    enum: ['Scheduled', 'Ongoing', 'Completed', 'Cancelled'],
+    default: 'Scheduled',
+  },
   openedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   openedAt: { type: Date, default: Date.now },
   closedAt: { type: Date, default: null },
-  isActive: { type: Boolean, default: true },
+  isActive: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('DistributionEvent', distributionEventSchema);

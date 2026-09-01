@@ -189,7 +189,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check for existing address/purok overlap in the same barangay.
-    // Overlap only FLAGS for review — it never auto-forces join_existing, since a
+    // Overlap only FLAGS for review - it never auto-forces join_existing, since a
     // genuinely separate household (e.g. a second family renting in the same compound)
     // can legitimately share an address.
     const overlapHouseholds = await Household.find({

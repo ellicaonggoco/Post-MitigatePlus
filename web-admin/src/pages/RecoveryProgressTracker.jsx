@@ -17,7 +17,7 @@ export default function RecoveryProgressTracker() {
   const { token, user } = useContext(AuthContext);
   const [households, setHouseholds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedHhForStage, setSelectedHhForStage] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [modal, setModal] = useState({ isOpen: false, hh: null, newStage: null });
   const brgy = user?.barangayCode || '291';
 
@@ -54,26 +54,20 @@ export default function RecoveryProgressTracker() {
     if (token) fetchRecovery();
   }, [token]);
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.stage-dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
   const stageCounts = STAGES.reduce((acc, s) => ({
     ...acc,
     [s.key]: households.filter(h => (h.stage || 'waiting') === s.key).length,
   }), {});
-
-  const openStagePicker = (hh) => {
-    setSelectedHhForStage(hh);
-  };
-
-  const handleStageSelect = (targetStageKey) => {
-    if (!selectedHhForStage) return;
-    const targetStage = STAGES.find(s => s.key === targetStageKey);
-    const currentHh = selectedHhForStage;
-    setSelectedHhForStage(null);
-    setModal({
-      isOpen: true,
-      hh: currentHh,
-      newStage: targetStage,
-    });
-  };
 
   const confirmStageUpdate = async () => {
     if (!modal.hh || !modal.newStage) return;
@@ -106,102 +100,6 @@ export default function RecoveryProgressTracker() {
         onCancel={() => setModal({ isOpen: false, hh: null, newStage: null })}
       />
 
-      {/* ── Stage Selector Modal (Full, Non-Clipped Dialog) ── */}
-      {selectedHhForStage && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 99999,
-          padding: '20px',
-        }}>
-          <div className="clay-card" style={{
-            maxWidth: '480px',
-            width: '100%',
-            background: 'var(--card)',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--ink)', margin: '0 0 4px' }}>
-                  Select New Recovery Stage
-                </h3>
-                <p style={{ fontSize: '13px', color: 'var(--ink-soft)', margin: 0 }}>
-                  Household: <strong>{selectedHhForStage.head}</strong> ({selectedHhForStage.address})
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedHhForStage(null)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
-              >
-                <X size={20} color="var(--ink-soft)" />
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gap: '10px', marginTop: 16 }}>
-              {STAGES.map(s => {
-                const Icon = s.icon;
-                const isCurrent = selectedHhForStage.stage === s.key;
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => handleStageSelect(s.key)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '12px 16px',
-                      borderRadius: '10px',
-                      border: `1.5px solid ${isCurrent ? s.color : 'var(--border)'}`,
-                      background: isCurrent ? s.bg : 'var(--card)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={e => {
-                      if (!isCurrent) e.currentTarget.style.background = 'var(--sampaguita)';
-                    }}
-                    onMouseLeave={e => {
-                      if (!isCurrent) e.currentTarget.style.background = 'var(--card)';
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 34, height: 34, borderRadius: '8px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon size={18} color={s.color} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: s.color }}>
-                          {s.label}
-                        </div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--ink-soft)', marginTop: 2 }}>
-                          {s.desc}
-                        </div>
-                      </div>
-                    </div>
-                    {isCurrent && (
-                      <span className="badge badge-info" style={{ fontSize: '10.5px' }}>Kasalukuyan</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: 20, textAlign: 'right' }}>
-              <button onClick={() => setSelectedHhForStage(null)} className="clay-button-ghost" style={{ fontSize: 13 }}>
-                Kanselahin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── Page Header ── */}
       <div className="workflow-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -210,7 +108,7 @@ export default function RecoveryProgressTracker() {
           </div>
           <div>
             <h1 className="section-header" style={{ margin: 0, fontSize: 22 }}>Recovery Progress Tracker</h1>
-            <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>Barangay {brgy} — Monitor and manage household recovery progression.</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>Barangay {brgy} - Monitor and manage household recovery progression.</p>
           </div>
         </div>
       </div>
@@ -276,15 +174,102 @@ export default function RecoveryProgressTracker() {
                       </span>
                     </div>
                   </div>
-                  <div>
+                  <div className="stage-dropdown-container" style={{ position: 'relative' }}>
                     <button
-                      onClick={() => openStagePicker(hh)}
+                      onClick={() => setOpenDropdownId(openDropdownId === (hh.id || idx) ? null : (hh.id || idx))}
                       className="clay-button-secondary"
                       aria-label={`Update recovery stage for ${hh.head}`}
-                      style={{ fontSize: '13px', fontWeight: 800, color: '#047857', borderColor: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: '#047857',
+                        borderColor: '#10B981',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: openDropdownId === (hh.id || idx) ? '#ECFDF5' : 'var(--card)',
+                      }}
                     >
-                      Update Stage <ChevronDown size={14} />
+                      Update Stage <ChevronDown size={14} style={{ transform: openDropdownId === (hh.id || idx) ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
                     </button>
+
+                    {openDropdownId === (hh.id || idx) && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 6px)',
+                          right: 0,
+                          width: '260px',
+                          background: '#FFFFFF',
+                          border: '1.5px solid #E2E8F0',
+                          borderRadius: '12px',
+                          boxShadow: '0 12px 28px rgba(15, 23, 42, 0.16)',
+                          padding: '6px',
+                          zIndex: 9999,
+                          animation: 'fadeIn 0.15s ease-out',
+                        }}
+                      >
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', padding: '6px 10px 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Select Recovery Stage
+                        </div>
+                        {STAGES.map((s) => {
+                          const Icon = s.icon;
+                          const isCurrent = hh.stage === s.key;
+                          return (
+                            <button
+                              key={s.key}
+                              onClick={() => {
+                                setOpenDropdownId(null);
+                                setModal({
+                                  isOpen: true,
+                                  hh,
+                                  newStage: s,
+                                });
+                              }}
+                              style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '8px 10px',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: isCurrent ? s.bg : 'transparent',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 10,
+                                transition: 'background 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isCurrent) e.currentTarget.style.background = '#F8FAFC';
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ width: 26, height: 26, borderRadius: '6px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Icon size={14} color={s.color} />
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '12.5px', fontWeight: 800, color: isCurrent ? s.color : '#1E293B' }}>
+                                    {s.label}
+                                  </div>
+                                  <div style={{ fontSize: '10.5px', color: '#64748B' }}>
+                                    {s.type === 'auto' ? 'Auto-Managed' : 'Barangay Action'}
+                                  </div>
+                                </div>
+                              </div>
+                              {isCurrent && (
+                                <span style={{ fontSize: '10px', fontWeight: 800, color: s.color, background: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', border: `1px solid ${s.color}` }}>
+                                  Current
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </MotionCard>

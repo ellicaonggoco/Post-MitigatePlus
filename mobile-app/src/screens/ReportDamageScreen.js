@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { submitDamageReport } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon } from '../components/AppIcons';
+import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon, MapPinIcon, LockIcon } from '../components/AppIcons';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionSeverityTile, MotionPressable } from '../components/motion';
@@ -73,14 +73,54 @@ function PhotoAttachmentSection({ selectedPhoto, onPickCamera, onPickLibrary, on
   );
 }
 
-export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmitSuccess }) {
+export default function ReportDamageScreen({ token, user, householdData, lang = 'en', onBack, onSubmitSuccess }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+  const defaultResolvedAddress =
+    householdData?.address
+      ? `${householdData.address}${householdData.purok ? `, Purok ${householdData.purok}` : ''}, Barangay ${householdData.barangayCode || '291'}, Manila`
+      : user?.address
+      ? `${user.address}, Barangay ${user.barangayCode || '291'}, Manila`
+      : '142 Quirino Ave, Purok 3, Barangay 291, Manila';
 
   const [damageLevel, setDamageLevel] = useState('Severe');
   const [description, setDescription] = useState('');
-  const [addressLandmark, setAddressLandmark] = useState('');
+  const [addressLandmark, setAddressLandmark] = useState(defaultResolvedAddress);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
+  const scrollRef = React.useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (householdData?.address || user?.address) {
+      const addr = householdData?.address
+        ? `${householdData.address}${householdData.purok ? `, Purok ${householdData.purok}` : ''}, Barangay ${householdData.barangayCode || '291'}, Manila`
+        : `${user.address}, Barangay ${user.barangayCode || '291'}, Manila`;
+      setAddressLandmark(addr);
+    }
+  }, [householdData, user]);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({ animated: true });
+        }, 80);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -100,25 +140,16 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
           const lng = Number(pos.coords.longitude.toFixed(6));
           setGeoCoords({ lat, lng, accuracy: Math.round(pos.coords.accuracy || 4) });
           setIsLocating(false);
-          if (!addressLandmark) {
-            setAddressLandmark(`GPS Pin: ${lat}, ${lng} (Barangay 291 Vicinity)`);
-          }
         },
         () => {
           setGeoCoords({ lat: 14.599512, lng: 120.984215, accuracy: 3 });
           setIsLocating(false);
-          if (!addressLandmark) {
-            setAddressLandmark('Barangay 291, Manila (1-Tap GPS Pin Drop)');
-          }
         },
         { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
       );
     } else {
       setGeoCoords({ lat: 14.599512, lng: 120.984215, accuracy: 3 });
       setIsLocating(false);
-      if (!addressLandmark) {
-        setAddressLandmark('Barangay 291, Manila (1-Tap GPS Pin Drop)');
-      }
     }
   };
 
@@ -232,9 +263,6 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
 
   const validate = () => {
     const errs = {};
-    if (!addressLandmark.trim() || addressLandmark.trim().length < 5) {
-      errs.addressLandmark = lang === 'tl' ? 'Pakilagay ang lokasyon (minimum 5 chars).' : 'Please enter location (min 5 chars).';
-    }
     if (!description.trim() || description.trim().length < 10) {
       errs.description = lang === 'tl' ? 'Pakilarawan ang sira (minimum 10 chars).' : 'Please describe damage (min 10 chars).';
     }
@@ -255,8 +283,8 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
           damageLevel: (damageLevel === 'Total' || damageLevel === 'Totally Damaged') ? 'Totally Damaged' : damageLevel,
           description: `Landmark: ${addressLandmark} | Notes: ${description}`,
           photos: selectedPhoto ? [selectedPhoto.uri] : [],
-          latitude: geoCoords?.lat || null,
-          longitude: geoCoords?.lng || null,
+          latitude: geoCoords?.lat || 14.599512,
+          longitude: geoCoords?.lng || 120.984215,
           locationName: addressLandmark,
         },
         token
@@ -295,7 +323,13 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
     >
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingBottom: 95 + keyboardHeight }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#1557B0" />
@@ -313,14 +347,44 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
         </View>
         <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
 
-        <NeumorphicInput
-          label={lang === 'tl' ? 'Lokasyon / Landmark' : 'Location / Landmark'}
-          value={addressLandmark}
-          onChangeText={setAddressLandmark}
-          placeholder="e.g. 123 Calle Real, Manila"
-          errorText={errors.addressLandmark}
-          required
-        />
+        {/* Auto-Detected Verified Registered Household Location (Locked / Disabled Gray) */}
+        <View style={styles.autoLocationCard}>
+          <View style={styles.autoLocationHeader}>
+            <Text style={styles.autoLocationLabel}>
+              {lang === 'tl' ? 'LOKASYON NG TAHANAN (AUTO-DETECTED)' : 'REGISTERED HOUSEHOLD LOCATION *'}
+            </Text>
+            <View style={styles.autoLocationBadge}>
+              <LockIcon size={11} color="#64748B" />
+              <Text style={styles.autoLocationBadgeText}>
+                {lang === 'tl' ? 'Awtomatikong Nakakandado' : 'Auto-Locked'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.autoLocationBody}>
+            <View style={styles.autoLocationIconCircle}>
+              <MapPinIcon size={18} color="#1557B0" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.autoLocationAddressText}>
+                {addressLandmark}
+              </Text>
+              <Text style={styles.autoLocationGpsText}>
+                {isLocating
+                  ? (lang === 'tl' ? 'Kinukuha ang live GPS coordinates...' : 'Fetching live GPS coordinates...')
+                  : geoCoords
+                  ? `GPS: ${geoCoords.lat}, ${geoCoords.lng} (±${geoCoords.accuracy}m)`
+                  : 'Barangay 291 GIS Grid Tagged'}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.autoLocationFootnote}>
+            {lang === 'tl'
+              ? 'Awtomatikong nakatala sa iyong rehistradong tirahan upang maging tumpak ang pagresponde ng LGU.'
+              : 'Auto-detected and locked to your registered residence for exact GIS command center mapping.'}
+          </Text>
+        </View>
 
         <NeumorphicInput
           label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
@@ -350,8 +414,8 @@ export default function ReportDamageScreen({ token, lang = 'en', onBack, onSubmi
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9F7' },
-  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: 14, paddingBottom: hp(14) },
+  container: { flex: 1, backgroundColor: '#0A1628' },
+  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 95 },
   backBtnPill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -381,6 +445,75 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 11.5, color: '#64748B', marginTop: 2, marginBottom: 16 },
   sectionHeader: { marginBottom: 8 },
   sectionLabel: { fontSize: 10.5, fontWeight: '800', color: '#172B4D', letterSpacing: 0.5 },
+  autoLocationCard: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  autoLocationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  autoLocationLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
+  },
+  autoLocationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E2E8F0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  autoLocationBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  autoLocationBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  autoLocationIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  autoLocationAddressText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  autoLocationGpsText: {
+    fontSize: 10.5,
+    color: '#64748B',
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  autoLocationFootnote: {
+    fontSize: 10.5,
+    color: '#64748B',
+    marginTop: 8,
+    lineHeight: 14,
+  },
   severityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   severityTile: {
     flex: 1,

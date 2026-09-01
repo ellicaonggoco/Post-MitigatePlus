@@ -8,7 +8,23 @@ const { protect, requireRole } = require('../middleware/auth');
 // @desc    Submit a new assistance request (Resident or Official on behalf of household)
 router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
-    const { itemType, items, packages, reason, notes, resident, barangay, householdId } = req.body;
+    const {
+      itemType,
+      items,
+      packages,
+      reason,
+      notes,
+      resident,
+      barangay,
+      householdId,
+      recipientName,
+      recipientPhone,
+      recipientAddress,
+      vulnerabilityTypes,
+      severityLevel,
+      memberCount,
+    } = req.body;
+
     let formattedPackages = [];
     if (Array.isArray(packages) && packages.length > 0) {
       formattedPackages = packages.map(p => typeof p === 'string' ? { id: p, name: p, quantity: 1 } : p);
@@ -34,17 +50,21 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
       // Official / Admin submitted on behalf of household
       if (householdId) {
         targetHousehold = await Household.findById(householdId);
-      } else {
+      } else if (barangay || req.user.barangayCode) {
         const brgyCode = barangay || req.user.barangayCode || '291';
         targetHousehold = await Household.findOne({ barangayCode: brgyCode });
-        if (!targetHousehold) {
-          targetHousehold = await Household.findOne();
-        }
       }
     }
 
     const request = await AssistanceRequest.create({
       householdId: targetHousehold ? targetHousehold._id : null,
+      recipientName: recipientName || (targetHousehold?.headOfHouseholdUserId?.name || resident || ''),
+      recipientPhone: recipientPhone || '',
+      recipientAddress: recipientAddress || (targetHousehold?.address || ''),
+      barangayCode: barangay || targetHousehold?.barangayCode || req.user.barangayCode || '291',
+      memberCount: memberCount || targetHousehold?.memberCount || 1,
+      vulnerabilityTypes: Array.isArray(vulnerabilityTypes) ? vulnerabilityTypes : [],
+      severityLevel: severityLevel || 'Standard Assistance',
       itemType: requestedItem,
       packages: formattedPackages,
       notes: requestNotes,
@@ -126,7 +146,7 @@ router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_adm
 });
 
 // @route   GET /api/assistance-requests
-// @desc    Get assistance requests — scoped to the barangay_official's own barangay,
+// @desc    Get assistance requests - scoped to the barangay_official's own barangay,
 //          city-wide for lgu_admin (same pattern as /households/pending)
 router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_staff'), async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, GeoJSON, CircleMarker, Marker, Tooltip, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, CircleMarker, Marker, Tooltip, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import * as topojson from 'topojson-client';
 import { AuthContext } from '../context/AuthContext';
@@ -144,6 +144,7 @@ export default function BarangayHeatmap() {
   const [selectedEvac, setSelectedEvac] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   // Mapcn Live Layer Toggles
   const [showEvacCenters, setShowEvacCenters] = useState(true);
@@ -265,6 +266,7 @@ export default function BarangayHeatmap() {
           damageLevel: hh.damageLevel || 'Severe',
           headName: hh.headOfHouseholdUserId?.name || hh.headName || 'Resident Applicant',
           priorityScore: hh.priorityScore || 75,
+          validIdUrl: hh.validIdUrl || hh.photoUrl || null,
         });
       }
     });
@@ -329,6 +331,29 @@ export default function BarangayHeatmap() {
     };
   };
 
+  function MapTouchController() {
+    const map = useMap();
+    useEffect(() => {
+      if (!map) return;
+      const closeTooltips = () => {
+        map.eachLayer((layer) => {
+          if (layer.closeTooltip && typeof layer.closeTooltip === 'function') {
+            layer.closeTooltip();
+          }
+        });
+      };
+      map.on('dragstart', closeTooltips);
+      map.on('movestart', closeTooltips);
+      map.on('zoomstart', closeTooltips);
+      return () => {
+        map.off('dragstart', closeTooltips);
+        map.off('movestart', closeTooltips);
+        map.off('zoomstart', closeTooltips);
+      };
+    }, [map]);
+    return null;
+  }
+
   const onEachFeature = (feature, layer) => {
     if (!feature || !feature.properties) return;
     const code = barangayCodeFromName(feature.properties.name);
@@ -336,23 +361,44 @@ export default function BarangayHeatmap() {
     const stat = barangayStats[code];
     const floodInfo = FLOOD_SUSCEPTIBILITY_MAP[code];
 
-    layer.bindTooltip(
-      `<div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 4px;">
-        <strong style="color: #002BB8; font-size: 13px;">Barangay ${code}</strong>
-        ${floodInfo ? `<div style="color: #DC2626; font-weight: 700; font-size: 11px; margin-top: 2px;">Hazard: ${floodInfo}</div>` : ''}
-        <div style="font-size: 11px; color: #475569; margin-top: 2px;">${stat ? `${stat.count} household damage report(s)` : 'Clear / No Severe Incidents'}</div>
-      </div>`,
-      { sticky: true }
-    );
+    let touchStartTime = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isTouchDrag = false;
 
     layer.on({
-      mouseover: () => {
-        if (selected?.code !== code) {
-          layer.setStyle({ weight: 2.8, color: '#002BB8', fillColor: 'rgba(0, 43, 184, 0.3)', fillOpacity: 0.35 });
+      mousedown: (e) => {
+        touchStartTime = Date.now();
+        isTouchDrag = false;
+        if (e.originalEvent) {
+          touchStartX = e.originalEvent.clientX || 0;
+          touchStartY = e.originalEvent.clientY || 0;
         }
       },
-      mouseout: () => layer.setStyle(styleFeature(feature)),
+      touchstart: (e) => {
+        touchStartTime = Date.now();
+        isTouchDrag = false;
+        if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches[0]) {
+          touchStartX = e.originalEvent.touches[0].clientX;
+          touchStartY = e.originalEvent.touches[0].clientY;
+        }
+      },
+      touchmove: (e) => {
+        if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches[0]) {
+          const dx = Math.abs(e.originalEvent.touches[0].clientX - touchStartX);
+          const dy = Math.abs(e.originalEvent.touches[0].clientY - touchStartY);
+          if (dx > 5 || dy > 5) {
+            isTouchDrag = true;
+          }
+        }
+      },
       click: (e) => {
+        const duration = Date.now() - touchStartTime;
+        // Strictly ignore if user held down for > 250ms (long press) or moved/dragged the map
+        if (duration > 250 || isTouchDrag) {
+          return;
+        }
+
         if (e.originalEvent) {
           e.originalEvent.stopPropagation();
           if (e.originalEvent.target) e.originalEvent.target.blur();
@@ -424,6 +470,10 @@ export default function BarangayHeatmap() {
         }
         .leaflet-interactive {
           cursor: pointer !important;
+        }
+        .leaflet-tooltip {
+          pointer-events: none !important;
+          user-select: none !important;
         }
         .leaflet-container {
           cursor: grab;
@@ -559,7 +609,7 @@ export default function BarangayHeatmap() {
       <div className="map-command-grid" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
         <div className="clay-card map-canvas-card" style={{ padding: '16px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--manila-blue)' }}>897 Manila City Barangays — Designated Numbers & Damage Indicators</span>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--manila-blue)' }}>897 Manila City Barangays - Designated Numbers & Damage Indicators</span>
             <div style={{ display: 'flex', gap: '14px', fontSize: '12px', fontWeight: 700, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ color: '#047857', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#047857', display: 'inline-block' }} />
@@ -595,6 +645,7 @@ export default function BarangayHeatmap() {
               zoomControl={true}
             >
               {/* Clean Vector OpenStreetMap Tiles (No Watermark) */}
+              <MapTouchController />
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -640,14 +691,14 @@ export default function BarangayHeatmap() {
                     },
                   }}
                 >
-                  <Tooltip sticky>
+                  <Popup>
                     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '2px 4px' }}>
                       <strong style={{ color: '#002BB8', fontSize: '13px' }}>{evac.name}</strong>
                       <div style={{ fontSize: '11px', color: '#16A34A', fontWeight: '800', marginTop: 2 }}>{evac.status} ({evac.capacityCurrent}/{evac.capacityTotal})</div>
                       <div style={{ fontSize: '11px', color: '#475569' }}>Brgy {evac.barangayCode} · {evac.medical}</div>
                       <div style={{ fontSize: '11px', color: '#64748B', marginTop: 1 }}>Power: {evac.power}</div>
                     </div>
-                  </Tooltip>
+                  </Popup>
                 </Marker>
               ))}
 
@@ -690,14 +741,14 @@ export default function BarangayHeatmap() {
                       },
                     }}
                   >
-                    <Tooltip sticky>
+                    <Popup>
                       <div style={{ fontFamily: 'var(--font-sans)', padding: '2px 4px' }}>
                         <strong style={{ color: dotColor, fontSize: '12px' }}>{dot.damageLevel.toUpperCase()} BENEFICIARY SPOT</strong>
                         <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B', marginTop: 2 }}>{dot.headName}</div>
                         <div style={{ fontSize: '11px', color: '#64748B' }}>{dot.address} · Brgy {dot.barangayCode}</div>
                         <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--manila-blue)', marginTop: 2 }}>Priority: {dot.priorityScore} pts</div>
                       </div>
-                    </Tooltip>
+                    </Popup>
                   </CircleMarker>
                 );
               })}
@@ -839,6 +890,24 @@ export default function BarangayHeatmap() {
                     <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>{selected.dotDetail.address}</div>
                     <div style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>Applicant: <strong style={{ color: 'var(--ink)' }}>{selected.dotDetail.headName}</strong></div>
                     <div style={{ fontSize: '12px', color: 'var(--ink-soft)', marginTop: 2 }}>Priority Score: <strong style={{ color: 'var(--manila-blue)' }}>{selected.dotDetail.priorityScore} pts</strong></div>
+                    {selected.dotDetail.validIdUrl && (
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', marginBottom: 4 }}>Attached Evidence / ID Photo</div>
+                        <div 
+                          onClick={() => setPreviewImage(selected.dotDetail.validIdUrl)}
+                          style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1.5px solid #CBD5E1', cursor: 'pointer', height: '110px', background: '#0F172A' }}
+                        >
+                          <img 
+                            src={selected.dotDetail.validIdUrl} 
+                            alt="Evidence" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                          <div style={{ position: 'absolute', bottom: 4, right: 6, background: 'rgba(0,0,0,0.65)', color: '#FFF', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            🔍 Click to Enlarge
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : brgyDots.length > 0 ? (() => {
                   const urgentDots = brgyDots.filter(d => d.damageLevel === 'Severe' || d.damageLevel === 'Totally Damaged');
@@ -970,6 +1039,66 @@ export default function BarangayHeatmap() {
               <button onClick={() => setIsModalOpen(false)} className="clay-button-primary" style={{ fontSize: 13 }}>
                 Back to Barangay View
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Photo Evidence Full-Screen Lightbox Modal ── */}
+      {previewImage && ReactDOM.createPortal(
+        <div 
+          onClick={() => setPreviewImage(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(15, 23, 42, 0.88)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999999999,
+            padding: 24,
+            boxSizing: 'border-box',
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="page-animate"
+            style={{
+              position: 'relative',
+              maxWidth: '850px',
+              maxHeight: '90vh',
+              background: '#0F172A',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: '#1E293B', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <span style={{ color: '#F8FAFC', fontWeight: 800, fontSize: 14 }}>Attached Evidence / ID Photo Preview</span>
+              <button 
+                onClick={() => setPreviewImage(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#020617' }}>
+              <img 
+                src={previewImage} 
+                alt="Enlarged Evidence" 
+                style={{ maxWidth: '100%', maxHeight: '72vh', objectFit: 'contain', borderRadius: '8px' }} 
+              />
             </div>
           </div>
         </div>,

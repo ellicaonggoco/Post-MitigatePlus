@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Keyboard, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeftIcon, ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon } from '../components/AppIcons';
 import { COLORS, RADIUS, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, hp } from '../theme';
@@ -11,11 +11,36 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const scrollRef = React.useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleStaffLogin = async () => {
-    if (!emailOrPhone || !password) {
-      setErrorMsg('Pakilagay ang inyong staff credentials.');
+    if (!emailOrPhone.trim()) {
+      setErrorMsg('Wrong Username');
+      return;
+    }
+    if (!password) {
+      setErrorMsg('Wrong Password');
       return;
     }
 
@@ -35,12 +60,17 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Staff authentication failed.');
+        const msg = (data.message || '').toLowerCase();
+        if (msg.includes('password')) {
+          throw new Error('Wrong Password');
+        } else {
+          throw new Error('Wrong Username');
+        }
       }
 
       onLoginSuccess(data);
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || 'Wrong Username or Password');
     } finally {
       setLoading(false);
     }
@@ -69,7 +99,8 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
         </View>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollBody} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView ref={scrollRef} style={styles.scrollBody} contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {errorMsg ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>️ {errorMsg}</Text>
@@ -82,7 +113,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             style={styles.input}
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
-            placeholder="hal. staff291@manila.gov.ph"
+            placeholder="Enter Username"
             placeholderTextColor="#94A3B8"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -127,6 +158,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
           </Text>
         </View>
       </ScrollView>
+    </KeyboardAvoidingView>
     </View>
   );
 }
@@ -176,7 +208,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: 20,
-    paddingBottom: hp(8),
+    paddingBottom: 90,
     maxWidth: 480,
     alignSelf: 'center',
     width: '100%',

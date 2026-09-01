@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput, Keyboard } from 'react-native';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, NEUMORPHIC, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
@@ -16,6 +16,27 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const otpRefs = useRef([]);
+  const scrollRef = useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSendOtp = async () => {
     if (!identifier.trim()) {
@@ -113,7 +134,13 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
     >
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={[styles.content, { paddingBottom: 100 + keyboardHeight }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {/* Back Button */}
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
           <ArrowLeftIcon size={16} color="#1557B0" />
@@ -293,7 +320,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 6,
-    paddingBottom: hp(8),
+    paddingBottom: 90,
     alignItems: 'center',
   },
   backBtn: {
@@ -301,7 +328,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
     borderWidth: 1.5,
     borderColor: '#CBD5E1',
     paddingHorizontal: 14,
@@ -409,7 +436,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
     borderWidth: 1.5,
     borderColor: '#CBD5E1',
     fontSize: 18,

@@ -79,7 +79,7 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
 });
 
 // @route   GET /api/damage-reports
-// @desc    List damage reports — resident sees their own, official/admin can filter by barangay/household
+// @desc    List damage reports - resident sees their own, official/admin can filter by barangay/household
 router.get('/', protect, async (req, res) => {
   try {
     const filter = {};

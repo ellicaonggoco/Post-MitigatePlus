@@ -37,7 +37,7 @@ export default function Dashboard() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LGU SUPERADMIN — City Wide Master Executive Dashboard
+// LGU SUPERADMIN - City Wide Master Executive Dashboard
 // ─────────────────────────────────────────────────────────────────────────────
 function SuperAdminDashboard({ token, user }) {
   const [summary, setSummary] = useState(null);
@@ -62,7 +62,7 @@ function SuperAdminDashboard({ token, user }) {
     { label: 'Executive Audit Flags', value: summary?.duplicateAttemptsCount ?? 0, icon: AlertTriangle, color: '#B91C1C', bg: '#FEF2F2' },
   ];
 
-  // Derive chart data from real API summary — fallback to empty bars (no fake values)
+  // Derive chart data from real API summary - fallback to empty bars (no fake values)
   const cityChartData = summary?.districtBreakdown ?? [
     { district: 'District 1', Beneficiaries: 0, Relief: 0 },
     { district: 'District 2', Beneficiaries: 0, Relief: 0 },
@@ -76,7 +76,7 @@ function SuperAdminDashboard({ token, user }) {
   return (
     <div className="page-container page-animate">
       <WelcomeBanner
-        badge="LGU Super Admin — Executive Control"
+        badge="LGU Super Admin - Executive Control"
         title="City of Manila Executive Dashboard"
         sub="City-wide statistics across all 897 barangays of Manila."
         gradient="linear-gradient(135deg, #090154 0%, #001275 60%, #1E40AF 100%)"
@@ -118,7 +118,7 @@ function SuperAdminDashboard({ token, user }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LGU ADMIN — City-Wide Operational Dashboard
+// LGU ADMIN - City-Wide Operational Dashboard
 // ─────────────────────────────────────────────────────────────────────────────
 function LguAdminDashboard({ token, user }) {
   const [summary, setSummary] = useState(null);
@@ -143,7 +143,7 @@ function LguAdminDashboard({ token, user }) {
     { label: 'Total Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/relief-allocation' },
   ];
 
-  // Derive relief chart from real API summary — fallback shows 0 targets (no fake values)
+  // Derive relief chart from real API summary - fallback shows 0 targets (no fake values)
   const reliefData = summary?.reliefBreakdown ?? [
     { name: 'Food Packs', Target: 0, Distributed: 0 },
     { name: 'Water', Target: 0, Distributed: 0 },
@@ -157,7 +157,7 @@ function LguAdminDashboard({ token, user }) {
   return (
     <div className="page-container page-animate">
       <WelcomeBanner
-        badge="LGU Admin — City Operations"
+        badge="LGU Admin - City Operations"
         title="Operational Command Center"
         sub="Manage city-wide relief distribution, field staff, and warehouse inventory."
         gradient="linear-gradient(135deg, #090154 0%, #001275 60%, #1E40AF 100%)"
@@ -200,7 +200,7 @@ function LguAdminDashboard({ token, user }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BARANGAY OFFICIAL — Own Barangay Dashboard Only
+// BARANGAY OFFICIAL - Own Barangay Dashboard Only
 // ─────────────────────────────────────────────────────────────────────────────
 function BarangayDashboard({ token, user }) {
   const [summary, setSummary] = useState(null);

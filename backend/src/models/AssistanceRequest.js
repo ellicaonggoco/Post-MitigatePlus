@@ -1,7 +1,14 @@
 const mongoose = require('mongoose');
 
 const assistanceRequestSchema = new mongoose.Schema({
-  householdId: { type: mongoose.Schema.Types.ObjectId, ref: 'Household', required: true },
+  householdId: { type: mongoose.Schema.Types.ObjectId, ref: 'Household', default: null },
+  recipientName: { type: String, default: '' },
+  recipientPhone: { type: String, default: '' },
+  recipientAddress: { type: String, default: '' },
+  barangayCode: { type: String, default: '291' },
+  memberCount: { type: Number, default: 1 },
+  vulnerabilityTypes: [{ type: String }], // ['Senior Citizen', 'PWD', 'Infant Care', 'Solo Parent', 'Severe / Bedridden']
+  severityLevel: { type: String, default: 'Standard Assistance' },
   itemType: { type: String, required: true }, // Food, Water, Medicine, Temporary Shelter, Clothing, Hygiene Kit, Shelter Repair Materials
   packages: [
     {

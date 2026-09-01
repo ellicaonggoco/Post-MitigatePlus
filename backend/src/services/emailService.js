@@ -33,7 +33,7 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
       subject: `[MitigatePlus] Your Account Verification Code: ${otpCode}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDEBE4; border-radius: 12px; background: #FAFAF7;">
-          <h2 style="color: #173F56; margin-top: 0;">MitigatePlus — Manila City LGU</h2>
+          <h2 style="color: #173F56; margin-top: 0;">MitigatePlus - Manila City LGU</h2>
           <p style="color: #1B242B; font-size: 14px;">Your 6-digit account verification code is:</p>
           <div style="background: #173F56; color: #FFFFFF; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 14px; text-align: center; border-radius: 8px; margin: 16px 0;">
             ${otpCode}

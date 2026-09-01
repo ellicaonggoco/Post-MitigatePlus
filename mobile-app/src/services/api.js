@@ -6,7 +6,7 @@ const getAuthHeaders = (token) => ({
 });
 
 // Every function here throws on failure instead of silently returning a fake
-// "success" object — screens are responsible for catching and showing the real
+// "success" object  -  screens are responsible for catching and showing the real
 // error. A previous version of this file swallowed every network/API failure
 // and returned a fake success object or null, which made every screen lie
 // about whether anything actually saved to the database.
@@ -61,7 +61,7 @@ export async function fetchAnnouncements(barangayCode = null) {
 }
 
 /**
- * 4. Fetch Household Profile (includes gapAnalysis, pastRequests, pastDistributions —
+ * 4. Fetch Household Profile (includes gapAnalysis, pastRequests, pastDistributions  - 
  *    this is also the real source for "claims history", no separate endpoint needed)
  */
 export async function fetchHouseholdProfile(token) {
@@ -93,7 +93,7 @@ export async function submitAssistanceRequest(data, token) {
 }
 
 /**
- * 7. Resident claims history — reuses the same /households/me payload
+ * 7. Resident claims history  -  reuses the same /households/me payload
  *    (pastRequests + pastDistributions) rather than a separate endpoint.
  */
 export async function fetchClaimsHistory(token) {
@@ -116,7 +116,7 @@ export async function fetchDistributionEvents(token) {
 /**
  * 9. Field Staff QR Scanner: look up a household by QR code.
  *    Returns household info + priority + per-item relief recommendations +
- *    gap analysis. Does NOT check duplicate-claim status by itself — that check
+ *    gap analysis. Does NOT check duplicate-claim status by itself  -  that check
  *    happens atomically inside releaseDistribution() below, backed by a DB-level
  *    unique index, so it can't be bypassed by a race condition between two scans.
  */
@@ -129,7 +129,7 @@ export async function scanHouseholdQRCode(qrCode, token) {
 /**
  * 10. Field Staff: confirm and record a relief release for a distribution event.
  *     This is the real anti-duplicate-claim + right-sized-allocation endpoint.
- *     On a duplicate, the backend returns HTTP 409 with { isDuplicate: true, ... } —
+ *     On a duplicate, the backend returns HTTP 409 with { isDuplicate: true, ... }  - 
  *     callers should catch that specifically to show the duplicate-claim banner,
  *     not treat it as a generic failure.
  */

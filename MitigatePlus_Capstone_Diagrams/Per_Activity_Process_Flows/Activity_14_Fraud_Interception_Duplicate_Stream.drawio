@@ -1,0 +1,39 @@
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="act_web_04" name="Real-Time Fraud Interception & Suspect Claims Activity">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="420" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+<!-- Title Box -->
+<mxCell id="tbox" value="Process Flow [ACT-W04]: Real-Time Fraud Interception & Suspect Claims Activity" style="text;html=1;strokeColor=#1E293B;strokeWidth=1.5;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#0F172A;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="60" y="25" width="1520" height="40" as="geometry" />
+</mxCell>
+<!-- Pool Container -->
+<mxCell id="p1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="60" y="75" width="1520" height="335" as="geometry" />
+</mxCell>
+
+<mxCell id="l_0" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="0" width="1460" height="165" as="geometry"/></mxCell>
+<mxCell id="lh_0" value="LANE 1: LGU ADMIN / AUDITOR (FRAUD DASHBOARD)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="52" width="165" height="60" as="geometry"/></mxCell>
+
+<mxCell id="l_1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="165" width="1460" height="165" as="geometry"/></mxCell>
+<mxCell id="lh_1" value="LANE 2: REAL-TIME FRAUD STREAM & DB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="217" width="165" height="60" as="geometry"/></mxCell>
+<mxCell id="n1" value="START" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="130" y="125" width="55" height="45" as="geometry"/></mxCell>
+<mxCell id="n2" value="Open Fraud Interception Page&lt;br&gt;in Web Admin Portal" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="210" y="120" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n3" value="Socket.IO Emits Suspicious&lt;br&gt;Duplicate Scan Alert" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="400" y="270" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n4" value="Live Incident Card Streams&lt;br&gt;into Dashboard (Red Badge)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="590" y="120" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n5" value="Admin Inspects Household&lt;br&gt;Record, Venue &amp; Staff ID" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="780" y="120" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n6" value="Log Security Audit Note &amp;&lt;br&gt;Confirm Fraud Interception" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="970" y="270" width="160" height="55" as="geometry"/></mxCell>
+<mxCell id="n7" value="END (Logged)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="1160" y="125" width="90" height="45" as="geometry"/></mxCell>
+<mxCell id="c_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=9.5;fontFamily=Helvetica;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n1" target="n2"><mxGeometry relative="1" as="geometry" /></mxCell>
+<mxCell id="c_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=9.5;fontFamily=Helvetica;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n2" target="n3"><mxGeometry relative="1" as="geometry" /></mxCell>
+<mxCell id="c_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=9.5;fontFamily=Helvetica;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n3" target="n4"><mxGeometry relative="1" as="geometry" /></mxCell>
+<mxCell id="c_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=9.5;fontFamily=Helvetica;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n4" target="n5"><mxGeometry relative="1" as="geometry" /></mxCell>
+<mxCell id="c_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=9.5;fontFamily=Helvetica;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n5" target="n6"><mxGeometry relative="1" as="geometry" /></mxCell>
+<mxCell id="c_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=1.8;fontColor=#1557B0;fontStyle=1;fontSize=9.5;fontFamily=Helvetica;" edge="1" parent="1" source="n6" target="n7"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

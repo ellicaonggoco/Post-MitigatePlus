@@ -67,28 +67,139 @@ router.patch('/events/:id', protect, requireRole('barangay_official', 'lgu_admin
   }
 });
 
+// @route   PATCH /api/distributions/events/:id/announcement
+// @desc    Edit distribution announcement and broadcast updated alert to mobile apps
+router.patch('/events/:id/announcement', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+  try {
+    const { announcementMessage } = req.body;
+    const event = await DistributionEvent.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Distribution event not found.' });
+    }
+
+    event.announcementMessage = announcementMessage;
+    await event.save();
+
+    const Announcement = require('../models/Announcement');
+    const cleanCode = event.barangayCode || '291';
+
+    // Find and update existing announcement or create an updated announcement record
+    let ann = await Announcement.findOne({
+      barangayCode: cleanCode,
+      category: 'Relief Distribution',
+    }).sort({ postedAt: -1 });
+
+    if (ann) {
+      ann.title = `📢 Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`;
+      ann.body = announcementMessage;
+      ann.tag = 'UPDATED';
+      ann.edited = true;
+      ann.editedAt = new Date();
+      await ann.save();
+    } else {
+      ann = await Announcement.create({
+        title: `📢 Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`,
+        body: announcementMessage,
+        barangayCode: cleanCode,
+        category: 'Relief Distribution',
+        scope: 'barangay',
+        tag: 'UPDATED',
+        edited: true,
+        editedAt: new Date(),
+        targetTab: 'distribution',
+        postedBy: req.user._id,
+      });
+    }
+
+    // Broadcast real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('announcement_updated', ann);
+      io.to(`brgy:${cleanCode}`).emit('announcement_updated', ann);
+      io.emit('new_announcement', ann);
+    }
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'UPDATE_EVENT_ANNOUNCEMENT',
+      targetType: 'DistributionEvent',
+      targetId: event._id.toString(),
+      notes: `Announcement for event "${event.title}" updated and broadcasted to Barangay ${cleanCode}`,
+    });
+
+    res.json({ success: true, event, announcement: ann });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating event announcement', error: error.message });
+  }
+});
+
 // @route   POST /api/distribution-events
-// @desc    Open a new distribution event
+// @desc    Schedule a new distribution event and broadcast announcement
 router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
-    const { title, itemType, batchId, barangayCode, location, assignedTeam, staffAssigned, scheduledDate, scheduledTime, targetHouseholds } = req.body;
-    if (!title && !location) {
+    const {
+      title,
+      itemType,
+      batchId,
+      barangayCode,
+      location,
+      assignedTeam,
+      staffAssigned,
+      scheduledDate,
+      scheduledTime,
+      targetHouseholds,
+      announcementMessage,
+    } = req.body;
+
+    if (!title && !location && !barangayCode) {
       return res.status(400).json({ message: 'Please provide at least a title or location.' });
     }
 
+    const cleanCode = (barangayCode || '').replace(/\D/g, '') || req.user.barangayCode || '291';
     const targetHH = parseInt(targetHouseholds) || 0;
+
     const event = await DistributionEvent.create({
-      title: title || `Relief Distribution — ${location}`,
+      title: title || `Relief Distribution - Barangay ${cleanCode}`,
       itemType: itemType || 'Family Food Pack',
       batchId: batchId || `BATCH-${Date.now()}`,
-      barangayCode: barangayCode || req.user.barangayCode || '291',
-      location: location || title,
+      barangayCode: cleanCode,
+      location: location || `Barangay ${cleanCode} Covered Court`,
       assignedTeam: assignedTeam || staffAssigned || 'Field Team Alpha',
       scheduledDate: scheduledDate || null,
       scheduledTime: scheduledTime || null,
       targetHouseholds: targetHH,
+      announcementMessage: announcementMessage || '',
+      status: 'Scheduled',
+      isActive: false,
       openedBy: req.user._id,
     });
+
+    // ── AWTOMATIKONG ANNOUNCEMENT BROADCAST SA RESIDENTS AT BARANGAY OFFICIALS ──
+    const finalAnnouncementText = (announcementMessage && announcementMessage.trim()) ||
+      `Magandang araw po sa mga taga-Barangay ${cleanCode}! May nakatakdang pamamahagi ng ${itemType || 'Family Food Pack'} sa darating na ${scheduledDate || 'nakatakdang petsa'} sa ganap na ${scheduledTime || '08:00 AM'}. Mangyaring ihanda ang inyong Digital QR Relief Pass para sa mabilisang claim sa relief distribution center.`;
+
+    try {
+      const Announcement = require('../models/Announcement');
+      const ann = await Announcement.create({
+        title: `📢 Relief Distribution Advisory: Barangay ${cleanCode}`,
+        body: finalAnnouncementText,
+        barangayCode: cleanCode,
+        category: 'Relief Distribution',
+        scope: 'barangay',
+        tag: 'DISTRIBUTION',
+        targetTab: 'distribution',
+        postedBy: req.user._id,
+      });
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('new_announcement', ann);
+        io.to(`brgy:${cleanCode}`).emit('new_announcement', ann);
+      }
+    } catch (annErr) {
+      console.error('Error broadcasting announcement for distribution event:', annErr);
+    }
 
     // ── AWTOMATIKONG DEDUCTION / DISPATCH MULA SA WAREHOUSE STOCK ──
     if (targetHH > 0) {

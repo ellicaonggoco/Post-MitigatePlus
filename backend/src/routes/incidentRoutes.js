@@ -38,7 +38,7 @@ router.post('/', protect, requireRole('field_staff', 'barangay_official'), async
 });
 
 // @route   GET /api/incidents
-// @desc    List incidents — scoped to barangay for officials, city-wide for LGU/SuperAdmin
+// @desc    List incidents - scoped to barangay for officials, city-wide for LGU/SuperAdmin
 router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const query = {};

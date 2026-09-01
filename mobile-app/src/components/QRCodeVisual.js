@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import Svg, { Rect, Path, G } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, RADIUS, FONT_WEIGHT, SPACING, SHADOWS } from '../theme';
@@ -216,7 +216,11 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
       >
         <View style={styles.passHeader}>
           <View style={styles.passSealCircle}>
-            <Text style={{ fontSize: 11, fontWeight: '900', color: '#002BB8' }}>MNL</Text>
+            <Image
+              source={require('../../assets/logo-mark.png')}
+              style={{ width: 22, height: 22 }}
+              resizeMode="contain"
+            />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.passTitle}>

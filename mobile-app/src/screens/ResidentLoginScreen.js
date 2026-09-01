@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { loginUser } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, UsersIcon, ArrowRightIcon } from '../components/AppIcons';
@@ -11,113 +13,86 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const scrollRef = useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // Check biometric availability and attempt auto-login on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const compatible = await LocalAuthentication.hasHardwareAsync();
+        const enrolled = await LocalAuthentication.isEnrolledAsync();
+        const savedSession = await AsyncStorage.getItem('mitigateplus_session');
+        if (compatible && enrolled && savedSession) {
+          setBiometricAvailable(true);
+          const result = await LocalAuthentication.authenticateAsync({
+            promptMessage: lang === 'tl' ? 'I-verify ang inyong pagkakakilanlan' : 'Verify your identity to continue',
+            cancelLabel: lang === 'tl' ? 'Gumamit ng Password' : 'Use Password',
+            fallbackLabel: lang === 'tl' ? 'Gumamit ng Password' : 'Use Password',
+            disableDeviceFallback: false,
+          });
+          if (result.success && savedSession) {
+            const session = JSON.parse(savedSession);
+            if (session?.token) onLoginSuccess(session);
+          }
+        }
+      } catch {
+        // Biometric unavailable - fall through to password login
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleEmailOrPhoneChange = (txt) => {
     setEmailOrPhone(txt);
-    const cleaned = txt.trim();
-    if (!cleaned) {
+    if (errors.emailOrPhone) {
       setErrors(prev => ({ ...prev, emailOrPhone: '' }));
-      return;
-    }
-
-    const isDigitStart = /^(\+?63|0)?\d*$/.test(cleaned);
-    if (isDigitStart && !cleaned.includes('@')) {
-      const pureDigits = cleaned.replace(/[\s-+]/g, '');
-      if (pureDigits.startsWith('63')) {
-        if (pureDigits.length !== 12) {
-          setErrors(prev => ({
-            ...prev,
-            emailOrPhone: lang === 'tl'
-              ? 'Kailangang 11 digits ang mobile number (hal. 09XXXXXXXXX)'
-              : 'Mobile number must be 11 digits (e.g. 09XXXXXXXXX)',
-          }));
-        } else {
-          setErrors(prev => ({ ...prev, emailOrPhone: '' }));
-        }
-      } else if (pureDigits.startsWith('09')) {
-        if (pureDigits.length !== 11) {
-          setErrors(prev => ({
-            ...prev,
-            emailOrPhone: lang === 'tl'
-              ? 'Kailangang 11 digits ang mobile number (hal. 09XXXXXXXXX)'
-              : 'Mobile number must be 11 digits (e.g. 09XXXXXXXXX)',
-          }));
-        } else {
-          setErrors(prev => ({ ...prev, emailOrPhone: '' }));
-        }
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          emailOrPhone: lang === 'tl'
-            ? 'Dapat magsimula sa 09 ang mobile number (11 digits)'
-            : 'Mobile number must start with 09 (11 digits)',
-        }));
-      }
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(cleaned)) {
-        setErrors(prev => ({
-          ...prev,
-          emailOrPhone: lang === 'tl'
-            ? 'Maglagay ng wastong email (hal. name@gmail.com) o 11-digit mobile (09XXXXXXXXX)'
-            : 'Enter a valid email (e.g. name@gmail.com) or 11-digit mobile (09XXXXXXXXX)',
-        }));
-      } else {
-        setErrors(prev => ({ ...prev, emailOrPhone: '' }));
-      }
     }
   };
 
   const handlePasswordChange = (txt) => {
     setPassword(txt);
-    if (!txt) {
-      setErrors(prev => ({ ...prev, password: '' }));
-    } else if (txt.length < 6) {
-      setErrors(prev => ({
-        ...prev,
-        password: lang === 'tl'
-          ? 'Kailangang may minimum 6 na characters ang password.'
-          : 'Password must be at least 6 characters.',
-      }));
-    } else {
+    if (errors.password) {
       setErrors(prev => ({ ...prev, password: '' }));
     }
   };
-
-  const validateForm = () => {
-    const errs = {};
-    if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = lang === 'tl'
-        ? 'Pakilagay ang inyong rehistradong mobile number.'
-        : 'Please enter your registered phone number.';
-    } else {
-      const cleaned = emailOrPhone.trim().replace(/[\s-]/g, '');
-      if (!/^09\d{9}$/.test(cleaned)) {
-        errs.emailOrPhone = lang === 'tl'
-          ? 'Kailangang 11 digits ang mobile number na nagsisimula sa 09 (hal. 09XXXXXXXXX)'
-          : 'Phone number must be 11 digits starting with 09 (e.g. 09XXXXXXXXX)';
-      }
-    }
-
-    if (!password) {
-      errs.password = lang === 'tl'
-        ? 'Pakilagay ang inyong password.'
-        : 'Please enter your password.';
-    } else if (password.length < 6) {
-      errs.password = lang === 'tl'
-        ? 'Kailangang may minimum 6 na characters ang password.'
-        : 'Password must be at least 6 characters.';
-    }
-
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
 
   const handleLogin = async () => {
-    if (!validateForm()) return;
+    const errs = {};
+    if (!emailOrPhone.trim()) {
+      errs.emailOrPhone = 'Wrong Phone Number';
+    }
+    if (!password) {
+      errs.password = 'Wrong Password';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
 
     setLoading(true);
+    setErrors({});
+
     try {
       const res = await loginUser({
         emailOrPhone: emailOrPhone.trim(),
@@ -126,19 +101,33 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
 
       const session = res?.data || res;
       if (session?.token) {
+        await AsyncStorage.setItem('mitigateplus_session', JSON.stringify(session));
         onLoginSuccess(session);
-      } else if (res?.message) {
-        setErrors(prev => ({
-          ...prev,
-          emailOrPhone: res.message,
-        }));
+      } else {
+        const msg = (res?.message || '').toLowerCase();
+        if (msg.includes('password')) {
+          setErrors({ password: 'Wrong Password' });
+        } else if (msg.includes('not found') || msg.includes('user') || msg.includes('phone') || msg.includes('mobile')) {
+          setErrors({ emailOrPhone: 'Wrong Phone Number' });
+        } else {
+          setErrors({
+            emailOrPhone: 'Wrong Phone Number',
+            password: 'Wrong Password',
+          });
+        }
       }
     } catch (err) {
-      setLoading(false);
-      setErrors(prev => ({
-        ...prev,
-        emailOrPhone: err?.message || (lang === 'tl' ? 'Maling credentials o hindi makakonekta sa server.' : 'Invalid credentials or unable to connect to server.'),
-      }));
+      const errMsg = (err?.message || '').toLowerCase();
+      if (errMsg.includes('password')) {
+        setErrors({ password: 'Wrong Password' });
+      } else if (errMsg.includes('not found') || errMsg.includes('user')) {
+        setErrors({ emailOrPhone: 'Wrong Phone Number' });
+      } else {
+        setErrors({
+          emailOrPhone: 'Wrong Phone Number',
+          password: 'Wrong Password',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -151,11 +140,13 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
       keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        ref={scrollRef}
+        contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        {/* Brand Header with Large Trademark Logo */}
+        {/* Brand Header */}
         <View style={styles.brandHeader}>
           <Image
             source={require('../../assets/logo_primary.png')}
@@ -188,14 +179,14 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder="09XXXXXXXXX"
+            placeholder="Enter Phone Number"
             errorText={errors.emailOrPhone}
             required
             keyboardType="phone-pad"
             autoCapitalize="none"
           />
 
-          {/* Password Input without cluttered helper text */}
+          {/* Password Input */}
           <NeumorphicInput
             label={lang === 'tl' ? 'Password' : 'Password'}
             value={password}
@@ -226,6 +217,33 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
               </Text>
             )}
           </MotionPressable>
+
+          {biometricAvailable && (
+            <TouchableOpacity
+              style={styles.biometricBtn}
+              activeOpacity={0.8}
+              onPress={async () => {
+                try {
+                  const result = await LocalAuthentication.authenticateAsync({
+                    promptMessage: lang === 'tl' ? 'I-verify ang inyong pagkakakilanlan' : 'Use biometrics to sign in',
+                    cancelLabel: lang === 'tl' ? 'Kanselahin' : 'Cancel',
+                    disableDeviceFallback: false,
+                  });
+                  if (result.success) {
+                    const savedSession = await AsyncStorage.getItem('mitigateplus_session');
+                    if (savedSession) {
+                      const session = JSON.parse(savedSession);
+                      if (session?.token) onLoginSuccess(session);
+                    }
+                  }
+                } catch { /* silently fail */ }
+              }}
+            >
+              <Text style={styles.biometricBtnText}>
+                {lang === 'tl' ? '🔐 Mag-login gamit ang Fingerprint / Face ID' : '🔐 Sign in with Fingerprint / Face ID'}
+              </Text>
+            </TouchableOpacity>
+          )}
 
         </View>
 
@@ -258,7 +276,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9F7', // Pearl White
+    backgroundColor: '#0A1628',
   },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
@@ -280,25 +298,24 @@ const styles = StyleSheet.create({
   brandCityTitle: {
     fontSize: 14.5,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#F0F6FF',
     letterSpacing: -0.2,
     marginBottom: 2,
     textAlign: 'center',
   },
   brandSub: {
     fontSize: 11,
-    color: '#64748B',
-    fontWeight: '500',
+    color: '#F59E0B',
+    fontWeight: '600',
     textAlign: 'center',
   },
-  // Clean Crisp Card Structure
   loginCard: {
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
     borderRadius: RESPONSIVE.borderRadius + 2,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#1E3A5F',
     padding: RESPONSIVE.cardPadding,
     marginBottom: 16,
     ...SHADOWS.md,
@@ -306,133 +323,98 @@ const styles = StyleSheet.create({
   cardHeaderGroup: {
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
+    borderBottomColor: '#1A2E4A',
     paddingBottom: 12,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#F0F6FF',
     letterSpacing: -0.3,
   },
   cardSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#94A3C0',
     marginTop: 3,
-    lineHeight: 17,
+    lineHeight: 16,
   },
   forgotPasswordUnderBtn: {
     alignSelf: 'flex-end',
-    marginTop: -8,
+    marginTop: 4,
     marginBottom: 16,
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   forgotText: {
-    fontSize: 12,
-    color: '#1557B0',
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#F59E0B',
   },
   submitBtn: {
-    width: '100%',
-    backgroundColor: '#1557B0',
-    paddingVertical: 14,
-    borderRadius: 10,
+    backgroundColor: '#F59E0B',
+    borderRadius: RESPONSIVE.borderRadius,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
-    ...SHADOWS.sm,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    ...SHADOWS.gold,
   },
   submitBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13.5,
-    fontWeight: '800',
-  },
-  demoSection: {
-    marginTop: 18,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#EDF2F7',
-  },
-  demoLabel: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  demoPillsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  demoPillBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 9,
-    borderRadius: 8,
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-  },
-  demoPillText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#1557B0',
-  },
-  registerFooterBtn: {
-    paddingVertical: 10,
-  },
-  registerFooterText: {
-    fontSize: 12.5,
-    color: '#475569',
-    fontWeight: '500',
+    fontSize: 14.5,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0A1628',
+    letterSpacing: 0.2,
   },
   registerCard: {
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
     borderRadius: RESPONSIVE.borderRadius,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: RESPONSIVE.cardPadding - 2,
+    borderColor: '#1E3A5F',
+    padding: 16,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     ...SHADOWS.sm,
   },
   registerCardTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#475569',
+    fontSize: 12.5,
+    color: '#94A3C0',
     marginBottom: 10,
     textAlign: 'center',
   },
   registerActionBtn: {
     width: '100%',
-    backgroundColor: '#F1F5F9',
+    height: 44,
+    borderRadius: RESPONSIVE.borderRadius,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    paddingVertical: 12,
-    borderRadius: 10,
+    borderColor: '#F59E0B',
+    backgroundColor: '#162850',
     alignItems: 'center',
     justifyContent: 'center',
   },
   registerActionBtnText: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#1557B0',
+    fontSize: 13,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#FBBF24',
   },
   footerNote: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 12,
+    fontSize: 10.5,
+    color: '#5A7498',
     textAlign: 'center',
+    marginTop: 8,
+  },
+  biometricBtn: {
+    marginTop: 12,
+    paddingVertical: 11,
+    borderRadius: RESPONSIVE.borderRadius,
+    borderWidth: 1.5,
+    borderColor: '#243B6E',
+    backgroundColor: '#162850',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  biometricBtnText: {
+    fontSize: 13,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#60A5FA',
   },
 });

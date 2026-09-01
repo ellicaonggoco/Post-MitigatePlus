@@ -151,7 +151,7 @@ export default function ReportsPage() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>MitigatePlus — Official Manila City Executive Audit Report</title>
+        <title>MitigatePlus - Official Manila City Executive Audit Report</title>
         <style>
           body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 24px; color: #1A2332; }
           .header { border-bottom: 2px solid #173F56; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -170,7 +170,7 @@ export default function ReportsPage() {
       <body>
         <div class="header">
           <div>
-            <h1>MitigatePlus — Official Manila City Executive Disaster Audit Report</h1>
+            <h1>MitigatePlus - Official Manila City Executive Disaster Audit Report</h1>
             <p>Lungsod ng Maynila • Scope: ${selectedBrgy === 'all' ? 'Entire Manila City (All Barangays)' : `Barangay ${selectedBrgy}`} • Date: ${new Date().toLocaleString()}</p>
           </div>
         </div>

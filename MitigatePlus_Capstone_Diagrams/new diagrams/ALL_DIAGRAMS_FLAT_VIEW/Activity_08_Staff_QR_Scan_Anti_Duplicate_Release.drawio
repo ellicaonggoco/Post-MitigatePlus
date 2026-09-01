@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="24.0.7" type="device">
+  <diagram id="act_mob_08" name="Field Staff QR Scanner &amp; Anti-Duplicate Relief Release Activity">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title Box -->
+        <mxCell id="tbox" value="Process Flow [ACT-M08]: Field Staff QR Scanner &amp; Anti-Duplicate Relief Release Activity" style="text;html=1;strokeColor=#1E293B;strokeWidth=1.5;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#0F172A;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="60" y="25" width="1520" height="40" as="geometry" />
+        </mxCell>
+        <!-- Pool Container -->
+        <mxCell id="p1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=2;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="60" y="75" width="1520" height="465" as="geometry" />
+        </mxCell>
+
+        <!-- Lanes -->
+        <mxCell id="l_0" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="0" width="1460" height="155" as="geometry"/></mxCell>
+        <mxCell id="lh_0" value="LANE 1: RESIDENT BENEFICIARY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="48" width="155" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="l_1" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="155" width="1460" height="155" as="geometry"/></mxCell>
+        <mxCell id="lh_1" value="LANE 2: FIELD STAFF (MOBILE SCANNER APP)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="203" width="155" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="l_2" value="" style="swimlane;startSize=0;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;fontFamily=Helvetica;" vertex="1" parent="p1"><mxGeometry x="60" y="310" width="1460" height="155" as="geometry"/></mxCell>
+        <mxCell id="lh_2" value="LANE 3: ANTI-FRAUD COMPOUND INDEX &amp; DB" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1557B0;strokeColor=#0F172A;strokeWidth=1.5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Helvetica;rotation=-90;" vertex="1" parent="p1"><mxGeometry x="-45" y="358" width="155" height="60" as="geometry"/></mxCell>
+
+        <!-- Nodes -->
+        <mxCell id="n1" value="START" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="130" y="125" width="55" height="45" as="geometry"/></mxCell>
+        <mxCell id="n2" value="Presents Digital or&lt;br&gt;Printed QR Relief Pass" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="215" y="120" width="140" height="55" as="geometry"/></mxCell>
+        <mxCell id="n3" value="Open Scanner Camera &amp;&lt;br&gt;Scan Beneficiary QR Pass" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="385" y="275" width="155" height="55" as="geometry"/></mxCell>
+        <mxCell id="n4" value="Check Compound Index&lt;br&gt;(qrCode + eventId)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="565" y="420" width="155" height="55" as="geometry"/></mxCell>
+        <mxCell id="n5" value="Already Claimed&lt;br&gt;in Event?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.15;" vertex="1" parent="1"><mxGeometry x="745" y="415" width="120" height="65" as="geometry"/></mxCell>
+        
+        <!-- Duplicate Fraud Branch (Center aligned: centerX = 745 + 60 = 805) -->
+        <mxCell id="n6" value="DUPLICATE ALERT!&lt;br&gt;Display Fraud Warning" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=1.8;fontColor=#DC2626;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="735" y="275" width="140" height="55" as="geometry"/></mxCell>
+        <mxCell id="n6_end" value="END (Fraud Logged)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#DC2626;strokeWidth=2;fontColor=#DC2626;fontStyle=1;fontSize=10.5;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="745" y="125" width="120" height="45" as="geometry"/></mxCell>
+
+        <!-- Success Release Branch -->
+        <mxCell id="n7" value="Compute Entitlement Pack&lt;br&gt;Formula (Base + Extra)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="905" y="275" width="155" height="55" as="geometry"/></mxCell>
+        <mxCell id="n8" value="Staff Confirms Release &amp;&lt;br&gt;Deducts Warehouse Stock" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#FFFFFF;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#0F172A;fontSize=10;fontFamily=Helvetica;align=center;lineHeight=1.2;" vertex="1" parent="1"><mxGeometry x="1090" y="275" width="155" height="55" as="geometry"/></mxCell>
+        <mxCell id="n9" value="END (Released)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#FFFFFF;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=11;fontFamily=Helvetica;align=center;" vertex="1" parent="1"><mxGeometry x="1275" y="280" width="95" height="45" as="geometry"/></mxCell>
+
+        <!-- Connections with Explicit Geometry -->
+        <mxCell id="c_0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n2" target="n3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n3" target="n4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n4" target="n5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        
+        <!-- Yes = Duplicate (Straight Up) -->
+        <mxCell id="c_4" value="Yes (Duplicate)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontColor=#DC2626;fontStyle=1;fontSize=9.5;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="n5" target="n6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_4_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="n6" target="n6_end"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- No = Eligible to Claim (Straight Right) -->
+        <mxCell id="c_5" value="No (Valid)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=2;fontColor=#1557B0;fontStyle=1;fontSize=9.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n5" target="n7">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="880" y="447"/><mxPoint x="880" y="302"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="c_6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1E293B;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n7" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c_7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1557B0;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="n8" target="n9"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

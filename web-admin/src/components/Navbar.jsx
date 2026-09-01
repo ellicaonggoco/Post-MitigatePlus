@@ -29,7 +29,7 @@ export default function Navbar() {
           <img className="navbar-brand-logo" src={logoMarkBase64} alt="MitigatePlus Manila Clock Tower Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.4))' }} />
           <div>
             <h1 style={{ fontFamily: 'Baloo 2', fontSize: '22px', fontWeight: 800, margin: 0, color: '#FFF', letterSpacing: '-0.3px' }}>
-              MitigatePlus <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', opacity: 0.85, fontWeight: 500 }}>— Manila City LGU</span>
+              MitigatePlus <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', opacity: 0.85, fontWeight: 500 }}>- Manila City LGU</span>
             </h1>
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', margin: 0, fontWeight: 500 }}>
               Post-Disaster Recovery & Assistance Management System

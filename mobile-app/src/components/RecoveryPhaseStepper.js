@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONT_WEIGHT, SHADOWS } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
-import { ShieldCheckIcon } from './AppIcons';
+import { ShieldCheckIcon, CheckIcon } from './AppIcons';
 import { MotionProgressTrack } from './motion';
 
 const STAGES_EN = [
@@ -81,9 +81,9 @@ export default function RecoveryPhaseStepper({
       {/* Progress Track (Motion Primitive Liquid Fill) */}
       <MotionProgressTrack
         percentage={percentage}
-        height={8}
+        height={5}
         color={!isVerified ? '#D97706' : '#1557B0'}
-        style={{ marginVertical: 14 }}
+        style={{ marginVertical: 6 }}
       />
 
       {/* 5-Step Segmented Markers */}
@@ -101,15 +101,19 @@ export default function RecoveryPhaseStepper({
                   isCurrent && (isVerified ? styles.stepNodeCurrent : styles.stepNodePending),
                 ]}
               >
-                <Text
-                  style={[
-                    styles.stepNumber,
-                    (isCompleted || isCurrent) && styles.stepNumberActive,
-                    !isVerified && isCurrent && { color: '#B45309' },
-                  ]}
-                >
-                  {isCompleted ? '' : idx + 1}
-                </Text>
+                {isCompleted || (isCurrent && isVerified) ? (
+                  <CheckIcon size={11} color="#FFFFFF" />
+                ) : (
+                  <Text
+                    style={[
+                      styles.stepNumber,
+                      (isCompleted || isCurrent) && styles.stepNumberActive,
+                      !isVerified && isCurrent && { color: '#B45309' },
+                    ]}
+                  >
+                    {idx + 1}
+                  </Text>
+                )}
               </View>
 
               <Text
@@ -150,94 +154,81 @@ export default function RecoveryPhaseStepper({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 16,
-    marginBottom: 16,
-    ...SHADOWS.md,
+    borderColor: '#E2E8F0',
+    padding: 12,
+    marginBottom: 12,
+    ...SHADOWS.sm,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   title: {
-    fontSize: 15.5,
+    fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0F172A',
   },
   subTitle: {
-    fontSize: 11,
+    fontSize: 9.5,
     color: '#64748B',
-    marginTop: 1,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginTop: 0.5,
+    letterSpacing: 0.2,
   },
   percentBadge: {
     backgroundColor: '#ECFDF5',
     borderWidth: 1,
     borderColor: '#A7F3D0',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   percentText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#16A34A',
-  },
-  trackContainer: {
-    height: 7,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 999,
-    overflow: 'hidden',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  trackFill: {
-    height: '100%',
-    backgroundColor: '#1557B0',
-    borderRadius: 999,
   },
   stepsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginVertical: 4,
   },
   stepItem: {
     flex: 1,
     alignItems: 'center',
   },
   stepNode: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#CBD5E1',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   stepNodeCompleted: {
     backgroundColor: '#16A34A',
     borderColor: '#16A34A',
   },
   stepNodeCurrent: {
-    backgroundColor: '#1557B0',
-    borderColor: '#D97706',
-    borderWidth: 2.5,
+    backgroundColor: '#16A34A',
+    borderColor: '#15803D',
+    borderWidth: 1.5,
   },
   stepNodePending: {
     backgroundColor: '#FEF3C7',
     borderColor: '#D97706',
-    borderWidth: 2.5,
+    borderWidth: 1.5,
   },
   stepNumber: {
-    fontSize: 10,
+    fontSize: 8.5,
     fontWeight: '800',
     color: '#94A3B8',
   },
@@ -245,37 +236,38 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   stepLabel: {
-    fontSize: 9.5,
+    fontSize: 8.5,
     color: '#94A3B8',
     fontWeight: '600',
   },
   stepLabelActive: {
-    color: '#172B4D',
+    color: '#0F172A',
     fontWeight: '800',
   },
   activeCallout: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#FFFBEB',
     borderWidth: 1,
     borderColor: '#FDE68A',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    marginTop: 8,
   },
   activeCalloutHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
+    gap: 4,
+    marginBottom: 1,
   },
   activeCalloutTitle: {
-    fontSize: 10.5,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#B45309',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   activeCalloutDesc: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#78350F',
-    lineHeight: 15,
+    lineHeight: 13,
   },
 });

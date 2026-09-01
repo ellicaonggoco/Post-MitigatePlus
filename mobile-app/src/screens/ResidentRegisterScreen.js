@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import NeumorphicInput from '../components/NeumorphicInput';
@@ -126,6 +127,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   const [certified, setCertified] = useState(true);
+  const [agreedTerms, setAgreedTerms] = useState(true);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -138,6 +141,27 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   const [otpError, setOtpError] = useState('');
   const [canResend, setCanResend] = useState(false);
   const otpInputRefs = React.useRef([]);
+  const scrollRef = React.useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  React.useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   React.useEffect(() => {
     let timer;
@@ -316,6 +340,15 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     }
     if (!certified) {
       errs.certified = lang === 'tl' ? 'Kailangang patotohanan ang impormasyon.' : 'You must certify the information.';
+    }
+    if (!agreedTerms) {
+      errs.agreedTerms = lang === 'tl'
+        ? 'Kailangang sumang-ayon sa Mga Tuntunin at Patakaran sa Privacy (Data Privacy Act).'
+        : 'You must agree to the Terms and Conditions and Data Privacy Policy.';
+      Alert.alert(
+        lang === 'tl' ? 'Pagsang-ayon sa Privacy' : 'Privacy Consent Required',
+        errs.agreedTerms
+      );
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -520,9 +553,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: 120 + keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topHeader}>
@@ -932,6 +967,41 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 </Text>
               </TouchableOpacity>
 
+              <TouchableOpacity
+                style={[styles.certRow, { marginTop: 10 }]}
+                onPress={() => setAgreedTerms(!agreedTerms)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.checkbox, agreedTerms && styles.checkboxActive]}>
+                  {agreedTerms && <CheckIcon size={12} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.certText}>
+                  {lang === 'tl' ? (
+                    <Text>
+                      Sumasang-ayon ako sa{' '}
+                      <Text
+                        style={{ color: '#1557B0', fontWeight: '800', textDecorationLine: 'underline' }}
+                        onPress={() => setShowTermsModal(true)}
+                      >
+                        Mga Tuntunin at Kundisyon (Terms & Conditions)
+                      </Text>{' '}
+                      at Patakaran sa Privacy ng Lungsod ng Maynila alinsunod sa Data Privacy Act of 2012 (RA 10173).
+                    </Text>
+                  ) : (
+                    <Text>
+                      I agree to the{' '}
+                      <Text
+                        style={{ color: '#1557B0', fontWeight: '800', textDecorationLine: 'underline' }}
+                        onPress={() => setShowTermsModal(true)}
+                      >
+                        Terms and Conditions
+                      </Text>{' '}
+                      and City of Manila Data Privacy Policy pursuant to the Data Privacy Act of 2012 (RA 10173).
+                    </Text>
+                  )}
+                </Text>
+              </TouchableOpacity>
+
               <MotionPressable
                 style={[styles.submitBtn, loading && { opacity: 0.7 }]}
                 onPress={handleInitiateRegistration}
@@ -950,6 +1020,82 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           )}
         </View>
       </ScrollView>
+
+      {/* TERMS & CONDITIONS AND DATA PRIVACY ACT MODAL */}
+      <Modal
+        visible={showTermsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTermsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.idModalBox, { maxHeight: hp(80), width: '92%', maxWidth: 440, paddingBottom: 16 }]}>
+            <View style={styles.idModalHeader}>
+              <Text style={[styles.idModalTitle, { fontSize: 15, flex: 1, paddingRight: 8 }]}>
+                {lang === 'tl'
+                  ? 'Mga Tuntunin at Patakaran sa Privacy'
+                  : 'Terms of Service & Data Privacy'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowTermsModal(false)}>
+                <CloseIcon size={18} color="#475569" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: hp(58), paddingRight: 4 }} showsVerticalScrollIndicator={true}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+                {lang === 'tl'
+                  ? '1. REPUBLIC ACT NO. 10173 (DATA PRIVACY ACT OF 2012)'
+                  : '1. REPUBLIC ACT NO. 10173 (DATA PRIVACY ACT OF 2012)'}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#334155', lineHeight: 18, marginBottom: 12 }}>
+                {lang === 'tl'
+                  ? 'Ang Pamahalaang Lungsod ng Maynila sa pamamagitan ng MitigatePlus Disaster Response System ay mahigpit na sumusunod sa Data Privacy Act of 2012. Ang lahat ng impormasyong ibibigay mo (Pangalan, Tirahan, Litrato ng ID, at talaan ng pamilya) ay gagamitin LAMANG sa lehitimong layunin ng pamamahagi ng ayuda, pag-verify ng benepisyaryo, at proteksyon laban sa pandaraya.'
+                  : 'The City Government of Manila through the MitigatePlus Disaster Response System strictly adheres to Republic Act No. 10173 (Data Privacy Act of 2012). All personal information collected (Full Name, Address, Government ID Photo, Family Demographics) shall be processed SOLELY for relief goods distribution, beneficiary verification, and fraud prevention.'}
+              </Text>
+
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+                {lang === 'tl'
+                  ? '2. MGA KARAPATAN NG RESIDENTE AT SEGURIDAD NG DATOS'
+                  : '2. DATA PROTECTION & BENEFICIARY RIGHTS'}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#334155', lineHeight: 18, marginBottom: 12 }}>
+                {lang === 'tl'
+                  ? 'Ang iyong mga datos ay protektado ng encryption. May karapatan kang humiling ng pagwawasto sa iyong talaan sa iyong opisyal na Barangay Hall. Hindi ibebenta o ibabahagi ang iyong impormasyon sa mga pribadong kumpanya nang walang pahintulot.'
+                  : 'Your information is protected via industry-standard encryption. Access is restricted to authorized Manila MDRRMO personnel and Barangay Officials. Your personal data will never be commercialized or shared with third parties without your explicit consent.'}
+              </Text>
+
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+                {lang === 'tl'
+                  ? '3. PATAKARAN SA KATOTOHANAN AT ANTI-FRAUD'
+                  : '3. TRUTHFULNESS & ANTI-FRAUD PROVISIONS'}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#334155', lineHeight: 18, marginBottom: 16 }}>
+                {lang === 'tl'
+                  ? 'Sa pamamagitan ng pagrehistro, pinatutunayan mo na ikaw ay tunay na residente ng Lungsod ng Maynila. Ang pagpasa ng pekeng ID o pekeng talaan ng miyembro ng pamilya upang makakuha ng dobleng ayuda ay may kaukulang pananagutan sa ilalim ng batas.'
+                  : 'By registering, you certify that you are a bona fide resident of the City of Manila. Providing falsified information or duplicate claiming is strictly prohibited and subject to administrative and legal penalties under applicable municipal ordinances.'}
+              </Text>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#1557B0',
+                paddingVertical: 12,
+                borderRadius: 10,
+                alignItems: 'center',
+                marginTop: 10,
+              }}
+              onPress={() => {
+                setAgreedTerms(true);
+                setShowTermsModal(false);
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                {lang === 'tl' ? 'Nauunawaan Ko at Sumasang-ayon' : 'I Understand & Agree'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ID TYPE SELECTION MODAL */}
       <Modal
@@ -1250,7 +1396,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#0A1628',
   },
   scroll: {
     flex: 1,
@@ -1258,7 +1404,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 6,
-    paddingBottom: hp(12),
+    paddingBottom: 95,
     alignItems: 'center',
   },
   topHeader: {
@@ -1288,12 +1434,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#F0F6FF',
     letterSpacing: -0.3,
   },
   stepCounterText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#F59E0B',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -1330,7 +1476,9 @@ const styles = StyleSheet.create({
   registerCard: {
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2040',
+    borderWidth: 1,
+    borderColor: '#1E3A5F',
     borderRadius: RESPONSIVE.borderRadius + 2,
     borderWidth: 1,
     borderColor: '#D9E2EC',
@@ -1346,11 +1494,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#F0F6FF',
   },
   cardSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#94A3C0',
     marginTop: 2,
     lineHeight: 16,
   },

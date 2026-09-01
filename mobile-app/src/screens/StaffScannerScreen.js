@@ -17,7 +17,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
   const [selectedEvent, setSelectedEvent] = useState({
     _id: 'evt_1',
     id: 'evt_1',
-    title: 'Typhoon Relief Drive #4 — Food & Water Pack',
+    title: 'Typhoon Relief Drive #4  -  Food & Water Pack',
     venue: 'Brgy 291 Covered Court',
     itemType: 'Family Food Pack',
   });

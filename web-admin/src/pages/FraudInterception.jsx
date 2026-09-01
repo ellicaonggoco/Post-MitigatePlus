@@ -93,7 +93,7 @@ export default function FraudInterception() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FEF2F2', border: '1px solid rgba(220,38,38,0.25)', padding: '6px 14px', borderRadius: 'var(--radius-pill)' }}>
           <Activity size={14} color="#DC2626" />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#DC2626' }}>Live Stream — {attempts.length} intercepted today</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#DC2626' }}>Live Stream - {attempts.length} intercepted today</span>
         </div>
       </div>
 
@@ -190,7 +190,7 @@ export default function FraudInterception() {
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, padding: '12px 18px', background: 'var(--card)', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-            Showing <strong>{startIndex + 1}–{Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)}</strong> of <strong>{filtered.length}</strong> intercepted attempts
+            Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filtered.length)}</strong> of <strong>{filtered.length}</strong> intercepted attempts
           </div>
 
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

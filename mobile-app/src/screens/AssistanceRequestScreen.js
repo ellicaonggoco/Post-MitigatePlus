@@ -1,713 +1,545 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   Alert,
   TextInput,
-  Keyboard,
   Modal,
   Platform,
-  Vibration,
-  Animated,
 } from 'react-native';
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import QRCodeVisual from '../components/QRCodeVisual';
 import {
   ArrowLeftIcon,
-  ShieldCheckIcon,
+  CloseIcon,
   CheckIcon,
-  MedicineIcon,
-  MapPinIcon,
-  MicrophoneIcon,
+  ShovelIcon,
+  BroomIcon,
+  SprayIcon,
+  BoxPackageIcon,
+  HammerToolIcon,
 } from '../components/AppIcons';
-import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, scaleFont, wp, hp } from '../theme';
+import { SHADOWS, RESPONSIVE } from '../theme';
 import { API_BASE_URL } from '../config';
 
-const GEMINI_DIRECT_KEY = Buffer.from('QVEuQWI4Uk42S1BBUDF0T3VOYlRwWXZLRnExLU9oSmQwSVB0Y3FCSE01NHNPVW8tR3FkS1E=', 'base64').toString('utf8');
+const JOB_CATEGORIES = [
+  {
+    id: 'Debris & Mud Clearing',
+    title: 'Debris and Mud Clearing',
+    scope: 'Heavy Work',
+    desc: 'Road clearing, mud shoveling, and storm debris removal across community streets.',
+    badgeColor: '#475569',
+    badgeBg: '#F1F5F9',
+    IconComponent: ShovelIcon,
+  },
+  {
+    id: 'Drainage & Canal Declogging',
+    title: 'Drainage and Canal Declogging',
+    scope: 'Heavy Work',
+    desc: 'Clearing culverts, storm drains, and waterways to ensure rapid flood water recession.',
+    badgeColor: '#475569',
+    badgeBg: '#F1F5F9',
+    IconComponent: BroomIcon,
+  },
+  {
+    id: 'Evacuation Center Sanitation',
+    title: 'Evacuation Center Sanitation',
+    scope: 'Moderate Work',
+    desc: 'Deep cleaning, disinfection, and facility maintenance in designated shelters.',
+    badgeColor: '#475569',
+    badgeBg: '#F1F5F9',
+    IconComponent: SprayIcon,
+  },
+  {
+    id: 'Relief Goods Logistics & Packing',
+    title: 'Relief Logistics and Packing',
+    scope: 'Light Work',
+    desc: 'Assembling food packs, organizing warehouse supplies, and staging distribution lines.',
+    badgeColor: '#475569',
+    badgeBg: '#F1F5F9',
+    IconComponent: BoxPackageIcon,
+  },
+  {
+    id: 'Carpentry & Facility Repair',
+    title: 'Carpentry and Facility Repair',
+    scope: 'Skilled Work',
+    desc: 'Restoring damaged roofs, partitions, handrails, and emergency community barriers.',
+    badgeColor: '#475569',
+    badgeBg: '#F1F5F9',
+    IconComponent: HammerToolIcon,
+  },
+];
 
-export default function AssistanceRequestScreen({ token, lang = 'tl', onBack, onSubmitSuccess }) {
-  const [loading, setLoading] = useState(false);
-  const [aiInputText, setAiInputText] = useState('');
-  const [aiAnalyzing, setAiAnalyzing] = useState(false);
-  const [aiResult, setAiResult] = useState(null);
-  const [submittedTicket, setSubmittedTicket] = useState(null);
+export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) {
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [activeProject, setActiveProject] = useState(null);
+  const [userApplication, setUserApplication] = useState(null);
 
-  // Big Push-to-Talk & Tap-to-Record Voice State
-  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
-  const [isSoundDetected, setIsSoundDetected] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [recordDuration, setRecordDuration] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState(JOB_CATEGORIES[0].id);
+  const [experienceNotes, setExperienceNotes] = useState('');
+  const [isCommitted, setIsCommitted] = useState(false);
 
-  const recordingRef = useRef(null);
-  const recordTimerRef = useRef(null);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const waveAnim1 = useRef(new Animated.Value(4)).current;
-  const waveAnim2 = useRef(new Animated.Value(4)).current;
-  const waveAnim3 = useRef(new Animated.Value(4)).current;
-  const waveAnim4 = useRef(new Animated.Value(4)).current;
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const scrollRef = React.useRef(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  // Diverse Post-Disaster Health Scenarios
-  const samplePrompts = [
-    {
-      label: 'Sugat sa Baha & Lagnat (Leptospirosis)',
-      category: 'Leptospirosis',
-      text: 'Nilusong ko sa maruming baha ang sugat ko sa binti kahapon at nilalagnat po ako at sumasakit ang kalamnan.',
-    },
-    {
-      label: 'Sanggol Nagtatae & Nagsusuka',
-      category: 'Pediatric ORS',
-      text: 'Nagtatae po ng tubig at nagsusuka ang 1-year-old kong baby pagkatapos uminom ng tubig matapos ang bagyo, nanghihina po siya.',
-    },
-    {
-      label: 'Lagnat, Pantal & Sakit ng Ulo (Dengue)',
-      category: 'Dengue',
-      text: '3 araw na pong mataas ang lagnat ko, may mga mapupulang pantal sa braso at sobrang sakit ng likod ng mga mata ko.',
-    },
-    {
-      label: 'Natusok ng Kalawang na Pako (Tetanus)',
-      category: 'Tetanus',
-      text: 'Natusok po ng kinakalawang na pako sa putikan ang talampakan ko habang naglilinis ng baha, dumudugo at namamaga po.',
-    },
-    {
-      label: 'Hika & Hirap Huminga sa Lamig',
-      category: 'Asthma',
-      text: 'Inatake po ako ng hika dahil sa lamig at amag ng baha, humihingal at ubos na po ang pampausok kong Salbutamol.',
-    },
-    {
-      label: 'Alipunga & Makati sa Paa',
-      category: 'Skin Fungal',
-      text: 'Sobrang makati at namamalat ang pagitan ng mga daliri ko sa paa dahil 2 araw nababad sa baha.',
-    },
-    {
-      label: 'Senior: Naubusan ng Gamot sa High Blood',
-      category: 'Maintenance Refill',
-      text: 'Bedridden po si lola, naubusan ng maintenance na Amlodipine para sa high blood at hindi makapunta sa botika dahil lubog ang kalsada.',
-    },
-  ];
-
-  // Animated pulse triggers ONLY when real sound/voice is actively detected by microphone
   useEffect(() => {
-    if (isRecordingVoice && isSoundDetected) {
-      Animated.timing(pulseAnim, { toValue: 1.25, duration: 180, useNativeDriver: true }).start();
-    } else {
-      Animated.timing(pulseAnim, { toValue: 1.0, duration: 200, useNativeDriver: true }).start();
-    }
-  }, [isRecordingVoice, isSoundDetected]);
-
-  // ── Start Audio Recording with Real-time Voice Metering ──
-  const startRecording = async () => {
-    Keyboard.dismiss();
-    setRecordDuration(0);
-    setIsSoundDetected(false);
-    try {
-      Vibration.vibrate(50);
-    } catch (e) {}
-
-    try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status !== 'granted') {
-        Alert.alert(
-          lang === 'tl' ? 'Kailangan ang Mikropono' : 'Microphone Access Required',
-          lang === 'tl'
-            ? 'Pahintulutan ang mikropono upang makapagsalita ng inyong emergency.'
-            : 'Please allow microphone permissions to speak your emergency.'
-        );
-        return;
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({ animated: true });
+        }, 80);
       }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const recording = new Audio.Recording();
-      // Optimized lightweight voice recording profile (16kHz mono, ultra-fast 20KB payload)
-      const voiceOptions = {
-        isMeteringEnabled: true,
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 32000,
-        },
-        ios: {
-          extension: '.m4a',
-          audioQuality: Audio.IOSAudioQuality.MEDIUM,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 32000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 32000,
-        },
-      };
-
-      await recording.prepareToRecordAsync(voiceOptions);
-
-      // Real-time audio metering: Detect if the user is ACTUALLY speaking
-      recording.setOnRecordingStatusUpdate((status) => {
-        if (status.isRecording) {
-          const db = status.metering ?? -160;
-          if (db > -42) {
-            setIsSoundDetected(true);
-            const norm = Math.min(Math.max((db + 45) / 45, 0), 1);
-            waveAnim1.setValue(8 + norm * 26);
-            waveAnim2.setValue(12 + norm * 35);
-            waveAnim3.setValue(14 + norm * 40);
-            waveAnim4.setValue(10 + norm * 30);
-          } else {
-            setIsSoundDetected(false);
-            waveAnim1.setValue(4);
-            waveAnim2.setValue(4);
-            waveAnim3.setValue(4);
-            waveAnim4.setValue(4);
-          }
-        }
-      });
-
-      await recording.startAsync();
-      recordingRef.current = recording;
-      setIsRecordingVoice(true);
-
-      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
-      recordTimerRef.current = setInterval(() => {
-        setRecordDuration((prev) => prev + 1);
-      }, 1000);
-    } catch (err) {
-      console.warn('Start recording error:', err);
-      Alert.alert('Notice', 'Could not access device microphone.');
-    }
-  };
-
-  // ── Direct Ultra-Fast Google Gemini 2.5 Flash Audio Transcription ──
-  const transcribeAudioViaGemini = async (base64Audio) => {
-    try {
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_DIRECT_KEY;
-      const payload = {
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: 'audio/m4a',
-                  data: base64Audio,
-                },
-              },
-              {
-                text: 'You are an emergency medical transcriber for the City of Manila. Transcribe the spoken audio verbatim in Tagalog, Taglish, or English. Return ONLY the exact transcribed text without preamble or quotes.',
-              },
-            ],
-          },
-        ],
-      };
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-        // Clean any preamble cleanly
-        let cleanText = rawText
-          .replace(/^(*+\s*)?(okay,?\s*)?(here'?s\s+(the\s+)?transcription:?|transcription:?|here\s+is\s+the\s+transcript:?)\s*/i, '')
-          .replace(/\*+/g, '')
-          .replace(/^[\"\']|[\"\']$/g, '')
-          .trim();
-        if (/^no\s*speech\.?$/i.test(cleanText) || /^inaudible\.?$/i.test(cleanText)) {
-          return '';
-        }
-        return cleanText;
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
       }
-    } catch (err) {
-      console.warn('Direct Gemini fetch error, trying backend fallback:', err);
-    }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
-    // Fallback to Backend Proxy
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    if (!token) return;
     try {
-      const res = await fetch(API_BASE_URL + '/ai-triage/transcribe-audio', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({
-          audioBase64: base64Audio,
-          mimeType: 'audio/m4a',
-        }),
+      setLoading(true);
+      const projRes = await fetch(API_BASE_URL + '/cash-for-work/projects?status=approved_active', {
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       });
-      if (res.ok) {
-        const data = await res.json();
-        return data?.text?.trim() || '';
-      }
-    } catch (e) {
-      console.warn('Backend proxy transcription error:', e);
-    }
-
-    return '';
-  };
-
-  // ── Stop Audio Recording & Process ──
-  const stopRecording = async () => {
-    if (!isRecordingVoice && !recordingRef.current) return;
-    setIsRecordingVoice(false);
-    setIsSoundDetected(false);
-    waveAnim1.setValue(4);
-    waveAnim2.setValue(4);
-    waveAnim3.setValue(4);
-    waveAnim4.setValue(4);
-
-    if (recordTimerRef.current) {
-      clearInterval(recordTimerRef.current);
-    }
-    try {
-      Vibration.vibrate([0, 30, 40, 30]);
-    } catch (e) {}
-
-    const recording = recordingRef.current;
-    if (!recording) return;
-
-    setIsTranscribing(true);
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      recordingRef.current = null;
-
-      if (uri) {
-        const base64Audio = await FileSystem.readAsStringAsync(uri, {
-          encoding: 'base64',
-        });
-
-        const transcript = await transcribeAudioViaGemini(base64Audio);
-        if (transcript && transcript.length > 0) {
-          setAiInputText(transcript);
-          setAiResult(null);
+      if (projRes.ok) {
+        const pData = await projRes.json();
+        if (pData.projects && pData.projects.length > 0) {
+          setActiveProject(pData.projects[0]);
         } else {
-          Alert.alert(
-            lang === 'tl' ? 'Walang Narinig na Boses' : 'No Speech Detected',
-            lang === 'tl'
-              ? 'Walang naitalang malinaw na boses. Pakilapit ang bibig sa mic at subukang magsalita muli.'
-              : 'No clear voice was captured. Please speak closer to the microphone and try again.'
-          );
+          setActiveProject({
+            _id: 'default_cfw_01',
+            title: 'Post-Typhoon Drainage and Debris Clearing Drive',
+            description: 'Emergency 10-day community recovery and rehabilitation work program for affected families.',
+            barangayCode: '291',
+            targetWorksite: 'Zone 27 Main Streets and Public Facilities',
+            dailyWageRate: 500,
+            durationDays: 10,
+            totalSlots: 25,
+            filledSlots: 14,
+            status: 'approved_active',
+          });
+        }
+      }
+
+      const appRes = await fetch(API_BASE_URL + '/cash-for-work/my-applications', {
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      });
+      if (appRes.ok) {
+        const aData = await appRes.json();
+        if (aData.applications && aData.applications.length > 0) {
+          setUserApplication(aData.applications[0]);
+        } else {
+          setUserApplication(null);
         }
       }
     } catch (err) {
-      console.warn('Audio processing error:', err);
-      Alert.alert('Notice', 'Voice processing failed. Please try again.');
-    } finally {
-      setIsTranscribing(false);
-    }
-  };
-
-  // 1. Run NLP Symptom Parsing & Disease Risk Engine
-  const handleRunAiTriage = async (textToAnalyze) => {
-    Keyboard.dismiss();
-    const text = (textToAnalyze || aiInputText).trim();
-    if (!text) {
-      Alert.alert(
-        lang === 'tl' ? 'Kailangan ang Sintomas' : 'Input Required',
-        lang === 'tl'
-          ? 'Pakisulat o pindutin ang Mic habang nagsasalita.'
-          : 'Please describe your symptoms or tap the Mic button to speak.'
-      );
-      return;
-    }
-
-    setAiAnalyzing(true);
-    try {
-      const res = await fetch(API_BASE_URL + '/ai-triage/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({
-          message: text,
-          symptomText: text,
-          text: text,
-          barangayCode: '291',
-        }),
-      });
-
-      const data = await res.json();
-      const result = data.triageResult || data;
-      if (res.ok && (result.urgencyLevel || result.suspectedCondition || result.voucherCode)) {
-        setAiResult(result);
-      } else {
-        Alert.alert('Notice', data.message || 'Unable to complete triage analysis at this moment.');
-      }
-    } catch (e) {
-      console.warn('AI Triage error:', e);
-      Alert.alert('Connection Notice', 'Could not reach the AI Triage server. Please check your network.');
-    } finally {
-      setAiAnalyzing(false);
-    }
-  };
-
-  // 2. Submit Official Triage Ticket & Claim Voucher to Barangay Health Center
-  const handleSubmitAiTriageRequest = async () => {
-    Keyboard.dismiss();
-    if (!aiResult) return;
-    setLoading(true);
-    try {
-      const res = await fetch(API_BASE_URL + '/ai-triage/submit-request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({
-          message: aiInputText,
-          symptomText: aiInputText,
-          triageResult: aiResult,
-          barangayCode: '291',
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setSubmittedTicket(data.triage);
-        Alert.alert(
-          lang === 'tl' ? 'Naitala ang Health Alert' : 'Health Ticket Recorded',
-          lang === 'tl'
-            ? 'Matagumpay na naitala ang inyong ulat. Voucher Code: ' + (data.voucherCode || aiResult.voucherCode) + '.\\n\\nPumunta sa Barangay 291 Health Center upang makuha ang inyong gamot (' + aiResult.recommendedMedicine + ').'
-            : 'Your report has been submitted. Voucher Code: ' + (data.voucherCode || aiResult.voucherCode) + '.\\n\\nPresent this code at Barangay 291 Health Center to claim your prescription (' + aiResult.recommendedMedicine + ').'
-        );
-      } else {
-        Alert.alert('Notice', data.message || 'Submission failed.');
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Network error while submitting health ticket.');
+      console.warn('Fetch CFW data warning:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleApply = async () => {
+    if (!isCommitted) {
+      Alert.alert(
+        lang === 'tl' ? 'Kumpirmasyon ng Oras' : 'Commitment Required',
+        lang === 'tl'
+          ? 'Pakisuyong kumpirmahin na handa kang pumasok sa nakatakdang araw ng trabaho.'
+          : 'Please confirm your availability for the scheduled work duration.'
+      );
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(API_BASE_URL + '/cash-for-work/apply', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: activeProject?._id || 'default_cfw_01',
+          selectedCategory,
+          experienceNotes,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setUserApplication(data.application);
+        Alert.alert(
+          lang === 'tl' ? 'Naisumite ang Aplikasyon' : 'Application Submitted',
+          lang === 'tl'
+            ? 'Matagumpay na naitala ang inyong aplikasyon. Kasalukuyan itong sinusuri ng Barangay Council para sa slot confirmation.'
+            : 'Your application has been received and is now queued for Barangay Council verification.'
+        );
+      } else {
+        Alert.alert('Notice', data.message || 'Submission could not be completed.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error while submitting application.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#1557B0" />
+        <Text style={styles.loadingText}>
+          {lang === 'tl' ? 'Kinakarga ang Livelihood Program...' : 'Loading Livelihood Program...'}
+        </Text>
+      </View>
+    );
+  }
+
+  const appStatus = userApplication?.status;
+  const isPending = appStatus === 'pending_barangay_review';
+  const isApprovedOrActive = appStatus === 'approved_for_work' || appStatus === 'active_on_duty';
+  const totalDays = activeProject?.durationDays || 10;
+  const workedDays = userApplication?.totalDaysWorked || 0;
+  const earnedAmount = workedDays * 500;
+
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
       <ScrollView
-        contentContainerStyle={styles.content}
+        ref={scrollRef}
+        contentContainerStyle={[styles.content, { paddingBottom: 95 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        {/* Back Button */}
         <TouchableOpacity style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
-          <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1557B0" />
-          </View>
+          <ArrowLeftIcon size={14} color="#1557B0" />
           <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
         </TouchableOpacity>
 
-        {/* Page Header */}
         <View style={styles.header}>
           <View style={styles.kickerRow}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.kicker}>POST-FLOOD & DISASTER EMERGENCY HEALTH TRIAGE</Text>
+            <View style={styles.kickerDot} />
+            <Text style={styles.kicker}>LGU EMERGENCY EMPLOYMENT AND REHABILITATION</Text>
           </View>
           <Text style={styles.title}>
-            {lang === 'tl' ? 'Health Check & Clinical Triage' : 'Health Check & Clinical Triage'}
+            {lang === 'tl' ? 'Post-Disaster Cash-for-Work' : 'Post-Disaster Cash-for-Work'}
           </Text>
           <Text style={styles.sub}>
             {lang === 'tl'
-              ? 'Pagsusuri gamit ang boses o teksto para sa Leptospirosis, Tetanus, Dengue, Pagtatae, Hika, at libreng gamot sa Health Center.'
-              : 'Rapid voice or text triage diagnosing Leptospirosis, Tetanus, Dengue, Diarrhea, and issuing medication vouchers.'}
+              ? 'TUPAD-style na pangkabuhayang tulong para sa mga residenteng nawalan ng kita matapos ang kalamidad.'
+              : 'Emergency paid employment program providing short-term income and community rebuilding assistance.'}
           </Text>
         </View>
 
-        {/* Symptom & Emergency Input Card */}
-        <View style={styles.aiBannerCard}>
-          <View style={styles.aiBadgeRow}>
-            <View style={styles.aiSparkleBadge}>
-              <Text style={styles.aiSparkleText}>CLINICAL NLP DIAGNOSTIC ENGINE</Text>
-            </View>
-            <Text style={styles.aiTagline}>{lang === 'tl' ? 'Boses o Teksto (Tagalog / English)' : 'Voice or Text (Bilingual)'}</Text>
-          </View>
-
-          <Text style={styles.aiBannerTitle}>
-            {lang === 'tl' ? 'Sabihin sa Boses o I-type ang Nararamdaman' : 'Speak via Mic or Type Symptoms'}
-          </Text>
-          <Text style={styles.aiBannerSub}>
-            {lang === 'tl'
-              ? 'Pindutin ang malaking asul na Microphone button upang magsalita, at pindutin muli kapag tapos na.'
-              : 'Tap the big blue Microphone button to start speaking, then tap again when finished.'}
-          </Text>
-
-          {/* ── BIG CIRCULAR PUSH-TO-TALK & TAP-TO-RECORD MICROPHONE STATION ── */}
-          <View style={[styles.micStationCard, isRecordingVoice && styles.micStationCardActive]}>
-            {/* Live Indicator Header */}
-            <View style={styles.micStatusRow}>
-              <View style={[styles.micLiveDot, isRecordingVoice ? (isSoundDetected ? styles.micLiveDotActive : styles.micLiveDotSilent) : null]} />
-              <Text style={[styles.micStatusText, isRecordingVoice ? (isSoundDetected ? styles.micStatusTextActive : styles.micStatusTextSilent) : null]}>
-                {isRecordingVoice
-                  ? (isSoundDetected
-                      ? (lang === 'tl' ? ('NARIRINIG ANG IYONG BOSES... (00:0' + recordDuration + 's)') : ('VOICE DETECTED... (00:0' + recordDuration + 's)'))
-                      : (lang === 'tl' ? ('NAKIKINIG (MAGSALITA NA)... (00:0' + recordDuration + 's)') : ('LISTENING (SPEAK NOW)... (00:0' + recordDuration + 's)')))
-                  : isTranscribing
-                  ? (lang === 'tl' ? 'ISINASALIN ANG BOSES GAMIT ANG GEMINI AI...' : 'TRANSCRIBING AUDIO VIA GEMINI AI...')
-                  : (lang === 'tl' ? 'PINDUTIN ANG MIC PARA MAGSALITA' : 'TAP MIC TO START SPEAKING')}
-              </Text>
-            </View>
-
-            {/* Big Mic Button with Dynamic Pulsing Outer Rings */}
-            <View style={styles.micButtonWrapper}>
-              {isRecordingVoice && isSoundDetected && (
-                <Animated.View
-                  style={[
-                    styles.micPulseRing,
-                    {
-                      transform: [{ scale: pulseAnim }],
-                      opacity: 0.45,
-                    },
-                  ]}
-                />
-              )}
-
-              <TouchableOpacity
-                style={[
-                  styles.bigMicCircleBtn,
-                  isRecordingVoice && (isSoundDetected ? styles.bigMicCircleBtnActive : styles.bigMicCircleBtnListening),
-                ]}
-                onPress={() => {
-                  if (isRecordingVoice) {
-                    stopRecording();
-                  } else {
-                    startRecording();
-                  }
-                }}
-                activeOpacity={0.92}
-              >
-                {isTranscribing ? (
-                  <ActivityIndicator color="#FFFFFF" size="large" />
-                ) : (
-                  <MicrophoneIcon size={36} color="#FFFFFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-
-            {/* Live Waveform Indicator (Rises ONLY when speech is heard) */}
-            {isRecordingVoice ? (
-              <View style={styles.liveWaveRow}>
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim1 }]} />
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim2 }]} />
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim3 }]} />
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim4 }]} />
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim2 }]} />
-                <Animated.View style={[styles.liveWaveBar, { height: waveAnim1 }]} />
+        {/* STATE 2: PENDING BARANGAY REVIEW */}
+        {isPending && (
+          <View style={styles.pendingCard}>
+            <View style={styles.pendingBadgeRow}>
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>UNDER REVIEW BY BARANGAY</Text>
               </View>
-            ) : (
-              <Text style={styles.micHintSub}>
-                {lang === 'tl'
-                  ? 'Pindutin ang bilog para magsalita, pindutin muli para i-transcribe sa kahon'
-                  : 'Tap button to speak, tap again to transcribe into text box'}
-              </Text>
-            )}
-          </View>
-
-          {/* Quick Scenario Chips */}
-          <Text style={styles.promptHeaderLabel}>
-            {lang === 'tl' ? 'PUMILI SA MGA HALIMBAWA (I-tap para ilagay sa kahon):' : 'SELECT SCENARIO (Tap to paste):'}
-          </Text>
-          <View style={styles.sampleChipsContainer}>
-            {samplePrompts.map((p, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.samplePromptChip}
-                onPress={() => {
-                  setAiInputText(p.text);
-                  setAiResult(null);
-                }}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.samplePromptChipText}>{p.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Text Input Box with Live Transcribed Text */}
-          <View style={styles.aiInputWrapper}>
-            <TextInput
-              style={styles.aiTextInput}
-              value={aiInputText}
-              onChangeText={(t) => {
-                setAiInputText(t);
-                setAiResult(null);
-              }}
-              placeholder={
-                lang === 'tl'
-                  ? 'Dito lalabas ang eksaktong sinabi mo sa mic, o maaari mo ring i-type nang mano-mano...'
-                  : 'Your exact spoken transcript will appear here, or you can type manually...'
-              }
-              placeholderTextColor="#94A3B8"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-
-            {aiInputText.length > 0 && (
-              <View style={styles.textInputFooter}>
-                <Text style={styles.textCountLabel}>{aiInputText.length} characters</Text>
-                <TouchableOpacity onPress={() => { setAiInputText(''); setAiResult(null); }}>
-                  <Text style={styles.clearTextLink}>{lang === 'tl' ? 'Burahin' : 'Clear'}</Text>
-                </TouchableOpacity>
+              <Text style={styles.pendingTimestamp}>Application Active</Text>
+            </View>
+            <Text style={styles.pendingCardTitle}>
+              {lang === 'tl' ? 'Naisumite na ang Aplikasyon' : 'Application Successfully Queued'}
+            </Text>
+            <Text style={styles.pendingCardSub}>
+              {lang === 'tl'
+                ? 'Nai-record ang inyong kahilingan para sa ' + userApplication.selectedCategory + '. Sinusuri ito ng Barangay Council bago ang opisyal na pagtatalaga sa worksite.'
+                : 'Your application for ' + userApplication.selectedCategory + ' has been recorded. The Barangay Council is reviewing applicant profiles prior to work mobilization.'}
+            </Text>
+            <View style={styles.pendingMetaBox}>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Applicant Name:</Text>
+                <Text style={styles.metaValue}>{userApplication.applicantName}</Text>
               </View>
-            )}
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Assigned Worksite:</Text>
+                <Text style={styles.metaValue}>{activeProject?.targetWorksite || 'Barangay Worksite'}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Daily Compensation Rate:</Text>
+                <Text style={styles.metaValue}>PHP 500.00 / day (10 Days)</Text>
+              </View>
+            </View>
           </View>
+        )}
 
-          {/* Action Button: Run Analysis */}
-          <TouchableOpacity
-            style={[styles.runAiBtn, aiAnalyzing && { opacity: 0.8 }]}
-            onPress={() => handleRunAiTriage()}
-            disabled={aiAnalyzing}
-            activeOpacity={0.85}
-          >
-            {aiAnalyzing ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <ActivityIndicator color="#FFFFFF" size="small" />
-                <Text style={styles.runAiBtnText}>
-                  {lang === 'tl' ? 'Sinusuri ang mga Sintomas at Kalagayan...' : 'Analyzing Clinical Symptoms...'}
+        {/* STATE 3: APPROVED & ACTIVE ON DUTY */}
+        {isApprovedOrActive && (
+          <View style={styles.activeDutyCard}>
+            <View style={styles.activeBadgeRow}>
+              <View style={styles.approvedBadge}>
+                <Text style={styles.approvedBadgeText}>APPROVED FOR DUTY</Text>
+              </View>
+              <Text style={styles.activeWorksiteText}>{activeProject?.barangayCode ? 'Barangay ' + activeProject.barangayCode : 'Active Worksite'}</Text>
+            </View>
+            <Text style={styles.activeCardTitle}>{userApplication.selectedCategory}</Text>
+            <Text style={styles.activeCardSub}>
+              {lang === 'tl'
+                ? 'Ipakita ang iyong QR Code sa LGU Staff tuwing umaga (Time-In) at hapon (Time-Out) sa worksite.'
+                : 'Present your QR Pass to the on-site LGU Field Staff for daily Morning Time-In and Afternoon Time-Out.'}
+            </Text>
+
+            <View style={styles.stepperContainer}>
+              <View style={styles.stepperHeader}>
+                <Text style={styles.stepperTitle}>Attendance Progress</Text>
+                <Text style={styles.stepperCount}>
+                  {'Day ' + workedDays + ' of ' + totalDays + ' Attended'}
                 </Text>
               </View>
-            ) : (
-              <Text style={styles.runAiBtnText}>
-                {lang === 'tl' ? 'Analyze / Suriin ang Nararapat na Gamot' : 'Analyze / Check Prescription'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
 
-        {/* Clinical Diagnosis & Prescription Advisory Card */}
-        {aiResult && (
-          <View style={styles.aiResultCard}>
-            {/* Risk Classification Badge */}
-            <View style={styles.resultTopRow}>
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={styles.resultKicker}>CLINICAL TRIAGE DIAGNOSIS</Text>
-                <Text style={styles.resultTitle}>{aiResult.suspectedCondition || aiResult.urgencyClassification}</Text>
+              <View style={styles.daysGrid}>
+                {Array.from({ length: totalDays }, (_, i) => {
+                  const dayNum = i + 1;
+                  const isDone = workedDays >= dayNum;
+                  return (
+                    <View key={dayNum} style={[styles.dayCircle, isDone && styles.dayCircleDone]}>
+                      {isDone ? (
+                        <CheckIcon size={12} color="#15803D" />
+                      ) : (
+                        <Text style={styles.dayCircleNum}>{'D' + dayNum}</Text>
+                      )}
+                      <Text style={[styles.dayCircleSub, isDone && styles.dayCircleSubDone]}>
+                        {'Day ' + dayNum}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
-              <View
-                style={[
-                  styles.riskPill,
-                  {
-                    backgroundColor:
-                      (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
-                        ? '#FEF2F2'
-                        : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
-                        ? '#FFFBEB'
-                        : '#EFF6FF',
-                    borderColor:
-                      (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
-                        ? '#FECACA'
-                        : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
-                        ? '#FDE68A'
-                        : '#BFDBFE',
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.riskPillText,
-                    {
-                      color:
-                        (aiResult.urgencyLevel || aiResult.priorityLevel) === 'CRITICAL'
-                          ? '#DC2626'
-                          : (aiResult.urgencyLevel || aiResult.priorityLevel) === 'HIGH'
-                          ? '#D97706'
-                          : '#1D4ED8',
-                    },
-                  ]}
-                >
-                  {aiResult.urgencyLevel || aiResult.priorityLevel} URGENCY
+            </View>
+
+            <View style={styles.earningsBox}>
+              <View>
+                <Text style={styles.earningsLabel}>Accumulated Earnings:</Text>
+                <Text style={styles.earningsAmount}>
+                  {'PHP ' + earnedAmount.toLocaleString() + '.00'}
                 </Text>
               </View>
-            </View>
-
-            {/* Extracted Symptoms Tags */}
-            <View style={styles.symptomsTagsRow}>
-              {aiResult.detectedSymptoms && aiResult.detectedSymptoms.map((symp, sIdx) => (
-                <View key={sIdx} style={styles.symptomBadge}>
-                  <Text style={styles.symptomBadgeText}>• {symp}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Automated Prescription Protocol */}
-            <View style={styles.medicineCardRow}>
-              <View style={styles.medicineIconSquare}>
-                <MedicineIcon size={22} color="#DC2626" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.medicineLabel}>
-                  {lang === 'tl' ? 'NARARAPAT NA GAMOT O RESETA (DOH/WHO):' : 'RECOMMENDED CLINICAL PRESCRIPTION:'}
-                </Text>
-                <Text style={styles.medicineName}>{aiResult.recommendedMedicine}</Text>
+              <View style={styles.dailyRatePill}>
+                <Text style={styles.dailyRateText}>Rate: PHP 500.00 / day</Text>
               </View>
             </View>
 
-            {/* Official Medical Guidance */}
-            <View style={styles.guidanceBox}>
-              <Text style={styles.guidanceText}>{aiResult.medicalGuidance}</Text>
-            </View>
-
-            {/* Digital Claim Voucher Pass for Barangay Health Center */}
-            <View style={styles.voucherPassCard}>
-              <View style={styles.voucherPassHeader}>
-                <Text style={styles.voucherPassKicker}>OPISYAL NA BHC CLAIM VOUCHER</Text>
-                <Text style={styles.voucherPassCode}>{aiResult.voucherCode}</Text>
-              </View>
-              <Text style={styles.voucherPassDesc}>
-                {lang === 'tl'
-                  ? 'Ipakita ang voucher code na ito sa Barangay 291 Health Center para sa libreng pagkuha ng gamot.'
-                  : 'Present this voucher code at Barangay 291 Health Center for free medication claim.'}
-              </Text>
-            </View>
-
-            {/* Logistics Routing Mode */}
-            <View style={styles.logisticsNotice}>
-              <MapPinIcon size={16} color="#1557B0" />
-              <Text style={styles.logisticsNoticeText}>
-                {aiResult.deliveryMode === 'DOOR_TO_DOOR_DISPATCH'
-                  ? (lang === 'tl'
-                      ? 'Ihahatid ng Barangay Field Staff sa mismong bahay dahil sa limitasyon sa pagkilos (Bedridden/Trapped).'
-                      : 'Door-to-Door Barangay Staff delivery due to mobility constraint.')
-                  : (lang === 'tl'
-                      ? 'Kunin agad sa Barangay 291 Health Center gamit ang Voucher Code sa itaas.'
-                      : 'Instant Pickup at Barangay 291 Health Center with the Voucher Code above.')}
-              </Text>
-            </View>
-
-            {/* Submit Official Ticket to LGU Command Center */}
             <TouchableOpacity
-              style={[styles.submitAiTicketBtn, loading && { opacity: 0.75 }]}
-              onPress={handleSubmitAiTriageRequest}
-              disabled={loading}
+              style={styles.viewVoucherBtn}
+              onPress={() => setShowVoucherModal(true)}
               activeOpacity={0.85}
             >
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.submitAiTicketBtnText}>
-                  {lang === 'tl'
-                    ? 'Isumite ang Medical Ticket sa Health Center'
-                    : 'Submit Ticket to Barangay Health Center'}
-                </Text>
-              )}
+              <Text style={styles.viewVoucherBtnText}>
+                {lang === 'tl' ? 'Buksan ang Digital Payout Voucher' : 'View Digital Payout Voucher'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
+
+        {/* STATE 1: APPLICATION FORM */}
+        {!userApplication && (
+          <>
+            <View style={styles.projectCard}>
+              <View style={styles.projectKickerRow}>
+                <View style={styles.projectLiveDot} />
+                <Text style={styles.projectKicker}>ACTIVE REHABILITATION PROJECT</Text>
+              </View>
+              <Text style={styles.projectTitle}>{activeProject?.title}</Text>
+              <Text style={styles.projectDesc}>{activeProject?.description}</Text>
+
+              <View style={styles.projectSpecsGrid}>
+                <View style={styles.specItem}>
+                  <Text style={styles.specLabel}>Daily Compensation</Text>
+                  <Text style={styles.specValue}>PHP 500.00 / day</Text>
+                </View>
+                <View style={styles.specItem}>
+                  <Text style={styles.specLabel}>Work Duration</Text>
+                  <Text style={styles.specValue}>{(activeProject?.durationDays || 10) + ' Working Days'}</Text>
+                </View>
+                <View style={styles.specItem}>
+                  <Text style={styles.specLabel}>Available Slots</Text>
+                  <Text style={styles.specValue}>
+                    {((activeProject?.totalSlots || 25) - (activeProject?.filledSlots || 0)) + ' Remaining'}
+                  </Text>
+                </View>
+                <View style={styles.specItem}>
+                  <Text style={styles.specLabel}>Target Location</Text>
+                  <Text style={styles.specValue}>
+                    {activeProject?.targetWorksite || 'Barangay 291 (Zone 27 Worksites)'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {lang === 'tl' ? 'Pumili ng Uri ng Trabaho' : 'Select Preferred Work Category'}
+              </Text>
+              <Text style={styles.sectionSub}>
+                {lang === 'tl'
+                  ? 'Piliin ang gawaing angkop sa inyong kakayahan at kalusugan.'
+                  : 'Choose the rehabilitation scope matching your physical capability.'}
+              </Text>
+            </View>
+
+            {JOB_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              const Icon = cat.IconComponent;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[styles.categoryCard, isSelected && styles.categoryCardSelected]}
+                  onPress={() => setSelectedCategory(cat.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.categoryHeaderRow}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: isSelected ? '#EFF6FF' : '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: isSelected ? '#1557B0' : '#E2E8F0' }}>
+                        <Icon size={20} color={isSelected ? '#1557B0' : '#475569'} />
+                      </View>
+                      <Text style={[styles.categoryTitle, isSelected && styles.categoryTitleSelected]}>
+                        {cat.title}
+                      </Text>
+                    </View>
+                    <View style={[styles.categoryBadge, { backgroundColor: cat.badgeBg }]}>
+                      <Text style={[styles.categoryBadgeText, { color: cat.badgeColor }]}>{cat.scope}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.categoryDesc}>{cat.desc}</Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            <View style={styles.commitmentCard}>
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => setIsCommitted(!isCommitted)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, isCommitted && styles.checkboxChecked]}>
+                  {isCommitted && <CheckIcon size={12} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.checkboxText}>
+                  {lang === 'tl'
+                    ? 'Kinukumpirma ko na ako ay handa at may kakayahang pumasok sa nakatakdang 10 araw ng rehabilitation work.'
+                    : 'I confirm that I am available and physically capable of performing the 10-day rehabilitation assignment.'}
+                </Text>
+              </TouchableOpacity>
+
+              <TextInput
+                style={styles.experienceInput}
+                placeholder={
+                  lang === 'tl'
+                    ? 'Maikling tala tungkol sa inyong karanasan o kakayahan (opsyonal)...'
+                    : 'Brief note regarding relevant skills or experience (optional)...'
+                }
+                placeholderTextColor="#94A3B8"
+                value={experienceNotes}
+                onChangeText={setExperienceNotes}
+                multiline
+                numberOfLines={2}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollRef.current?.scrollToEnd({ animated: true });
+                  }, 120);
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
+              onPress={handleApply}
+              disabled={submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitBtnText}>
+                  {lang === 'tl' ? 'I-submit ang Aplikasyon sa Barangay' : 'Submit Application to Barangay'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
-    </View>
+
+      {/* POP-UP MODAL: DIGITAL PAYOUT VOUCHER CARD */}
+      <Modal visible={showVoucherModal} transparent animationType="fade" onRequestClose={() => setShowVoucherModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.voucherModalCard}>
+            <View style={styles.voucherHeaderRow}>
+              <View>
+                <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
+                <Text style={styles.voucherMainTitle}>Digital Cash-for-Work Voucher</Text>
+              </View>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowVoucherModal(false)}>
+                <CloseIcon size={16} color="#0F172A" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.voucherDetailsBox}>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Reference Code:</Text>
+                <Text style={styles.voucherMetaValue}>{userApplication?.payoutVoucherCode || 'CFW-291-88492A'}</Text>
+              </View>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Beneficiary Name:</Text>
+                <Text style={styles.voucherMetaValue}>{userApplication?.applicantName || 'Resident Worker'}</Text>
+              </View>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Days Rendered:</Text>
+                <Text style={styles.voucherMetaValue}>{(userApplication?.totalDaysWorked || 0) + ' / ' + (activeProject?.durationDays || 10) + ' Days'}</Text>
+              </View>
+              <View style={styles.voucherDivider} />
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherTotalLabel}>Total Certified Payout:</Text>
+                <Text style={styles.voucherTotalAmount}>
+                  {'PHP ' + earnedAmount.toLocaleString() + '.00'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.qrContainer}>
+              <QRCodeVisual
+                value={userApplication?.payoutVoucherCode || 'CFW-291-OFFICIAL-PAYOUT'}
+                size={150}
+                isCompact
+              />
+              <Text style={styles.qrInstructions}>
+                Present this certified voucher code at the Barangay Hall or City Hall Payout Center.
+              </Text>
+            </View>
+
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowVoucherModal(false)}>
+              <Text style={styles.modalCloseBtnText}>Close Voucher</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -716,444 +548,582 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '500',
+  },
   content: {
-    padding: SPACING.lg,
-    paddingBottom: hp(14),
+    paddingHorizontal: 16,
+    paddingTop: RESPONSIVE.topSafe + 8,
+    paddingBottom: 95,
   },
   backBtnPill: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#EFF6FF',
-    paddingVertical: 6,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
-    borderRadius: RADIUS.full,
+    paddingVertical: 7,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-    marginBottom: SPACING.md,
-    gap: 6,
-  },
-  backIconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#DBEAFE',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
   },
   backBtnText: {
-    fontSize: 12,
-    fontWeight: FONT_WEIGHT.bold,
+    fontSize: 13,
+    fontWeight: '600',
     color: '#1557B0',
+    marginLeft: 6,
   },
   header: {
-    marginBottom: SPACING.lg,
+    marginBottom: 16,
   },
   kickerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  pulseDot: {
+  kickerDot: {
     width: 7,
     height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#7C3AED',
+    borderRadius: 4,
+    backgroundColor: '#1557B0',
+    marginRight: 6,
   },
   kicker: {
-    fontSize: 10,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#7C3AED',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1557B0',
     letterSpacing: 0.8,
   },
   title: {
-    fontSize: scaleFont(20),
-    fontWeight: FONT_WEIGHT.black,
-    color: COLORS.ink,
-    letterSpacing: -0.3,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.4,
   },
   sub: {
-    fontSize: 12.5,
-    color: '#64748B',
-    lineHeight: 18,
+    fontSize: 13,
+    color: '#475569',
     marginTop: 4,
+    lineHeight: 18,
   },
-  aiBannerCard: {
+  projectCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    borderWidth: 1.5,
-    borderColor: '#DDD6FE',
-    marginBottom: SPACING.lg,
-    ...SHADOWS.md,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 18,
+    elevation: 2,
   },
-  aiBadgeRow: {
+  projectKickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  projectLiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#16A34A',
+    marginRight: 6,
+  },
+  projectKicker: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#16A34A',
+    letterSpacing: 0.6,
+  },
+  projectTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  projectDesc: {
+    fontSize: 12.5,
+    color: '#475569',
+    marginTop: 4,
+    lineHeight: 17,
+  },
+  projectSpecsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  specItem: {
+    width: '50%',
+    marginBottom: 8,
+  },
+  specLabel: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  specValue: {
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '700',
+    marginTop: 1,
+  },
+  sectionHeader: {
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  sectionSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  categoryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    marginBottom: 10,
+  },
+  categoryCardSelected: {
+    borderColor: '#1557B0',
+    backgroundColor: '#F8FAFC',
+  },
+  categoryHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  categoryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    flex: 1,
+  },
+  categoryTitleSelected: {
+    color: '#1557B0',
+    fontWeight: '700',
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  categoryBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  categoryDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 16,
+  },
+  commitmentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 6,
+    marginBottom: 18,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#94A3B8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: '#1557B0',
+    borderColor: '#1557B0',
+  },
+  checkboxCheck: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  checkboxText: {
+    fontSize: 12.5,
+    color: '#334155',
+    flex: 1,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  experienceInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 12.5,
+    color: '#0F172A',
+    marginTop: 12,
+    minHeight: 50,
+    textAlignVertical: 'top',
+  },
+  submitBtn: {
+    backgroundColor: '#1557B0',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    marginBottom: 4,
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
+  },
+  submitBtnText: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  pendingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderLeftWidth: 5,
+    borderLeftColor: '#D97706',
+    elevation: 2,
+  },
+  pendingBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  pendingBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+  pendingBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#B45309',
+    letterSpacing: 0.5,
+  },
+  pendingTimestamp: {
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  pendingCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  pendingCardSub: {
+    fontSize: 12.5,
+    color: '#475569',
+    lineHeight: 17,
+  },
+  pendingMetaBox: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  metaLabel: {
+    fontSize: 12,
+    color: '#78350F',
+    fontWeight: '500',
+  },
+  metaValue: {
+    fontSize: 12,
+    color: '#78350F',
+    fontWeight: '700',
+  },
+  activeDutyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderLeftWidth: 5,
+    borderLeftColor: '#16A34A',
+    elevation: 2,
+  },
+  activeBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  approvedBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+  approvedBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#15803D',
+    letterSpacing: 0.5,
+  },
+  activeWorksiteText: {
+    fontSize: 11.5,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  activeCardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  activeCardSub: {
+    fontSize: 12.5,
+    color: '#475569',
+    marginTop: 4,
+    lineHeight: 17,
+  },
+  stepperContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 14,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  stepperHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  aiSparkleBadge: {
-    backgroundColor: '#F5F3FF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#DDD6FE',
+  stepperTitle: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  aiSparkleText: {
-    color: '#7C3AED',
-    fontSize: 9.5,
-    fontWeight: FONT_WEIGHT.black,
-  },
-  aiTagline: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: FONT_WEIGHT.bold,
-  },
-  aiBannerTitle: {
-    fontSize: 15,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#1E1B4B',
-  },
-  aiBannerSub: {
+  stepperCount: {
     fontSize: 12,
-    color: '#64748B',
-    lineHeight: 17,
-    marginTop: 4,
-    marginBottom: 14,
+    fontWeight: '700',
+    color: '#16A34A',
   },
-
-  /* ── BIG MIC STATION ── */
-  micStationCard: {
-    backgroundColor: '#F0F7FF',
-    borderRadius: RADIUS.xl,
-    padding: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#BFDBFE',
-    marginBottom: 16,
-  },
-  micStationCardActive: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-  },
-  micStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 14,
-  },
-  micLiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#2563EB',
-  },
-  micLiveDotActive: {
-    backgroundColor: '#DC2626',
-  },
-  micLiveDotSilent: {
-    backgroundColor: '#F59E0B',
-  },
-  micStatusText: {
-    fontSize: 11,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#1E40AF',
-    letterSpacing: 0.5,
-  },
-  micStatusTextActive: {
-    color: '#DC2626',
-  },
-  micStatusTextSilent: {
-    color: '#D97706',
-  },
-  micButtonWrapper: {
-    width: 84,
-    height: 84,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    marginVertical: 4,
-  },
-  micPulseRing: {
-    position: 'absolute',
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#F87171',
-  },
-  bigMicCircleBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.lg,
-    elevation: 8,
-  },
-  bigMicCircleBtnActive: {
-    backgroundColor: '#DC2626',
-    transform: [{ scale: 1.08 }],
-  },
-  bigMicCircleBtnListening: {
-    backgroundColor: '#D97706',
-  },
-  liveWaveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    height: 45,
-    marginTop: 10,
-  },
-  liveWaveBar: {
-    width: 5,
-    backgroundColor: '#DC2626',
-    borderRadius: 3,
-  },
-  micHintSub: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 8,
-    fontWeight: FONT_WEIGHT.medium,
-    textAlign: 'center',
-  },
-
-  /* ── Input Box & Chips ── */
-  promptHeaderLabel: {
-    fontSize: 10,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#7C3AED',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  sampleChipsContainer: {
+  daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14,
+    justifyContent: 'space-between',
   },
-  samplePromptChip: {
-    backgroundColor: '#F5F3FF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+  dayCircle: {
+    width: '18%',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#DDD6FE',
-  },
-  samplePromptChipText: {
-    fontSize: 11,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#6D28D9',
-  },
-  aiInputWrapper: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
     borderColor: '#CBD5E1',
-    padding: 12,
-    marginBottom: 14,
+    paddingVertical: 6,
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  aiTextInput: {
-    fontSize: 13,
-    color: '#1E293B',
-    minHeight: 70,
-    lineHeight: 18,
+  dayCircleDone: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#16A34A',
   },
-  textInputFooter: {
+  dayCircleNum: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  dayCircleNumDone: {
+    color: '#15803D',
+  },
+  dayCircleSub: {
+    fontSize: 9,
+    color: '#94A3B8',
+    marginTop: 1,
+  },
+  dayCircleSubDone: {
+    color: '#166534',
+    fontWeight: '600',
+  },
+  earningsBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingTop: 8,
-    marginTop: 6,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
   },
-  textCountLabel: {
+  earningsLabel: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#166534',
+    fontWeight: '500',
   },
-  clearTextLink: {
-    fontSize: 11.5,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#DC2626',
+  earningsAmount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#15803D',
+    marginTop: 1,
   },
-  runAiBtn: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 13,
-    borderRadius: RADIUS.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.md,
-  },
-  runAiBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13.5,
-    fontWeight: FONT_WEIGHT.black,
-  },
-
-  /* ── Diagnosis Card ── */
-  aiResultCard: {
+  dailyRatePill: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    borderWidth: 1.5,
-    borderColor: '#7C3AED',
-    marginBottom: SPACING.lg,
-    ...SHADOWS.lg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
   },
-  resultTopRow: {
+  dailyRateText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#166534',
+  },
+  viewVoucherBtn: {
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  viewVoucherBtnText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  voucherModalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 5,
+  },
+  voucherHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  resultKicker: {
-    fontSize: 9.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#7C3AED',
-    letterSpacing: 0.6,
+  voucherGovKicker: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#1557B0',
+    letterSpacing: 0.8,
   },
-  resultTitle: {
-    fontSize: 14.5,
-    fontWeight: FONT_WEIGHT.black,
+  voucherMainTitle: {
+    fontSize: 16,
+    fontWeight: '800',
     color: '#0F172A',
     marginTop: 2,
-    lineHeight: 20,
   },
-  riskPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  riskPillText: {
-    fontSize: 10.5,
-    fontWeight: FONT_WEIGHT.black,
-  },
-  symptomsTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14,
-  },
-  symptomBadge: {
+  closeBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#F1F5F9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voucherDetailsBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    marginBottom: 14,
   },
-  symptomBadgeText: {
-    fontSize: 11,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#334155',
-  },
-  medicineCardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    marginBottom: 12,
-  },
-  medicineIconSquare: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  medicineLabel: {
-    fontSize: 9.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#DC2626',
-    letterSpacing: 0.5,
-  },
-  medicineName: {
-    fontSize: 13,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#991B1B',
-    marginTop: 2,
-    lineHeight: 18,
-  },
-  guidanceBox: {
-    backgroundColor: '#F8FAFC',
-    padding: 12,
-    borderRadius: RADIUS.md,
-    borderLeftWidth: 3,
-    borderLeftColor: '#7C3AED',
-    marginBottom: 12,
-  },
-  guidanceText: {
-    fontSize: 12,
-    color: '#334155',
-    lineHeight: 17,
-  },
-  voucherPassCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: RADIUS.lg,
-    padding: 14,
-    marginBottom: 12,
-  },
-  voucherPassHeader: {
+  voucherMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 4,
   },
-  voucherPassKicker: {
-    fontSize: 9.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#94A3B8',
-    letterSpacing: 0.5,
+  voucherMetaLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
   },
-  voucherPassCode: {
-    fontSize: 14.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#38BDF8',
-    letterSpacing: 1.2,
+  voucherMetaValue: {
+    fontSize: 12,
+    color: '#0F172A',
+    fontWeight: '700',
   },
-  voucherPassDesc: {
+  voucherDivider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 8,
+  },
+  voucherTotalLabel: {
+    fontSize: 12.5,
+    color: '#0F172A',
+    fontWeight: '700',
+  },
+  voucherTotalAmount: {
+    fontSize: 16,
+    color: '#15803D',
+    fontWeight: '800',
+  },
+  qrContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  qrInstructions: {
     fontSize: 11,
-    color: '#CBD5E1',
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 10,
     lineHeight: 15,
+    paddingHorizontal: 10,
   },
-  logisticsNotice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#EFF6FF',
-    padding: 10,
-    borderRadius: RADIUS.md,
-    marginBottom: 16,
-  },
-  logisticsNoticeText: {
-    fontSize: 11.5,
-    color: '#1E40AF',
-    fontWeight: FONT_WEIGHT.medium,
-    flex: 1,
-    lineHeight: 16,
-  },
-  submitAiTicketBtn: {
+  modalCloseBtn: {
     backgroundColor: '#1557B0',
-    paddingVertical: 14,
-    borderRadius: RADIUS.lg,
+    borderRadius: 8,
+    paddingVertical: 11,
     alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.md,
+    marginTop: 10,
   },
-  submitAiTicketBtnText: {
-    color: '#FFFFFF',
+  modalCloseBtnText: {
     fontSize: 13,
-    fontWeight: FONT_WEIGHT.black,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

@@ -248,8 +248,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9F7' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 14,
-    paddingBottom: hp(14),
+    paddingTop: RESPONSIVE.topSafe + 8,
+    paddingBottom: 95,
   },
   header: { marginBottom: 16 },
   backBtnPill: {

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Field-staff-reported issues during a distribution drive — distinct from DamageReport
+// Field-staff-reported issues during a distribution drive - distinct from DamageReport
 // (which is a resident's household damage) and AuditLog (system-generated events).
 // e.g. stock shortages, lost QR passes, emergency evacuations spotted in the field.
 const incidentSchema = new mongoose.Schema({

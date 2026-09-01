@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
@@ -8,18 +9,29 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon } from '../components/AppIcons';
+import { HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
 import { fetchAnnouncements, fetchHouseholdProfile } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
 
+
+function formatCapitalizeWords(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 const EMERGENCY_HOTLINES = [
-  { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', icon: '', bg: '#FEE2E2', color: '#DC2626' },
-  { name: 'Ambulance / EMS', phone: '(02) 8527-5175', icon: '', bg: '#EFF6FF', color: '#2563EB' },
-  { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', icon: '', bg: '#FEF3C7', color: '#D97706' },
-  { name: 'PNP Police Emergency', phone: '911', icon: '', bg: '#F3E8FF', color: '#7C3AED' },
+  { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', tag: '24/7 Dispatch' },
+  { name: 'Ambulance / EMS', phone: '(02) 8527-5175', tag: 'Medical EMS' },
+  { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', tag: 'Fire Rescue' },
+  { name: 'PNP Police Emergency', phone: '911', tag: 'Police Emergency' },
 ];
 
 /**
@@ -88,12 +100,24 @@ function AnimatedNavItem({ item, isActive, onPress }) {
 
 export default function ResidentHomeScreen({ token, user, household, onLogout, lang: propLang = 'en', onSelectLang }) {
   const [activeTab, setActiveTab] = useState('home');
+  const [profilePhoto, setProfilePhoto] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem('mitigateplus_profile_photo');
+        if (saved) setProfilePhoto(saved);
+      } catch (e) {}
+    })();
+  }, [activeTab]);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showVerifInfoModal, setShowVerifInfoModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
   const [inAppNotifs, setInAppNotifs] = useState([]);
   const [householdData, setHouseholdData] = useState(household || null);
   const [announcements, setAnnouncements] = useState([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
 
@@ -168,7 +192,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     }
   }, [token]);
 
-  const householdName = householdData?.name || user?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
+  const rawName = householdData?.name || user?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
+  const householdName = formatCapitalizeWords(rawName);
   const address = householdData?.address || (lang === 'tl' ? 'Barangay 291, Maynila' : 'Barangay 291, Manila');
   const brgyCode = householdData?.barangayCode || user?.barangayCode || '291';
   const headcount = householdData?.memberCount || householdData?.familyHeadcount || 1;
@@ -185,51 +210,128 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const infantCount = membersList.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
   const pwdCount = membersList.filter(m => m.specialConditions?.includes('pwd')).length;
 
+  // Handle Save Pass to Gallery / Offline Storage
+  const handleSavePassToGallery = async () => {
+    try {
+      await AsyncStorage.setItem('mitigateplus_offline_pass_saved', JSON.stringify({
+        householdName,
+        address,
+        brgyCode,
+        qrCode: qrCodeString,
+        headcount,
+        priorityLevel,
+        savedAt: new Date().toISOString(),
+      }));
+      Alert.alert(
+        lang === 'tl' ? 'QR Pass Na-save sa Gallery!' : 'QR Pass Saved to Gallery!',
+        lang === 'tl'
+          ? `Nai-save ang opisyal na Relief Pass ni ${householdName} (${qrCodeString}) para sa offline verification at pisikal na presentation.`
+          : `Official Relief Pass for ${householdName} (${qrCodeString}) has been securely saved to device storage for offline verification.`
+      );
+    } catch (err) {
+      Alert.alert(
+        lang === 'tl' ? 'Error sa Pag-save' : 'Save Error',
+        lang === 'tl' ? 'Hindi mai-save ang QR pass. Pakisubukan muli.' : 'Could not save QR pass. Please try again.'
+      );
+    }
+  };
+
+  // Handle Print / Share PDF Voucher
+  const handlePrintPdfVoucher = async () => {
+    try {
+      const voucherText = `========================================\n` +
+        `   CITY GOVERNMENT OF MANILA - MDRRMO\n` +
+        `   OFFICIAL DISASTER RELIEF VOUCHER\n` +
+        `========================================\n\n` +
+        `BENEFICIARY: ${householdName}\n` +
+        `ADDRESS: ${address}, Brgy ${brgyCode}\n` +
+        `HOUSEHOLD ID: ${qrCodeString}\n` +
+        `FAMILY MEMBERS: ${headcount}\n` +
+        `PRIORITY STATUS: ${String(priorityLevel).toUpperCase()}\n` +
+        `VERIFICATION STATUS: OFFICIALLY VERIFIED\n` +
+        `ISSUED BY: Manila Disaster Risk Reduction & Management Office\n` +
+        `DATE GENERATED: ${new Date().toLocaleDateString()}\n\n` +
+        `INSTRUCTIONS:\n` +
+        `- Present this digital voucher or physical printout at your designated Barangay Relief Distribution Center.\n` +
+        `- Authorized relief officers will scan the QR token for right-sized relief distribution.\n` +
+        `========================================\n` +
+        `MitigatePlus Civic Relief Framework (RA 10121 / RA 10173)`;
+
+      await Share.share({
+        title: `Official Disaster Relief Voucher - ${householdName}`,
+        message: voucherText,
+      });
+    } catch (err) {
+      Alert.alert(
+        lang === 'tl' ? 'Error sa Pag-print' : 'Print Error',
+        lang === 'tl' ? 'Hindi maibahagi ang voucher.' : 'Could not share voucher.'
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* 1. App Header (Avatar + Location + Notifications Bell) */}
-      <View style={styles.topHeader}>
-        <View style={styles.avatarWell}>
-          <Text style={styles.avatarInitials}>
-            {householdName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-          </Text>
-        </View>
-
-        <View style={styles.headerTitleArea}>
-          <Text style={styles.residentTitle} numberOfLines={1}>{householdName}</Text>
-          <View style={styles.civicLocationRow}>
-            <MapPinIcon size={12} color="#1557B0" />
-            <Text style={styles.civicLocationText}>Barangay {brgyCode} • {address}</Text>
+      {/* 1. App Header (Avatar + Location + Notifications Bell) - Only on Dashboard */}
+      {activeTab === 'home' && (
+        <View style={styles.topHeader}>
+          <View style={styles.avatarWell}>
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto }} style={styles.avatarImg} resizeMode="cover" />
+            ) : (
+              <Text style={styles.avatarInitials}>
+                {householdName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </Text>
+            )}
           </View>
-        </View>
 
-        <View style={styles.headerActionArea}>
-          {/* Universal Notification Bell Button */}
-          <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => {
-              setShowNotifModal(true);
-              setHasUnreadNotifs(false);
-            }}
-            activeOpacity={0.8}
-          >
-            <BellIcon size={18} color="#172B4D" />
-            {hasUnreadNotifs && <View style={styles.unreadBadgeDot} />}
-          </TouchableOpacity>
-          <MotionPulseBadge color={isVerified ? '#10B981' : '#F59E0B'}>
-            <View style={[styles.verifBadge, isVerified ? styles.verifBadgeSuccess : styles.verifBadgePending]}>
-              <Text style={[styles.verifBadgeText, isVerified ? { color: '#047857' } : { color: '#B45309' }]}>
-                {isVerified ? t.verifiedBadge : (lang === 'tl' ? 'Hindi Pa Aprubado' : 'Not Approved')}
+          <View style={styles.headerTitleArea}>
+            <Text style={styles.residentTitle} numberOfLines={1}>{householdName}</Text>
+            <View style={styles.civicLocationRow}>
+              <MapPinIcon size={12} color="#1557B0" />
+              <Text style={styles.civicLocationText} numberOfLines={1}>
+                Barangay {brgyCode} • {address}
               </Text>
             </View>
-          </MotionPulseBadge>
+          </View>
+
+          <View style={styles.headerActionArea}>
+            {/* Universal Notification Bell Button */}
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => {
+                setShowNotifModal(true);
+                setHasUnreadNotifs(false);
+              }}
+              activeOpacity={0.8}
+            >
+              <BellIcon size={18} color="#172B4D" />
+              {hasUnreadNotifs && <View style={styles.unreadBadgeDot} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.verifCheckCircleBtn,
+                isVerified ? styles.verifCheckCircleSuccess : styles.verifCheckCirclePending,
+              ]}
+              onPress={() => setShowVerifInfoModal(true)}
+              activeOpacity={0.7}
+            >
+              <CheckIcon size={14} color={isVerified ? '#16A34A' : '#94A3B8'} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* 2. Main Tab Screen Content */}
       <View style={styles.body}>
         {activeTab === 'home' ? (
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* 5-Phase Linear Disaster Recovery Status Stepper (Compact Top Position) */}
+            <RecoveryPhaseStepper
+              currentStatus={isVerified ? (householdData?.recoveryStatus || 'allocated') : 'pending'}
+              isVerified={isVerified}
+              lang={lang}
+            />
+
             {/* Familiar Digital ID / Relief QR Pass Hero Card with Modern SingPass-Style Gradient */}
             <LinearGradient
               colors={isVerified ? ['#071D3A', '#0D3C75', '#154A8A'] : ['#1E293B', '#0F172A']}
@@ -357,54 +459,15 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               )}
             </LinearGradient>
 
-            {/* ── AI Post-Flood Health Check (Leptospirosis Alert & BHC Voucher) Banner ── */}
-            <MotionPressable
-              style={styles.healthHeroBanner}
-              onPress={() => setActiveTab('assistance')}
-              activeOpacity={0.88}
-            >
-              <View style={styles.healthBannerLeft}>
-                <View style={styles.healthIconWell}>
-                  <MedicineIcon size={22} color="#7C3AED" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <Text style={styles.healthBannerKicker}>
-                      {lang === 'tl' ? 'SAKIT SA BAHA & GAMOT' : 'POST-FLOOD HEALTH CHECK'}
-                    </Text>
-                  </View>
-                  <Text style={styles.healthBannerTitle}>
-                    {lang === 'tl' ? 'Health Check & Leptospirosis Triage' : 'Health Check & Leptospirosis Triage'}
-                  </Text>
-                  <Text style={styles.healthBannerSub}>
-                    {lang === 'tl'
-                      ? 'Nilusong sa baha? I-check ang sintomas para sa libreng Doxycycline voucher sa Health Center.'
-                      : 'Waded in floodwaters? Check symptoms for instant Doxycycline voucher at your Health Center.'}
-                  </Text>
-                </View>
-                <View style={styles.healthArrowCircle}>
-                  <Text style={{ color: '#7C3AED', fontWeight: '900', fontSize: 13 }}>➜</Text>
-                </View>
-              </View>
-            </MotionPressable>
-
-            {/* ── Awtomatikong Nakatalagang Ayuda (Autonomous Entitlement Breakdown Card) ── */}
+            {/* ── Awtomatikong Nakatalagang Ayuda (Auto Relief Computation) ── */}
             <View style={styles.entitlementBannerCard}>
               <View style={styles.entitlementBannerHeader}>
                 <View style={styles.entitlementIconWell}>
-                  <Text style={{ fontSize: 18 }}></Text>
+                  <BoxPackageIcon size={18} color="#1557B0" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.entitlementKicker}>
-                    {lang === 'tl' ? 'AWTOMATIKONG NAKATALAGANG ALOKASYON' : 'AUTOMATED RELIEF ENTITLEMENT'}
-                  </Text>
                   <Text style={styles.entitlementTitleText}>
-                    {lang === 'tl' ? 'Ayuda Para sa Inyong Pamilya' : 'Right-Sized Relief Allocation'}
-                  </Text>
-                </View>
-                <View style={styles.entitlementAutoBadge}>
-                  <Text style={styles.entitlementAutoBadgeText}>
-                    {lang === 'tl' ? 'Auto-Computed' : 'Auto-Computed'}
+                    {lang === 'tl' ? 'Auto Relief Computation' : 'Auto Relief Computation'}
                   </Text>
                 </View>
               </View>
@@ -481,8 +544,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         {lang === 'tl' ? `Gatas/infant formula at baby food para sa ${infantCount} sanggol (0-2 yo)` : `Infant milk formula & baby nutrition for ${infantCount} infant(s)`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#FDF2F8', borderColor: '#FBCFE8' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#DB2777' }]}>+{infantCount} pack</Text>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#475569' }]}>+{infantCount} pack</Text>
                     </View>
                   </View>
                 )}
@@ -499,120 +562,24 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         {lang === 'tl' ? `Medikal at health support para sa ${pwdCount} PWD member` : `Medical & health care support for ${pwdCount} PWD member(s)`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#7C3AED' }]}>+{pwdCount} pack</Text>
+                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}>
+                      <Text style={[styles.entitlementQtyText, { color: '#475569' }]}>+{pwdCount} pack</Text>
                     </View>
                   </View>
                 )}
               </View>
             </View>
 
-            {/* Quick Action Tiles Grid with MotionPressable Spring Physics */}
-            <View style={styles.quickActionGrid}>
-              <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' }]}
-                onPress={() => setActiveTab('assistance')}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.actionTileIconWell, { backgroundColor: '#EDE9FE' }]}>
-                  <MedicineIcon size={18} color="#7C3AED" />
-                </View>
-                <Text style={[styles.actionTileTitle, { color: '#5B21B6' }]}>Health Check</Text>
-                <Text style={[styles.actionTileSub, { color: '#7C3AED' }]}>
-                  {lang === 'tl' ? 'Gamot at AI triage' : 'AI post-flood triage'}
-                </Text>
-              </MotionPressable>
-
-              <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFF5F5', borderColor: '#FECACA' }]}
-                onPress={() => setActiveTab('damage')}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.actionTileIconWell, { backgroundColor: '#FEE2E2' }]}>
-                  <DamageIcon size={18} color="#DC2626" />
-                </View>
-                <Text style={[styles.actionTileTitle, { color: '#991B1B' }]}>{t.navDamage}</Text>
-                <Text style={[styles.actionTileSub, { color: '#B91C1C' }]}>
-                  {lang === 'tl' ? 'Mag-ulat ng pinsala' : 'Report house damage'}
-                </Text>
-              </MotionPressable>
-
-              <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }]}
-                onPress={() => setShowQRModal(true)}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.actionTileIconWell, { backgroundColor: '#E0F2FE' }]}>
-                  <Text style={{ fontSize: 18 }}></Text>
-                </View>
-                <Text style={[styles.actionTileTitle, { color: '#075985' }]}>
-                  {lang === 'tl' ? 'Palakihin ang QR Pass' : 'View Full QR Pass'}
-                </Text>
-                <Text style={[styles.actionTileSub, { color: '#0284C7' }]}>
-                  {lang === 'tl' ? 'I-save o i-presenta sa pila' : 'Save or show at venue'}
-                </Text>
-              </MotionPressable>
-
-              <MotionPressable
-                style={[styles.actionTile, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}
-                onPress={() => setActiveTab('history')}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.actionTileIconWell, { backgroundColor: '#FEF3C7' }]}>
-                  <HistoryIcon size={18} color="#D97706" />
-                </View>
-                <Text style={[styles.actionTileTitle, { color: '#92400E' }]}>{t.navHistory}</Text>
-                <Text style={[styles.actionTileSub, { color: '#B45309' }]}>
-                  {lang === 'tl' ? 'Talaan ng ayuda' : 'View claims timeline'}
-                </Text>
-              </MotionPressable>
-            </View>
-
-            {/* ── 24/7 Manila Emergency Hotlines 1-Tap SOS Dialers ── */}
-            <View style={styles.emergencyHotlineSection}>
-              <View style={styles.emergencySectionHeader}>
-                <View style={styles.emergencyIconDot} />
-                <Text style={styles.emergencySectionTitle}>
-                  {lang === 'tl' ? '24/7 TULONG AT RESCUE HOTLINES' : '24/7 MANILA EMERGENCY RESCUE HOTLINES'}
-                </Text>
-              </View>
-              <Text style={styles.emergencySectionSub}>
-                {lang === 'tl' ? 'Pindutin ang alinman para direktang tumawag sa oras ng sakuna o baha:' : 'Tap any service below to dial immediately in an emergency:'}
-              </Text>
-              <View style={styles.emergencyGrid}>
-                {EMERGENCY_HOTLINES.map((hotline, hIdx) => (
-                  <MotionPressable
-                    key={hIdx}
-                    style={[styles.emergencyDialBtn, { backgroundColor: hotline.bg, borderColor: hotline.color + '40' }]}
-                    onPress={() => {
-                      const cleanNum = hotline.phone.replace(/[^0-9]/g, '');
-                      Linking.openURL(`tel:${cleanNum}`);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.emergencyDialIcon}>{hotline.icon}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.emergencyDialName, { color: hotline.color }]}>{hotline.name}</Text>
-                      <Text style={styles.emergencyDialPhone}>{hotline.phone}</Text>
-                    </View>
-                  </MotionPressable>
-                ))}
-              </View>
-            </View>
-
-            {/* 5-Phase Linear Disaster Recovery Status Stepper */}
-            <RecoveryPhaseStepper
-              currentStatus={isVerified ? (householdData?.recoveryStatus || 'allocated') : 'pending'}
-              isVerified={isVerified}
-              lang={lang}
-            />
-
             {/* Announcements & Civic Feed Section with Direct 1-Tap Action Links */}
             <View style={styles.announcementsSection}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>{t.announcementsTitle || (lang === 'tl' ? 'Mga Opisyal na Anunsyo' : 'Official Advisories')}</Text>
-                <View style={styles.liveCountBadge}>
-                  <Text style={styles.liveCountText}>{announcements.length} {t.updatesBadge || (lang === 'tl' ? 'Balita' : 'Updates')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.sectionTitle}>{lang === 'tl' ? 'Mga Anunsyo' : 'Announcements'}</Text>
+                  {announcements.length > 0 && (
+                    <View style={styles.unreadCountBadge}>
+                      <Text style={styles.unreadCountText}>{announcements.length}</Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
@@ -624,12 +591,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               ) : (
                 announcements.map((ann, idx) => (
-                  <View
+                  <TouchableOpacity
                     key={ann.id || idx}
                     style={[
                       styles.announcementCard,
                       ann.isUrgent && styles.announcementCardUrgent,
                     ]}
+                    onPress={() => setSelectedAnnouncement(ann)}
+                    activeOpacity={0.85}
                   >
                     <View style={styles.annTopRow}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -647,7 +616,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
                     </View>
                     <Text style={styles.annTitle}>{ann.title}</Text>
-                    <Text style={styles.annBody}>{ann.body}</Text>
+                    <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
                     {ann.targetTab && (
                       <TouchableOpacity
                         style={styles.annActionBtn}
@@ -663,9 +632,44 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         </Text>
                       </TouchableOpacity>
                     )}
-                  </View>
+                  </TouchableOpacity>
                 ))
               )}
+            </View>
+          
+
+            {/* ── 24/7 Manila Emergency Hotlines 1-Tap SOS Dialers ── */}
+            <View style={styles.emergencyHotlineSection}>
+              <View style={styles.emergencySectionHeader}>
+                <View style={styles.emergencyIconDot} />
+                <Text style={styles.emergencySectionTitle}>
+                  {lang === 'tl' ? '24/7 TULONG AT RESCUE HOTLINES' : '24/7 MANILA EMERGENCY RESCUE HOTLINES'}
+                </Text>
+              </View>
+              <Text style={styles.emergencySectionSub}>
+                {lang === 'tl' ? 'Pindutin ang alinman para direktang tumawag sa oras ng sakuna o baha:' : 'Tap any service below to dial immediately in an emergency:'}
+              </Text>
+              <View style={styles.emergencyGrid}>
+                {EMERGENCY_HOTLINES.map((hotline, hIdx) => (
+                  <MotionPressable
+                    key={hIdx}
+                    style={styles.emergencyDialBtn}
+                    onPress={() => {
+                      const cleanNum = hotline.phone.replace(/[^0-9]/g, '');
+                      Linking.openURL(`tel:${cleanNum}`);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.emergencyIconWell}>
+                      <PhoneCallIcon size={14} color="#1557B0" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.emergencyDialName}>{hotline.name}</Text>
+                      <Text style={styles.emergencyDialPhone}>{hotline.phone}</Text>
+                    </View>
+                  </MotionPressable>
+                ))}
+              </View>
             </View>
           </ScrollView>
         ) : activeTab === 'assistance' ? (
@@ -678,6 +682,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         ) : activeTab === 'damage' ? (
           <ReportDamageScreen
             token={token}
+            user={user}
+            householdData={householdData}
             lang={lang}
             onBack={() => setActiveTab('home')}
             onSubmitSuccess={() => {
@@ -699,6 +705,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         ) : (
           <SettingsScreen
             user={user}
+            onPhotoUpdated={(uri) => setProfilePhoto(uri)}
             lang={lang}
             onSelectLang={(code) => {
               setLang(code);
@@ -713,7 +720,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       <View style={styles.floatingIslandNav}>
         {[
           { key: 'home', label: t.navHome, renderIcon: (isActive) => <HomeIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'assistance', label: 'Health', renderIcon: (isActive) => <MedicineIcon size={20} color={isActive ? '#7C3AED' : '#64748B'} filled={isActive} /> },
+          { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <BriefcaseIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'damage', label: t.navDamage, renderIcon: (isActive) => <DamageIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'history', label: t.navHistory, renderIcon: (isActive) => <HistoryIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
           { key: 'settings', label: t.navSettings, renderIcon: (isActive) => <SettingsIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
@@ -784,61 +791,187 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               <View style={styles.modalDetails}>
                 <Text style={styles.modalResidentName}>{householdName}</Text>
                 <Text style={styles.modalAddress}>{address}, Brgy {brgyCode}</Text>
-                <View style={styles.modalBadgeRow}>
-                  <View style={styles.modalPill}>
-                    <Text style={styles.modalPillText}>{headcount} {t.headcountUnit}</Text>
-                  </View>
-                  <View style={[styles.modalPill, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
-                    <Text style={[styles.modalPillText, { color: '#B45309' }]}>{priorityLevel}</Text>
-                  </View>
+
+                {/* Clean Info Row with NO Pill Backgrounds */}
+                <View style={styles.modalInfoRow}>
+                  <Text style={styles.modalInfoMemberText}>
+                    {headcount} {t.headcountUnit}
+                  </Text>
+                  <Text style={styles.modalInfoDividerText}>•</Text>
+                  <Text
+                    style={[
+                      styles.modalInfoPriorityText,
+                      String(priorityLevel).toLowerCase().includes('high') || String(priorityLevel).toLowerCase().includes('mataas')
+                        ? { color: '#DC2626' }
+                        : String(priorityLevel).toLowerCase().includes('med') || String(priorityLevel).toLowerCase().includes('katamtaman')
+                        ? { color: '#D97706' }
+                        : { color: '#16A34A' },
+                    ]}
+                  >
+                    {priorityLevel} {lang === 'tl' ? 'Prayoridad' : 'Priority'}
+                  </Text>
                 </View>
 
-                {/* Singpass-Style Save to Device / Gallery & Printable PDF Actions (Only when verified) */}
+                {/* Equal-Width & Perfectly Aligned Action Buttons (Only when verified) */}
                 {isVerified && (
-                  <View style={{ gap: 10, marginTop: 14 }}>
+                  <View style={styles.modalActionsContainer}>
                     <TouchableOpacity
-                      style={styles.modalSavePassBtn}
-                      onPress={() => {
-                        Alert.alert(
-                          lang === 'tl' ? 'QR Pass Na-save!' : 'QR Pass Saved!',
-                          lang === 'tl'
-                            ? 'Matagumpay na nai-save ang opisyal na Beneficiary Pass sa inyong Photo Gallery para sa offline presentation.'
-                            : 'Beneficiary Pass saved to photo gallery for offline physical presentation.'
-                        );
-                      }}
+                      style={styles.modalPrimaryActionBtn}
+                      onPress={handleSavePassToGallery}
                       activeOpacity={0.85}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <DownloadIcon size={18} color="#FFFFFF" />
-                        <Text style={styles.modalSavePassBtnText}>
-                          {lang === 'tl' ? 'I-save ang Pass sa Photo Gallery' : 'Save Pass to Gallery'}
-                        </Text>
-                      </View>
+                      <DownloadIcon size={16} color="#FFFFFF" />
+                      <Text style={styles.modalPrimaryActionBtnText}>
+                        {lang === 'tl' ? 'I-save ang Pass sa Gallery' : 'Save Pass to Gallery'}
+                      </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.modalSavePassBtn, { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1' }]}
-                      onPress={() => {
-                        Alert.alert(
-                          lang === 'tl' ? '️ I-print / I-save ang Official PDF Voucher' : '️ Print / Save Official PDF Voucher',
-                          lang === 'tl'
-                            ? `Nilikha ang Official DSWD/LGU Disaster Relief Voucher para kay ${householdName} (${address}). Handa na para sa pisikal na pag-print o pag-save bilang PDF backup sakaling mawalan ng kuryente.`
-                            : `Generated Official Disaster Relief Voucher for ${householdName} (${address}). Ready for physical printing or PDF storage during power outages.`
-                        );
-                      }}
+                      style={styles.modalSecondaryActionBtn}
+                      onPress={handlePrintPdfVoucher}
                       activeOpacity={0.85}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <Text style={{ fontSize: 16 }}>️</Text>
-                        <Text style={[styles.modalSavePassBtnText, { color: '#1E293B', fontWeight: '800' }]}>
-                          {lang === 'tl' ? 'I-print / I-save bilang PDF Voucher' : 'Print / Save as PDF Voucher'}
-                        </Text>
-                      </View>
+                      <FileTextIcon size={16} color="#1557B0" />
+                      <Text style={styles.modalSecondaryActionBtnText}>
+                        {lang === 'tl' ? 'I-print / I-save bilang PDF Voucher' : 'Print / Save as PDF Voucher'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
               </View>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      
+      {/* 6. Verification Status Info Modal Card */}
+      <Modal
+        visible={showVerifInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVerifInfoModal(false)}
+      >
+        <View style={styles.verifModalOverlay}>
+          <TouchableOpacity
+            style={styles.verifModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowVerifInfoModal(false)}
+          />
+          <View style={styles.verifInfoCard}>
+            <View style={[styles.verifInfoIconCircle, isVerified ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' } : { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' }]}>
+              <CheckIcon size={24} color={isVerified ? '#16A34A' : '#64748B'} />
+            </View>
+
+            <Text style={styles.verifInfoTitle}>
+              {isVerified
+                ? (lang === 'tl' ? 'Beripikadong Residente' : 'Verified Household')
+                : (lang === 'tl' ? 'Hindi Pa Beripikado' : 'Pending Verification')}
+            </Text>
+
+            <View style={[styles.verifStatusTag, isVerified ? { backgroundColor: '#DCFCE7' } : { backgroundColor: '#FEF3C7' }]}>
+              <Text style={[styles.verifStatusTagText, isVerified ? { color: '#15803D' } : { color: '#B45309' }]}>
+                {isVerified ? 'STATUS: VERIFIED' : 'STATUS: PENDING REVIEW'}
+              </Text>
+            </View>
+
+            <Text style={styles.verifInfoDesc}>
+              {isVerified
+                ? (lang === 'tl'
+                    ? 'Ang inyong pamilya ay opisyal nang beripikado ng Barangay 291 at LGU Maynila. Aktibo ang inyong QR Pass para sa agarang pagtanggap ng ayuda at emergency services.'
+                    : 'Your household is officially verified by Barangay 291 and City Government of Manila. Your Digital Relief Pass is fully active.')
+                : (lang === 'tl'
+                    ? 'Kasalukuyang sinusuri ng Barangay Council ang inyong rehistrasyon sa Verification Queue. Awtomatikong magiging berde ang selyo kapag naaprubahan.'
+                    : 'Your household registration is currently undergoing verification by the Barangay Council in the Verification Queue.')}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.verifInfoCloseBtn}
+              onPress={() => setShowVerifInfoModal(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.verifInfoCloseBtnText}>
+                {lang === 'tl' ? 'Naintindihan' : 'Got it'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 7. Full Announcement Detail Modal */}
+      <Modal
+        visible={!!selectedAnnouncement}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedAnnouncement(null)}
+      >
+        <View style={styles.verifModalOverlay}>
+          <TouchableOpacity
+            style={styles.verifModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setSelectedAnnouncement(null)}
+          />
+          <View style={styles.announcementDetailCard}>
+            <View style={styles.annDetailTopRow}>
+              <View style={styles.annTagBadge}>
+                <Text style={styles.annTagText}>
+                  {selectedAnnouncement?.tag || (lang === 'tl' ? 'Opisyal na Anunsyo' : 'Official Advisory')}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.annDetailCloseBtn}
+                onPress={() => setSelectedAnnouncement(null)}
+                activeOpacity={0.8}
+              >
+                <CloseIcon size={16} color="#172B4D" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.annDetailTitle}>{selectedAnnouncement?.title}</Text>
+
+            <View style={styles.annDetailMetaRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <MapPinIcon size={12} color="#1557B0" />
+                <Text style={styles.annDetailMetaText}>Barangay {brgyCode} Disaster Council</Text>
+              </View>
+              <Text style={styles.annDetailTimeText}>
+                {selectedAnnouncement?.timestamp || (selectedAnnouncement?.postedAt ? new Date(selectedAnnouncement.postedAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : 'Recent')}
+              </Text>
+            </View>
+
+            <ScrollView style={{ maxHeight: 220, marginVertical: 12 }} showsVerticalScrollIndicator={false}>
+              <Text style={styles.annDetailBodyText}>{selectedAnnouncement?.body}</Text>
+            </ScrollView>
+
+            {selectedAnnouncement?.targetTab ? (
+              <TouchableOpacity
+                style={styles.annDetailActionBtn}
+                onPress={() => {
+                  const target = selectedAnnouncement.targetTab;
+                  setSelectedAnnouncement(null);
+                  setActiveTab(target);
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.annDetailActionBtnText}>
+                  {selectedAnnouncement.targetTab === 'request'
+                    ? (lang === 'tl' ? 'Pumunta sa Livelihood' : 'Go to Livelihood')
+                    : selectedAnnouncement.targetTab === 'damage'
+                    ? (lang === 'tl' ? 'Pumunta sa Damage Report' : 'Go to Damage Report')
+                    : (lang === 'tl' ? 'Pumunta sa Claims History' : 'Go to Claims History')}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.annDetailCloseMainBtn}
+                onPress={() => setSelectedAnnouncement(null)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.annDetailCloseMainBtnText}>
+                  {lang === 'tl' ? 'Naintindihan Ko (Isara)' : 'Got it (Close)'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
@@ -885,6 +1018,75 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 }
 
 const styles = StyleSheet.create({
+  verifModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 999,
+  },
+  verifModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  verifInfoCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 22,
+    alignItems: 'center',
+    ...SHADOWS.lg,
+    zIndex: 1000,
+  },
+  verifInfoIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  verifInfoTitle: {
+    fontSize: 17,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0F172A',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  verifStatusTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    marginBottom: 12,
+  },
+  verifStatusTagText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  verifInfoDesc: {
+    fontSize: 12.5,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 18,
+  },
+  verifInfoCloseBtn: {
+    width: '100%',
+    backgroundColor: '#1557B0',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verifInfoCloseBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#F8F9F7',
@@ -911,6 +1113,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 22,
+  },
   avatarInitials: {
     fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
@@ -918,20 +1125,22 @@ const styles = StyleSheet.create({
   },
   headerTitleArea: {
     flex: 1,
+    justifyContent: 'center',
   },
   residentTitle: {
-    fontSize: 16.5,
+    fontSize: 16,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0F172A',
     letterSpacing: -0.3,
+    marginBottom: 2,
   },
   civicLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
   },
   civicLocationText: {
+    flex: 1,
     fontSize: 11.5,
     color: '#475569',
     fontWeight: '600',
@@ -963,40 +1172,36 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
-  verifBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2.5,
-    borderRadius: 6,
+  verifCheckCircleBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
   },
-  verifBadgeSuccess: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
+  verifCheckCircleSuccess: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
   },
-  verifBadgePending: {
-    backgroundColor: '#FEF3C7',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  verifBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+  verifCheckCirclePending: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
   },
   body: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: hp(12),
   },
   qrHeroCardGradient: {
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 12,
     ...SHADOWS.md,
   },
   qrHeaderRow: {
@@ -1080,96 +1285,75 @@ const styles = StyleSheet.create({
   },
   entitlementBannerCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#DBEAFE',
-    padding: 14,
-    marginBottom: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 11,
+    marginBottom: 12,
     ...SHADOWS.sm,
   },
   entitlementBannerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
+    gap: 8,
+    marginBottom: 6,
   },
   entitlementIconWell: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  entitlementKicker: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#1557B0',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
   entitlementTitleText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
     color: '#0F172A',
-    marginTop: 1,
-  },
-  entitlementAutoBadge: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  entitlementAutoBadgeText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#047857',
   },
   entitlementExplainer: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#64748B',
-    lineHeight: 16,
-    marginBottom: 10,
+    lineHeight: 14,
+    marginBottom: 8,
   },
   entitlementItemsList: {
-    gap: 7,
+    gap: 5,
   },
   entitlementItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 8,
+    padding: 8,
   },
   entitlementItemDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   entitlementItemName: {
-    fontSize: 12.5,
+    fontSize: 11.5,
     fontWeight: '700',
     color: '#0F172A',
   },
   entitlementItemDesc: {
-    fontSize: 10.5,
+    fontSize: 9.5,
     color: '#64748B',
-    marginTop: 2,
-    lineHeight: 14,
+    marginTop: 1,
+    lineHeight: 12,
   },
   entitlementQtyPill: {
     borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
   },
   entitlementQtyText: {
-    fontSize: 11,
+    fontSize: 9.5,
     fontWeight: '800',
   },
   qrInteractiveFrame: {
@@ -1262,62 +1446,70 @@ const styles = StyleSheet.create({
   quickActionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   actionTile: {
-    flex: 1,
-    minWidth: '47%',
+    width: '48%',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 12,
+    borderColor: '#E2E8F0',
+    padding: 13,
+    marginBottom: 12,
     ...SHADOWS.sm,
   },
   actionTileIconWell: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   actionTileTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#172B4D',
+    fontSize: 14,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0F172A',
+    letterSpacing: -0.2,
+    marginBottom: 2,
   },
   actionTileSub: {
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#64748B',
-    marginTop: 2,
+    fontWeight: '500',
+    lineHeight: 15,
   },
   announcementsSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 14.5,
     fontWeight: FONT_WEIGHT.black,
     color: '#172B4D',
   },
-  liveCountBadge: {
-    backgroundColor: '#E8F2FF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
+  unreadCountBadge: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 10,
+    minWidth: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  liveCountText: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#1557B0',
+  unreadCountText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
   announcementCard: {
     backgroundColor: '#FFFFFF',
@@ -1325,7 +1517,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D9E2EC',
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 8,
     ...SHADOWS.sm,
   },
   announcementCardUrgent: {
@@ -1392,6 +1584,86 @@ const styles = StyleSheet.create({
   },
   annActionBtnText: {
     fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  announcementDetailCard: {
+    width: '90%',
+    maxWidth: 440,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#D9E2EC',
+    padding: 20,
+    ...SHADOWS.md,
+  },
+  annDetailTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  annDetailCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  annDetailTitle: {
+    fontSize: 16,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0F172A',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  annDetailMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  annDetailMetaText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1557B0',
+  },
+  annDetailTimeText: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  annDetailBodyText: {
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 20,
+  },
+  annDetailActionBtn: {
+    backgroundColor: '#1557B0',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  annDetailActionBtnText: {
+    fontSize: 13,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#FFFFFF',
+  },
+  annDetailCloseMainBtn: {
+    backgroundColor: '#0F172A',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  annDetailCloseMainBtnText: {
+    fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
   },
@@ -1540,50 +1812,76 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
   },
-  modalBadgeRow: {
+  modalInfoRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginTop: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 2,
   },
-  modalPill: {
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  modalPillText: {
-    fontSize: 10,
+  modalInfoMemberText: {
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#1557B0',
   },
-  modalSavePassBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 12,
-    width: '100%',
-    alignItems: 'center',
+  modalInfoDividerText: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#94A3B8',
   },
-  modalSavePassBtnText: {
+  modalInfoPriorityText: {
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  modalActionsContainer: {
+    width: '100%',
+    gap: 10,
+    marginTop: 14,
+  },
+  modalPrimaryActionBtn: {
+    backgroundColor: '#1557B0',
+    width: '100%',
+    height: 46,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    ...SHADOWS.sm,
+  },
+  modalPrimaryActionBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  modalSecondaryActionBtn: {
+    backgroundColor: '#FFFFFF',
+    width: '100%',
+    height: 46,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  modalSecondaryActionBtnText: {
+    color: '#1E293B',
+    fontSize: 13,
     fontWeight: '800',
   },
   emergencyHotlineSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1.5,
-    borderColor: '#FECACA',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...SHADOWS.sm,
   },
   emergencySectionHeader: {
     flexDirection: 'row',
@@ -1599,9 +1897,9 @@ const styles = StyleSheet.create({
   },
   emergencySectionTitle: {
     fontSize: 12,
-    fontWeight: '900',
-    color: '#991B1B',
-    letterSpacing: 0.5,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: 0.4,
   },
   emergencySectionSub: {
     fontSize: 11,
@@ -1611,42 +1909,52 @@ const styles = StyleSheet.create({
   emergencyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
   },
   emergencyDialBtn: {
-    width: '48.5%',
+    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 9,
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+    marginBottom: 8,
     gap: 8,
   },
   emergencyDialIcon: {
     fontSize: 20,
   },
+  emergencyIconWell: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emergencyDialName: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 1,
   },
   emergencyDialPhone: {
-    fontSize: 10,
-    color: '#475569',
-    fontWeight: '600',
-    marginTop: 1,
+    fontSize: 11,
+    color: '#1557B0',
+    fontWeight: '700',
   },
   healthHeroBanner: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#DDD6FE',
+    borderColor: '#BFDBFE',
     padding: 14,
     marginBottom: 16,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...SHADOWS.sm,
   },
   healthBannerLeft: {
     flexDirection: 'row',

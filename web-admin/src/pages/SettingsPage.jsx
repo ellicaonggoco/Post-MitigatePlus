@@ -298,7 +298,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{displayName || 'LGU Official'}</div>
-                <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 3 }}>{getRoleLabel(user?.role)}{user?.barangayCode ? ` — Barangay ${user.barangayCode}` : ''}</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 3 }}>{getRoleLabel(user?.role)}{user?.barangayCode ? ` - Barangay ${user.barangayCode}` : ''}</div>
                 <button onClick={() => fileRef.current?.click()} style={{ marginTop: 8, fontSize: 12, background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', border: '1px solid rgba(37,99,235,0.2)', padding: '4px 12px', borderRadius: 999, cursor: 'pointer', fontWeight: 700 }}>
                   {t.changePhoto}
                 </button>

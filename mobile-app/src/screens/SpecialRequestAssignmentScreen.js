@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Path } from 'react-native-svg';
 import { ArrowLeftIcon, CameraIcon, ImageIcon, CheckIcon } from '../components/AppIcons';
@@ -175,7 +175,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
       {/* ── Field Team Leader On-Ground Event Controller ── */}
       <View style={[styles.taskCard, { backgroundColor: '#173F56', marginBottom: 20 }]}>
         <Text style={{ fontSize: 11, fontWeight: '800', color: '#E8940F', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
-          {lang === 'tl' ? 'PINUNO NG FIELD TEAM — KONTROL NG KAGANAPAN SA SITE' : 'FIELD TEAM LEADER — ON-GROUND EVENT STATUS CONTROL'}
+          {lang === 'tl' ? 'PINUNO NG FIELD TEAM  -  KONTROL NG KAGANAPAN SA SITE' : 'FIELD TEAM LEADER  -  ON-GROUND EVENT STATUS CONTROL'}
         </Text>
         <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 }}>
           {lang === 'tl' ? 'Mga Aktibong Kaganapan ng Pamamahagi' : 'Active Distribution Events'}
@@ -311,7 +311,10 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
           animationType="slide"
           onRequestClose={() => setDeliveringTask(null)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
             <View style={styles.modalCard}>
               <Text style={styles.modalKicker}>DOOR-TO-DOOR RELIEF HANDOVER PROOF</Text>
               <Text style={styles.modalTitle}>{deliveringTask.resident}</Text>
@@ -390,7 +393,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       )}
     </ScrollView>
