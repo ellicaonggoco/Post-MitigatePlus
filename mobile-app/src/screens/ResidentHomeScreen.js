@@ -117,9 +117,48 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [inAppNotifs, setInAppNotifs] = useState([]);
   const [householdData, setHouseholdData] = useState(household || null);
   const [announcements, setAnnouncements] = useState([]);
+  const [readAnnouncementIds, setReadAnnouncementIds] = useState([]);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // Load read announcement IDs from AsyncStorage on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem('mitigateplus_read_announcements');
+        if (saved) {
+          setReadAnnouncementIds(JSON.parse(saved));
+        }
+      } catch (e) {}
+    })();
+  }, []);
+
+  const handleOpenAnnouncement = async (ann) => {
+    setSelectedAnnouncement(ann);
+    const annId = String(ann._id || ann.id || ann.title);
+    if (!readAnnouncementIds.includes(annId)) {
+      const updated = [...readAnnouncementIds, annId];
+      setReadAnnouncementIds(updated);
+      try {
+        await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updated));
+      } catch (e) {}
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    const allIds = announcements.map((a) => String(a._id || a.id || a.title));
+    const combined = Array.from(new Set([...readAnnouncementIds, ...allIds]));
+    setReadAnnouncementIds(combined);
+    try {
+      await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(combined));
+    } catch (e) {}
+  };
+
+  const unreadAnnouncements = announcements.filter(
+    (ann) => !readAnnouncementIds.includes(String(ann._id || ann.id || ann.title))
+  );
+  const unreadCount = unreadAnnouncements.length;
 
   useEffect(() => {
     if (propLang) setLang(propLang);
@@ -305,7 +344,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               activeOpacity={0.8}
             >
               <BellIcon size={18} color="#172B4D" />
-              {hasUnreadNotifs && <View style={styles.unreadBadgeDot} />}
+              {(hasUnreadNotifs || unreadCount > 0) && <View style={styles.unreadBadgeDot} />}
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -575,12 +614,23 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               <View style={styles.sectionHeaderRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={styles.sectionTitle}>{lang === 'tl' ? 'Mga Anunsyo' : 'Announcements'}</Text>
-                  {announcements.length > 0 && (
+                  {unreadCount > 0 && (
                     <View style={styles.unreadCountBadge}>
-                      <Text style={styles.unreadCountText}>{announcements.length}</Text>
+                      <Text style={styles.unreadCountText}>{unreadCount}</Text>
                     </View>
                   )}
                 </View>
+                {unreadCount > 0 && (
+                  <TouchableOpacity
+                    onPress={handleMarkAllAsRead}
+                    style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE' }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>
+                      {lang === 'tl' ? 'Basahin Lahat' : 'Mark all read'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               {announcements.length === 0 ? (
@@ -590,50 +640,73 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </Text>
                 </View>
               ) : (
-                announcements.map((ann, idx) => (
-                  <TouchableOpacity
-                    key={ann.id || idx}
-                    style={[
-                      styles.announcementCard,
-                      ann.isUrgent && styles.announcementCardUrgent,
-                    ]}
-                    onPress={() => setSelectedAnnouncement(ann)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.annTopRow}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                        <View style={styles.annTagBadge}>
-                          <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
-                        </View>
-                        {ann.edited ? (
-                          <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
-                            <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
-                              {lang === 'tl' ? '(Nai-edit)' : '(Edited)'}
-                            </Text>
+                announcements.map((ann, idx) => {
+                  const annId = String(ann._id || ann.id || ann.title);
+                  const isUnread = !readAnnouncementIds.includes(annId);
+
+                  return (
+                    <TouchableOpacity
+                      key={ann._id || ann.id || idx}
+                      style={[
+                        styles.announcementCard,
+                        ann.isUrgent && styles.announcementCardUrgent,
+                        isUnread && {
+                          borderLeftWidth: 4,
+                          borderLeftColor: ann.isUrgent ? '#DC2626' : '#1557B0',
+                          backgroundColor: '#F8FAFC',
+                        },
+                      ]}
+                      onPress={() => handleOpenAnnouncement(ann)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.annTopRow}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          {isUnread && (
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#DC2626' : '#1557B0' }} />
+                          )}
+                          <View style={styles.annTagBadge}>
+                            <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
                           </View>
-                        ) : null}
+                          {ann.edited ? (
+                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+                              <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
+                                {lang === 'tl' ? '(Nai-edit)' : '(Edited)'}
+                              </Text>
+                            </View>
+                          ) : null}
+                          {isUnread && (
+                            <View style={[styles.annTagBadge, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                              <Text style={[styles.annTagText, { color: '#1D4ED8', fontWeight: '800', fontSize: 9 }]}>
+                                {lang === 'tl' ? 'BAGO' : 'NEW'}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
                       </View>
-                      <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
-                    </View>
-                    <Text style={styles.annTitle}>{ann.title}</Text>
-                    <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
-                    {ann.targetTab && (
-                      <TouchableOpacity
-                        style={styles.annActionBtn}
-                        onPress={() => setActiveTab(ann.targetTab)}
-                        activeOpacity={0.85}
-                      >
-                        <Text style={styles.annActionBtnText}>
-                          {ann.targetTab === 'request'
-                            ? (lang === 'tl' ? 'Humiling ng Ayuda' : 'Request Relief')
-                            : ann.targetTab === 'damage'
-                            ? (lang === 'tl' ? 'Mag-ulat ng Sira' : 'Report Damage')
-                            : (lang === 'tl' ? 'Tingnan ang History' : 'View History')}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </TouchableOpacity>
-                ))
+                      <Text style={styles.annTitle}>{ann.title}</Text>
+                      <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
+                      {ann.targetTab && (
+                        <TouchableOpacity
+                          style={styles.annActionBtn}
+                          onPress={() => {
+                            handleOpenAnnouncement(ann);
+                            setActiveTab(ann.targetTab);
+                          }}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.annActionBtnText}>
+                            {ann.targetTab === 'request'
+                              ? (lang === 'tl' ? 'Humiling ng Ayuda' : 'Request Relief')
+                              : ann.targetTab === 'damage'
+                              ? (lang === 'tl' ? 'Mag-ulat ng Sira' : 'Report Damage')
+                              : (lang === 'tl' ? 'Tingnan ang History' : 'View History')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
               )}
             </View>
           
