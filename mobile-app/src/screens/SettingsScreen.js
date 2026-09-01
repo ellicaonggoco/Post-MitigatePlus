@@ -232,6 +232,33 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Ngayong araw, 6:15 PM');
 
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm) {
+        if (window.confirm(lang === 'tl' ? 'Sigurado ba kayong nais mag-logout?' : 'Are you sure you want to sign out?')) {
+          if (onLogout) onLogout();
+        }
+      } else {
+        if (onLogout) onLogout();
+      }
+    } else {
+      Alert.alert(
+        lang === 'tl' ? 'Mag-Logout' : 'Sign Out',
+        lang === 'tl' ? 'Sigurado ba kayong nais mag-logout sa inyong account?' : 'Are you sure you want to sign out of your account?',
+        [
+          { text: lang === 'tl' ? 'Kanselahin' : 'Cancel', style: 'cancel' },
+          {
+            text: lang === 'tl' ? 'Mag-Logout' : 'Sign Out',
+            style: 'destructive',
+            onPress: () => {
+              if (onLogout) onLogout();
+            },
+          },
+        ]
+      );
+    }
+  };
+
   // Computed Metrics
   const seniorCount = members.filter(
     (m) => (m.conditions || []).includes('Senior (60+)') || parseInt(m.age, 10) >= 60
@@ -945,13 +972,13 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           <View style={styles.langRow}>
             <TouchableOpacity
               style={[styles.langBtn, lang === 'en' ? styles.langBtnActive : styles.langBtnInactive]}
-              onPress={() => setLang('en')}
+              onPress={() => onSelectLang && onSelectLang('en')}
             >
               <Text style={[styles.langText, lang === 'en' && styles.langTextActive]}>English</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.langBtn, lang === 'tl' ? styles.langBtnActive : styles.langBtnInactive]}
-              onPress={() => setLang('tl')}
+              onPress={() => onSelectLang && onSelectLang('tl')}
             >
               <Text style={[styles.langText, lang === 'tl' && styles.langTextActive]}>Tagalog</Text>
             </TouchableOpacity>
