@@ -28,12 +28,12 @@ async function recordAudit(actorUser, action, description, targetType, targetId,
 }
 
 // -------------------------------------------------------------
-// 1. BARANGAY: Propose a new Cash-for-Work Project to LGU
+// 1. BARANGAY & LGU: Propose / Create a Cash-for-Work Project
 // -------------------------------------------------------------
-router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), async (req, res) => {
+const handleCreateOrRequestProject = async (req, res) => {
   try {
     const { title, description, targetWorksite, totalSlots, durationDays, dailyWageRate, availableCategories } = req.body;
-    const barangayCode = req.user.barangayCode || req.body.barangayCode || '291';
+    const barangayCode = req.body.barangayCode || req.user.barangayCode || '291';
 
     if (!title || !description || !targetWorksite) {
       return res.status(400).json({ message: 'Title, description, and target worksite are required.' });
@@ -44,12 +44,14 @@ router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu
     const wage = Number(dailyWageRate) || 500;
     const budget = slots * days * wage;
 
+    const isLgu = req.user.role === 'lgu_superadmin' || req.user.role === 'lgu_admin';
     const project = await CashForWorkProject.create({
       title,
       description,
       barangayCode,
       targetWorksite,
       proposedByUserId: req.user._id,
+      approvedByAdminId: isLgu ? req.user._id : null,
       totalSlots: slots,
       durationDays: days,
       dailyWageRate: wage,
@@ -61,27 +63,36 @@ router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu
         'Relief Goods Logistics & Packing',
         'Carpentry & Facility Repair',
       ],
-      status: req.user.role === 'lgu_superadmin' || req.user.role === 'lgu_admin' ? 'approved_active' : 'pending_lgu_approval',
+      status: isLgu ? 'approved_active' : 'pending_lgu_approval',
     });
 
     await recordAudit(
       req.user,
-      'CFW_PROJECT_REQUEST',
-      `Barangay ${barangayCode} proposed Cash-for-Work Project: ${title} (Budget: ₱${budget.toLocaleString()})`,
+      isLgu ? 'CFW_PROJECT_CREATED' : 'CFW_PROJECT_REQUEST',
+      isLgu
+        ? `LGU Admin created active Cash-for-Work Project: ${title} for Brgy ${barangayCode} (Budget: ₱${budget.toLocaleString()})`
+        : `Barangay ${barangayCode} proposed Cash-for-Work Project: ${title} (Budget: ₱${budget.toLocaleString()})`,
       'CashForWorkProject',
       project._id,
       req.ip
     );
 
-    // Emit real-time notification to LGU Admin room
+    // Emit real-time notification
     const io = req.app.get('io');
     if (io) {
-      io.to('admin_room').emit('cfw_project_proposed', {
-        projectId: project._id,
-        title: project.title,
-        barangayCode: project.barangayCode,
-        budget: project.allocatedBudget,
-      });
+      if (!isLgu) {
+        io.to('admin_room').emit('cfw_project_proposed', {
+          projectId: project._id,
+          title: project.title,
+          barangayCode: project.barangayCode,
+          budget: project.allocatedBudget,
+        });
+      } else {
+        io.to(`barangay:${barangayCode}`).emit('cfw_project_status_updated', {
+          projectId: project._id,
+          status: project.status,
+        });
+      }
     }
 
     res.status(201).json({ success: true, project });
@@ -89,7 +100,12 @@ router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu
     console.error('Create CFW Project error:', error);
     res.status(500).json({ message: 'Error proposing project', error: error.message });
   }
-});
+};
+
+router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), handleCreateOrRequestProject);
+router.post('/projects', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), handleCreateOrRequestProject);
+
+
 
 // -------------------------------------------------------------
 // 2. LGU ADMIN: Approve / Reject Cash-for-Work Project & Allocate Budget
