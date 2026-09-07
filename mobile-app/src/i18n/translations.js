@@ -38,12 +38,12 @@ export const TRANSLATIONS = {
 
     // Recovery Stepper (5-Stages)
     stepperKicker: 'DISASTER RELIEF LIFECYCLE',
-    stepperTitle: '5-Stage Recovery Progress',
-    stage1Name: 'Damage Assessed',
-    stage2Name: 'Quota Computed',
+    stepperTitle: '5-Stage Relief & Recovery Progress',
+    stage1Name: 'Verification',
+    stage2Name: 'Damage Assessed',
     stage3Name: 'Relief Allocated',
-    stage4Name: 'Distributed / Claimed',
-    stage5Name: 'Community Recovery',
+    stage4Name: 'Ready for Claim',
+    stage5Name: 'Claimed',
 
     // Quick Actions
     quickActionsHeader: 'OPERATIONAL QUICK ACTIONS',
@@ -175,11 +175,11 @@ export const TRANSLATIONS = {
     // Recovery Stepper (5-Stages)
     stepperKicker: 'DISASTER RELIEF LIFECYCLE',
     stepperTitle: '5-Yugto ng Recovery Progress',
-    stage1Name: 'Nasuri ang Pinsala',
-    stage2Name: 'Nakalkula ang Quota',
-    stage3Name: 'Nai-allocate ang Ayuda',
-    stage4Name: 'Naipamahagi / Nakuha',
-    stage5Name: 'Komunidad Naka-recover',
+    stage1Name: 'Beripikasyon',
+    stage2Name: 'Na-Assessed',
+    stage3Name: 'Naka-Aloka',
+    stage4Name: 'Handa na',
+    stage5Name: 'Na-Claim',
 
     // Quick Actions
     quickActionsHeader: 'MGA PANGUNAHING SERBISYO (QUICK ACTIONS)',

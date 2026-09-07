@@ -228,7 +228,7 @@ function BarangayDashboard({ token, user }) {
 
   const recoveryStageData = [
     { name: 'Waiting for Ayuda', value: summary?.waitingAyuda ?? 0, color: '#B91C1C' },
-    { name: 'Assistance Received', value: summary?.assistanceReceived ?? 0, color: '#B45309' },
+    { name: 'Relief Claimed', value: summary?.assistanceReceived ?? 0, color: '#B45309' },
     { name: 'Ongoing Pagbangon', value: summary?.ongoingRecovery ?? 0, color: '#1D4ED8' },
     { name: 'Partially Recovered', value: summary?.partiallyRecovered ?? 0, color: '#6D28D9' },
     { name: 'Fully Recovered', value: summary?.fullyRecovered ?? 0, color: '#0F6B4E' },

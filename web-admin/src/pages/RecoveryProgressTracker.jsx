@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../config';
 import { MotionNumberCounter } from '../components/motion';
 
 const normalizeStage = (st) => {
-  if (st === 'received' || st === 'assistance_received') return 'assistance_received';
+  if (st === 'received' || st === 'assistance_received' || st === 'claimed' || st === 'claim') return 'assistance_received';
   if (st === 'partial' || st === 'partially_recovered') return 'partially_recovered';
   if (st === 'full' || st === 'fully_recovered') return 'fully_recovered';
   if (st === 'ongoing') return 'ongoing';
@@ -16,7 +16,7 @@ const normalizeStage = (st) => {
 
 const STAGES = [
   { key: 'waiting', aliases: ['waiting'], label: 'Waiting for Ayuda', color: '#DC2626', bg: '#FEF2F2', icon: Clock, type: 'auto', desc: 'Auto-Managed: On Registration' },
-  { key: 'assistance_received', aliases: ['received', 'assistance_received'], label: 'Assistance Received', color: '#D97706', bg: '#FFFBEB', icon: CheckCircle, type: 'auto', desc: 'Auto-Updated: Via Staff QR Scanner' },
+  { key: 'assistance_received', aliases: ['received', 'assistance_received', 'claimed', 'claim'], label: 'Relief Claimed', color: '#D97706', bg: '#FFFBEB', icon: CheckCircle, type: 'auto', desc: 'Auto-Updated: Via Staff QR Scanner' },
   { key: 'ongoing', aliases: ['ongoing'], label: 'Ongoing Pagbangon', color: '#2563EB', bg: '#EFF6FF', icon: TrendingUp, type: 'manual', desc: 'Barangay Action: Rebuilding Phase' },
   { key: 'partially_recovered', aliases: ['partial', 'partially_recovered'], label: 'Partially Recovered', color: '#7C3AED', bg: '#F5F3FF', icon: ArrowUpCircle, type: 'manual', desc: 'Barangay Action: Stabilized' },
   { key: 'fully_recovered', aliases: ['full', 'fully_recovered'], label: 'Fully Recovered', color: '#158A64', bg: 'rgba(21,138,100,0.1)', icon: CheckCircle, type: 'manual', desc: 'Barangay Action: Fully Recovered & Resilient' },

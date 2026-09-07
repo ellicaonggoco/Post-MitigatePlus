@@ -5,10 +5,10 @@ import { COLORS, FONT_WEIGHT } from '../theme';
 
 const STOPS = [
   { id: 'registered', labelEn: 'Registered', labelTl: 'Naghihintay' },
-  { id: 'assessed', labelEn: 'Assessed', labelTl: 'Nakatanggap' },
-  { id: 'ongoing', labelEn: 'Ongoing', labelTl: 'Bumabangon' },
-  { id: 'partially_recovered', labelEn: 'Partial', labelTl: 'Bahagya' },
-  { id: 'recovered', labelEn: 'Recovered', labelTl: 'Naka-recover' },
+  { id: 'assessed', labelEn: 'Assessed', labelTl: 'Nasuri' },
+  { id: 'allocated', labelEn: 'Allocated', labelTl: 'Naka-aloka' },
+  { id: 'ready', labelEn: 'Ready', labelTl: 'Handa na' },
+  { id: 'claimed', labelEn: 'Claimed', labelTl: 'Na-Claim' },
 ];
 
 function PhilippineJeepneyIcon({ color = '#F59E0B' }) {
@@ -36,7 +36,8 @@ function PhilippineJeepneyIcon({ color = '#F59E0B' }) {
 }
 
 export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkMode = false }) {
-  const currentIndex = STOPS.findIndex(s => s.id === currentStage);
+  const normalizedStage = (currentStage === 'recovered' || currentStage === 'received' || currentStage === 'assistance_received') ? 'claimed' : currentStage;
+  const currentIndex = STOPS.findIndex(s => s.id === normalizedStage);
   const activeIdx = currentIndex >= 0 ? currentIndex : 2;
   const fillWidthPercent = `${(activeIdx / (STOPS.length - 1)) * 100}%`;
 
