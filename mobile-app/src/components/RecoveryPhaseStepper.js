@@ -10,7 +10,7 @@ const STAGES_EN = [
   { key: 'assessed', label: '2. Assessed', shortLabel: 'Assessed', desc: 'Damage survey & vulnerability priority calculated' },
   { key: 'allocated', label: '3. Allocated', shortLabel: 'Allocated', desc: 'Relief pack right-sized quota prepared' },
   { key: 'ready', label: '4. Ready', shortLabel: 'Ready', desc: 'Available for immediate on-site claiming' },
-  { key: 'recovered', label: '5. Recovered', shortLabel: 'Recovered', desc: 'Assistance claimed & recovery case closed' },
+  { key: 'claimed', label: '5. Claimed', shortLabel: 'Claimed', desc: 'Relief pack successfully claimed via QR scan at venue' },
 ];
 
 const STAGES_TL = [
@@ -18,7 +18,7 @@ const STAGES_TL = [
   { key: 'assessed', label: '2. Na-Assessed', shortLabel: 'Na-Assessed', desc: 'Nasuri ang priority index at antas ng tulong' },
   { key: 'allocated', label: '3. Naka-Aloka', shortLabel: 'Naka-Aloka', desc: 'Inihanda ang tamang dami ng relief packs' },
   { key: 'ready', label: '4. Handa na', shortLabel: 'Handa na', desc: 'Pwedeng i-claim sa covered court gamit ang QR' },
-  { key: 'recovered', label: '5. Naka-Recover', shortLabel: 'Natapos', desc: 'Natanggap ang ayuda at naitala sa database' },
+  { key: 'claimed', label: '5. Na-Claim', shortLabel: 'Na-Claim', desc: 'Matagumpay na natanggap ang ayuda gamit ang QR pass' },
 ];
 
 export default function RecoveryPhaseStepper({
@@ -31,31 +31,40 @@ export default function RecoveryPhaseStepper({
   const stages = lang === 'tl' ? STAGES_TL : STAGES_EN;
 
   let activeIndex = 0;
-  let calculatedPercent = 15;
+  let completedCount = 0;
+  let calculatedPercent = 0;
 
   if (!isVerified) {
     activeIndex = 0;
-    calculatedPercent = 15;
+    completedCount = 0;
+    calculatedPercent = 0;
   } else {
-    const statusLower = (currentStatus || 'allocated').toLowerCase();
-    if (statusLower.includes('register') || statusLower.includes('pending') || statusLower === 'waiting') {
-      activeIndex = 0;
-      calculatedPercent = 20;
-    } else if (statusLower.includes('assess') || statusLower.includes('damage')) {
-      activeIndex = 1;
-      calculatedPercent = 40;
-    } else if (statusLower.includes('aloka') || statusLower.includes('allocated')) {
-      activeIndex = 2;
-      calculatedPercent = 65;
-    } else if (statusLower.includes('transit') || statusLower.includes('ready') || statusLower.includes('claiming')) {
-      activeIndex = 3;
-      calculatedPercent = 85;
-    } else if (statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing')) {
+    const statusLower = (currentStatus || 'waiting').toLowerCase();
+    if (statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received')) {
+      // Stage 5 completed (All 5 stages completed)
       activeIndex = 4;
+      completedCount = 5;
       calculatedPercent = 100;
+    } else if (statusLower.includes('transit') || statusLower.includes('ready') || statusLower.includes('claiming')) {
+      // Stage 4 completed (Ready), Stage 5 Claimed is active
+      activeIndex = 4;
+      completedCount = 4;
+      calculatedPercent = 80;
+    } else if (statusLower.includes('aloka') || statusLower.includes('allocated')) {
+      // Stage 3 completed (Allocated), Stage 4 Ready is active
+      activeIndex = 3;
+      completedCount = 3;
+      calculatedPercent = 60;
+    } else if (statusLower.includes('assess') || statusLower.includes('damage')) {
+      // Stage 2 completed (Assessed), Stage 3 Allocated is active
+      activeIndex = 2;
+      completedCount = 2;
+      calculatedPercent = 40;
     } else {
+      // Default verified state: Stage 1 (Verification) completed, Stage 2 Assessed is active
       activeIndex = 1;
-      calculatedPercent = 35;
+      completedCount = 1;
+      calculatedPercent = 20;
     }
   }
 
@@ -86,7 +95,7 @@ export default function RecoveryPhaseStepper({
           end={{ x: 1, y: 0 }}
           style={[
             styles.trackFill,
-            { width: `${Math.min(Math.max(percentage, 5), 100)}%` },
+            { width: `${Math.min(Math.max(percentage, percentage > 0 ? 5 : 0), 100)}%` },
           ]}
         />
       </View>
@@ -94,20 +103,31 @@ export default function RecoveryPhaseStepper({
       {/* 5-Step Segmented Markers */}
       <View style={styles.stepsRow}>
         {stages.map((stage, idx) => {
-          const isCompletedOrCurrent = isVerified && idx <= activeIndex;
+          const isCompleted = idx < completedCount;
+          const isCurrent = idx === activeIndex && completedCount < 5;
 
           return (
             <View key={stage.key} style={styles.stepItem}>
               <View
                 style={[
                   styles.stepNode,
-                  isCompletedOrCurrent ? styles.stepNodeCompleted : styles.stepNodeUpcoming,
+                  isCompleted
+                    ? styles.stepNodeCompleted
+                    : isCurrent
+                    ? styles.stepNodeCurrent
+                    : styles.stepNodeUpcoming,
                 ]}
               >
-                {isCompletedOrCurrent ? (
+                {isCompleted ? (
                   <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
                 ) : (
-                  <Text style={styles.stepNumberUpcoming}>
+                  <Text
+                    style={
+                      isCurrent
+                        ? styles.stepNumberCurrent
+                        : styles.stepNumberUpcoming
+                    }
+                  >
                     {idx + 1}
                   </Text>
                 )}
@@ -116,7 +136,7 @@ export default function RecoveryPhaseStepper({
               <Text
                 style={[
                   styles.stepLabel,
-                  isCompletedOrCurrent && styles.stepLabelActive,
+                  (isCompleted || isCurrent) && styles.stepLabelActive,
                 ]}
                 numberOfLines={1}
               >
@@ -132,14 +152,27 @@ export default function RecoveryPhaseStepper({
         <View style={styles.activeCalloutHeader}>
           <View style={styles.activePhaseDot} />
           <Text style={styles.activeCalloutTitle}>
-            {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'} {!isVerified ? (lang === 'tl' ? '1. Beripikasyon (Nakabinbin)' : '1. Verification (Pending)') : currentStage.label}
+            {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'}{' '}
+            {!isVerified
+              ? lang === 'tl'
+                ? '1. Beripikasyon (Nakabinbin)'
+                : '1. Verification (Pending)'
+              : completedCount === 5
+              ? lang === 'tl'
+                ? '5. Na-Claim (Kumpleto)'
+                : '5. Claimed (Complete)'
+              : currentStage.label}
           </Text>
         </View>
         <Text style={styles.activeCalloutDesc}>
           {!isVerified
-            ? (lang === 'tl'
-                ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
-                : 'Your registration is currently in the Barangay 291 Verification Queue. Progress will advance once approved by the Barangay Official.')
+            ? lang === 'tl'
+              ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
+              : 'Your registration is currently in the Barangay 291 Verification Queue. Progress will advance once approved by the Barangay Official.'
+            : completedCount === 5
+            ? lang === 'tl'
+              ? 'Matagumpay na natanggap ang ayuda gamit ang QR pass sa covered court. Naitaya na sa database ang inyong relief claim.'
+              : 'Relief pack successfully claimed via QR scan. Your relief distribution has been securely recorded in the database.'
             : currentStage.desc}
         </Text>
       </View>
@@ -233,6 +266,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     ...(Platform.OS === 'web' ? { boxShadow: '0 4px 12px rgba(200, 16, 46, 0.35)' } : {}),
+  },
+  stepNodeCurrent: {
+    backgroundColor: '#0B1D4E',
+    borderWidth: 2.5,
+    borderColor: '#C9A84C',
+    shadowColor: '#0B1D4E',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 12px rgba(11, 29, 78, 0.35)' } : {}),
+  },
+  stepNumberCurrent: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   stepNodeUpcoming: {
     backgroundColor: '#DCE6F5',

@@ -5,6 +5,7 @@ const Household = require('../models/Household');
 const Distribution = require('../models/Distribution');
 const AssistanceRequest = require('../models/AssistanceRequest');
 const AuditLog = require('../models/AuditLog');
+const RecoveryStatus = require('../models/RecoveryStatus');
 const { protect, requireRole, requireBarangayScope } = require('../middleware/auth');
 const { calculatePriorityIndex } = require('../utils/priorityIndex');
 const { calculateReliefAllocation, calculateHouseholdEntitlement } = require('../utils/reliefAllocation');
@@ -219,8 +220,12 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const entitlement = calculateHouseholdEntitlement(household);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
+    const recovery = await RecoveryStatus.findOne({ householdId: household._id });
+    const householdObj = household.toObject();
+    householdObj.recoveryStatus = recovery ? recovery.status : 'waiting';
+
     res.json({
-      household,
+      household: householdObj,
       entitlement,
       gapAnalysis,
       pastRequests,

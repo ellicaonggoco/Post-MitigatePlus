@@ -381,6 +381,8 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
         releasedByName: req.user.name,
         disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
       });
+      io.to(`household:${household._id}`).emit('recovery_status_updated', recovery.status);
+      io.emit('recovery_updated', { householdId: String(household._id), status: recovery.status });
     }
 
     res.status(201).json({

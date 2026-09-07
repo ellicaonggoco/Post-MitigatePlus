@@ -384,7 +384,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* 5-Phase Linear Disaster Recovery Status Stepper (Compact Top Position) */}
             <RecoveryPhaseStepper
-              currentStatus={isVerified ? (householdData?.recoveryStatus || 'allocated') : 'pending'}
+              currentStatus={isVerified ? (householdData?.recoveryStatus || 'waiting') : 'pending'}
               isVerified={isVerified}
               lang={lang}
             />
