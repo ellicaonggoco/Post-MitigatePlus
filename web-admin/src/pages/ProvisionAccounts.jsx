@@ -210,6 +210,18 @@ export default function ProvisionAccounts() {
       finalName = `Barangay ${finalBrgyCode}`;
       finalEmployeeId = `BRGY-${finalBrgyCode}`;
       finalDepartment = 'Barangay Local Government Unit';
+    } else if (targetRole === 'field_staff') {
+      // For Field Staff: Phone number is the Staff ID for uniform mobile login
+      if (!contactNum.trim() && finalEmployeeId) {
+        contactNum = finalEmployeeId;
+      }
+      if (!finalEmployeeId && contactNum.trim()) {
+        finalEmployeeId = contactNum.trim();
+      }
+      if (!finalName || !contactNum.trim()) {
+        setStatusMsg({ type: 'error', text: 'Please complete all required fields (Full Name and Mobile Phone Number).' });
+        return;
+      }
     } else {
       if (!finalName || !finalEmployeeId) {
         setStatusMsg({ type: 'error', text: 'Please complete all required employee and identification fields.' });
@@ -664,12 +676,20 @@ export default function ProvisionAccounts() {
                       />
                     </div>
                     <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>Employee / Staff ID *</label>
+                      <label style={labelStyle}>
+                        {targetRole === 'field_staff' ? 'Staff ID (Phone Number) *' : 'Employee / Staff ID *'}
+                      </label>
                       <input
                         type="text"
-                        placeholder="e.g. EMP-MNL-4821"
+                        placeholder={targetRole === 'field_staff' ? 'e.g. 09236051393' : 'e.g. EMP-MNL-4821'}
                         value={employeeId}
-                        onChange={(e) => setEmployeeId(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEmployeeId(val);
+                          if (targetRole === 'field_staff') {
+                            setContactNum(val);
+                          }
+                        }}
                         style={inputStyle}
                         required
                       />
@@ -690,12 +710,20 @@ export default function ProvisionAccounts() {
                       />
                     </div>
                     <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>Contact Phone *</label>
+                      <label style={labelStyle}>
+                        {targetRole === 'field_staff' ? 'Contact Phone (Staff ID) *' : 'Contact Phone *'}
+                      </label>
                       <input
                         type="text"
                         placeholder="e.g. 0917 123 4567"
                         value={contactNum}
-                        onChange={(e) => setContactNum(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setContactNum(val);
+                          if (targetRole === 'field_staff') {
+                            setEmployeeId(val);
+                          }
+                        }}
                         style={inputStyle}
                         required
                       />

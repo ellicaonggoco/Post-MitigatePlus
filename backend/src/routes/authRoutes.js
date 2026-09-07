@@ -489,13 +489,29 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
 router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { name, emailOrPhone, password, barangayCode, teamName, staffDesignation, employeeId, department, contactNum } = req.body;
-    if (!name || !emailOrPhone || !password) {
-      return res.status(400).json({ message: 'Please provide name, email/phone, and password.' });
+    if (!name || !password) {
+      return res.status(400).json({ message: 'Please provide name and password.' });
     }
 
-    const existing = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
+    // Uniform login: Phone Number is the Staff ID
+    const staffPhone = (contactNum || employeeId || '').trim();
+    const finalEmployeeId = staffPhone || (employeeId ? employeeId.trim() : null);
+    const finalContactNum = staffPhone || (contactNum ? contactNum.trim() : null);
+    const finalEmailOrPhone = (emailOrPhone && emailOrPhone.trim()) ? emailOrPhone.trim().toLowerCase() : staffPhone;
+
+    if (!finalEmailOrPhone && !finalContactNum) {
+      return res.status(400).json({ message: 'Please provide a Phone Number (Staff ID).' });
+    }
+
+    const existing = await User.findOne({
+      $or: [
+        { emailOrPhone: finalEmailOrPhone },
+        ...(finalContactNum ? [{ contactNum: finalContactNum }] : []),
+        ...(finalEmployeeId ? [{ employeeId: finalEmployeeId }] : []),
+      ]
+    });
     if (existing) {
-      return res.status(400).json({ message: 'An account with this email/phone already exists.' });
+      return res.status(400).json({ message: 'An account with this Phone Number, Email, or Staff ID already exists.' });
     }
 
     const bcrypt = require('bcryptjs');
@@ -504,15 +520,15 @@ router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmi
 
     const staff = await User.create({
       name: name.trim(),
-      emailOrPhone: emailOrPhone.trim().toLowerCase(),
+      emailOrPhone: finalEmailOrPhone,
       passwordHash,
       role: 'field_staff',
       barangayCode: barangayCode || 'City-Wide',
       teamName: teamName || 'Field Team Alpha',
       staffDesignation: staffDesignation || 'field_officer',
-      employeeId: employeeId || null,
+      employeeId: finalEmployeeId || null,
       department: department || 'MDRRMO Field Operations',
-      contactNum: contactNum || null,
+      contactNum: finalContactNum || null,
       createdBy: req.user._id,
     });
 

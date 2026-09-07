@@ -188,15 +188,15 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </View>
           ) : null}
 
-          {/* Mobile Number / Email Input */}
+          {/* Mobile Phone Number Input (Uniform for Resident and Staff) */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Phone Number o Email' : 'Phone Number or Email'}
+            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number o Email' : 'Enter Phone Number or Email'}
+            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number (09XXXXXXXXX)' : 'Enter Phone Number (09XXXXXXXXX)'}
             errorText={errors.emailOrPhone}
             required
-            keyboardType="email-address"
+            keyboardType="default"
             autoCapitalize="none"
           />
 
