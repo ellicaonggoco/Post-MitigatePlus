@@ -8,7 +8,7 @@ export default function Footer() {
       style={{
         marginTop: 'auto',
         backgroundColor: '#FFFFFF',
-        borderTop: '1.5px solid #DDE4F0',
+        borderTop: '3px solid #1C3F94',
         padding: '24px 32px 18px',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         color: '#0B1525',
