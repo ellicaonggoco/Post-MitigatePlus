@@ -19,6 +19,25 @@ const generateToken = (id) => {
   });
 };
 
+// Strict Global Identifier Uniqueness: No two users (resident, staff, official, admin) can share a phone number or email
+async function findExistingUserWithIdentifier(identifier, excludeUserId = null) {
+  if (!identifier) return null;
+  const clean = String(identifier).trim();
+  const lower = clean.toLowerCase();
+  const query = {
+    $or: [
+      { emailOrPhone: lower },
+      { emailOrPhone: clean },
+      { contactNum: clean },
+      { employeeId: clean },
+    ]
+  };
+  if (excludeUserId) {
+    query._id = { $ne: excludeUserId };
+  }
+  return await User.findOne(query);
+}
+
 const { sendSMS } = require('../services/smsService');
 const { sendEmailOTP } = require('../services/emailService');
 
@@ -183,9 +202,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please fill in all required registration fields.' });
     }
 
-    const existingUser = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
+    const existingUser = await findExistingUserWithIdentifier(emailOrPhone);
     if (existingUser) {
-      return res.status(400).json({ message: 'An account with this email or phone already exists.' });
+      const roleLabel = existingUser.role === 'resident' ? 'Residente' : existingUser.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+      return res.status(400).json({
+        message: `Ang phone number na ito ay rehistrado na bilang ${roleLabel} (${existingUser.name}). Bawal magkaparehas ang number ng kahit sinong user.`
+      });
     }
 
     // Check for existing address/purok overlap in the same barangay.
@@ -408,9 +430,10 @@ router.post('/provision-admin', protect, requireRole('lgu_superadmin', 'lgu_supe
       return res.status(400).json({ message: 'Please provide name, email/phone, and password.' });
     }
 
-    const existing = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
+    const existing = await findExistingUserWithIdentifier(emailOrPhone);
     if (existing) {
-      return res.status(400).json({ message: 'An account with this email/phone already exists.' });
+      const roleLabel = existing.role === 'resident' ? 'Residente' : existing.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+      return res.status(400).json({ message: `Ang email o phone na ito ay ginagamit na bilang ${roleLabel} (${existing.name}).` });
     }
 
     const bcrypt = require('bcryptjs');
@@ -451,9 +474,10 @@ router.post('/provision-official', protect, requireRole('lgu_admin', 'lgu_supera
       return res.status(400).json({ message: 'Please provide name, email/phone, password, and barangayCode.' });
     }
 
-    const existing = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
+    const existing = await findExistingUserWithIdentifier(emailOrPhone);
     if (existing) {
-      return res.status(400).json({ message: 'An account with this email/phone already exists.' });
+      const roleLabel = existing.role === 'resident' ? 'Residente' : existing.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+      return res.status(400).json({ message: `Ang email o phone na ito ay ginagamit na bilang ${roleLabel} (${existing.name}).` });
     }
 
     // Ensure only 1 active official per barangay
@@ -612,11 +636,36 @@ router.put('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_supe
     }
 
     const { name, emailOrPhone, department, employeeId, contactNum, teamName, staffDesignation, barangayCode } = req.body;
+
+    // Check if new contact phone or employeeId is already taken by another user
+    const checkPhone = (contactNum || (user.role === 'field_staff' ? employeeId : null));
+    if (checkPhone && checkPhone.trim()) {
+      const phoneConflict = await findExistingUserWithIdentifier(checkPhone.trim(), user._id);
+      if (phoneConflict) {
+        const roleLabel = phoneConflict.role === 'resident' ? 'Residente' : phoneConflict.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+        return res.status(400).json({
+          message: `Ang phone number na ${checkPhone} ay ginagamit na ng isa nang ${roleLabel} (${phoneConflict.name}). Bawal magkaparehas ang number ng kahit sinong staff o resident.`
+        });
+      }
+    }
+
+    // Check if email is already taken by another user
+    if (emailOrPhone && emailOrPhone.trim().toLowerCase() !== user.emailOrPhone) {
+      const emailConflict = await findExistingUserWithIdentifier(emailOrPhone.trim(), user._id);
+      if (emailConflict) {
+        const roleLabel = emailConflict.role === 'resident' ? 'Residente' : emailConflict.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+        return res.status(400).json({
+          message: `Ang email na ${emailOrPhone} ay ginagamit na ng isa nang ${roleLabel} (${emailConflict.name}).`
+        });
+      }
+    }
+
     if (name) user.name = name.trim();
     if (emailOrPhone) user.emailOrPhone = emailOrPhone.trim().toLowerCase();
     if (department !== undefined) user.department = department;
     if (employeeId !== undefined) user.employeeId = employeeId;
     if (contactNum !== undefined) user.contactNum = contactNum;
+    if (user.role === 'field_staff' && contactNum) user.employeeId = contactNum.trim();
     if (teamName !== undefined) user.teamName = teamName;
     if (staffDesignation !== undefined) user.staffDesignation = staffDesignation;
     if (barangayCode !== undefined) user.barangayCode = barangayCode;
