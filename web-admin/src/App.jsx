@@ -231,9 +231,12 @@ function AppRoutes() {
     "/settings": "Settings",
   };
 
+  const isLoginPage = location.pathname === '/login';
+  const isAuthLayout = Boolean(token && !isLoginPage);
+
   return (
     <div className="app-shell">
-      {token && (
+      {isAuthLayout && (
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
@@ -264,10 +267,10 @@ function AppRoutes() {
       )}
 
       {/* Desktop Sidebar */}
-      {token && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
+      {isAuthLayout && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
 
       {/* Mobile Drawer Navigation */}
-      {token && mobileMenuOpen && (
+      {isAuthLayout && mobileMenuOpen && (
         <div
           className="mobile-drawer-overlay"
           onClick={() => setMobileMenuOpen(false)}
@@ -320,8 +323,8 @@ function AppRoutes() {
         </div>
       )}
 
-      <main className={token ? "app-main" : "app-main app-main--public"}>
-        {token && <header className="app-topbar">
+      <main className={isAuthLayout ? "app-main" : "app-main app-main--public"}>
+        {isAuthLayout && <header className="app-topbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               className="mobile-menu-btn"
@@ -372,7 +375,7 @@ function AppRoutes() {
         </header>}
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/verification-queue" element={<ProtectedRoute><VerificationQueue /></ProtectedRoute>} />
             <Route path="/priority-index" element={<ProtectedRoute><SmartPriorityDashboard /></ProtectedRoute>} />
@@ -391,11 +394,12 @@ function AppRoutes() {
             <Route path="/global-policy" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><GlobalPolicyConfig /></RoleProtectedRoute>} />
             <Route path="/system-audit-logs" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><SystemAuditLogs /></RoleProtectedRoute>} />
             <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
 
         {/* Global Institutional & Developer Footer */}
-        <Footer />
+        {isAuthLayout && <Footer />}
       </main>
 
       {/* Interactive System & Developer Details Modal */}
