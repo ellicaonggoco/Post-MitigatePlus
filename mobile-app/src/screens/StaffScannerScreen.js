@@ -597,7 +597,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                   onPress={downloadOfflineCache}
                   disabled={cachingLoading}
                 >
-                  {cachingLoading ? <ActivityIndicator size="small" color="#002BB8" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#002BB8' }}> I-download Cache ({offlineCache.length})</Text>}
+                  {cachingLoading ? <ActivityIndicator size="small" color="#C8102E" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#C8102E' }}> I-download Cache ({offlineCache.length})</Text>}
                 </TouchableOpacity>
 
                 {offlineClaimsQueue.length > 0 && (
@@ -623,7 +623,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
             {/* Viewfinder Camera Simulation */}
             <View style={styles.viewfinderCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <CameraIcon size={14} color="#002BB8" />
+                <CameraIcon size={14} color="#FCD34D" />
                 <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
               </View>
               <Text style={styles.viewfinderSub}>Position resident QR Pass in the viewfinder</Text>
@@ -795,7 +795,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                       style={[styles.typeOption, incidentType === type && styles.typeOptionActive]}
                       onPress={() => setIncidentType(type)}
                     >
-                      <Text style={[styles.typeText, incidentType === type && { color: '#002BB8', fontWeight: 'bold' }]}>{type}</Text>
+                      <Text style={[styles.typeText, incidentType === type && { color: '#C8102E', fontWeight: 'bold' }]}>{type}</Text>
                     </MotionPressable>
                   ))}
 
