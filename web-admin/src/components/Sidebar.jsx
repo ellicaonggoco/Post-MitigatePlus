@@ -245,7 +245,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         style={{
           width: isCollapsed ? '72px' : '256px',
           minWidth: isCollapsed ? '72px' : '256px',
-          height: '100vh',
+          height: 'calc(100vh - 60px)',
           position: 'sticky',
           top: 0,
           background: 'var(--sidebar-bg)',

@@ -949,10 +949,10 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
   --ink: #F8FAFC; --ink-soft: #94A3B8; --ink-faint: #64748B;
 }
 .app-layout { min-height: 100vh; display: flex; flex-direction: column; width: 100%; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); }
-.app-shell { flex: 1; display: flex; width: 100%; min-height: 0; }
+.app-shell { flex: 1; display: flex; width: 100%; min-height: 0; padding-top: 60px; }
 .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0; }
 .app-main--public { padding: 0; }
-.app-topbar { position: sticky; top: 0; z-index: 50; height: 60px; width: 100%; max-width: none; margin: 0; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: none; background: linear-gradient(135deg, #1C3F94 0%, #162d6b 100%); box-shadow: 0 2px 12px rgba(28,63,148,0.25); }
+.app-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px; width: 100%; margin: 0; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: none; background: linear-gradient(135deg, #1C3F94 0%, #162d6b 100%); box-shadow: 0 2px 16px rgba(28,63,148,0.3); }
 .app-crumbs, .app-topbar-actions, .app-status { display: flex; align-items: center; gap: 9px; }
 .app-crumbs { color: var(--ink-soft); font-size: 13px; font-weight: 700; letter-spacing: .01em; }
 .app-crumbs span { color: var(--ink-soft); }

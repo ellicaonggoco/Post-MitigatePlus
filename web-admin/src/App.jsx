@@ -1,6 +1,7 @@
 import React, { useContext, useState, useRef, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X } from "lucide-react";
+import logoFull from "./assets/logo-full.png";
 
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -237,115 +238,43 @@ function AppRoutes() {
 
   return (
     <div className="app-layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <div className="app-shell" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {isAuthLayout && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
-          title={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
-          className="sidebar-collapse-btn desktop-only"
-          style={{
-            position: 'fixed',
-            left: isCollapsed ? '72px' : '256px',
-            top: '28px',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 9999999,
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            background: 'var(--card)',
-            border: '1.5px solid var(--border)',
-            color: 'var(--manila-blue)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(15,23,42,0.3)',
-            transition: 'left 0.25s cubic-bezier(0.2, 0, 0, 1)',
-          }}
-        >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-      )}
 
-      {/* Desktop Sidebar */}
-      {isAuthLayout && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
-
-      {/* Mobile Drawer Navigation */}
-      {isAuthLayout && mobileMenuOpen && (
-        <div
-          className="mobile-drawer-overlay"
-          onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 999999,
-            display: 'flex',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '280px',
-              maxWidth: '85vw',
-              height: '100%',
-              backgroundColor: 'var(--card)',
-              boxShadow: '4px 0 24px rgba(0,0,0,0.3)',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-              overflowY: 'auto',
-            }}
-          >
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close navigation"
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                zIndex: 10,
-                background: '#F1F5F9',
-                border: 'none',
-                borderRadius: '50%',
-                width: 32,
-                height: 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={16} color="var(--ink)" />
-            </button>
-            <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
-          </div>
-        </div>
-      )}
-
-      <main className={isAuthLayout ? "app-main" : "app-main app-main--public"}>
-        {isAuthLayout && <header className="app-topbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* ── FULL-WIDTH TOPBAR — spans above sidebar AND main content ── */}
+      {isAuthLayout && (
+        <header className="app-topbar">
+          {/* Left: mobile menu + logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button
               className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
               title="Open Navigation"
-              style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}
+              style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.15)' }}
             >
               <Menu size={20} />
             </button>
-            <div className="app-crumbs" style={{ color: 'rgba(255,255,255,0.75)' }}>
-              <span style={{ color: 'rgba(255,255,255,0.65)' }}>MitigatePlus</span>
-              <ChevronRight size={14} style={{ color: 'rgba(255,255,255,0.45)' }} />
-              <strong style={{ color: '#fff', fontWeight: 700 }}>{labels[location.pathname] || "MitigatePlus"}</strong>
-            </div>
+            <img
+              src={logoFull}
+              alt="MitigatePlus"
+              style={{ height: 38, width: 'auto', maxWidth: 170, objectFit: 'contain' }}
+            />
           </div>
+
+          {/* Right: notification + settings */}
           <div className="app-topbar-actions">
             <div ref={notifRef} style={{ position: "relative" }}>
-              <button className="app-notification" aria-label="Notifications" onClick={() => setNotifOpen(p => !p)} style={{ position: "relative", color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}>
+              <button
+                className="app-notification"
+                aria-label="Notifications"
+                onClick={() => setNotifOpen(p => !p)}
+                style={{
+                  position: "relative",
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1.5px solid rgba(255,255,255,0.4)',
+                  color: '#fff',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+                }}
+              >
                 <Bell size={18} />
                 {unreadCount > 0 && (
                   <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, background: "#DC2626", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #1C3F94", lineHeight: 1 }}>{unreadCount}</span>
@@ -353,41 +282,147 @@ function AppRoutes() {
               </button>
               {notifOpen && <NotificationPanel notifs={notifs} setNotifs={setNotifs} onClose={() => setNotifOpen(false)} />}
             </div>
-            <Link to="/settings" className="app-notification" aria-label="Settings" title="Settings" style={{ textDecoration: "none", color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}><Settings size={18} /></Link>
+            <Link
+              to="/settings"
+              className="app-notification"
+              aria-label="Settings"
+              title="Settings"
+              style={{
+                textDecoration: "none",
+                color: '#fff',
+                background: 'rgba(255,255,255,0.18)',
+                border: '1.5px solid rgba(255,255,255,0.4)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+              }}
+            >
+              <Settings size={18} />
+            </Link>
           </div>
-        </header>}
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/verification-queue" element={<ProtectedRoute><VerificationQueue /></ProtectedRoute>} />
-            <Route path="/priority-index" element={<ProtectedRoute><SmartPriorityDashboard /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-            <Route path="/heatmap" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><BarangayHeatmap /></RoleProtectedRoute>} />
-            <Route path="/relief-allocation" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ReliefAllocationPage /></RoleProtectedRoute>} />
-            <Route path="/distribution-events" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><DistributionEvents /></RoleProtectedRoute>} />
-            <Route path="/warehouse-inventory" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><WarehouseInventory /></RoleProtectedRoute>} />
-            <Route path="/fraud-interception" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><FraudInterception /></RoleProtectedRoute>} />
-            <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
-            <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
-            <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
-            <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
-            <Route path="/provision-accounts" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ProvisionAccounts /></RoleProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            <Route path="/global-policy" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><GlobalPolicyConfig /></RoleProtectedRoute>} />
-            <Route path="/system-audit-logs" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><SystemAuditLogs /></RoleProtectedRoute>} />
-            <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </main>
+        </header>
+      )}
+
+      {/* ── SHELL: sidebar + main content (below the full-width topbar) ── */}
+      <div className="app-shell" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        {isAuthLayout && (
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
+            title={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
+            className="sidebar-collapse-btn desktop-only"
+            style={{
+              position: 'fixed',
+              left: isCollapsed ? '72px' : '256px',
+              top: '74px',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 9999999,
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: 'var(--card)',
+              border: '1.5px solid var(--border)',
+              color: 'var(--manila-blue)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 12px rgba(15,23,42,0.3)',
+              transition: 'left 0.25s cubic-bezier(0.2, 0, 0, 1)',
+            }}
+          >
+            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
+        )}
+
+        {/* Desktop Sidebar */}
+        {isAuthLayout && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
+
+        {/* Mobile Drawer Navigation */}
+        {isAuthLayout && mobileMenuOpen && (
+          <div
+            className="mobile-drawer-overlay"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 999999,
+              display: 'flex',
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '280px',
+                maxWidth: '85vw',
+                height: '100%',
+                backgroundColor: 'var(--card)',
+                boxShadow: '4px 0 24px rgba(0,0,0,0.3)',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                overflowY: 'auto',
+              }}
+            >
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close navigation"
+                style={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  zIndex: 10,
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} color="var(--ink)" />
+              </button>
+              <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+            </div>
+          </div>
+        )}
+
+        <main className={isAuthLayout ? "app-main" : "app-main app-main--public"}>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/verification-queue" element={<ProtectedRoute><VerificationQueue /></ProtectedRoute>} />
+              <Route path="/priority-index" element={<ProtectedRoute><SmartPriorityDashboard /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+              <Route path="/heatmap" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><BarangayHeatmap /></RoleProtectedRoute>} />
+              <Route path="/relief-allocation" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ReliefAllocationPage /></RoleProtectedRoute>} />
+              <Route path="/distribution-events" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><DistributionEvents /></RoleProtectedRoute>} />
+              <Route path="/warehouse-inventory" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><WarehouseInventory /></RoleProtectedRoute>} />
+              <Route path="/fraud-interception" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><FraudInterception /></RoleProtectedRoute>} />
+              <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
+              <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
+              <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
+              <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
+              <Route path="/provision-accounts" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ProvisionAccounts /></RoleProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/global-policy" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><GlobalPolicyConfig /></RoleProtectedRoute>} />
+              <Route path="/system-audit-logs" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><SystemAuditLogs /></RoleProtectedRoute>} />
+              <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+
+      {/* Global Institutional & Developer Footer — FULL WIDTH (across sidebar & main content) */}
+      {isAuthLayout && <Footer />}
+
+      {/* Interactive System & Developer Details Modal */}
+      <SystemInfoModal isOpen={systemInfoOpen} onClose={() => setSystemInfoOpen(false)} />
     </div>
-
-    {/* Global Institutional & Developer Footer — FULL WIDTH (across sidebar & main content) */}
-    {isAuthLayout && <Footer />}
-
-    {/* Interactive System & Developer Details Modal */}
-    <SystemInfoModal isOpen={systemInfoOpen} onClose={() => setSystemInfoOpen(false)} />
-  </div>
-);
+  );
 }
