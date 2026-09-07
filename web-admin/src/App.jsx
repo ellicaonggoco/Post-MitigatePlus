@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
 import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X } from "lucide-react";
-import logoFull from "./assets/logo-full.png";
+
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -327,33 +327,33 @@ function AppRoutes() {
 
       <main className={isAuthLayout ? "app-main" : "app-main app-main--public"}>
         {isAuthLayout && <header className="app-topbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
               title="Open Navigation"
+              style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}
             >
               <Menu size={20} />
             </button>
-            {/* MitigatePlus logo in topbar */}
-            <img
-              src={logoFull}
-              alt="MitigatePlus"
-              style={{ height: 36, width: 'auto', maxWidth: 160, objectFit: 'contain', mixBlendMode: 'multiply' }}
-            />
+            <div className="app-crumbs" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              <span style={{ color: 'rgba(255,255,255,0.65)' }}>MitigatePlus</span>
+              <ChevronRight size={14} style={{ color: 'rgba(255,255,255,0.45)' }} />
+              <strong style={{ color: '#fff', fontWeight: 700 }}>{labels[location.pathname] || "MitigatePlus"}</strong>
+            </div>
           </div>
           <div className="app-topbar-actions">
             <div ref={notifRef} style={{ position: "relative" }}>
-              <button className="app-notification" aria-label="Notifications" onClick={() => setNotifOpen(p => !p)} style={{ position: "relative" }}>
+              <button className="app-notification" aria-label="Notifications" onClick={() => setNotifOpen(p => !p)} style={{ position: "relative", color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}>
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, background: "#DC2626", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--card)", lineHeight: 1 }}>{unreadCount}</span>
+                  <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, background: "#DC2626", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #1C3F94", lineHeight: 1 }}>{unreadCount}</span>
                 )}
               </button>
               {notifOpen && <NotificationPanel notifs={notifs} setNotifs={setNotifs} onClose={() => setNotifOpen(false)} />}
             </div>
-            <Link to="/settings" className="app-notification" aria-label="Settings" title="Settings" style={{ textDecoration: "none", color: "inherit" }}><Settings size={18} /></Link>
+            <Link to="/settings" className="app-notification" aria-label="Settings" title="Settings" style={{ textDecoration: "none", color: '#fff', borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)' }}><Settings size={18} /></Link>
           </div>
         </header>}
         <Suspense fallback={<PageLoader />}>
