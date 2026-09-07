@@ -1,8 +1,8 @@
 import React from 'react';
-import { Shield, Phone, Mail, Users, Info, Building, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Phone, Mail, Users } from 'lucide-react';
 import { logoMarkBase64 } from '../assets/logo-b64';
 
-export default function Footer({ onOpenInfoModal }) {
+export default function Footer() {
   return (
     <footer
       style={{
@@ -84,30 +84,6 @@ export default function Footer({ onOpenInfoModal }) {
             <strong>Adviser:</strong> Mr. John Ivan C. Maurat<br />
             <strong>Developers:</strong> Corpuz, J.R. &bull; Datul, J.H. &bull; Garcia, N.C.M. &bull; Nolasco, J.M. &bull; Onggoco, E.C.
           </p>
-
-          <div style={{ marginTop: '4px' }}>
-            <button
-              onClick={onOpenInfoModal}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 12px',
-                backgroundColor: '#EDF1FB',
-                color: '#1C3F94',
-                border: '1px solid #D6DEFA',
-                borderRadius: '8px',
-                fontSize: '11.5px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#D6DEFA')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#EDF1FB')}
-            >
-              <Info size={13} /> View Full Project &amp; Developer Details
-            </button>
-          </div>
         </div>
 
         {/* Column 3: 24/7 Manila Disaster Hotlines & Support */}

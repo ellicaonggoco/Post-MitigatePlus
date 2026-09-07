@@ -395,7 +395,7 @@ function AppRoutes() {
         </Suspense>
 
         {/* Global Institutional & Developer Footer */}
-        <Footer onOpenInfoModal={() => setSystemInfoOpen(true)} />
+        <Footer />
       </main>
 
       {/* Interactive System & Developer Details Modal */}
