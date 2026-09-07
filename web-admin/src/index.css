@@ -952,13 +952,13 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
 .app-shell { flex: 1; display: flex; width: 100%; min-height: 0; padding-top: 0; }
 .app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0; }
 .app-main--public { padding: 0; }
-.app-topbar { position: sticky; top: 0; left: 0; right: 0; z-index: 1000; height: 60px; width: 100%; margin: 0; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05); }
+.app-topbar { position: sticky; top: 0; left: 0; right: 0; z-index: 1000; height: 60px; width: 100%; margin: 0; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #D2DFEE; background: linear-gradient(180deg, #F3F7FD 0%, #E7EEF8 100%); box-shadow: 0 4px 14px rgba(28, 63, 148, 0.09), 0 1px 3px rgba(15, 23, 42, 0.05); }
 .app-crumbs, .app-topbar-actions, .app-status { display: flex; align-items: center; gap: 9px; }
 .app-crumbs { color: var(--ink-soft); font-size: 13px; font-weight: 700; letter-spacing: .01em; }
 .app-crumbs span { color: var(--ink-soft); }
 .app-crumbs strong { color: var(--ink); }
-.app-menu-button, .app-notification { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid #D6DEFA; background: #EDF1FB; color: #1C3F94; cursor: pointer; transition: all 0.15s ease; }
-.app-notification:hover { background: #DCE4F7 !important; border-color: #B4C6F5 !important; transform: translateY(-1px); }
+.app-menu-button, .app-notification { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid #D2DFEE; background: #FFFFFF; color: #1C3F94; cursor: pointer; box-shadow: 0 2px 6px rgba(28, 63, 148, 0.08); transition: all 0.15s ease; }
+.app-notification:hover { background: #EDF3FB !important; border-color: #B4C6F5 !important; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(28, 63, 148, 0.14) !important; }
 .app-menu-button { display: none; }.app-status { color: var(--ink-soft); font-size: 12px; font-weight: 600; }.app-status i { display: block; width: 7px; height: 7px; border-radius: 99px; background: var(--bay-teal); box-shadow: 0 0 0 4px var(--bay-teal-light); }
 .page-container { max-width: 1600px; width: 100%; margin: 0 auto; padding: 24px 32px 48px; min-height: calc(100vh - 72px); flex: 1; display: flex; flex-direction: column; }
 .clay-card { border-color: var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }.clay-card:hover { transform: translateY(-3px); }

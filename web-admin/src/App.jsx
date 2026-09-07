@@ -251,8 +251,8 @@ function AppRoutes() {
               title="Open Navigation"
               style={{
                 color: '#1C3F94',
-                borderColor: '#D6DEFA',
-                background: '#EDF1FB',
+                borderColor: '#D2DFEE',
+                background: '#FFFFFF',
               }}
             >
               <Menu size={20} color="#1C3F94" />
@@ -260,7 +260,7 @@ function AppRoutes() {
             <img
               src={logoFull}
               alt="MitigatePlus"
-              style={{ height: 38, width: 'auto', maxWidth: 170, objectFit: 'contain' }}
+              style={{ height: 38, width: 'auto', maxWidth: 170, objectFit: 'contain', mixBlendMode: 'multiply' }}
             />
           </div>
 
@@ -277,14 +277,14 @@ function AppRoutes() {
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  background: '#EDF1FB',
-                  border: '1.5px solid #D6DEFA',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #D2DFEE',
                   color: '#1C3F94',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(28, 63, 148, 0.08)',
+                  boxShadow: '0 2px 6px rgba(28, 63, 148, 0.08)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -305,13 +305,13 @@ function AppRoutes() {
                 width: '38px',
                 height: '38px',
                 borderRadius: '10px',
-                background: '#EDF1FB',
-                border: '1.5px solid #D6DEFA',
+                background: '#FFFFFF',
+                border: '1.5px solid #D2DFEE',
                 color: '#1C3F94',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 1px 3px rgba(28, 63, 148, 0.08)',
+                boxShadow: '0 2px 6px rgba(28, 63, 148, 0.08)',
                 transition: 'all 0.15s ease',
               }}
             >
