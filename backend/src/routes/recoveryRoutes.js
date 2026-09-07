@@ -60,29 +60,75 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
 // PUT /api/recovery/:householdId - Update recovery status
 router.put('/:householdId', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official', 'field_staff'), async (req, res) => {
   try {
-    const { status } = req.body;
-    let recovery = await RecoveryStatus.findOne({
-      $or: [{ householdId: req.params.householdId }, { _id: req.params.householdId }]
-    });
+    const { status, householdId: bodyHouseholdId } = req.body;
+    const rawId = req.params.householdId;
+
+    const normalizeMap = {
+      waiting: 'waiting',
+      received: 'assistance_received',
+      assistance_received: 'assistance_received',
+      ongoing: 'ongoing',
+      partial: 'partially_recovered',
+      partially_recovered: 'partially_recovered',
+      full: 'fully_recovered',
+      fully_recovered: 'fully_recovered',
+    };
+    const validStatus = normalizeMap[status] || status || 'waiting';
+
+    const mongoose = require('mongoose');
+    let recovery = null;
+
+    if (mongoose.Types.ObjectId.isValid(rawId)) {
+      recovery = await RecoveryStatus.findOne({
+        $or: [{ _id: rawId }, { householdId: rawId }]
+      });
+    }
+
+    if (!recovery && bodyHouseholdId && mongoose.Types.ObjectId.isValid(bodyHouseholdId)) {
+      recovery = await RecoveryStatus.findOne({ householdId: bodyHouseholdId });
+    }
+
     if (!recovery) {
-      recovery = await RecoveryStatus.create({ householdId: req.params.householdId, status, updatedBy: req.user._id });
+      const validHhId = (mongoose.Types.ObjectId.isValid(rawId) ? rawId : null) || (mongoose.Types.ObjectId.isValid(bodyHouseholdId) ? bodyHouseholdId : null);
+      if (validHhId) {
+        recovery = await RecoveryStatus.create({
+          householdId: validHhId,
+          status: validStatus,
+          updatedBy: req.user._id,
+        });
+      } else {
+        return res.status(404).json({ message: 'Household record not found' });
+      }
     } else {
-      recovery.status = status;
+      recovery.status = validStatus;
       recovery.updatedBy = req.user._id;
       recovery.updatedAt = new Date();
       await recovery.save();
     }
-    await AuditLog.create({ actorUserId: req.user._id, actorRole: req.user.role, action: 'UPDATE_RECOVERY_STATUS', targetType: 'Household', targetId: req.params.householdId, notes: `Status changed to ${status}` });
+
+    try {
+      await AuditLog.create({
+        actorUserId: req.user._id,
+        actorRole: req.user.role,
+        action: 'UPDATE_RECOVERY_STATUS',
+        targetType: 'Household',
+        targetId: String(recovery.householdId),
+        notes: `Status changed to ${validStatus}`,
+      });
+    } catch (auditErr) {
+      console.error('AuditLog error:', auditErr.message);
+    }
     
     // Broadcast real-time update to mobile resident & web admin
     const io = req.app.get('io');
     if (io) {
-      io.to(`household:${recovery.householdId}`).emit('recovery_status_updated', status);
-      io.emit('recovery_updated', { householdId: recovery.householdId, status });
+      io.to(`household:${recovery.householdId}`).emit('recovery_status_updated', validStatus);
+      io.emit('recovery_updated', { householdId: String(recovery.householdId), status: validStatus });
     }
 
-    res.json(recovery);
+    res.json({ success: true, status: validStatus, recovery });
   } catch (err) {
+    console.error('PUT /api/recovery error:', err);
     res.status(400).json({ message: err.message });
   }
 });

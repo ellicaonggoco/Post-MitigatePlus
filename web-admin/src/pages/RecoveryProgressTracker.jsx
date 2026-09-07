@@ -5,12 +5,20 @@ import { Activity, ChevronDown, Users, CheckCircle, Clock, TrendingUp, ArrowUpCi
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionNumberCounter } from '../components/motion';
 
+const normalizeStage = (st) => {
+  if (st === 'received' || st === 'assistance_received') return 'assistance_received';
+  if (st === 'partial' || st === 'partially_recovered') return 'partially_recovered';
+  if (st === 'full' || st === 'fully_recovered') return 'fully_recovered';
+  if (st === 'ongoing') return 'ongoing';
+  return 'waiting';
+};
+
 const STAGES = [
-  { key: 'waiting', label: 'Waiting for Ayuda', color: '#DC2626', bg: '#FEF2F2', icon: Clock, type: 'auto', desc: 'Auto-Managed: On Registration' },
-  { key: 'received', label: 'Assistance Received', color: '#D97706', bg: '#FFFBEB', icon: CheckCircle, type: 'auto', desc: 'Auto-Updated: Via Staff QR Scanner' },
-  { key: 'ongoing', label: 'Ongoing Pagbangon', color: '#2563EB', bg: '#EFF6FF', icon: TrendingUp, type: 'manual', desc: 'Barangay Action: Rebuilding Phase' },
-  { key: 'partial', label: 'Partially Recovered', color: '#7C3AED', bg: '#F5F3FF', icon: ArrowUpCircle, type: 'manual', desc: 'Barangay Action: Stabilized' },
-  { key: 'full', label: 'Fully Recovered', color: '#158A64', bg: 'rgba(21,138,100,0.1)', icon: CheckCircle, type: 'manual', desc: 'Barangay Action: Fully Recovered & Resilient' },
+  { key: 'waiting', aliases: ['waiting'], label: 'Waiting for Ayuda', color: '#DC2626', bg: '#FEF2F2', icon: Clock, type: 'auto', desc: 'Auto-Managed: On Registration' },
+  { key: 'assistance_received', aliases: ['received', 'assistance_received'], label: 'Assistance Received', color: '#D97706', bg: '#FFFBEB', icon: CheckCircle, type: 'auto', desc: 'Auto-Updated: Via Staff QR Scanner' },
+  { key: 'ongoing', aliases: ['ongoing'], label: 'Ongoing Pagbangon', color: '#2563EB', bg: '#EFF6FF', icon: TrendingUp, type: 'manual', desc: 'Barangay Action: Rebuilding Phase' },
+  { key: 'partially_recovered', aliases: ['partial', 'partially_recovered'], label: 'Partially Recovered', color: '#7C3AED', bg: '#F5F3FF', icon: ArrowUpCircle, type: 'manual', desc: 'Barangay Action: Stabilized' },
+  { key: 'fully_recovered', aliases: ['full', 'fully_recovered'], label: 'Fully Recovered', color: '#158A64', bg: 'rgba(21,138,100,0.1)', icon: CheckCircle, type: 'manual', desc: 'Barangay Action: Fully Recovered & Resilient' },
 ];
 
 export default function RecoveryProgressTracker() {
@@ -30,12 +38,13 @@ export default function RecoveryProgressTracker() {
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
         const formatted = data.map(h => ({
-          id: h.householdId || h.id || h._id,
-          recoveryId: h._id,
+          id: h.id || h.householdId || h._id,
+          householdId: h.householdId || h.id || h._id,
+          recoveryId: h.recoveryId || h._id,
           head: h.head || h.householdId?.headOfHouseholdUserId?.name || 'Resident Household',
           address: h.address || (h.householdId?.address ? `${h.householdId.address}, Purok ${h.householdId.purok || 1} (Brgy ${h.householdId.barangayCode})` : `Purok 1, Barangay ${brgy}, Manila`),
           members: Number(h.members || h.householdId?.memberCount || 1),
-          stage: h.stage || h.status || 'waiting',
+          stage: normalizeStage(h.stage || h.status || 'waiting'),
           barangayCode: h.barangayCode || h.householdId?.barangayCode || brgy,
         }));
         setHouseholds(formatted);
@@ -66,23 +75,45 @@ export default function RecoveryProgressTracker() {
 
   const stageCounts = STAGES.reduce((acc, s) => ({
     ...acc,
-    [s.key]: households.filter(h => (h.stage || 'waiting') === s.key).length,
+    [s.key]: households.filter(h => normalizeStage(h.stage) === s.key).length,
   }), {});
 
   const confirmStageUpdate = async () => {
     if (!modal.hh || !modal.newStage) return;
-    const targetId = modal.hh.id || modal.hh.householdId;
+    const targetHh = modal.hh;
+    const targetId = targetHh.recoveryId || targetHh.householdId || targetHh.id;
+    const newStageKey = modal.newStage.key;
+
+    // 1. Optimistic UI update immediately
+    setHouseholds(prev => prev.map(h =>
+      (h.id === targetHh.id || h.householdId === targetHh.householdId || (targetHh.recoveryId && h.recoveryId === targetHh.recoveryId))
+        ? { ...h, stage: newStageKey }
+        : h
+    ));
+
+    // 2. Call backend API
     try {
       const res = await fetch(`${API_BASE_URL}/recovery/${targetId}`, {
         method: 'PUT',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: modal.newStage.key })
+        body: JSON.stringify({
+          status: newStageKey,
+          householdId: targetHh.householdId || targetHh.id,
+        })
       });
       if (res.ok) {
-        setHouseholds(prev => prev.map(h => (h.id === targetId || h.householdId === targetId) ? { ...h, stage: modal.newStage.key } : h));
+        const updated = await res.json().catch(() => null);
+        const finalStatus = normalizeStage(updated?.status || updated?.recovery?.status || newStageKey);
+        setHouseholds(prev => prev.map(h =>
+          (h.id === targetHh.id || h.householdId === targetHh.householdId)
+            ? { ...h, stage: finalStatus }
+            : h
+        ));
+      } else {
+        console.error('Failed to update stage on server, status:', res.status);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error updating stage:', e);
     }
     setModal({ isOpen: false, hh: null, newStage: null });
   };
@@ -145,7 +176,8 @@ export default function RecoveryProgressTracker() {
           </div>
         ) : (
           households.map((hh, idx) => {
-            const stage = STAGES.find(s => s.key === hh.stage) || STAGES[0];
+            const currentStageKey = normalizeStage(hh.stage);
+            const stage = STAGES.find(s => s.key === currentStageKey) || STAGES[0];
             const StageIcon = stage.icon;
             const isDropdownOpen = openDropdownId === (hh.id || idx);
             return (
@@ -217,7 +249,7 @@ export default function RecoveryProgressTracker() {
                         </div>
                         {STAGES.map((s) => {
                           const Icon = s.icon;
-                          const isCurrent = hh.stage === s.key;
+                          const isCurrent = currentStageKey === s.key;
                           return (
                             <button
                               key={s.key}
