@@ -239,7 +239,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
                 } catch { /* silently fail */ }
               }}
             >
-              <FingerprintIcon size={18} color="#1C3F94" />
+              <FingerprintIcon size={18} color="#C8102E" />
               <Text style={styles.biometricBtnText}>
                 {lang === 'tl' ? 'Mag-login gamit ang Fingerprint / Face ID' : 'Sign in with Fingerprint / Face ID'}
               </Text>
@@ -317,6 +317,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3.5,
     padding: RESPONSIVE.cardPadding,
     marginBottom: 16,
     ...(Platform.OS === 'web' ? {
@@ -355,20 +357,20 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 12,
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '700',
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,
@@ -387,6 +389,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 2.5,
     padding: 18,
     alignItems: 'center',
     marginBottom: 20,
@@ -412,16 +416,16 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#1C3F94',
+    borderColor: '#C8102E',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.12)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
+      shadowOpacity: 0.10,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -429,7 +433,7 @@ const styles = StyleSheet.create({
   registerActionBtnText: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
   footerNote: {
     fontSize: 10,
@@ -443,18 +447,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D6DEFA',
-    backgroundColor: '#EDF1FB',
+    borderColor: '#FECDD3',
+    backgroundColor: '#FEF0F2',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.06)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -462,6 +466,6 @@ const styles = StyleSheet.create({
   biometricBtnText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
 });

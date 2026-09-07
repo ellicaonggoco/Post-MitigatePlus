@@ -91,7 +91,7 @@ export const COLORS = {
   surface: M.white,
   card: M.white,
   cardAlt: M.canvas,
-  primary: M.blue,
+  primary: M.red,
   royalNavy: M.blue,
   navyDark: M.blueDeep,
   navyDeep: M.blueDeep,

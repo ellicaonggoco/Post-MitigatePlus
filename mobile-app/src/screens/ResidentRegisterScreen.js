@@ -570,7 +570,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             activeOpacity={0.8}
           >
             <View style={styles.backIconCircle}>
-              <ArrowLeftIcon size={14} color="#1C3F94" />
+              <ArrowLeftIcon size={14} color="#C8102E" />
             </View>
             <Text style={styles.backBtnText}>
               {step === 2 ? (lang === 'tl' ? 'Bumalik sa Hakbang 1' : 'Back to Step 1') : (lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In')}
@@ -1435,9 +1435,9 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     marginBottom: 12,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 6,
@@ -1448,14 +1448,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
   backBtnText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
     letterSpacing: 0.2,
   },
   headerTitle: {
@@ -1466,9 +1466,9 @@ const styles = StyleSheet.create({
   },
   stepCounterText: {
     fontSize: 12,
-    color: '#1C3F94',
+    color: '#C8102E',
     marginTop: 2,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   stepperContainer: {
     width: '100%',
@@ -1488,8 +1488,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepSegmentActive: {
-    backgroundColor: '#EDF1FB',
-    borderColor: '#1C3F94',
+    backgroundColor: '#FEF0F2',
+    borderColor: '#C8102E',
   },
   stepSegmentText: {
     fontSize: 11.5,
@@ -1497,7 +1497,7 @@ const styles = StyleSheet.create({
     color: '#8A9BB8',
   },
   stepSegmentTextActive: {
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
   },
   registerCard: {
@@ -1507,6 +1507,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3.5,
     padding: RESPONSIVE.cardPadding,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
@@ -1564,7 +1566,7 @@ const styles = StyleSheet.create({
   },
   dropdownChevron: {
     fontSize: 12,
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
     marginLeft: 6,
   },
@@ -1581,7 +1583,7 @@ const styles = StyleSheet.create({
   brgySelectorBtn: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#1C3F94',
+    borderColor: '#C8102E',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -1633,14 +1635,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brgyOptionSelected: {
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
   },
   brgyOptionText: {
     fontSize: 12.5,
     color: '#334155',
   },
   brgyOptionTextSelected: {
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
   },
   metricsStrip: {
@@ -1681,9 +1683,9 @@ const styles = StyleSheet.create({
     color: '#0B1525',
   },
   addMemberBtn: {
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
     borderWidth: 1,
-    borderColor: '#D6DEFA',
+    borderColor: '#FECDD3',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1691,7 +1693,7 @@ const styles = StyleSheet.create({
   addMemberBtnText: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
   membersListContainer: {
     gap: 8,
@@ -1775,8 +1777,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxActive: {
-    backgroundColor: '#1C3F94',
-    borderColor: '#1C3F94',
+    backgroundColor: '#C8102E',
+    borderColor: '#C8102E',
   },
   certText: {
     fontSize: 11.5,
@@ -1785,16 +1787,16 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   submitBtn: {
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,
@@ -2025,8 +2027,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   conditionChipActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#1C3F94',
+    backgroundColor: '#FEF0F2',
+    borderColor: '#C8102E',
   },
   conditionChipTitle: {
     fontSize: 11.5,
@@ -2034,7 +2036,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   conditionChipTitleActive: {
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
   },
   conditionChipSub: {
@@ -2043,9 +2045,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   infantNoticeBox: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#FEF0F2',
     borderWidth: 1,
-    borderColor: '#93C5FD',
+    borderColor: '#FECDD3',
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
@@ -2053,7 +2055,7 @@ const styles = StyleSheet.create({
   infantNoticeTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
   infantNoticeText: {
     fontSize: 11,
@@ -2076,8 +2078,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   relChipActive: {
-    backgroundColor: '#1C3F94',
-    borderColor: '#1C3F94',
+    backgroundColor: '#C8102E',
+    borderColor: '#C8102E',
   },
   relChipText: {
     fontSize: 11.5,
@@ -2102,7 +2104,7 @@ const styles = StyleSheet.create({
   },
   confirmAddBtn: {
     flex: 2,
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -2247,8 +2249,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   otpBoxInputFilled: {
-    borderColor: '#1C3F94',
-    backgroundColor: '#EFF6FF',
+    borderColor: '#C8102E',
+    backgroundColor: '#FEF0F2',
   },
   otpBoxInputError: {
     borderColor: '#DC2626',
@@ -2283,7 +2285,7 @@ const styles = StyleSheet.create({
   },
   otpResendActiveText: {
     fontSize: 13,
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
     textDecorationLine: 'underline',
   },
@@ -2291,12 +2293,20 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   verifyOtpBtn: {
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.md,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
+    } : {
+      shadowColor: '#C8102E',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
   verifyOtpBtnText: {
     color: '#FFFFFF',

@@ -94,7 +94,7 @@ export default function NeumorphicInput({
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#1C3F94" />}
+              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#C8102E" />}
             </TouchableOpacity>
           )}
         </View>
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   labelFocused: {
-    color: '#1C3F94',
+    color: '#C8102E',
   },
   labelError: {
     color: '#DC2626',
@@ -169,12 +169,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   containerFocused: {
-    borderColor: '#1C3F94',
+    borderColor: '#C8102E',
     backgroundColor: '#FFFFFF',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 0 0 3px rgba(28, 63, 148, 0.14)',
+      boxShadow: '0 0 0 3px rgba(200, 16, 46, 0.14)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.15,
       shadowRadius: 6,

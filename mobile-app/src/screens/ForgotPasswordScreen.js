@@ -144,7 +144,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         {/* Back Button */}
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
           <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1C3F94" />
+            <ArrowLeftIcon size={14} color="#C8102E" />
           </View>
           <Text style={styles.backBtnText}>
             {lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In'}
@@ -214,9 +214,9 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
             </Text>
             <Text style={styles.cardSub}>
               {lang === 'tl' ? (
-                <>Ilagay ang 6-digit code na ipinadala sa <Text style={{ fontWeight: 'bold', color: '#1C3F94' }}>{identifier}</Text>.</>
+                <>Ilagay ang 6-digit code na ipinadala sa <Text style={{ fontWeight: 'bold', color: '#C8102E' }}>{identifier}</Text>.</>
               ) : (
-                <>Enter the 6-digit code sent to <Text style={{ fontWeight: 'bold', color: '#1C3F94' }}>{identifier}</Text>.</>
+                <>Enter the 6-digit code sent to <Text style={{ fontWeight: 'bold', color: '#C8102E' }}>{identifier}</Text>.</>
               )}
             </Text>
 
@@ -341,9 +341,9 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     marginBottom: 16,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 6,
@@ -354,14 +354,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
   backBtnText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
     letterSpacing: 0.2,
   },
   brandHeader: {
@@ -398,6 +398,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3.5,
     padding: RESPONSIVE.cardPadding,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
@@ -474,23 +476,23 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     fontSize: 18,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
     textAlign: 'center',
   },
   otpBoxInputFilled: {
-    borderColor: '#1C3F94',
-    backgroundColor: '#EDF1FB',
+    borderColor: '#C8102E',
+    backgroundColor: '#FEF0F2',
   },
   actionBtn: {
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 10,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,

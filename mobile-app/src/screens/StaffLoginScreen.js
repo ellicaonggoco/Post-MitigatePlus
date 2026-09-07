@@ -79,14 +79,14 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0B1D4E', '#163B8C', '#234AAA']}
+        colors={['#5A0515', '#8B0A20', '#C8102E']}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        end={{ x: 1, y: 0 }}
         style={styles.gradientHeader}
       >
         <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
           <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1C3F94" />
+            <ArrowLeftIcon size={14} color="#C8102E" />
           </View>
           <Text style={styles.backText}>Pumili ng Portal</Text>
         </TouchableOpacity>
@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     marginBottom: 14,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 6,
@@ -212,11 +212,11 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
+  backText: { fontSize: 13, fontWeight: '800', color: '#C8102E', letterSpacing: 0.2 },
   header: { marginTop: 4 },
   badgePill: {
     flexDirection: 'row',
@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3.5,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
     } : {
@@ -271,16 +273,16 @@ const styles = StyleSheet.create({
     color: '#0B1525',
   },
   loginBtn: {
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,
@@ -302,11 +304,11 @@ const styles = StyleSheet.create({
   errorText: { color: '#DC2626', fontSize: 12, fontWeight: '700', flex: 1 },
   noticeBox: {
     marginTop: 18,
-    backgroundColor: '#EDF1FB',
+    backgroundColor: '#FEF0F2',
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D6DEFA',
+    borderColor: '#FECDD3',
   },
-  noticeText: { fontSize: 11.5, color: '#1C3F94', lineHeight: 17 },
+  noticeText: { fontSize: 11.5, color: '#C8102E', lineHeight: 17 },
 });
