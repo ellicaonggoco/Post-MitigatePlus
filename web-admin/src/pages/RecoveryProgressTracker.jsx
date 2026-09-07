@@ -147,6 +147,7 @@ export default function RecoveryProgressTracker() {
           households.map((hh, idx) => {
             const stage = STAGES.find(s => s.key === hh.stage) || STAGES[0];
             const StageIcon = stage.icon;
+            const isDropdownOpen = openDropdownId === (hh.id || idx);
             return (
               <MotionCard
                 key={hh.id || idx}
@@ -155,6 +156,8 @@ export default function RecoveryProgressTracker() {
                 style={{
                   borderLeft: `4.5px solid ${stage.color}`,
                   overflow: 'visible',
+                  position: 'relative',
+                  zIndex: isDropdownOpen ? 1000 : 1,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
@@ -174,9 +177,9 @@ export default function RecoveryProgressTracker() {
                       </span>
                     </div>
                   </div>
-                  <div className="stage-dropdown-container" style={{ position: 'relative' }}>
+                  <div className="stage-dropdown-container" style={{ position: 'relative', zIndex: isDropdownOpen ? 1001 : 1 }}>
                     <button
-                      onClick={() => setOpenDropdownId(openDropdownId === (hh.id || idx) ? null : (hh.id || idx))}
+                      onClick={() => setOpenDropdownId(isDropdownOpen ? null : (hh.id || idx))}
                       className="clay-button-secondary"
                       aria-label={`Update recovery stage for ${hh.head}`}
                       style={{
@@ -187,13 +190,13 @@ export default function RecoveryProgressTracker() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
-                        background: openDropdownId === (hh.id || idx) ? '#ECFDF5' : 'var(--card)',
+                        background: isDropdownOpen ? '#ECFDF5' : 'var(--card)',
                       }}
                     >
-                      Update Stage <ChevronDown size={14} style={{ transform: openDropdownId === (hh.id || idx) ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+                      Update Stage <ChevronDown size={14} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
                     </button>
 
-                    {openDropdownId === (hh.id || idx) && (
+                    {isDropdownOpen && (
                       <div
                         style={{
                           position: 'absolute',
@@ -203,9 +206,9 @@ export default function RecoveryProgressTracker() {
                           background: '#FFFFFF',
                           border: '1.5px solid #E2E8F0',
                           borderRadius: '12px',
-                          boxShadow: '0 12px 28px rgba(15, 23, 42, 0.16)',
+                          boxShadow: '0 16px 36px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08)',
                           padding: '6px',
-                          zIndex: 9999,
+                          zIndex: 99999,
                           animation: 'fadeIn 0.15s ease-out',
                         }}
                       >
