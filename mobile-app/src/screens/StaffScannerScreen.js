@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#002BB8',
+    borderColor: '#1C3F94',
   },
   scanTargetFrame: { width: 120, height: 120, borderWidth: 2, borderColor: '#F59E0B', borderRadius: 12 },
   manualEntryCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0' },
