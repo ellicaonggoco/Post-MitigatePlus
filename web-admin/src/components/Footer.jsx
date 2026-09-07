@@ -7,11 +7,11 @@ export default function Footer() {
     <footer
       style={{
         marginTop: 'auto',
-        backgroundColor: '#FFFFFF',
-        borderTop: '3px solid #1C3F94',
-        padding: '24px 32px 18px',
+        backgroundColor: '#F8FAFC',
+        borderTop: '1px solid #E2E8F0',
+        padding: '12px 24px 10px',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        color: '#0B1525',
+        color: '#475569',
         width: '100%',
         boxSizing: 'border-box',
         position: 'relative',
@@ -23,91 +23,84 @@ export default function Footer() {
           maxWidth: '1440px',
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '24px',
-          paddingBottom: '20px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '16px',
+          paddingBottom: '10px',
           borderBottom: '1px solid #E2E8F0',
         }}
       >
-        {/* Column 1: System Branding & Accreditation */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Column 1: System Branding */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img
               src={logoMarkBase64}
               alt="MitigatePlus Seal"
-              style={{ width: '38px', height: '38px', objectFit: 'contain' }}
+              style={{ width: '22px', height: '22px', objectFit: 'contain' }}
             />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, color: '#0B1D4E', letterSpacing: '-0.3px' }}>
-                  MitigatePlus
-                </span>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    backgroundColor: '#C9A84C',
-                    color: '#0B1D4E',
-                    padding: '1px 6px',
-                    borderRadius: '999px',
-                  }}
-                >
-                  v1.0.0
-                </span>
-              </div>
-              <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-                Disaster Risk Mitigation Information System
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                MitigatePlus
+              </span>
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  backgroundColor: '#E2E8F0',
+                  color: '#475569',
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                }}
+              >
+                v1.0.0
               </span>
             </div>
           </div>
 
-          <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
-            Official Disaster Relief &amp; Beneficiary Coordination Platform in partnership with the{' '}
-            <strong style={{ color: '#0B1D4E' }}>City Government of Manila - MDRRMD</strong> and{' '}
-            <strong style={{ color: '#1C3F94' }}>National University - Manila (CCIT)</strong>.
+          <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.35 }}>
+            Official Disaster Relief Platform &bull; <strong style={{ color: '#334155' }}>City Government of Manila (MDRRMD)</strong> &amp; <strong style={{ color: '#334155' }}>National University (CCIT)</strong>
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-            <span style={{ display: 'inline-flex', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1C3F94' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#1C3F94' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+            <span style={{ display: 'inline-flex', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+            <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#64748B' }}>
               System Operational &bull; A.Y. 2025–2026
             </span>
           </div>
         </div>
 
-        {/* Column 2: Development Team & Adviser */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Column 2: Development Team */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Users size={16} color="#1C3F94" />
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0B1D4E' }}>
+            <Users size={14} color="#64748B" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
               Development Team: ONTHEWAY
             </span>
           </div>
 
-          <p style={{ margin: 0, fontSize: '11.5px', color: '#475569', lineHeight: 1.6 }}>
-            <strong>Adviser:</strong> Mr. John Ivan C. Maurat<br />
-            <strong>Developers:</strong> Corpuz, J.R. &bull; Datul, J.H. &bull; Garcia, N.C.M. &bull; Nolasco, J.M. &bull; Onggoco, E.C.
+          <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.35 }}>
+            <strong style={{ color: '#475569' }}>Adviser:</strong> Mr. John Ivan C. Maurat<br />
+            <strong style={{ color: '#475569' }}>Members:</strong> Corpuz, J.R. &bull; Datul, J.H. &bull; Garcia, N.C.M. &bull; Nolasco, J.M. &bull; Onggoco, E.C.
           </p>
         </div>
 
-        {/* Column 3: 24/7 Manila Disaster Hotlines & Support */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Column 3: Emergency & Support */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Phone size={15} color="#C8102E" />
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#C8102E' }}>
-              24/7 Manila Emergency Hotline (MDRRMD)
+            <Phone size={13} color="#64748B" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+              Manila Emergency Hotline (MDRRMD)
             </span>
           </div>
 
-          <p style={{ margin: 0, fontSize: '12px', color: '#0B1525', fontWeight: 700 }}>
+          <p style={{ margin: 0, fontSize: '11px', color: '#334155', fontWeight: 600, lineHeight: 1.35 }}>
             (02) 8527-5174 &bull; (02) 8708-5696 &bull; 911
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-            <Mail size={14} color="#1C3F94" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+            <Mail size={12} color="#64748B" />
             <a
               href="mailto:support@mitigateplus.manila.gov.ph"
-              style={{ fontSize: '12px', color: '#1C3F94', fontWeight: 600, textDecoration: 'none' }}
+              style={{ fontSize: '11px', color: '#64748B', textDecoration: 'none' }}
             >
               support@mitigateplus.manila.gov.ph
             </a>
@@ -115,26 +108,26 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Copyright & Disclaimer Row */}
+      {/* Bottom Copyright Row */}
       <div
         style={{
           maxWidth: '1440px',
           margin: '0 auto',
-          paddingTop: '12px',
+          paddingTop: '6px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '8px',
-          fontSize: '11px',
-          color: '#64748B',
+          gap: '6px',
+          fontSize: '10px',
+          color: '#94A3B8',
         }}
       >
         <span>
           &copy; 2026 City Government of Manila &amp; National University. All Rights Reserved.
         </span>
         <span>
-          College of Computing and Information Technologies (CCIT) &bull; Manila MDRRMD
+          CCIT &bull; Manila MDRRMD
         </span>
       </div>
     </footer>
