@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2 } from 'lucide-react';
+import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import Pagination from '../components/Pagination';
 import { IconlyShield } from '../components/Sidebar';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionNumberCounter } from '../components/motion';
@@ -20,6 +21,11 @@ export default function SmartPriorityDashboard() {
   const [filterLevel, setFilterLevel] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBarangayFilter, setSelectedBarangayFilter] = useState('ALL');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [brgyPage, setBrgyPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
   // ── Executive Directive State for SuperAdmin ──
   const [directiveModal, setDirectiveModal] = useState({ isOpen: false, barangay: null });
@@ -113,6 +119,14 @@ export default function SmartPriorityDashboard() {
     return (addressMatch || nameMatch) && brgyMatch;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+    setBrgyPage(1);
+  }, [searchTerm, filterLevel, selectedBarangayFilter, viewMode]);
+
+  const paginatedBarangays = filteredBarangays.slice((brgyPage - 1) * ITEMS_PER_PAGE, brgyPage * ITEMS_PER_PAGE);
+  const paginatedHouseholds = filteredHouseholds.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   const priorityBadgeClass = (level) => {
     if (level === 'High') return 'badge badge-danger';
     if (level === 'Medium') return 'badge badge-warning';
@@ -128,7 +142,7 @@ export default function SmartPriorityDashboard() {
     const newNotif = {
       id: Date.now(),
       type: "directive",
-      title: `️ Executive Directive: Deploy Relief`,
+      title: "Executive Directive: Deploy Relief",
       body: `City Mayor / SuperAdmin has dispatched LGU Disaster Operations to deploy relief in Barangay ${bCode} (${familyCount} households).`,
       time: "Just now",
       read: false,
@@ -313,9 +327,9 @@ export default function SmartPriorityDashboard() {
               Brgy {selectedBarangayFilter}
               <button
                 onClick={() => setSelectedBarangayFilter('ALL')}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'inherit', fontWeight: 800 }}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'inherit', display: 'inline-flex', alignItems: 'center', padding: 0 }}
               >
-                ×
+                <X size={12} />
               </button>
             </span>
           </div>
@@ -366,16 +380,16 @@ export default function SmartPriorityDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBarangays.map((b, idx) => (
+                  {paginatedBarangays.map((b, idx) => (
                     <tr key={b.code}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{
                             fontSize: '20px', fontWeight: 900,
-                            color: idx === 0 ? '#DC2626' : idx === 1 ? '#EA580C' : idx === 2 ? '#D97706' : 'var(--manila-blue)',
+                            color: idx === 0 && brgyPage === 1 ? '#DC2626' : idx === 1 && brgyPage === 1 ? '#EA580C' : idx === 2 && brgyPage === 1 ? '#D97706' : 'var(--manila-blue)',
                             minWidth: '32px', lineHeight: 1,
                           }}>
-                            #{idx + 1}
+                            #{(brgyPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </span>
                         </div>
                       </td>
@@ -486,6 +500,12 @@ export default function SmartPriorityDashboard() {
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                currentPage={brgyPage}
+                totalItems={filteredBarangays.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setBrgyPage}
+              />
             </div>
           )
         ) : (
@@ -516,15 +536,15 @@ export default function SmartPriorityDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredHouseholds.map((hh, idx) => (
+                  {paginatedHouseholds.map((hh, idx) => (
                     <tr key={hh._id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{
-                            fontSize: '20px', fontWeight: 900, color: idx === 0 ? '#B45309' : idx === 1 ? '#475569' : idx === 2 ? '#92400E' : 'var(--manila-blue)',
+                            fontSize: '20px', fontWeight: 900, color: idx === 0 && currentPage === 1 ? '#B45309' : idx === 1 && currentPage === 1 ? '#475569' : idx === 2 && currentPage === 1 ? '#92400E' : 'var(--manila-blue)',
                             minWidth: '32px', lineHeight: 1,
                           }}>
-                            #{idx + 1}
+                            #{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </span>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span className={priorityBadgeClass(hh.priorityLevel)}>
@@ -576,6 +596,12 @@ export default function SmartPriorityDashboard() {
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredHouseholds.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )
         )}

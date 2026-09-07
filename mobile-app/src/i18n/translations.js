@@ -23,7 +23,7 @@ export const TRANSLATIONS = {
     // Home Screen - Digital ID Pass
     reliefPassKicker: 'OFFICIAL CITIZEN RELIEF PASS',
     reliefPassTitle: 'Household Digital ID',
-    enlargeBtn: 'Enlarge (QR) ↗',
+    enlargeBtn: 'Enlarge (QR)',
     headcountLabel: 'HEADCOUNT',
     headcountUnit: 'Members',
     priorityIndexLabel: 'PRIORITY INDEX',
@@ -159,7 +159,7 @@ export const TRANSLATIONS = {
     // Home Screen - Digital ID Pass
     reliefPassKicker: 'OPISYAL NA CITIZEN RELIEF PASS',
     reliefPassTitle: 'Household Digital ID',
-    enlargeBtn: 'Palakihin (QR) ↗',
+    enlargeBtn: 'Palakihin (QR)',
     headcountLabel: 'BILANG NG PAMILYA',
     headcountUnit: 'Miyembro',
     priorityIndexLabel: 'PRIORITY INDEX',

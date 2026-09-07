@@ -7,7 +7,7 @@ import { View, StyleSheet, Animated } from 'react-native';
  * - Smooth cubic ease-out interpolation on mount and status progression
  * - Clean, non-jittery 60FPS fluid fill
  */
-export default function MotionProgressTrack({ percentage = 65, height = 8, color = '#1557B0', style }) {
+export default function MotionProgressTrack({ percentage = 65, height = 8, color = '#1C3F94', style }) {
   const widthAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

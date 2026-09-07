@@ -6,7 +6,7 @@ import StaffTasksScreen from './StaffTasksScreen';
 import { scanHouseholdQRCode, releaseDistribution, submitFieldIncident, fetchDistributionEvents, API_BASE_URL } from '../services/api';
 import { PackageIcon, QrCodeIcon, DamageIcon, SettingsIcon, MapPinIcon, CameraIcon, AlertTriangleIcon, CheckIcon, ShieldCheckIcon } from '../components/AppIcons';
 
-import { RADIUS, FONT_WEIGHT, SPACING, RESPONSIVE, wp, hp } from '../theme';
+import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable, MotionPulseBadge } from '../components/motion';
 
 
@@ -355,7 +355,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
   };
 
   return (
-    <LinearGradient colors={['#071D3A', '#002BB8']} style={styles.container}>
+    <LinearGradient colors={['#0B1D4E', '#163B8C', '#234AAA']} style={styles.container}>
       {/* Top Header Bar */}
       <View style={styles.headerBar}>
         <View>
@@ -546,7 +546,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                          {scanResult.household.basePacks || 1}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
                       </Text>
                       <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#1557B0' }}>{lang === 'tl' ? 'Pagkain + Gamot + Tubig' : 'Food + Meds + Water'}</Text>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#1C3F94' }}>{lang === 'tl' ? 'Pagkain + Gamot + Tubig' : 'Food + Meds + Water'}</Text>
                       </View>
                     </View>
 
@@ -682,7 +682,7 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
           { key: 'settings', label: lang === 'tl' ? 'Mga Setting' : 'Duty Settings', icon: (color) => <SettingsIcon size={20} color={color} /> },
         ].map(item => {
           const isActive = activeTab === item.key;
-          const iconColor = isActive ? '#071D3A' : '#94A3B8';
+          const iconColor = isActive ? '#0B1D4E' : '#94A3B8';
           return (
             <TouchableOpacity
               key={item.key}
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   viewfinderCard: {
-    backgroundColor: '#071D3A',
+    backgroundColor: '#0B1D4E',
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
@@ -750,28 +750,28 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 12, fontWeight: '700', color: '#0F172A', marginBottom: 6 },
   inputRow: { flexDirection: 'row', gap: 10 },
   codeInput: { flex: 1, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, paddingHorizontal: 12, fontSize: 13 },
-  scanBtn: { backgroundColor: '#002BB8', paddingHorizontal: 16, borderRadius: 10, justifyContent: 'center' },
+  scanBtn: { backgroundColor: '#1C3F94', paddingHorizontal: 16, borderRadius: 10, justifyContent: 'center', ...SHADOWS.sm },
   scanBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
   duplicateBanner: { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FCA5A5', padding: 16, borderRadius: 14, marginBottom: 16 },
   duplicateTitle: { color: '#DC2626', fontSize: 15, fontWeight: FONT_WEIGHT.black },
   duplicateSub: { color: '#7F1D1D', fontSize: 12, marginTop: 4, lineHeight: 18 },
-  resultCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#002BB8' },
+  resultCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#1C3F94', ...SHADOWS.card },
   resultName: { fontSize: 16, fontWeight: FONT_WEIGHT.black, color: '#0F172A' },
   verifTag: { backgroundColor: '#ECFDF5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
   verifTagText: { color: '#047857', fontSize: 10, fontWeight: '800' },
   resultMeta: { fontSize: 12, color: '#475569', marginTop: 4 },
-  entitlementTitle: { fontSize: 12, fontWeight: '800', color: '#002BB8', marginTop: 12 },
+  entitlementTitle: { fontSize: 12, fontWeight: '800', color: '#1C3F94', marginTop: 12 },
   entitlementText: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginTop: 2 },
-  releaseBtn: { backgroundColor: '#002BB8', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginTop: 16 },
+  releaseBtn: { backgroundColor: '#1C3F94', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 16, ...SHADOWS.button },
   releaseBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  formCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' },
+  formCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', ...SHADOWS.card },
   formTitle: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0F172A' },
   formSub: { fontSize: 12, color: '#64748B', marginTop: 2, marginBottom: 16 },
   typeOption: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#CBD5E1', padding: 12, borderRadius: 10, marginBottom: 8 },
-  typeOptionActive: { borderColor: '#002BB8', backgroundColor: '#EDF2F9' },
+  typeOptionActive: { borderColor: '#1C3F94', backgroundColor: '#EDF2F9' },
   typeText: { fontSize: 13, color: '#0F172A' },
   textArea: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, padding: 12, minHeight: 90, marginVertical: 10 },
-  resetIncBtn: { backgroundColor: '#002BB8', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10, marginTop: 16 },
+  resetIncBtn: { backgroundColor: '#1C3F94', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 16, ...SHADOWS.button },
   staffNavCapsule: {
     position: 'absolute',
     bottom: 16,
@@ -781,20 +781,21 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#071D3A',
+    backgroundColor: '#0B1D4E',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    ...SHADOWS.floating,
   },
   staffNavItem: { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 16 },
   staffNavItemActive: { backgroundColor: '#F59E0B' },
   staffNavText: { fontSize: 10, color: '#94A3B8', fontWeight: '600', marginTop: 2 },
-  staffNavTextActive: { color: '#071D3A', fontWeight: '800' },
+  staffNavTextActive: { color: '#0B1D4E', fontWeight: '800' },
   activeEventCard: {
-    backgroundColor: '#071D3A',
+    backgroundColor: '#0B1D4E',
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ROLES } from '../utils/roleUtils';
 import ConfirmModal from '../components/ConfirmModal';
+import Pagination from '../components/Pagination';
 import { Megaphone, Plus, Send, Clock, Users, Globe, Edit3, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import io from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../config';
@@ -245,6 +246,15 @@ export default function AnnouncementsPage() {
     return true;
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [adminFilterBrgy]);
+
+  const paginatedAnnouncements = visible.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div className="page-container page-animate">
       {/* Universal Double Confirmation Modal */}
@@ -433,7 +443,7 @@ export default function AnnouncementsPage() {
             <p style={{ fontSize: '14px', color: 'var(--ink-soft)' }}>There are no announcements matching your criteria.</p>
           </div>
         )}
-        {visible.map((ann, idx) => {
+        {paginatedAnnouncements.map((ann, idx) => {
           const isCityWide = !ann.barangayCode || ann.barangayCode === 'null' || ann.barangay === 'City-Wide' || ann.scope === 'city-wide';
           const authorName = typeof ann.postedBy === 'object' ? (ann.postedBy?.name || 'City Official') : (ann.postedBy || 'Command Center');
           const displayDate = ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently');
@@ -507,6 +517,13 @@ export default function AnnouncementsPage() {
             </MotionCard>
           );
         })}
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={visible.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

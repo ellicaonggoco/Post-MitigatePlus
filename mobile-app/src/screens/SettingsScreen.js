@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useRef } from 'react';
+
 function formatCapitalizeWords(str) {
   if (!str || typeof str !== 'string') return '';
   return str
@@ -7,8 +9,7 @@ function formatCapitalizeWords(str) {
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 }
-
-import React, { useState, useEffect, useRef } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
   Text,
@@ -101,45 +102,31 @@ function HouseholdProfileHeader({
   const formattedName = formatCapitalizeWords(name || 'Resident Representative');
 
   return (
-    <View style={styles.profileHeaderCard}>
-      <View style={styles.avatarSection}>
-        <TouchableOpacity
-          style={styles.avatarContainer}
-          onPress={onToggleAvatar}
-          activeOpacity={0.8}
-        >
+    <View style={{ marginHorizontal: 14, marginBottom: 20, marginTop: 8 }}>
+      <View style={{ height: 4, backgroundColor: '#C9A84C', borderTopLeftRadius: 8, borderTopRightRadius: 8 }} />
+      <View style={{ backgroundColor: '#FFFFFF', borderBottomLeftRadius: 20, borderBottomRightRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <TouchableOpacity onPress={onToggleAvatar} activeOpacity={0.8}>
           {profilePhoto ? (
-            <Image source={{ uri: profilePhoto }} style={styles.avatarImage} />
+            <Image source={{ uri: profilePhoto }} style={{ width: 64, height: 64, borderRadius: 32 }} />
           ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarInitialsText}>{initials}</Text>
-            </View>
+            <LinearGradient colors={['#B8932A', '#C9A84C']} style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#C9A84C', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.30, shadowRadius: 18, elevation: 6 }}>
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>{initials}</Text>
+            </LinearGradient>
           )}
-          <View style={styles.cameraIconBadge}>
-            {photoPickingLoading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <CameraIcon size={12} color="#FFFFFF" />
-            )}
+          <View style={{ position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: '#1C3F94', borderWidth: 2, borderColor: '#F3F6FC', alignItems: 'center', justifyContent: 'center' }}>
+            <CameraIcon size={10} color="#FFFFFF" />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onToggleAvatar}>
-          <Text style={styles.changePhotoText}>
-            {lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={styles.profileName}>{formattedName}</Text>
-          <View style={styles.verifiedTag}>
-            <ShieldCheckIcon size={10} color="#16A34A" />
-            <Text style={styles.verifiedTagText}>Verified</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 20, fontWeight: '900', color: '#0B1525', letterSpacing: -0.4 }}>{formattedName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 6 }}>
+            <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(13,138,90,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+              <Text style={{ color: '#0D8A5A', fontSize: 11, fontWeight: '700' }}>Verified</Text>
+            </View>
           </View>
+          <Text style={{ fontSize: 12, color: '#8A9BB8' }}>Barangay {barangayCode || '291'}, Manila</Text>
+          <Text style={{ fontSize: 12, color: '#8A9BB8' }}>{contact}</Text>
         </View>
-        <Text style={styles.profileSub}>Barangay {barangayCode || '291'}, Manila District III</Text>
-        <Text style={styles.profileContactText}>{contact}</Text>
       </View>
     </View>
   );
@@ -769,7 +756,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           activeOpacity={0.85}
         >
           <View style={styles.rosterIconCircle}>
-            <UsersIcon size={20} color="#1557B0" />
+            <UsersIcon size={20} color="#1C3F94" />
           </View>
           <View style={{ flex: 1, minWidth: 0, justifyContent: 'center' }}>
             <Text style={styles.rosterCardTitle} numberOfLines={1}>
@@ -782,7 +769,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 
           <View style={styles.viewRosterBtn}>
             <Text style={styles.viewRosterBtnText}>{lang === 'tl' ? 'Tingnan' : 'View'}</Text>
-            <ArrowRightIcon size={12} color="#1557B0" />
+            <ArrowRightIcon size={12} color="#1C3F94" />
           </View>
         </TouchableOpacity>
 
@@ -848,7 +835,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               style={styles.actionPillBtn}
               onPress={() => setShowPasswordModal(true)}
             >
-              <LockIcon size={12} color="#1557B0" />
+              <LockIcon size={12} color="#1C3F94" />
               <Text style={styles.actionPillBtnText}>
                 {lang === 'tl' ? 'Palitan ang Password' : 'Change Password'}
               </Text>
@@ -872,7 +859,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
               trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={biometricEnabled ? '#1557B0' : '#F1F5F9'}
+              thumbColor={biometricEnabled ? '#1C3F94' : '#F1F5F9'}
             />
           </View>
 
@@ -922,7 +909,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               value={smsAlerts}
               onValueChange={setSmsAlerts}
               trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={smsAlerts ? '#1557B0' : '#F1F5F9'}
+              thumbColor={smsAlerts ? '#1C3F94' : '#F1F5F9'}
             />
           </View>
 
@@ -941,7 +928,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               value={pushAlerts}
               onValueChange={setPushAlerts}
               trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={pushAlerts ? '#1557B0' : '#F1F5F9'}
+              thumbColor={pushAlerts ? '#1C3F94' : '#F1F5F9'}
             />
           </View>
         </View>
@@ -972,10 +959,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             activeOpacity={0.85}
           >
             {syncing ? (
-              <ActivityIndicator color="#1557B0" size="small" />
+              <ActivityIndicator color="#1C3F94" size="small" />
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <RefreshIcon size={14} color="#1557B0" />
+                <RefreshIcon size={14} color="#1C3F94" />
                 <Text style={styles.syncBtnText}>
                   {lang === 'tl' ? 'I-sync ang Offline Data Ngayon' : 'Sync Offline Data Now'}
                 </Text>
@@ -1071,7 +1058,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         {/* Trademark Stamp */}
         <View style={styles.trademarkCard}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require('../../assets/logo_primary.png')}
             style={styles.trademarkLogoImg}
             resizeMode="contain"
           />
@@ -1095,7 +1082,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, flex: 1, paddingRight: 8 }}>
                 <View style={styles.rosterModalIconCircle}>
-                  <UsersIcon size={18} color="#1557B0" />
+                  <UsersIcon size={18} color="#1C3F94" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalMainTitle}>
@@ -1313,6 +1300,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                       key={preset.key}
                       style={[
                         styles.condTagBtnSmall,
+                        { flexDirection: 'row', alignItems: 'center', gap: 4 },
                         isChecked
                           ? { backgroundColor: preset.bg, borderColor: preset.color, borderWidth: 1.5 }
                           : styles.condTagBtnInactive,
@@ -1325,13 +1313,17 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                         }
                       }}
                     >
+                      {isChecked ? (
+                        <CheckIcon size={12} color={preset.color} />
+                      ) : (
+                        <PlusIcon size={12} color="#64748B" />
+                      )}
                       <Text
                         style={[
                           styles.condTagTextSmall,
                           isChecked ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' },
                         ]}
                       >
-                        {isChecked ? '✓ ' : '+ '}
                         {preset.tag}
                       </Text>
                     </TouchableOpacity>
@@ -1367,7 +1359,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View style={[styles.rosterModalIconCircle, { backgroundColor: '#EFF6FF' }]}>
-                  <LockIcon size={18} color="#1557B0" />
+                  <LockIcon size={18} color="#1C3F94" />
                 </View>
                 <View>
                   <Text style={styles.modalMainTitle}>
@@ -1554,7 +1546,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                     {(lang === 'tl' ? RENEWAL_REASONS_TL : RENEWAL_REASONS_EN).find((r) => r.key === selectedReasonKey)?.label || (lang === 'tl' ? 'Pumili ng dahilan...' : 'Select a reason...')}
                   </Text>
                   {showReasonDropdown ? (
-                    <ChevronUpIcon size={18} color="#1557B0" />
+                    <ChevronUpIcon size={18} color="#1C3F94" />
                   ) : (
                     <ChevronDownIcon size={18} color="#64748B" />
                   )}
@@ -1587,7 +1579,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                           >
                             {opt.label}
                           </Text>
-                          {isSelected && <CheckIcon size={15} color="#1557B0" />}
+                          {isSelected && <CheckIcon size={15} color="#1C3F94" />}
                         </TouchableOpacity>
                       );
                     })}
@@ -1728,11 +1720,11 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 8,
-    paddingBottom: 95,
+    paddingBottom: 24,
   },
   sectionLabel: {
     fontSize: 10.5,
@@ -1767,7 +1759,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitialsText: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#1557B0' },
+  avatarInitialsText: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#1C3F94' },
   cameraIconBadge: {
     position: 'absolute',
     bottom: -2,
@@ -1775,13 +1767,13 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
-  changePhotoText: { fontSize: 10, fontWeight: '700', color: '#1557B0', marginTop: 2 },
+  changePhotoText: { fontSize: 10, fontWeight: '700', color: '#1C3F94', marginTop: 2 },
   profileName: { fontSize: 16, fontWeight: FONT_WEIGHT.black, color: '#0F172A', letterSpacing: -0.2 },
   verifiedTag: {
     flexDirection: 'row',
@@ -1840,17 +1832,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BFDBFE',
   },
-  viewRosterBtnText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
+  viewRosterBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
 
   // ── Common Settings Group ──
   settingCardGroup: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    ...SHADOWS.card,
+    borderColor: '#DDE4F0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(11, 29, 78, 0.08), 0 2px 6px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 14,
+      elevation: 3,
+    }),
   },
   settingRowItem: {
     flexDirection: 'row',
@@ -1866,7 +1868,7 @@ const styles = StyleSheet.create({
   readOnlyBadge: { flexShrink: 0, backgroundColor: '#F1F5F9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   readOnlyText: { fontSize: 10, fontWeight: '700', color: '#64748B' },
   editActionBtn: { flexShrink: 0, backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
-  editActionText: { fontSize: 11, fontWeight: '700', color: '#1557B0' },
+  editActionText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   successInline: { fontSize: 11, color: '#16A34A', fontWeight: '700', marginTop: 4 },
   actionPillBtn: {
     flexShrink: 0,
@@ -1880,7 +1882,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  actionPillBtnText: { fontSize: 11, fontWeight: '800', color: '#1557B0' },
+  actionPillBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
   revokeQrBtn: {
     flexShrink: 0,
     backgroundColor: '#FEF2F2',
@@ -1903,7 +1905,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 6,
   },
-  syncBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0' },
+  syncBtnText: { fontSize: 12, fontWeight: '800', color: '#1C3F94' },
   privacyViewBtn: {
     flexShrink: 0,
     backgroundColor: '#F0FDF4',
@@ -1918,10 +1920,10 @@ const styles = StyleSheet.create({
   // ── Language ──
   langRow: { flexDirection: 'row', gap: 10 },
   langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5 },
-  langBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#1557B0' },
+  langBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#1C3F94' },
   langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#CBD5E1' },
   langText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  langTextActive: { color: '#1557B0', fontWeight: FONT_WEIGHT.black },
+  langTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.black },
 
   // ── Hotlines ──
   hotlineList: { gap: 8 },
@@ -1968,11 +1970,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
+    ...SHADOWS.sm,
   },
   logoutBtnText: { fontSize: 14, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
-  trademarkCard: { alignItems: 'center', marginTop: 24, paddingBottom: 20 },
-  trademarkLogoImg: { width: 140, height: 40, marginBottom: 4 },
-  trademarkSub: { fontSize: 10.5, color: '#94A3B8', fontWeight: '500' },
+  trademarkCard: { alignItems: 'center', marginTop: 28, paddingBottom: 28 },
+  trademarkLogoImg: { width: 220, height: 48, marginBottom: 8 },
+  trademarkSub: { fontSize: 11.5, color: '#64748B', fontWeight: '600' },
 
   // ── Modal Styles ──
   modalBackdrop: {
@@ -2019,7 +2022,7 @@ const styles = StyleSheet.create({
 
   // ── Roster Metrics Bar ──
   rosterMetricPill: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -2038,10 +2041,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 12,
     borderRadius: 10,
     marginVertical: 6,
+    ...SHADOWS.button,
   },
   addMemberFullBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 
@@ -2070,7 +2074,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  memberAvatarLetter: { fontSize: 12.5, fontWeight: FONT_WEIGHT.black, color: '#1557B0' },
+  memberAvatarLetter: { fontSize: 12.5, fontWeight: FONT_WEIGHT.black, color: '#1C3F94' },
   memberCardName: { fontSize: 12.5, fontWeight: '800', color: '#0F172A' },
   headTag: { backgroundColor: '#DCFCE7', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3 },
   headTagText: { fontSize: 8.5, fontWeight: '800', color: '#16A34A' },
@@ -2096,7 +2100,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BFDBFE',
   },
-  memberEditBtnText: { fontSize: 10.5, fontWeight: '800', color: '#1557B0' },
+  memberEditBtnText: { fontSize: 10.5, fontWeight: '800', color: '#1C3F94' },
   memberDeleteBtn: {
     backgroundColor: '#FEF2F2',
     padding: 5,
@@ -2116,7 +2120,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   condTagBtnInactive: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
     borderColor: '#CBD5E1',
   },
@@ -2128,6 +2132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
+    ...SHADOWS.md,
   },
   modalDoneBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 
@@ -2145,25 +2150,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
     borderColor: '#CBD5E1',
   },
   relChoiceBtnActive: {
     backgroundColor: '#EFF6FF',
-    borderColor: '#1557B0',
+    borderColor: '#1C3F94',
     borderWidth: 1.5,
   },
   relChoiceText: { fontSize: 11, color: '#64748B', fontWeight: '600' },
-  relChoiceTextActive: { color: '#1557B0', fontWeight: '800' },
+  relChoiceTextActive: { color: '#1C3F94', fontWeight: '800' },
   saveMemberSubmitBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 13,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 18,
     marginBottom: 10,
+    ...SHADOWS.button,
   },
   saveMemberSubmitBtnText: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
 
@@ -2176,13 +2182,14 @@ const styles = StyleSheet.create({
     maxHeight: hp(75),
   },
   savePassFullBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 13,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
     marginBottom: 10,
+    ...SHADOWS.button,
   },
   savePassFullBtnText: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
 
@@ -2211,7 +2218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -2273,7 +2280,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1.5,
     borderColor: '#CBD5E1',
     borderRadius: 10,
@@ -2317,7 +2324,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   dropdownOptionTextSelected: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   confirmRenewBtn: {

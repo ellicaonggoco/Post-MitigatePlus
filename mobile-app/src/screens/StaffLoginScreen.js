@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Keyboard, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeftIcon, ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon, AlertTriangleIcon } from '../components/AppIcons';
 import { COLORS, RADIUS, FONT_WEIGHT, SHADOWS, SPACING, RESPONSIVE, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
@@ -79,19 +79,21 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#071D3A', '#0D3C75', '#154A8A']}
+        colors={['#0B1D4E', '#163B8C', '#234AAA']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.gradientHeader}
       >
         <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
-          <ArrowLeftIcon size={14} color="#FFFFFF" />
+          <View style={styles.backIconCircle}>
+            <ArrowLeftIcon size={14} color="#1C3F94" />
+          </View>
           <Text style={styles.backText}>Pumili ng Portal</Text>
         </TouchableOpacity>
 
         <View style={styles.header}>
           <View style={styles.badgePill}>
-            <ShieldCheckIcon size={12} color="#FCD34D" />
+            <ShieldCheckIcon size={12} color="#C9A84C" />
             <Text style={styles.badgeText}>OPISYAL NA DISPATCH PORTAL</Text>
           </View>
           <Text style={styles.title}>LGU Field Staff Portal</Text>
@@ -103,7 +105,8 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
       <ScrollView ref={scrollRef} style={styles.scrollBody} contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {errorMsg ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>️ {errorMsg}</Text>
+            <AlertTriangleIcon size={14} color="#DC2626" />
+            <Text style={styles.errorText}>{errorMsg}</Text>
           </View>
         ) : null}
 
@@ -134,7 +137,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
               style={{ position: 'absolute', right: 12, top: 14, padding: 4 }}
               activeOpacity={0.7}
             >
-              {showPassword ? <EyeOffIcon size={19} color="#1557B0" /> : <EyeIcon size={19} color="#64748B" />}
+              {showPassword ? <EyeOffIcon size={19} color="#1C3F94" /> : <EyeIcon size={19} color="#64748B" />}
             </TouchableOpacity>
           </View>
 
@@ -164,46 +167,73 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9F7' },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
   gradientHeader: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 4,
     paddingBottom: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    ...SHADOWS.md,
+    borderBottomWidth: 3,
+    borderBottomColor: '#C9A84C',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(11, 29, 78, 0.20)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.18,
+      shadowRadius: 14,
+      elevation: 5,
+    }),
   },
   backBtn: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    borderColor: '#DDE4F0',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 9999,
     marginBottom: 14,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+    }),
   },
-  backText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EDF1FB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
   header: { marginTop: 4 },
   badgePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(252, 211, 77, 0.18)',
+    backgroundColor: 'rgba(201, 168, 76, 0.20)',
     borderWidth: 1,
-    borderColor: 'rgba(252, 211, 77, 0.4)',
+    borderColor: '#C9A84C',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginBottom: 8,
   },
-  badgeText: { fontSize: 9.5, fontWeight: '800', color: '#FCD34D', letterSpacing: 0.5 },
+  badgeText: { fontSize: 9.5, fontWeight: '800', color: '#C9A84C', letterSpacing: 0.5 },
   title: { fontSize: 24, fontWeight: FONT_WEIGHT.black, color: '#FFFFFF', letterSpacing: -0.3 },
-  sub: { fontSize: 12, color: '#E2E8F0', marginTop: 4, lineHeight: 17 },
+  sub: { fontSize: 12, color: 'rgba(255, 255, 255, 0.8)', marginTop: 4, lineHeight: 17 },
   scrollBody: { flex: 1 },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
@@ -215,31 +245,47 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...SHADOWS.md,
+    borderColor: '#DDE4F0',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
   },
-  label: { fontSize: 12, fontWeight: '800', color: '#172B4D', marginBottom: 6 },
+  label: { fontSize: 12, fontWeight: '800', color: '#0B1525', marginBottom: 6 },
   input: {
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1.5,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     fontSize: 13.5,
-    color: '#172B4D',
+    color: '#0B1525',
   },
   loginBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 10,
+    backgroundColor: '#1C3F94',
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
-    ...SHADOWS.sm,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
   loginBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   errorBox: {
@@ -249,15 +295,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#FCA5A5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  errorText: { color: '#DC2626', fontSize: 12, fontWeight: '700' },
+  errorText: { color: '#DC2626', fontSize: 12, fontWeight: '700', flex: 1 },
   noticeBox: {
     marginTop: 18,
-    backgroundColor: '#E8F2FF',
+    backgroundColor: '#EDF1FB',
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
   },
-  noticeText: { fontSize: 11.5, color: '#1557B0', lineHeight: 17 },
+  noticeText: { fontSize: 11.5, color: '#1C3F94', lineHeight: 17 },
 });

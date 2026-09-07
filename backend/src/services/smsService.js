@@ -12,9 +12,12 @@ const sendSMS = async (recipientNumber, message) => {
   }
 
   try {
+    // Sanitize recipient number: remove dashes, spaces, and formatting characters
+    const sanitizedNumber = recipientNumber.replace(/[^0-9+]/g, '');
+
     const postBody = {
       apikey: apiKey,
-      number: recipientNumber,
+      number: sanitizedNumber,
       message: message,
     };
     if (process.env.SEMAPHORE_SENDER_NAME) {

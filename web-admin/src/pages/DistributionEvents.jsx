@@ -22,6 +22,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import Pagination from '../components/Pagination';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 
@@ -514,6 +515,16 @@ export default function DistributionEvents() {
       ? []
       : events.filter(e => getEventStatus(e) === filter);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
+  const paginatedEvents = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   // Total count of announcements
   const totalAnnouncementsCount =
     announcements.length + events.filter(e => e.announcementMessage || sentAnnouncements[e._id || e.id]).length;
@@ -580,7 +591,7 @@ export default function DistributionEvents() {
       {toastMsg && (
         <div className="clay-card" style={{ marginBottom: 20, borderLeft: '4px solid var(--bay-teal)', background: 'var(--bay-teal-light)', color: 'var(--bay-teal-deep)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, fontWeight: 700 }}>{toastMsg}</span>
-          <button type="button" onClick={() => setToastMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, color: 'var(--bay-teal-deep)' }}>✕</button>
+          <button type="button" onClick={() => setToastMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--bay-teal-deep)' }}><X size={16} /></button>
         </div>
       )}
 
@@ -832,8 +843,8 @@ export default function DistributionEvents() {
                     Target Households *
                   </label>
                   {liveAssessment?.totalHouseholds > 0 && (
-                    <span style={{ fontSize: 11, fontWeight: 800, color: '#158A64' }}>
-                      ✓ {liveAssessment.totalHouseholds} Verified Detected
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#158A64', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Check size={13} /> {liveAssessment.totalHouseholds} Verified Detected
                     </span>
                   )}
                 </div>
@@ -1307,10 +1318,10 @@ export default function DistributionEvents() {
 
             <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: 16 }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 12.5, color: '#334155' }}>
-                <span>📍 <strong>Location:</strong> {editingEvent.barangay || (editingEvent.barangayCode ? `Barangay ${editingEvent.barangayCode}` : editingEvent.location || 'Barangay')}</span>
-                <span>📅 <strong>Date:</strong> {editingEvent.date || editingEvent.scheduledDate || 'Scheduled Date'}</span>
-                <span>⏰ <strong>Time:</strong> {editingEvent.time || editingEvent.scheduledTime || '08:00 AM'}</span>
-                <span>👥 <strong>Target:</strong> {editingEvent.households || editingEvent.targetHouseholds || 150} Households</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MapPin size={13} color="#1557B0" /> <strong>Location:</strong> {editingEvent.barangay || (editingEvent.barangayCode ? `Barangay ${editingEvent.barangayCode}` : editingEvent.location || 'Barangay')}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color="#1557B0" /> <strong>Date:</strong> {editingEvent.date || editingEvent.scheduledDate || 'Scheduled Date'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={13} color="#1557B0" /> <strong>Time:</strong> {editingEvent.time || editingEvent.scheduledTime || '08:00 AM'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Users size={13} color="#1557B0" /> <strong>Target:</strong> {editingEvent.households || editingEvent.targetHouseholds || 150} Households</span>
               </div>
             </div>
 
@@ -1450,21 +1461,27 @@ export default function DistributionEvents() {
                       {/* Tag / Category Badge */}
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 800,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
                           padding: '3px 10px',
                           borderRadius: 999,
                           background: ann.isUrgent ? '#FEF2F2' : '#F1F5F9',
                           color: ann.isUrgent ? '#DC2626' : '#334155',
                           border: ann.isUrgent ? '1px solid #FECACA' : '1px solid #CBD5E1',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
                         }}
                       >
-                        {ann.isUrgent ? 'URGENT ALERT' : `📢 ${ann.tag || ann.category || 'ADVISORY'}`}
+                        {ann.isUrgent ? <AlertTriangle size={11} color="#DC2626" /> : <Megaphone size={11} color="#334155" />}
+                        {ann.isUrgent ? 'URGENT ALERT' : (ann.tag || ann.category || 'ADVISORY')}
                       </span>
 
                       {ann.edited && (
-                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: 4 }}>
-                          ✏️ UPDATED
+                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Edit3 size={11} color="#B45309" /> UPDATED
                         </span>
                       )}
                     </div>
@@ -1536,9 +1553,12 @@ export default function DistributionEvents() {
                             background: '#EFF6FF',
                             color: '#1557B0',
                             border: '1px solid #BFDBFE',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
                           }}
                         >
-                          📦 RELIEF DISTRIBUTION ADVISORY
+                          <Package size={12} color="#1557B0" /> RELIEF DISTRIBUTION ADVISORY
                         </span>
                       </div>
 
@@ -1590,7 +1610,7 @@ export default function DistributionEvents() {
               No distribution events found in this view.
             </div>
           )}
-          {filtered.map((ev, idx) => {
+          {paginatedEvents.map((ev, idx) => {
             const evStatus = getEventStatus(ev);
             const cfg = STATUS_CONFIG[evStatus] || STATUS_CONFIG.Scheduled;
             const StatusIcon = cfg.icon;
@@ -1664,8 +1684,8 @@ export default function DistributionEvents() {
                   {/* Event Actions */}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
                     {evStatus === 'Completed' ? (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '6px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid #BBF7D0' }}>
-                        ✓ Completed
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '6px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid #BBF7D0', display: 'inline-flex', alignItems: 'center' }}>
+                        <CheckCircle size={13} style={{ marginRight: 4 }} /> Completed
                       </span>
                     ) : evStatus === 'Ongoing' ? (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1720,6 +1740,13 @@ export default function DistributionEvents() {
               </MotionCard>
             );
           })}
+
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

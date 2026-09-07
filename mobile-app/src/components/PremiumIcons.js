@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Path, Rect, Circle, Line, Polyline } from 'react-native-svg';
 
-export function ShieldIcon({ size = 24, color = '#1557B0' }) {
+export function ShieldIcon({ size = 24, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -46,7 +46,7 @@ export function EyeOffIcon({ size = 20, color = '#64748B' }) {
   );
 }
 
-export function BellIcon({ size = 22, color = '#1557B0' }) {
+export function BellIcon({ size = 22, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -55,7 +55,7 @@ export function BellIcon({ size = 22, color = '#1557B0' }) {
   );
 }
 
-export function UserIcon({ size = 18, color = '#1557B0' }) {
+export function UserIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

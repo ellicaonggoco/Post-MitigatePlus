@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
-import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff, Info } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
@@ -567,8 +567,8 @@ export default function ProvisionAccounts() {
                             required
                           />
                           {barangayCode && (
-                            <div style={{ fontSize: 12, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 700 }}>
-                              ✓ Selected: Barangay {barangayCode} (Account Name: Barangay {barangayCode})
+                            <div style={{ fontSize: 12, color: 'var(--bay-teal)', marginTop: 4, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Check size={13} /> Selected: Barangay {barangayCode} (Account Name: Barangay {barangayCode})
                             </div>
                           )}
                           {!barangayCode && barangaySearch && (
@@ -742,23 +742,24 @@ export default function ProvisionAccounts() {
                               type="button"
                               onClick={() => setStaffDesignation('team_leader')}
                               className={staffDesignation === 'team_leader' ? 'clay-button-primary' : 'clay-button-ghost'}
-                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 4 }}
                             >
-                              ️ Head Staff (Lead)
+                              <Shield size={12} /> Head Staff (Lead)
                             </button>
                             <button
                               type="button"
                               onClick={() => setStaffDesignation('field_officer')}
                               className={staffDesignation === 'field_officer' ? 'clay-button-primary' : 'clay-button-ghost'}
-                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center' }}
+                              style={{ flex: 1, padding: '9px 6px', fontSize: 11, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 4 }}
                             >
-                              Field Staff (Scanner)
+                              <Users size={12} /> Field Staff (Scanner)
                             </button>
                           </div>
                         </div>
 
-                        <div style={{ gridColumn: 'span 2', background: 'var(--sampaguita)', padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-soft)' }}>
-                          ℹ️ <strong>City-Wide Deployment Pool:</strong> Ang team na ito ay idinedeploy ng LGU Admin sa mga active Relief Distribution Events o Door-to-Door Special Assistance Tasks.
+                        <div style={{ gridColumn: 'span 2', background: 'var(--sampaguita)', padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-soft)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                          <Info size={14} style={{ flexShrink: 0, marginTop: 1, color: 'var(--manila-blue)' }} />
+                          <span><strong>City-Wide Deployment Pool:</strong> Ang team na ito ay idinedeploy ng LGU Admin sa mga active Relief Distribution Events o Door-to-Door Special Assistance Tasks.</span>
                         </div>
                       </div>
                     )}
@@ -1095,9 +1096,14 @@ export default function ProvisionAccounts() {
                             fontSize: 10, fontWeight: 800,
                             color: acc.staffDesignation === 'team_leader' ? '#1D4ED8' : '#64748B',
                             background: acc.staffDesignation === 'team_leader' ? '#EFF6FF' : 'var(--sampaguita)',
-                            padding: '1px 6px', borderRadius: 4, width: 'fit-content',
+                            padding: '2px 6px', borderRadius: 4, width: 'fit-content',
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
                           }}>
-                            {acc.staffDesignation === 'team_leader' ? '️ Team Leader (Head)' : ' Field Officer (Scanner)'}
+                            {acc.staffDesignation === 'team_leader' ? (
+                              <><Shield size={10} /> Team Leader (Head)</>
+                            ) : (
+                              <><Users size={10} /> Field Officer (Scanner)</>
+                            )}
                           </span>
                         </div>
                       ) : (

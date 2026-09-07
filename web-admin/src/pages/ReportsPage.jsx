@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { FileText, ShieldAlert, AlertCircle, Download, Printer, Users, CheckCircle2, XOctagon, BarChart2, Filter, Globe, Building, Package } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
+import Pagination from '../components/Pagination';
 import { MotionCard, MotionNumberCounter, MotionButton } from '../components/motion';
 
 
@@ -100,6 +101,18 @@ export default function ReportsPage() {
   const filteredGaps = selectedBrgy === 'all'
     ? gapReport
     : gapReport.filter(g => g.barangayCode === selectedBrgy);
+
+  const [dupPage, setDupPage] = useState(1);
+  const [gapPage, setGapPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  useEffect(() => {
+    setDupPage(1);
+    setGapPage(1);
+  }, [selectedBrgy]);
+
+  const paginatedDups = filteredDups.slice((dupPage - 1) * ITEMS_PER_PAGE, dupPage * ITEMS_PER_PAGE);
+  const paginatedGaps = filteredGaps.slice((gapPage - 1) * ITEMS_PER_PAGE, gapPage * ITEMS_PER_PAGE);
 
   const exportToCSV = (filename, headers, rows) => {
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -339,7 +352,7 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredDups.map((log) => (
+              {paginatedDups.map((log) => (
                 <tr key={log.id}>
                   <td style={{ fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--ink-soft)' }}>{log.timestamp}</td>
                   <td>
@@ -358,6 +371,12 @@ export default function ReportsPage() {
               ))}
             </tbody>
           </table>
+          <Pagination
+            currentPage={dupPage}
+            totalItems={filteredDups.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setDupPage}
+          />
         </div>
       </div>
 
@@ -392,7 +411,7 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredGaps.map((item) => {
+              {paginatedGaps.map((item) => {
                 const memberCount = Number(item.memberCount || 1);
                 const basePacks = memberCount >= 9 ? 3 : memberCount >= 5 ? 2 : 1;
                 const gapsList = Array.isArray(item.gaps) && item.gaps.length > 0
@@ -447,6 +466,12 @@ export default function ReportsPage() {
               })}
             </tbody>
           </table>
+          <Pagination
+            currentPage={gapPage}
+            totalItems={filteredGaps.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setGapPage}
+          />
         </div>
       </div>
 
@@ -502,8 +527,9 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)' }}>
-          ️ <strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.
+        <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <AlertCircle size={16} color="var(--manila-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
+          <span><strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.</span>
         </div>
       </div>
     </div>

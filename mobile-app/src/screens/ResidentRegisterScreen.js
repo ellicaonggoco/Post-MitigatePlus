@@ -26,6 +26,9 @@ import {
   TrashIcon,
   SearchIcon,
   ShieldCheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  AlertTriangleIcon,
 } from '../components/AppIcons';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { registerUser } from '../services/api';
@@ -566,7 +569,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             onPress={step === 2 ? () => setStep(1) : onBack}
             activeOpacity={0.8}
           >
-            <ArrowLeftIcon size={16} color="#1557B0" />
+            <View style={styles.backIconCircle}>
+              <ArrowLeftIcon size={14} color="#1C3F94" />
+            </View>
             <Text style={styles.backBtnText}>
               {step === 2 ? (lang === 'tl' ? 'Bumalik sa Hakbang 1' : 'Back to Step 1') : (lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In')}
             </Text>
@@ -719,7 +724,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   <Text style={styles.dropdownSelectedText} numberOfLines={1}>
                     {idType}
                   </Text>
-                  <Text style={styles.dropdownChevron}>▼</Text>
+                  <ChevronDownIcon size={16} color="#64748B" />
                 </TouchableOpacity>
               </View>
 
@@ -766,7 +771,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 ) : (
                   <View style={styles.idUploadBtnRow}>
                     <TouchableOpacity style={styles.idCameraBtn} onPress={handlePickIdFromCamera} activeOpacity={0.85}>
-                      <CameraIcon size={20} color="#1557B0" />
+                      <CameraIcon size={20} color="#1C3F94" />
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Kumuha sa Camera' : 'Take with Camera'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.idGalleryBtn} onPress={handlePickIdFromLibrary} activeOpacity={0.85}>
@@ -817,18 +822,22 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   activeOpacity={0.85}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, paddingRight: 6 }}>
-                    <MapPinIcon size={16} color="#1557B0" />
+                    <MapPinIcon size={16} color="#1C3F94" />
                     <Text style={styles.brgySelectorText} numberOfLines={1}>
                       {selectedBrgyObj.name}
                     </Text>
                   </View>
-                  <Text style={styles.dropdownChevron}>{showBrgyList ? '▲' : '▼'}</Text>
+                  {showBrgyList ? (
+                    <ChevronUpIcon size={16} color="#1C3F94" />
+                  ) : (
+                    <ChevronDownIcon size={16} color="#64748B" />
+                  )}
                 </TouchableOpacity>
 
                 {showBrgyList && (
                   <View style={styles.brgyDropdown}>
                     <View style={styles.brgySearchContainer}>
-                      <SearchIcon size={15} color="#1557B0" />
+                      <SearchIcon size={15} color="#1C3F94" />
                       <TextInput
                         style={styles.brgySearchInput}
                         placeholder={lang === 'tl' ? 'I-type ang barangay number o distrito (hal. 291)...' : 'Type barangay number or district (e.g. 291)...'}
@@ -857,7 +866,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                           <Text style={[styles.brgyOptionText, selectedBrgyCode === b.code && styles.brgyOptionTextSelected]}>
                             {b.name}
                           </Text>
-                          {selectedBrgyCode === b.code && <CheckIcon size={14} color="#1557B0" />}
+                          {selectedBrgyCode === b.code && <CheckIcon size={14} color="#1C3F94" />}
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -898,7 +907,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 </View>
                 <View style={styles.metricPill}>
                   <Text style={styles.metricPillLabel}>{lang === 'tl' ? 'SANGGOL' : 'INFANT'}</Text>
-                  <Text style={[styles.metricPillValue, infantCount > 0 && { color: '#1557B0' }]}>
+                  <Text style={[styles.metricPillValue, infantCount > 0 && { color: '#1C3F94' }]}>
                     {infantCount}
                   </Text>
                 </View>
@@ -980,7 +989,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     <Text>
                       Sumasang-ayon ako sa{' '}
                       <Text
-                        style={{ color: '#1557B0', fontWeight: '800', textDecorationLine: 'underline' }}
+                        style={{ color: '#1C3F94', fontWeight: '800', textDecorationLine: 'underline' }}
                         onPress={() => setShowTermsModal(true)}
                       >
                         Mga Tuntunin at Kundisyon (Terms & Conditions)
@@ -991,7 +1000,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     <Text>
                       I agree to the{' '}
                       <Text
-                        style={{ color: '#1557B0', fontWeight: '800', textDecorationLine: 'underline' }}
+                        style={{ color: '#1C3F94', fontWeight: '800', textDecorationLine: 'underline' }}
                         onPress={() => setShowTermsModal(true)}
                       >
                         Terms and Conditions
@@ -1042,7 +1051,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             </View>
 
             <ScrollView style={{ maxHeight: hp(58), paddingRight: 4 }} showsVerticalScrollIndicator={true}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C3F94', marginBottom: 6 }}>
                 {lang === 'tl'
                   ? '1. REPUBLIC ACT NO. 10173 (DATA PRIVACY ACT OF 2012)'
                   : '1. REPUBLIC ACT NO. 10173 (DATA PRIVACY ACT OF 2012)'}
@@ -1053,7 +1062,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   : 'The City Government of Manila through the MitigatePlus Disaster Response System strictly adheres to Republic Act No. 10173 (Data Privacy Act of 2012). All personal information collected (Full Name, Address, Government ID Photo, Family Demographics) shall be processed SOLELY for relief goods distribution, beneficiary verification, and fraud prevention.'}
               </Text>
 
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C3F94', marginBottom: 6 }}>
                 {lang === 'tl'
                   ? '2. MGA KARAPATAN NG RESIDENTE AT SEGURIDAD NG DATOS'
                   : '2. DATA PROTECTION & BENEFICIARY RIGHTS'}
@@ -1064,7 +1073,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   : 'Your information is protected via industry-standard encryption. Access is restricted to authorized Manila MDRRMO personnel and Barangay Officials. Your personal data will never be commercialized or shared with third parties without your explicit consent.'}
               </Text>
 
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1557B0', marginBottom: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C3F94', marginBottom: 6 }}>
                 {lang === 'tl'
                   ? '3. PATAKARAN SA KATOTOHANAN AT ANTI-FRAUD'
                   : '3. TRUTHFULNESS & ANTI-FRAUD PROVISIONS'}
@@ -1078,7 +1087,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
             <TouchableOpacity
               style={{
-                backgroundColor: '#1557B0',
+                backgroundColor: '#1C3F94',
                 paddingVertical: 12,
                 borderRadius: 10,
                 alignItems: 'center',
@@ -1127,7 +1136,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   <Text style={[styles.idOptionText, idType === idItem && styles.idOptionTextActive]}>
                     {idItem}
                   </Text>
-                  {idType === idItem && <CheckIcon size={16} color="#1557B0" />}
+                  {idType === idItem && <CheckIcon size={16} color="#1C3F94" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -1273,7 +1282,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
           >
             <View style={styles.otpModalHeader}>
               <View style={styles.otpIconBadge}>
-                <ShieldCheckIcon size={26} color="#1557B0" />
+                <ShieldCheckIcon size={26} color="#1C3F94" />
               </View>
               <Text style={styles.otpModalTitle}>
                 {lang === 'tl' ? 'Kumpirmasyon ng Mobile Number' : 'Mobile Number OTP Verification'}
@@ -1282,7 +1291,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 {lang === 'tl'
                   ? 'Ipinadala ang 6-digit verification code sa iyong mobile number: '
                   : 'We sent a 6-digit verification code to: '}
-                <Text style={{ fontWeight: '800', color: '#1557B0' }}>{emailOrPhone}</Text>
+                <Text style={{ fontWeight: '800', color: '#1C3F94' }}>{emailOrPhone}</Text>
               </Text>
             </View>
 
@@ -1338,7 +1347,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             {/* ERROR MESSAGE IF ANY */}
             {otpError ? (
               <View style={styles.otpErrorBox}>
-                <Text style={styles.otpErrorText}>️ {otpError}</Text>
+                <AlertTriangleIcon size={14} color="#DC2626" />
+                <Text style={styles.otpErrorText}>{otpError}</Text>
               </View>
             ) : null}
 
@@ -1396,7 +1406,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#F3F6FC',
   },
   scroll: {
     flex: 1,
@@ -1416,30 +1426,47 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 7,
+    borderRadius: 9999,
     marginBottom: 12,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+    }),
+  },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EDF1FB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBtnText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
+    letterSpacing: 0.2,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: -0.3,
   },
   stepCounterText: {
     fontSize: 12,
-    color: '#1557B0',
+    color: '#1C3F94',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -1457,42 +1484,50 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     alignItems: 'center',
   },
   stepSegmentActive: {
-    backgroundColor: '#E8F2FF',
-    borderColor: '#1557B0',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#1C3F94',
   },
   stepSegmentText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#8A9BB8',
   },
   stepSegmentTextActive: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   registerCard: {
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
     backgroundColor: '#FFFFFF',
-    borderRadius: RESPONSIVE.borderRadius + 2,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     padding: RESPONSIVE.cardPadding,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
   },
   cardHeaderGroup: {
     borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
+    borderBottomColor: '#F1F5F9',
     paddingBottom: 12,
     marginBottom: 16,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0B1525',
   },
   cardSub: {
     fontSize: 11.5,
@@ -1529,7 +1564,7 @@ const styles = StyleSheet.create({
   },
   dropdownChevron: {
     fontSize: 12,
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
     marginLeft: 6,
   },
@@ -1539,14 +1574,14 @@ const styles = StyleSheet.create({
   brgyLabel: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   brgySelectorBtn: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#1557B0',
+    borderColor: '#1C3F94',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -1557,13 +1592,13 @@ const styles = StyleSheet.create({
   brgySelectorText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#172B4D',
+    color: '#0B1525',
   },
   brgyDropdown: {
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     marginTop: 6,
     overflow: 'hidden',
     ...SHADOWS.md,
@@ -1598,14 +1633,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brgyOptionSelected: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
   },
   brgyOptionText: {
     fontSize: 12.5,
     color: '#334155',
   },
   brgyOptionTextSelected: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   metricsStrip: {
@@ -1643,12 +1678,12 @@ const styles = StyleSheet.create({
   rosterSectionTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#0B1525',
   },
   addMemberBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#93C5FD',
+    borderColor: '#D6DEFA',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1656,7 +1691,7 @@ const styles = StyleSheet.create({
   addMemberBtnText: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   membersListContainer: {
     gap: 8,
@@ -1716,7 +1751,7 @@ const styles = StyleSheet.create({
   badgeInfant: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
     backgroundColor: '#DBEAFE',
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -1740,8 +1775,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxActive: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
+    backgroundColor: '#1C3F94',
+    borderColor: '#1C3F94',
   },
   certText: {
     fontSize: 11.5,
@@ -1750,13 +1785,21 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   submitBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 10,
+    backgroundColor: '#1C3F94',
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    ...SHADOWS.md,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
   submitBtnText: {
     color: '#FFFFFF',
@@ -1775,13 +1818,13 @@ const styles = StyleSheet.create({
   idUploadLabel: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: 0.6,
   },
   idUploadRequiredTag: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   idUploadSub: {
     fontSize: 11,
@@ -1837,9 +1880,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1.5,
-    borderColor: '#93C5FD',
+    borderColor: '#D6DEFA',
     borderRadius: 10,
     paddingVertical: 12,
   },
@@ -1947,7 +1990,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   idOptionTextActive: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   addMemberModalBox: {
@@ -1983,7 +2026,7 @@ const styles = StyleSheet.create({
   },
   conditionChipActive: {
     backgroundColor: '#EFF6FF',
-    borderColor: '#1557B0',
+    borderColor: '#1C3F94',
   },
   conditionChipTitle: {
     fontSize: 11.5,
@@ -1991,7 +2034,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   conditionChipTitleActive: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   conditionChipSub: {
@@ -2010,7 +2053,7 @@ const styles = StyleSheet.create({
   infantNoticeTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   infantNoticeText: {
     fontSize: 11,
@@ -2033,8 +2076,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   relChipActive: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
+    backgroundColor: '#1C3F94',
+    borderColor: '#1C3F94',
   },
   relChipText: {
     fontSize: 11.5,
@@ -2059,7 +2102,7 @@ const styles = StyleSheet.create({
   },
   confirmAddBtn: {
     flex: 2,
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -2204,7 +2247,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   otpBoxInputFilled: {
-    borderColor: '#1557B0',
+    borderColor: '#1C3F94',
     backgroundColor: '#EFF6FF',
   },
   otpBoxInputError: {
@@ -2240,7 +2283,7 @@ const styles = StyleSheet.create({
   },
   otpResendActiveText: {
     fontSize: 13,
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
     textDecorationLine: 'underline',
   },
@@ -2248,7 +2291,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   verifyOtpBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',

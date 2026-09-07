@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, RADIUS, SHADOWS, SPACING, FONT_WEIGHT, RESPONSIVE } from '../theme';
 import { API_BASE_URL } from '../config.js';
+import { RadioCheckedIcon, RadioUncheckedIcon, MapPinIcon, CameraIcon } from '../components/AppIcons';
 
 const INCIDENT_TYPES = [
   'Lost / Damaged Resident QR Card',
@@ -138,8 +139,13 @@ export default function StaffIncidentReportScreen({ token }) {
                 onPress={() => setIncidentType(type)}
                 activeOpacity={0.8}
               >
+                {isSelected ? (
+                  <RadioCheckedIcon size={16} color="#1C3F94" />
+                ) : (
+                  <RadioUncheckedIcon size={16} color="#94A3B8" />
+                )}
                 <Text style={[styles.typeOptionText, isSelected && styles.typeOptionTextActive]}>
-                  {isSelected ? '● ' : '○ '} {type}
+                  {type}
                 </Text>
               </TouchableOpacity>
             );
@@ -168,14 +174,15 @@ export default function StaffIncidentReportScreen({ token }) {
         {/* GPS Location Card */}
         <Text style={styles.label}>GPS Location (Auto-Captured):</Text>
         <View style={styles.gpsCard}>
-          <Text style={styles.gpsIcon}>📍</Text>
+          <MapPinIcon size={18} color="#166534" />
           <Text style={styles.gpsText}>{locationLabel}</Text>
         </View>
 
         {/* Photo Evidence */}
         <Text style={[styles.label, { marginTop: 12 }]}>Photo Evidence (Optional):</Text>
         <TouchableOpacity style={styles.photoBtn} onPress={handlePickPhoto} activeOpacity={0.8}>
-          <Text style={styles.photoBtnText}>{photoUri ? '📷 Change Photo' : '📷 Attach Photo Evidence'}</Text>
+          <CameraIcon size={16} color="#1D4ED8" />
+          <Text style={styles.photoBtnText}>{photoUri ? 'Change Photo' : 'Attach Photo Evidence'}</Text>
         </TouchableOpacity>
         {photoUri ? (
           <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="cover" />
@@ -210,13 +217,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     backgroundColor: '#F8FAFC',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   typeOptionActive: {
-    borderColor: '#0D3C75',
+    borderColor: '#1C3F94',
     backgroundColor: '#E0F2FE',
   },
   typeOptionText: { fontSize: 12, fontWeight: '600', color: '#475569' },
-  typeOptionTextActive: { color: '#0D3C75', fontWeight: FONT_WEIGHT.bold },
+  typeOptionTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.bold },
   input: {
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
@@ -234,6 +244,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
+    ...SHADOWS.button,
   },
   submitBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: FONT_WEIGHT.black },
   gpsCard: {
@@ -255,8 +266,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#BFDBFE',
     paddingVertical: 11,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginBottom: 10,
+    ...SHADOWS.sm,
   },
   photoBtnText: { fontSize: 13, color: '#1D4ED8', fontWeight: '700' },
   photoPreview: {

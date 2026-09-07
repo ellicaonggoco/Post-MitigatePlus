@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput, Keyboard } from 'react-native';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon } from '../components/AppIcons';
+import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon, AlertTriangleIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, NEUMORPHIC, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
@@ -143,7 +143,9 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       >
         {/* Back Button */}
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
-          <ArrowLeftIcon size={16} color="#1557B0" />
+          <View style={styles.backIconCircle}>
+            <ArrowLeftIcon size={14} color="#1C3F94" />
+          </View>
           <Text style={styles.backBtnText}>
             {lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In'}
           </Text>
@@ -212,9 +214,9 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
             </Text>
             <Text style={styles.cardSub}>
               {lang === 'tl' ? (
-                <>Ilagay ang 6-digit code na ipinadala sa <Text style={{ fontWeight: 'bold', color: '#1557B0' }}>{identifier}</Text>.</>
+                <>Ilagay ang 6-digit code na ipinadala sa <Text style={{ fontWeight: 'bold', color: '#1C3F94' }}>{identifier}</Text>.</>
               ) : (
-                <>Enter the 6-digit code sent to <Text style={{ fontWeight: 'bold', color: '#1557B0' }}>{identifier}</Text>.</>
+                <>Enter the 6-digit code sent to <Text style={{ fontWeight: 'bold', color: '#1C3F94' }}>{identifier}</Text>.</>
               )}
             </Text>
 
@@ -248,9 +250,12 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
             </View>
 
             {errors.otp && (
-              <Text style={{ color: '#DC2626', fontSize: 12, textAlign: 'center', marginBottom: 10, fontWeight: '600' }}>
-                ️ {errors.otp}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 10 }}>
+                <AlertTriangleIcon size={14} color="#DC2626" />
+                <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600' }}>
+                  {errors.otp}
+                </Text>
+              </View>
             )}
 
             <MotionPressable style={styles.actionBtn} onPress={handleVerifyOtp} disabled={loading} activeOpacity={0.85}>
@@ -316,7 +321,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EEF2F6' },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 6,
@@ -327,20 +332,37 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 7,
+    borderRadius: 9999,
     marginBottom: 16,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+    }),
+  },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EDF1FB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBtnText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
+    letterSpacing: 0.2,
   },
   brandHeader: {
     alignItems: 'center',
@@ -349,8 +371,8 @@ const styles = StyleSheet.create({
     maxWidth: RESPONSIVE.maxCardWidth,
   },
   shieldLogoBox: {
-    width: 72,
-    height: 72,
+    width: 76,
+    height: 76,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -362,24 +384,35 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 22,
     fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
+    color: '#0B1525',
   },
   brandSub: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#64748B',
     marginTop: 2,
   },
   cardPod: {
-    ...NEUMORPHIC.raisedHero,
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
-    borderRadius: RESPONSIVE.borderRadius + 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
     padding: RESPONSIVE.cardPadding,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
+    color: '#0B1525',
     marginBottom: 4,
   },
   cardSub: {
@@ -438,27 +471,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     fontSize: 18,
     fontWeight: '800',
-    color: '#002BB8',
+    color: '#1C3F94',
     textAlign: 'center',
   },
   otpBoxInputFilled: {
-    borderColor: '#002BB8',
-    backgroundColor: '#EFF6FF',
+    borderColor: '#1C3F94',
+    backgroundColor: '#EDF1FB',
   },
   actionBtn: {
-    ...NEUMORPHIC.activePill,
-    backgroundColor: '#002BB8',
+    backgroundColor: '#1C3F94',
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 10,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
   actionBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: '800',
   },
 });

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { loginUser } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { ShieldCheckIcon, UsersIcon, ArrowRightIcon } from '../components/AppIcons';
+import { ShieldCheckIcon, UsersIcon, ArrowRightIcon, FingerprintIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 
@@ -239,8 +239,9 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
                 } catch { /* silently fail */ }
               }}
             >
+              <FingerprintIcon size={18} color="#1C3F94" />
               <Text style={styles.biometricBtnText}>
-                {lang === 'tl' ? '🔐 Mag-login gamit ang Fingerprint / Face ID' : '🔐 Sign in with Fingerprint / Face ID'}
+                {lang === 'tl' ? 'Mag-login gamit ang Fingerprint / Face ID' : 'Sign in with Fingerprint / Face ID'}
               </Text>
             </TouchableOpacity>
           )}
@@ -276,7 +277,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#F3F6FC',
   },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
   brandCityTitle: {
     fontSize: 14.5,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: -0.2,
     marginBottom: 2,
     textAlign: 'center',
@@ -313,23 +314,31 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
     backgroundColor: '#FFFFFF',
-    borderRadius: RESPONSIVE.borderRadius + 2,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     padding: RESPONSIVE.cardPadding,
     marginBottom: 16,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
   },
   cardHeaderGroup: {
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
+    borderBottomColor: '#F1F5F9',
     paddingBottom: 12,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: -0.3,
   },
   cardSub: {
@@ -346,17 +355,25 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 12,
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '700',
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#1557B0',
-    borderRadius: RESPONSIVE.borderRadius,
+    backgroundColor: '#1C3F94',
+    borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.button,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
   submitBtnText: {
     color: '#FFFFFF',
@@ -367,13 +384,21 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
     backgroundColor: '#FFFFFF',
-    borderRadius: RESPONSIVE.borderRadius,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 16,
+    borderColor: '#DDE4F0',
+    padding: 18,
     alignItems: 'center',
     marginBottom: 20,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 6px 20px rgba(11, 29, 78, 0.06)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
+      elevation: 2,
+    }),
   },
   registerCardTitle: {
     fontSize: 13,
@@ -384,18 +409,27 @@ const styles = StyleSheet.create({
   },
   registerActionBtn: {
     width: '100%',
-    height: 44,
-    borderRadius: RESPONSIVE.borderRadius,
+    height: 46,
+    borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F1F5F9',
+    borderColor: '#1C3F94',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 1,
+    }),
   },
   registerActionBtnText: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   footerNote: {
     fontSize: 10,
@@ -405,17 +439,29 @@ const styles = StyleSheet.create({
   },
   biometricBtn: {
     marginTop: 12,
-    paddingVertical: 11,
-    borderRadius: RESPONSIVE.borderRadius,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-    backgroundColor: '#EFF6FF',
+    borderColor: '#D6DEFA',
+    backgroundColor: '#EDF1FB',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.06)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
+      elevation: 1,
+    }),
   },
   biometricBtnText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
 });

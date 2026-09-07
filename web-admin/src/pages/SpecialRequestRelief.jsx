@@ -5,6 +5,7 @@ import {
   Heart,
   Users,
   CheckCircle,
+  CheckCircle2,
   Clock,
   Search,
   RefreshCw,
@@ -21,6 +22,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import Pagination from '../components/Pagination';
 import { MotionCard } from '../components/motion';
 
 export default function SpecialRequestRelief() {
@@ -199,6 +201,15 @@ export default function SpecialRequestRelief() {
     return true;
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, specialSearch]);
+
+  const paginatedList = filteredList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div className="page-container page-animate">
       {/* Top Header */}
@@ -360,7 +371,7 @@ export default function SpecialRequestRelief() {
                   </td>
                 </tr>
               ) : (
-                filteredList.map(r => {
+                paginatedList.map(r => {
                   const hh = r.householdId || {};
                   const headUser = hh.headOfHouseholdUserId || {};
                   const name = r.recipientName || headUser.name || (r.requestedBy && !r.requestedBy.startsWith('Official:') ? r.requestedBy : '') || 'Elena Bautista';
@@ -503,7 +514,7 @@ export default function SpecialRequestRelief() {
                             gap: 4,
                             transition: 'opacity 0.4s ease',
                           }}>
-                            ✓ {inlineFeedback[r._id]}
+                            <Check size={13} /> {inlineFeedback[r._id]}
                           </span>
                         ) : isPending ? (
                           <button
@@ -525,8 +536,8 @@ export default function SpecialRequestRelief() {
                           </div>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-                            <span style={{ fontSize: 12, color: '#15803D', fontWeight: 800 }}>
-                              ✓ Completed
+                            <span style={{ fontSize: 12, color: '#15803D', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <CheckCircle2 size={13} /> Completed
                             </span>
                             {r.proofOfDeliveryPhoto && (
                               <button
@@ -558,6 +569,12 @@ export default function SpecialRequestRelief() {
               )}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredList.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 
@@ -885,9 +902,13 @@ export default function SpecialRequestRelief() {
                           background: isSelected ? '#EFF6FF' : 'var(--card)',
                           color: isSelected ? '#1557B0' : 'var(--ink-soft)',
                           transition: 'all 0.12s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
                         }}
                       >
-                        {isSelected ? '✓ ' : '+ '}{v}
+                        {isSelected ? <Check size={12} /> : <Plus size={12} />}
+                        {v}
                       </button>
                     );
                   })}

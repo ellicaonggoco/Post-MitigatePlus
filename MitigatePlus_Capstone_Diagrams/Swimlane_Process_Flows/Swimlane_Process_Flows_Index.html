@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MitigatePlus - Academic Swimlane Process Flows (Monochrome / Blue Line)</title>
+  <style>
+    :root {
+      --bg: #FAFAFA;
+      --card: #FFFFFF;
+      --ink: #000000;
+      --ink-soft: #4B5563;
+      --primary: #003366;
+      --border: #000000;
+      --radius: 6px;
+    }
+    body {
+      font-family: 'Times New Roman', Times, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, serif;
+      background: var(--bg);
+      color: var(--ink);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 30px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header h1 {
+      margin: 0 0 6px 0;
+      color: var(--primary);
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .header p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .swimlane-legend {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .lane-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .shape-icon {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #000000;
+      background: #FFFFFF;
+    }
+    .actor-section {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .actor-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .actor-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--ink);
+    }
+    .badge {
+      background: #FFFFFF;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-id {
+      font-family: monospace;
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .card-link {
+      font-size: 11.5px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: bold;
+      font-family: monospace;
+    }
+    .btn {
+      background: var(--primary);
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>MitigatePlus - Academic Swimlane Process Flows (Monochrome / Blue Line)</h1>
+        <p>Official 4-Tier Cross-Functional Architecture Diagrams (1 Use Case + 38 Dedicated Swimlane Diagrams)</p>
+      </div>
+      <div>
+        <a href="https://app.diagrams.net" target="_blank" class="btn">Open in diagrams.net / draw.io</a>
+      </div>
+    </div>
+
+    <!-- Swimlane Column Legend -->
+    <div class="swimlane-legend">
+      <div class="lane-badge"><span class="shape-icon" style="border-radius: 50px;"></span> Terminal: Start / End (Pill)</div>
+      <div class="lane-badge"><span class="shape-icon"></span> Activity: Process Box (Rectangle)</div>
+      <div class="lane-badge"><span class="shape-icon" style="transform: rotate(45deg); width: 10px; height: 10px;"></span> Decision: Diamond (Rhombus)</div>
+      <div class="lane-badge"><span class="shape-icon" style="border-radius: 2px;"></span> Storage: MongoDB (Cylinder)</div>
+    </div>
+
+    <!-- 1. Resident -->
+    <div class="actor-section">
+      <div class="actor-title">
+        <h2>👤 Resident / Citizen (11 Swimlane Flows)</h2>
+        <span class="badge">Mobile App &bull; React Native / Expo</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="card-id">PF-R01 &bull; Linked UC: UC-R01</div><div class="card-title">Register Account</div><div class="card-desc">Actor &rarr; App Validation &rarr; Semaphore SMS Gateway &rarr; MongoDB User/Household creation.</div><span class="card-link">Resident/PF-R01_Register_Account.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R02 &bull; Linked UC: UC-R02</div><div class="card-title">Login</div><div class="card-desc">Actor &rarr; POST /api/auth/login &rarr; MongoDB bcrypt query &rarr; JWT token storage.</div><span class="card-link">Resident/PF-R02_Login.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R03 &bull; Linked UC: UC-R03</div><div class="card-title">View Announcements</div><div class="card-desc">Online API fetch &rarr; MongoDB query &rarr; Offline AsyncStorage fallback.</div><span class="card-link">Resident/PF-R03_View_Announcements.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R04 &bull; Linked UC: UC-R04</div><div class="card-title">Report Structural Damage</div><div class="card-desc">GPS auto-tagging &rarr; Cloudinary upload &rarr; POST /api/damage-reports &rarr; Heatmap DB update.</div><span class="card-link">Resident/PF-R04_Report_Structural_Damage.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R05 &bull; Linked UC: UC-R05</div><div class="card-title">View Digital QR Relief Pass</div><div class="card-desc">Household verification check &rarr; Active QR Pass vs Locked Pending states.</div><span class="card-link">Resident/PF-R05_View_Digital_QR_Relief_Pass.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R06 &bull; Linked UC: UC-R06</div><div class="card-title">Apply for Cash-for-Work</div><div class="card-desc">Active project query &rarr; Category selection &rarr; Application record &rarr; Socket.IO alert.</div><span class="card-link">Resident/PF-R06_Apply_for_Cash_for_Work.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R07 &bull; Linked UC: UC-R07</div><div class="card-title">View Claims History</div><div class="card-desc">GET /api/households/me &rarr; DB claims array retrieval &rarr; Official receipt view.</div><span class="card-link">Resident/PF-R07_View_Claims_History.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R08 &bull; Linked UC: UC-R08</div><div class="card-title">Request Special Assistance</div><div class="card-desc">Medical/PWD emergency ticket &rarr; POST /api/assistance-requests &rarr; Barangay alert.</div><span class="card-link">Resident/PF-R08_Request_Special_Assistance.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R09 &bull; Linked UC: UC-R09</div><div class="card-title">Manage Household Members</div><div class="card-desc">PUT /api/households/me/members &rarr; DB roster update &rarr; Quota recomputation.</div><span class="card-link">Resident/PF-R09_Manage_Household_Members.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R10 &bull; Linked UC: UC-R10</div><div class="card-title">Change Password</div><div class="card-desc">PUT /api/auth/change-password &rarr; Current password verify &rarr; DB bcrypt hash update.</div><span class="card-link">Resident/PF-R10_Change_Password.drawio</span></div>
+        <div class="card"><div class="card-id">PF-R11 &bull; Linked UC: UC-R11</div><div class="card-title">Sync Offline Data</div><div class="card-desc">AsyncStorage queue &rarr; POST /api/distributions/sync-offline-claims &rarr; DB ledger sync.</div><span class="card-link">Resident/PF-R11_Sync_Offline_Data.drawio</span></div>
+      </div>
+    </div>
+
+    <!-- 2. Field Staff -->
+    <div class="actor-section">
+      <div class="actor-title">
+        <h2>👷 Field Response Staff (4 Swimlane Flows)</h2>
+        <span class="badge">Mobile App &bull; Staff Scanner Portal</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="card-id">PF-FS01 &bull; Linked UC: UC-FS01</div><div class="card-title">Login (Staff)</div><div class="card-desc">Staff login &rarr; POST /api/auth/login &rarr; MongoDB check &rarr; RBAC field_staff token.</div><span class="card-link">Field_Staff/PF-FS01_Login_Staff.drawio</span></div>
+        <div class="card"><div class="card-id">PF-FS02 &bull; Linked UC: UC-FS02</div><div class="card-title">Scan QR for Relief Distribution</div><div class="card-desc">Camera QR scan &rarr; Compound index duplicate check &rarr; Release confirm &rarr; DB log.</div><span class="card-link">Field_Staff/PF-FS02_Scan_QR_Relief_Distribution.drawio</span></div>
+        <div class="card"><div class="card-id">PF-FS03 &bull; Linked UC: UC-FS03</div><div class="card-title">Assign and Complete Special Request</div><div class="card-desc">Task queue &rarr; Door-to-door delivery &rarr; PATCH deliver &rarr; Status update.</div><span class="card-link">Field_Staff/PF-FS03_Assign_Special_Request.drawio</span></div>
+        <div class="card"><div class="card-id">PF-FS04 &bull; Linked UC: UC-FS04</div><div class="card-title">Submit Field Incident Report</div><div class="card-desc">GPS auto-capture &rarr; POST /api/incidents &rarr; Socket.IO Command Center broadcast.</div><span class="card-link">Field_Staff/PF-FS04_Submit_Field_Incident_Report.drawio</span></div>
+      </div>
+    </div>
+
+    <!-- 3. Barangay Official -->
+    <div class="actor-section">
+      <div class="actor-title">
+        <h2>🏛️ Barangay Official (8 Swimlane Flows)</h2>
+        <span class="badge">Web Admin &bull; Local Governance</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="card-id">PF-BO01 &bull; Linked UC: UC-BO01</div><div class="card-title">Login (Barangay Official)</div><div class="card-desc">Official login &rarr; POST /api/auth/login &rarr; MongoDB verify &rarr; Scoped dashboard init.</div><span class="card-link">Barangay_Official/PF-BO01_Login_Barangay_Official.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO02 &bull; Linked UC: UC-BO02</div><div class="card-title">Verify Household Application</div><div class="card-desc">ID verification &rarr; POST verify &rarr; DB update &rarr; Resident QR activation.</div><span class="card-link">Barangay_Official/PF-BO02_Verify_Household_Application.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO03 &bull; Linked UC: UC-BO03</div><div class="card-title">View Priority Index</div><div class="card-desc">Vulnerability computation &rarr; Ranked registry table &rarr; Aid targeting.</div><span class="card-link">Barangay_Official/PF-BO03_View_Priority_Index.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO04 &bull; Linked UC: UC-BO04</div><div class="card-title">Manage Announcements</div><div class="card-desc">POST /api/announcements &rarr; Socket.IO push broadcast to citizen phones.</div><span class="card-link">Barangay_Official/PF-BO04_Manage_Announcements.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO05 &bull; Linked UC: UC-BO05</div><div class="card-title">Request Cash-for-Work Project</div><div class="card-desc">Project proposal &rarr; POST request &rarr; DB pending status &rarr; LGU alert.</div><span class="card-link">Barangay_Official/PF-BO05_Request_CFW_Project.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO06 &bull; Linked UC: UC-BO06</div><div class="card-title">Review CFW Worker Applicants</div><div class="card-desc">Applicant review &rarr; PATCH review &rarr; Voucher QR generation &rarr; Resident alert.</div><span class="card-link">Barangay_Official/PF-BO06_Review_CFW_Worker_Applicants.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO07 &bull; Linked UC: UC-BO07</div><div class="card-title">Manage Special Relief Requests</div><div class="card-desc">Ticket queue &rarr; Staff assignment &rarr; PATCH assign &rarr; Field Staff alert.</div><span class="card-link">Barangay_Official/PF-BO07_Manage_Special_Relief_Requests.drawio</span></div>
+        <div class="card"><div class="card-id">PF-BO08 &bull; Linked UC: UC-BO08</div><div class="card-title">View Recovery Progress</div><div class="card-desc">Recovery milestone tracking &rarr; PUT transition &rarr; LGU dashboard sync.</div><span class="card-link">Barangay_Official/PF-BO08_View_Recovery_Progress.drawio</span></div>
+      </div>
+    </div>
+
+    <!-- 4. LGU Admin -->
+    <div class="actor-section">
+      <div class="actor-title">
+        <h2>🏢 LGU Admin (10 Swimlane Flows)</h2>
+        <span class="badge">Web Admin &bull; City Operations</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="card-id">PF-LA01 &bull; Linked UC: UC-LA01</div><div class="card-title">Login (LGU Admin)</div><div class="card-desc">Command Center authentication &rarr; MongoDB verify &rarr; City operations init.</div><span class="card-link">LGU_Admin/PF-LA01_Login_LGU_Admin.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA02 &bull; Linked UC: UC-LA02</div><div class="card-title">Create Livelihood Project</div><div class="card-desc">Direct LGU project creation &rarr; POST /api/cash-for-work/projects &rarr; Direct active status.</div><span class="card-link">LGU_Admin/PF-LA02_Create_Livelihood_Project.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA03 &bull; Linked UC: UC-LA03</div><div class="card-title">Approve CFW Project Proposals</div><div class="card-desc">Barangay proposal review &rarr; Budget authorization &rarr; PATCH review &rarr; Activation.</div><span class="card-link">LGU_Admin/PF-LA03_Approve_CFW_Project_Proposals.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA04 &bull; Linked UC: UC-LA04</div><div class="card-title">Manage Distribution Events</div><div class="card-desc">POST /api/distributions/events &rarr; Staff team assignment &rarr; Active event scheduling.</div><span class="card-link">LGU_Admin/PF-LA04_Manage_Distribution_Events.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA05 &bull; Linked UC: UC-LA05</div><div class="card-title">Manage Warehouse Inventory</div><div class="card-desc">Restock logging &rarr; POST restock &rarr; WarehouseLog DB record &rarr; Buffer alert check.</div><span class="card-link">LGU_Admin/PF-LA05_Manage_Warehouse_Inventory.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA06 &bull; Linked UC: UC-LA06</div><div class="card-title">View Payroll and Export CSV</div><div class="card-desc">GET payroll &rarr; Worker wage ledger &rarr; COA liquidation CSV file download.</div><span class="card-link">LGU_Admin/PF-LA06_View_Payroll_Export_CSV.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA07 &bull; Linked UC: UC-LA07</div><div class="card-title">Manage Special Relief Requests (LGU)</div><div class="card-desc">City-wide emergency ticket review &rarr; Centralized mobile response asset dispatch.</div><span class="card-link">LGU_Admin/PF-LA07_Manage_Special_Relief_Requests_LGU.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA08 &bull; Linked UC: UC-LA08</div><div class="card-title">Manage Staff Accounts</div><div class="card-desc">POST /api/auth/provision-staff &rarr; RBAC User record &rarr; AuditLog entry.</div><span class="card-link">LGU_Admin/PF-LA08_Manage_Staff_Accounts.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA09 &bull; Linked UC: UC-LA09</div><div class="card-title">View Reports and Audit</div><div class="card-desc">GET /api/reports &rarr; Metric aggregation &rarr; Certified PDF/CSV report download.</div><span class="card-link">LGU_Admin/PF-LA09_View_Reports_Audit.drawio</span></div>
+        <div class="card"><div class="card-id">PF-LA10 &bull; Linked UC: UC-LA10</div><div class="card-title">Allocate Relief Resources</div><div class="card-desc">Allocation formula &rarr; Override check &rarr; Warehouse dispatch manifest creation.</div><span class="card-link">LGU_Admin/PF-LA10_Allocate_Relief_Resources.drawio</span></div>
+      </div>
+    </div>
+
+    <!-- 5. LGU Superadmin -->
+    <div class="actor-section">
+      <div class="actor-title">
+        <h2>👑 LGU Superadmin (5 Swimlane Flows)</h2>
+        <span class="badge">Web Admin &bull; Executive Governance</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="card-id">PF-SA01 &bull; Linked UC: UC-SA01</div><div class="card-title">Login (Superadmin)</div><div class="card-desc">Root executive login &rarr; POST /api/auth/login &rarr; MongoDB verify &rarr; Executive unlock.</div><span class="card-link">LGU_Superadmin/PF-SA01_Login_Superadmin.drawio</span></div>
+        <div class="card"><div class="card-id">PF-SA02 &bull; Linked UC: UC-SA02</div><div class="card-title">View Barangay Heatmap</div><div class="card-desc">Damage/Incident coordinates &rarr; Leaflet.js GIS risk polygons &rarr; Drill-down modal.</div><span class="card-link">LGU_Superadmin/PF-SA02_View_Barangay_Heatmap.drawio</span></div>
+        <div class="card"><div class="card-id">PF-SA03 &bull; Linked UC: UC-SA03</div><div class="card-title">Configure Global Policy</div><div class="card-desc">PUT /api/policy &rarr; MongoDB PolicyConfig update &rarr; System-wide threshold sync.</div><span class="card-link">LGU_Superadmin/PF-SA03_Configure_Global_Policy.drawio</span></div>
+        <div class="card"><div class="card-id">PF-SA04 &bull; Linked UC: UC-SA04</div><div class="card-title">Manage All Accounts</div><div class="card-desc">Master user list &rarr; PATCH status &rarr; Role permissions sync &rarr; Audit logging.</div><span class="card-link">LGU_Superadmin/PF-SA04_Manage_All_Accounts.drawio</span></div>
+        <div class="card"><div class="card-id">PF-SA05 &bull; Linked UC: UC-SA05</div><div class="card-title">View System Audit Logs</div><div class="card-desc">GET /api/audit-logs &rarr; Security stream filter &rarr; Audit CSV export.</div><span class="card-link">LGU_Superadmin/PF-SA05_View_System_Audit_Logs.drawio</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

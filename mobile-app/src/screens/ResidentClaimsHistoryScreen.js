@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Platform } from 'react-native';
 import { fetchClaimsHistory } from '../services/api';
-import { CalendarIcon, MapPinIcon, ShieldCheckIcon, PackageIcon, ArrowLeftIcon, CloseIcon } from '../components/AppIcons';
+import { CalendarIcon, MapPinIcon, ShieldCheckIcon, PackageIcon, ArrowLeftIcon, CloseIcon, ArrowRightIcon, ClockIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionPressable, MotionPulseBadge } from '../components/motion';
@@ -61,40 +62,64 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
   }, [token]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[{ paddingBottom: 24 }]} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={styles.header}>
-        <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
-          <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1557B0" />
+      <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
+        <View style={{height: 3, backgroundColor: '#C9A84C'}} />
+        <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
+          <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)'}}>
+            <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
+          </TouchableOpacity>
+          <View style={{flex: 1, alignItems: 'center'}}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Claims History</Text>
           </View>
-          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
-        </MotionPressable>
-        <Text style={styles.title}>{t.historyTitle || (lang === 'tl' ? 'Kasaysayan ng Pamamahagi at Ayuda' : 'Distribution & Claims History')}</Text>
-        <Text style={styles.sub}>{t.historySub || (lang === 'tl' ? 'Talaan ng mga natanggap na relief goods at supplies.' : 'Verified logs of received family food packs and supplies.')}</Text>
-      </View>
+          <View style={{width: 36}} />
+        </View>
+        <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
+          <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 }}>Distribution & Claims</Text>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
+        </View>
+      </LinearGradient>
+
 
       {/* Summary Stat Card */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>{lang === 'tl' ? 'KABUUANG NATANGGAP' : 'TOTAL DISTRIBUTED'}</Text>
-          <Text style={styles.summaryValue}>{claims.length} {lang === 'tl' ? 'Pakete' : 'Packages'}</Text>
+          <Text style={styles.summaryLabel}>DISTRIBUTED</Text>
+          <Text style={styles.summaryValue}>{claims.length}</Text>
+          <Text style={styles.summarySub}>Packages</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>{lang === 'tl' ? 'STATUS NG AUDIT' : 'AUDIT STATUS'}</Text>
-          <Text style={[styles.summaryValue, { color: '#16A34A' }]}>{lang === 'tl' ? '100% Beripikado' : '100% Verified'}</Text>
+          <Text style={styles.summaryLabel}>AUDIT</Text>
+          <Text style={[styles.summaryValue, { color: '#0D8A5A' }]}>100%</Text>
+          <Text style={styles.summarySub}>Verified</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>{lang === 'tl' ? 'SEGURIDAD' : 'SECURITY'}</Text>
-          <Text style={[styles.summaryValue, { color: '#D97706' }]}>{lang === 'tl' ? 'QR Token Tugma' : 'QR Token Match'}</Text>
+          <Text style={styles.summaryLabel}>SECURITY</Text>
+          <Text style={[styles.summaryValue, { color: '#B8932A', fontSize: 22 }]}>QR</Text>
+          <Text style={styles.summarySub}>Token Match</Text>
         </View>
       </View>
 
-      {/* Claims Timeline List */}
+
+      {/* Claims Timeline List or Empty State */}
       {loading ? (
-        <ActivityIndicator size="large" color="#1557B0" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#1C3F94" style={{ marginTop: 40 }} />
+      ) : claims.length === 0 ? (
+        <View style={{ alignItems: 'center', paddingVertical: 56, paddingHorizontal: 24 }}>
+          <View style={{ width: 78, height: 78, borderRadius: 24, backgroundColor: '#EFF4FE', borderWidth: 1.5, borderColor: '#D9E4FA', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+            <ClockIcon size={34} color="#1C3F94" strokeWidth={2.2} />
+          </View>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1525', textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
+            No Records Yet
+          </Text>
+          <Text style={{ fontSize: 14, color: '#5A6E8C', textAlign: 'center', maxWidth: 280, lineHeight: 21 }}>
+            Records appear here once your QR Pass is scanned at a distribution site.
+          </Text>
+        </View>
       ) : (
         <View style={styles.historyList}>
           {claims.map((item) => (
@@ -106,7 +131,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
             >
               <View style={styles.cardTop}>
                 <View style={styles.packageIconWell}>
-                  <PackageIcon size={18} color="#1557B0" />
+                  <PackageIcon size={18} color="#1C3F94" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.claimType}>{item.type}</Text>
@@ -125,15 +150,20 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 </MotionPulseBadge>
               </View>
 
-              <View style={styles.cardDivider} />
+              <View style={styles.cardMid}>
+                <View style={styles.metaCol}>
+                  <Text style={styles.metaLabel}>QUANTITY</Text>
+                  <Text style={styles.metaVal}>{item.quantity} {item.quantity > 1 ? 'Packs' : 'Pack'}</Text>
+                </View>
+                <View style={styles.metaCol}>
+                  <Text style={styles.metaLabel}>LOCATION</Text>
+                  <Text style={styles.metaVal} numberOfLines={1}>{item.location}</Text>
+                </View>
+              </View>
 
               <View style={styles.cardFooter}>
                 <View style={styles.footerRow}>
-                  <MapPinIcon size={12} color="#64748B" />
-                  <Text style={styles.footerInfo}>{item.location}</Text>
-                </View>
-                <View style={styles.footerRow}>
-                  <ShieldCheckIcon size={12} color="#1557B0" />
+                  <ShieldCheckIcon size={13} color="#0D8A5A" />
                   <Text style={styles.footerOfficer}>
                     {lang === 'tl' ? 'Na-verify ni:' : 'Verified by:'} <Text style={{ fontWeight: '700', color: '#172B4D' }}>{item.verifiedBy}</Text>
                   </Text>
@@ -145,9 +175,12 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
                   {item.receiptNumber}
                 </Text>
-                <Text style={{ fontSize: 11, fontWeight: '800', color: '#1557B0' }}>
-                   {lang === 'tl' ? 'Tingnan ang Resibo →' : 'View Claim Receipt →'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}>
+                    {lang === 'tl' ? 'Tingnan ang Resibo' : 'View Claim Receipt'}
+                  </Text>
+                  <ArrowRightIcon size={12} color="#1C3F94" />
+                </View>
               </View>
             </TouchableOpacity>
           ))}
@@ -183,7 +216,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'QR Pass Ref:' : 'QR Pass Ref:'}</Text>
-                  <Text style={[styles.receiptValue, { fontWeight: '700', color: '#1557B0' }]}>{selectedReceipt.qrCode}</Text>
+                  <Text style={[styles.receiptValue, { fontWeight: '700', color: '#1C3F94' }]}>{selectedReceipt.qrCode}</Text>
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Miyembro ng Pamilya:' : 'Family Headcount:'}</Text>
@@ -245,42 +278,40 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9F7' },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 8,
-    paddingBottom: 95,
+    paddingBottom: 24,
   },
   header: { marginBottom: 16 },
   backBtnPill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    backgroundColor: '#EFF6FF',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    borderColor: '#CBD5E1',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 9999,
     marginBottom: 12,
-    ...SHADOWS.sm,
+    ...SHADOWS.pill,
   },
   backIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFFFFF',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
   },
-  backBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0', letterSpacing: 0.2 },
+  backBtnText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
   kicker: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
     letterSpacing: 0.8,
     marginBottom: 2,
     textTransform: 'uppercase',
@@ -289,35 +320,48 @@ const styles = StyleSheet.create({
   sub: { fontSize: 12, color: '#64748B', marginTop: 4, lineHeight: 17 },
   summaryCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    padding: 12,
+    borderColor: '#DDE4F0',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    ...SHADOWS.sm,
+    marginHorizontal: 14,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#1C3F94',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 3,
   },
   summaryItem: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   summaryDivider: {
     width: 1,
-    height: 28,
-    backgroundColor: '#E2E8F0',
+    height: 44,
+    backgroundColor: '#DDE4F0',
   },
   summaryLabel: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.5,
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#8A9BB8',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   summaryValue: {
-    fontSize: 12.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0B1525',
     marginTop: 2,
+  },
+  summarySub: {
+    fontSize: 10,
+    color: '#8A9BB8',
+    marginTop: 1,
   },
   historyList: { gap: 10 },
   claimCard: {
@@ -437,7 +481,7 @@ const styles = StyleSheet.create({
   receiptNumberText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
     marginTop: 4,
     backgroundColor: '#EFF6FF',
     paddingHorizontal: 8,
@@ -505,7 +549,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   receiptCloseBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 11,
     borderRadius: 10,
     alignItems: 'center',

@@ -1,0 +1,167 @@
+{
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "suites": [
+    {
+      "name": "1. Static Codebase Integrity & Production Build",
+      "tests": [
+        {
+          "title": "Web Admin Production Build (dist/index.html generated)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Web Admin Production Assets Bundled",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Mobile App Screens Count (Found 16 screens)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "All Mobile App Screens export default component cleanly",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Web Admin Pages Count (Found 20 pages)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "All Web Admin Pages export default component cleanly",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "2. Cryptographic Hashing & JWT Security",
+      "tests": [
+        {
+          "title": "Bcrypt password hashing generation",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Bcrypt password matching verification",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Bcrypt rejection of invalid password",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "JWT Token issuance & validation for role: resident",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "JWT Token issuance & validation for role: field_staff",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "JWT Token issuance & validation for role: barangay_official",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "JWT Token issuance & validation for role: lgu_admin",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "JWT Token issuance & validation for role: lgu_superadmin",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Rejection of expired JWT access token",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "3. Core Algorithmic & Entitlement Rules",
+      "tests": [
+        {
+          "title": "Small Family (3 pax): 1 Base Pack",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Large Family (8 pax): 1 Base Pack + 3 Top-ups",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Vulnerable Family (6 pax, 1 senior, 1 infant, 1 pwd): Correct specialized supplements",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "CFW 10-day completed program wage: ₱5,000",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "CFW partial 4-day attendance wage: ₱2,000",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Smart Priority Score: Critical Vulnerability (Score 100)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Smart Priority Score: Moderate Vulnerability (Score 40)",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "4. Database Connection & Schema Anti-Fraud Constraints",
+      "tests": [
+        {
+          "title": "MongoDB URI present in environment",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "MongoDB Atlas Live TLS Handshake & Connection",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Database Collections Accessible",
+          "status": "PASS",
+          "detail": "Found: auditlogs, distributions, recoverystatuses, users, damagereports, assistancerequests, cashforworkprojects, warehouseitems, cashforworkapplications, policyconfigs, distributionevents, warehouselogs, otptokens, healthalerts, reliefitemtypes, announcements, incidents, households"
+        },
+        {
+          "title": "Distribution Collection Anti-Duplicate Compound Index Enforced",
+          "status": "PASS",
+          "detail": "Prevents double claiming"
+        },
+        {
+          "title": "Tamper-Evident AuditLog Collection Provisioned",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "title": "Graceful Database Disconnection",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    }
+  ]
+}

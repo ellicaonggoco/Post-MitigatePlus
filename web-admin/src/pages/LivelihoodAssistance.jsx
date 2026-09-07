@@ -21,8 +21,11 @@ import {
   AlertTriangle,
   MapPin,
   Calendar,
+  Info,
+  CheckCircle2,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import Pagination from '../components/Pagination';
 import { MotionCard } from '../components/motion';
 
 const DEFAULT_CATEGORIES = [
@@ -301,6 +304,15 @@ export default function LivelihoodAssistance() {
     if (vulnerabilityFilter === 'MODERATE') return a.computedScore < 75;
     return true;
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [vulnerabilityFilter, selectedProjectId]);
+
+  const paginatedApplicants = filteredApplicants.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const estimatedBudgetCalculation = (Number(newSlots) || 0) * (Number(newDays) || 0) * (Number(newWage) || 0);
 
@@ -640,7 +652,7 @@ export default function LivelihoodAssistance() {
                   </td>
                 </tr>
               ) : (
-                filteredApplicants.map(a => (
+                paginatedApplicants.map(a => (
                   <tr key={a._id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 700, color: '#1557B0' }}>
                       {a.payoutVoucherCode || 'VCH-PENDING'}
@@ -702,6 +714,12 @@ export default function LivelihoodAssistance() {
               )}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredApplicants.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 
@@ -929,9 +947,17 @@ export default function LivelihoodAssistance() {
                 marginBottom: 20,
                 lineHeight: 1.4,
               }}>
-                {isBarangay
-                  ? 'ℹ️ Upon submission, this request will be sent to the LGU Disaster Management Office for budget allocation and approval. Once approved, it will automatically open for resident applications in the mobile app.'
-                  : '✅ Direct LGU Creation: As an authorized LGU Admin, this project will be activated immediately and published to residents on the MitigatePlus Mobile App.'}
+                {isBarangay ? (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <Info size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span>Upon submission, this request will be sent to the LGU Disaster Management Office for budget allocation and approval. Once approved, it will automatically open for resident applications in the mobile app.</span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span><strong>Direct LGU Creation:</strong> As an authorized LGU Admin, this project will be activated immediately and published to residents on the MitigatePlus Mobile App.</span>
+                  </div>
+                )}
               </div>
 
               {/* Submit Buttons */}

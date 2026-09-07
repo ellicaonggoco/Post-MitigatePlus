@@ -1,18 +1,14 @@
 import { Dimensions, PixelRatio, Platform, StatusBar } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Baseline design dimensions (Standard 375x812 DP)
 const BASE_WIDTH = 375;
 const BASE_HEIGHT = 812;
 
-// Dynamic screen detection & adaptive scaling factor
 export const isSmallDevice = SCREEN_WIDTH < 360;
 export const isStandardDevice = SCREEN_WIDTH >= 360 && SCREEN_WIDTH < 428;
 export const isLargeDevice = SCREEN_WIDTH >= 428 && SCREEN_WIDTH < 600;
 export const isTablet = SCREEN_WIDTH >= 600;
 
-// Dynamic responsive scaler clamped between 0.85 (iPhone SE) and 1.25 (iPad / Tablet)
 const SCALE = Math.min(Math.max(SCREEN_WIDTH / BASE_WIDTH, 0.85), 1.25);
 
 export const scaleFont = (size) => Math.round(PixelRatio.roundToNearestPixel(size * SCALE));
@@ -33,21 +29,18 @@ export const verticalScale = (size) => (SCREEN_HEIGHT / BASE_HEIGHT) * size;
 export const moderateScale = (size, factor = 0.5) => Math.round(size + (scale(size) - size) * factor);
 
 export const getStatusBarHeight = () => {
-  if (Platform.OS === 'android') {
-    return Math.max(StatusBar.currentHeight || 36, 36) + 24;
-  }
-  if (SCREEN_HEIGHT >= 812 || SCREEN_WIDTH >= 812) {
-    return 56;
-  }
-  return 40;
+  if (Platform.OS === 'web') return 0;
+  if (Platform.OS === 'android') return StatusBar.currentHeight || 24;
+  if (Platform.OS === 'ios') return (SCREEN_HEIGHT >= 812 || SCREEN_WIDTH >= 812) ? 44 : 20;
+  return 0;
 };
 
 export const STATUSBAR_INSET = getStatusBarHeight();
 
 export const RESPONSIVE = {
-  padding: SCREEN_WIDTH < 360 ? 12 : SCREEN_WIDTH < 420 ? 16 : 22,
+  padding: SCREEN_WIDTH < 360 ? 12 : SCREEN_WIDTH < 420 ? 14 : 16,
   topSafe: STATUSBAR_INSET,
-  cardPadding: SCREEN_WIDTH < 360 ? 14 : 20,
+  cardPadding: SCREEN_WIDTH < 360 ? 14 : 18,
   maxCardWidth: Math.min(SCREEN_WIDTH - 24, 460),
   inputHeight: Math.max(48, moderateScale(48)),
   buttonHeight: Math.max(48, moderateScale(48)),
@@ -55,73 +48,71 @@ export const RESPONSIVE = {
   fontScale: SCALE,
 };
 
-// ============================================================================
-// INTENTIONAL COLOR SYSTEM (60-30-10 CIVIC HARMONY)
-// - 60% Canvas & Surfaces: Pearl White & Clean Card White (#F8F9F7, #FFFFFF)
-// - 30% Structural Blue & Slate Navy: Authority & Readability (#1557B0, #172B4D)
-// - 10% Purposeful Accents: Manila Gold (#D97706), Emerald (#16A34A), Coral (#DC2626)
-// ============================================================================
-export const COLORS = {
-  // 60% Canvas & Surfaces
-  bg: '#F8F9F7', // Pearl White Canvas
-  surface: '#FFFFFF', // Pure White Elevated Surfaces
-  card: '#FFFFFF',
-  cardAlt: '#F1F5F9',
-  well: '#F8F9F7',
-  wellDark: '#E8F2FF',
+// Manila City Seal Color Identity — Red + Royal Blue + Gold
+export const M = {
+  // Manila Crimson Red
+  red: '#C8102E',
+  redDark: '#9E0B24',
+  redDeep: '#6E071A',
+  redTint: '#FEF0F2',
+  redMid: '#F5E0E3',
 
-  // 30% Structural Authority & Typography
-  primary: '#1557B0', // Manila Primary Blue
-  royalNavy: '#1557B0',
-  navyDark: '#0B2E59', // Deep Institutional Navy
-  navyDeep: '#0B2E59',
-  blueLight: '#E8F2FF', // Soft Sky Blue Tint
-  blueBorder: '#BFDBFE',
-  info: '#2563EB',
+  // Manila Royal Blue
+  blue: '#1C3F94',
+  blueDark: '#12296A',
+  blueDeep: '#0B1D4E',
+  blueTint: '#EDF1FB',
+  blueMid: '#D6DEFA',
 
-  // High-Contrast WCAG AAA Typography
-  textDark: '#172B4D', // Primary Text (Slate Navy)
-  textSecondary: '#475569', // Secondary Text (Slate Gray)
-  textMuted: '#64748B', // Tertiary / Helper Text
-  pureWhite: '#FFFFFF',
+  // Manila Gold
+  gold: '#C9A84C',
+  goldRich: '#B8932A',
+  goldLight: '#FBF5E4',
+  goldMid: '#F0DFA0',
 
-  // 10% Semantic & Prestige Accents (Used strictly with purpose)
-  manilaGold: '#D97706',
-  goldDark: '#B45309',
-  goldBright: '#F59E0B',
-  goldLight: '#FEF3C7',
-  goldBorder: '#FDE68A',
+  // Surfaces
+  white: '#FFFFFF',
+  canvas: '#F3F6FC',
+  border: '#DDE4F0',
 
-  // Emerald Resilience
-  success: '#16A34A',
-  emeraldLight: '#ECFDF5',
-  emeraldBorder: '#A7F3D0',
-  emeraldText: '#16A34A',
+  // Typography
+  text: '#0B1525',
+  textSec: '#3D5070',
+  textMuted: '#8A9BB8',
 
-  // Alert Red
-  emergency: '#DC2626',
-  crimsonLight: '#FEE2E2',
-  crimsonBorder: '#FCA5A5',
-  crimsonText: '#DC2626',
-
-  // Amber Advisory
-  warning: '#F59E0B',
-  amberLight: '#FFFBEB',
-  amberBorder: '#FCD34D',
-  amberText: '#D97706',
-
-  // Razor-sharp 1px structural dividers
-  border: '#D9E2EC',
-  borderLight: '#EDF2F7',
-  borderDark: '#CBD5E1',
-  borderFocus: '#1557B0',
-
-  shadowColor: '#0F172A',
+  // Status
+  green: '#0D8A5A',
+  greenTint: '#E6F6EF',
 };
 
-// ============================================================================
-// TYPOGRAPHY SCALES (Fluid, Scannable & Clear Hierarchy)
-// ============================================================================
+// Keep COLORS as alias for backward compat with old screens
+export const COLORS = {
+  bg: M.canvas,
+  surface: M.white,
+  card: M.white,
+  cardAlt: M.canvas,
+  primary: M.blue,
+  royalNavy: M.blue,
+  navyDark: M.blueDeep,
+  navyDeep: M.blueDeep,
+  blueLight: M.blueTint,
+  textDark: M.text,
+  textSecondary: M.textSec,
+  textMuted: M.textMuted,
+  pureWhite: M.white,
+  manilaGold: M.gold,
+  goldDark: M.goldRich,
+  goldLight: M.goldLight,
+  success: M.green,
+  emeraldLight: M.greenTint,
+  emergency: M.red,
+  crimsonLight: M.redTint,
+  border: M.border,
+  borderLight: M.border,
+  inkLighter: M.textMuted,
+  shadowColor: M.blueDeep,
+};
+
 export const TYPOGRAPHY = {
   display: scaleFont(22),
   title: scaleFont(18),
@@ -132,6 +123,11 @@ export const TYPOGRAPHY = {
   micro: scaleFont(9.5),
 };
 
+export const FONT_FAMILY = Platform.select({
+  web: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  default: undefined,
+});
+
 export const FONT_WEIGHT = {
   normal: '400',
   medium: '500',
@@ -140,9 +136,6 @@ export const FONT_WEIGHT = {
   black: '900',
 };
 
-// ============================================================================
-// FLUID GRID & SPACING
-// ============================================================================
 export const SPACING = {
   xxs: scaleSpacing(2),
   xs: scaleSpacing(4),
@@ -160,122 +153,70 @@ export const RADIUS = {
   lg: 16,
   xl: 20,
   inner: 10,
-  card: 16,
+  card: 20,
   pill: 9999,
 };
 
-// ============================================================================
-// PREMIUM DARK SHADOWS (Deeper, richer on dark background)
-// ============================================================================
-export const SHADOWS = {
-  sm: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    elevation: 3,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08)' } : {}),
-  },
-  md: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 14px rgba(15, 23, 42, 0.10)' } : {}),
-  },
-  lg: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    elevation: 8,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 8px 22px rgba(15, 23, 42, 0.12)' } : {}),
-  },
-  pill: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 7,
-    elevation: 4,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 3px 10px rgba(15, 23, 42, 0.12)' } : {}),
-  },
-  card: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 14px rgba(15, 23, 42, 0.07)' } : {}),
-  },
-  button: {
-    shadowColor: '#1557B0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.30,
-    shadowRadius: 8,
-    elevation: 5,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 14px rgba(21, 87, 176, 0.30)' } : {}),
-  },
-  floating: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 14,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 10px 30px rgba(15, 23, 42, 0.15)' } : {}),
-  },
-  gold: {
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 12px rgba(245, 158, 11, 0.30)' } : {}),
-  },
+const makeShadow = (nativeProps, webBoxShadow) => {
+  if (Platform.OS === 'web') {
+    return { boxShadow: webBoxShadow };
+  }
+  return nativeProps;
 };
 
-// ============================================================================
-// ============================================================================
-// RESPONSIVE CARD HELPERS & BUTTON VARIANTS
-// ============================================================================
+// Blue-tinted shadow system (premium signature)
+const SHADOW_DEFS = {
+  sm: makeShadow(
+    { shadowColor: M.blueDeep, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+    '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)'
+  ),
+  md: makeShadow(
+    { shadowColor: M.blue, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 10, elevation: 5 },
+    '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)'
+  ),
+  lg: makeShadow(
+    { shadowColor: M.blue, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.16, shadowRadius: 18, elevation: 8 },
+    '0 2px 6px rgba(11,21,80,0.05), 0 16px 40px rgba(28,63,148,0.13)'
+  ),
+  pill: makeShadow(
+    { shadowColor: M.blueDeep, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 6, elevation: 3 },
+    '0 1px 3px rgba(11,21,80,0.06), 0 4px 14px rgba(28,63,148,0.10)'
+  ),
+  card: makeShadow(
+    { shadowColor: M.blue, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 14, elevation: 3 },
+    '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)'
+  ),
+  button: makeShadow(
+    { shadowColor: M.blue, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 10, elevation: 6 },
+    '0 4px 18px rgba(28,63,148,0.32)'
+  ),
+  redButton: makeShadow(
+    { shadowColor: M.red, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.30, shadowRadius: 10, elevation: 6 },
+    '0 4px 18px rgba(200,16,46,0.30)'
+  ),
+  gold: makeShadow(
+    { shadowColor: M.gold, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 6 },
+    '0 4px 18px rgba(201,168,76,0.30)'
+  ),
+  floating: makeShadow(
+    { shadowColor: M.blueDeep, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.20, shadowRadius: 24, elevation: 14 },
+    '0 2px 6px rgba(11,21,80,0.05), 0 16px 40px rgba(28,63,148,0.13)'
+  ),
+};
+
+export const SHADOWS = SHADOW_DEFS;
+
 export const NEUMORPHIC = {
   raised: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: M.white,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
-    ...SHADOWS.card,
-  },
-  sunken: {
-    backgroundColor: '#F8F9F7',
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-  },
-  pressed: {
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1.5,
-    borderColor: '#1557B0',
+    borderColor: M.border,
+    ...SHADOW_DEFS.card,
   },
 };
 
 export const BUTTON_VARIANTS = {
-  primary: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
-    textColor: '#FFFFFF',
-  },
-  secondary: {
-    backgroundColor: '#E8F2FF',
-    borderColor: '#BFDBFE',
-    textColor: '#1557B0',
-  },
-  danger: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
-    textColor: '#FFFFFF',
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    textColor: '#172B4D',
-  },
+  primary: { backgroundColor: M.blue, borderColor: M.blue, textColor: M.white },
+  danger: { backgroundColor: M.red, borderColor: M.red, textColor: M.white },
+  ghost: { backgroundColor: 'transparent', borderColor: 'transparent', textColor: M.text },
 };

@@ -35,6 +35,7 @@ function ScreenTransition({ children, transitionKey }) {
     <Animated.View
       style={{
         flex: 1,
+        width: '100%',
         opacity: fadeAnim,
         transform: [{ translateY: translateYAnim }],
       }}
@@ -51,6 +52,35 @@ export default function App() {
   const [lang, setLang] = useState('en');
 
   useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      if (!document.getElementById('mitigateplus-google-fonts')) {
+        const link = document.createElement('link');
+        link.id = 'mitigateplus-google-fonts';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap';
+        document.head.appendChild(link);
+      }
+      if (!document.getElementById('mitigateplus-global-font-style')) {
+        const style = document.createElement('style');
+        style.id = 'mitigateplus-global-font-style';
+        style.innerHTML = `
+          html, body, #root {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow-x: hidden !important;
+            background-color: #F3F6FC !important;
+          }
+          * {
+            box-sizing: border-box !important;
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
     (async () => {
       try {
         const savedLang = await AsyncStorage.getItem('mitigateplus_user_lang');
@@ -104,7 +134,7 @@ export default function App() {
   const activeKey = userSession ? (isStaff ? 'staff' : 'resident') : currentScreen;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <StatusBar style="dark" />
 
       {/* 1. Minimal Pure White Splash Screen with Cross-Fade Transition */}
@@ -112,59 +142,70 @@ export default function App() {
         <SplashScreen onFinish={() => setShowSplash(false)} />
       )}
 
-      {/* 2. Main Authenticated / Unauthenticated App Routing with Smooth Transitions */}
-      <ScreenTransition transitionKey={activeKey}>
-        {userSession ? (
-          // Role-Based Operations Portal
-          isStaff ? (
-            <StaffScannerScreen
-              token={userSession.token}
-              user={userSession}
+      {/* 2. Adaptive Responsive Shell for All Screen Sizes */}
+      <View style={styles.adaptiveWrapper}>
+        <ScreenTransition transitionKey={activeKey}>
+          {userSession ? (
+            // Role-Based Operations Portal
+            isStaff ? (
+              <StaffScannerScreen
+                token={userSession.token}
+                user={userSession}
+                lang={lang}
+                onSelectLang={handleSelectLang}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <ResidentHomeScreen
+                user={userSession}
+                household={userSession.household}
+                token={userSession.token}
+                lang={lang}
+                onSelectLang={handleSelectLang}
+                onLogout={handleLogout}
+              />
+            )
+          ) : currentScreen === 'login' ? (
+            <ResidentLoginScreen
               lang={lang}
               onSelectLang={handleSelectLang}
-              onLogout={handleLogout}
+              onLoginSuccess={handleAuthSuccess}
+              onNavigateRegister={() => setCurrentScreen('register')}
+              onNavigateForgot={() => setCurrentScreen('forgot')}
+            />
+          ) : currentScreen === 'register' ? (
+            <ResidentRegisterScreen
+              lang={lang}
+              onSelectLang={handleSelectLang}
+              onRegisterSuccess={handleAuthSuccess}
+              onBack={() => setCurrentScreen('login')}
             />
           ) : (
-            <ResidentHomeScreen
-              user={userSession}
-              household={userSession.household}
-              token={userSession.token}
+            <ForgotPasswordScreen
               lang={lang}
               onSelectLang={handleSelectLang}
-              onLogout={handleLogout}
+              onBack={() => setCurrentScreen('login')}
+              onResetComplete={() => setCurrentScreen('login')}
             />
-          )
-        ) : currentScreen === 'login' ? (
-          <ResidentLoginScreen
-            lang={lang}
-            onSelectLang={handleSelectLang}
-            onLoginSuccess={handleAuthSuccess}
-            onNavigateRegister={() => setCurrentScreen('register')}
-            onNavigateForgot={() => setCurrentScreen('forgot')}
-          />
-        ) : currentScreen === 'register' ? (
-          <ResidentRegisterScreen
-            lang={lang}
-            onSelectLang={handleSelectLang}
-            onRegisterSuccess={handleAuthSuccess}
-            onBack={() => setCurrentScreen('login')}
-          />
-        ) : (
-          <ForgotPasswordScreen
-            lang={lang}
-            onSelectLang={handleSelectLang}
-            onBack={() => setCurrentScreen('login')}
-            onResetComplete={() => setCurrentScreen('login')}
-          />
-        )}
-      </ScreenTransition>
+          )}
+        </ScreenTransition>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F3F6FC',
+  },
+  adaptiveWrapper: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#F3F6FC',
+    position: 'relative',
+    overflow: 'hidden',
   },
 });

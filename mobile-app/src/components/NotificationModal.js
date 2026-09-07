@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { BellIcon, CloseIcon, ArrowLeftIcon, MegaphoneIcon } from './AppIcons';
+import { BellIcon, CloseIcon, ArrowLeftIcon, MegaphoneIcon, EditIcon, ArrowRightIcon } from './AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { MotionPressable } from './motion';
 
@@ -83,7 +83,9 @@ export default function NotificationModal({
                   style={styles.backBtnPill}
                   activeOpacity={0.8}
                 >
-                  <ArrowLeftIcon size={14} color="#1557B0" />
+                  <View style={styles.backIconCircle}>
+                    <ArrowLeftIcon size={14} color="#1C3F94" />
+                  </View>
                   <Text style={styles.backBtnText}>
                     {lang === 'tl' ? 'Mga Notipikasyon' : 'All Notifications'}
                   </Text>
@@ -105,7 +107,7 @@ export default function NotificationModal({
               >
                 <View style={styles.detailBadgeRow}>
                   <View style={[styles.typeBadge, selectedNotif.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
-                    <Text style={[styles.typeBadgeText, selectedNotif.type === 'urgent' ? { color: '#DC2626' } : { color: '#1557B0' }]}>
+                    <Text style={[styles.typeBadgeText, selectedNotif.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
                       {selectedNotif.tag || (selectedNotif.type === 'urgent' ? 'URGENT BULLETIN' : 'PUBLIC ADVISORY')}
                     </Text>
                   </View>
@@ -131,7 +133,7 @@ export default function NotificationModal({
             <>
               <View style={styles.popoverHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <BellIcon size={17} color="#1557B0" />
+                  <BellIcon size={17} color="#1C3F94" />
                   <Text style={styles.popoverTitle}>
                     {lang === 'tl' ? 'Mga Notipikasyon at Alert' : 'Notifications & Alerts'}
                   </Text>
@@ -166,14 +168,15 @@ export default function NotificationModal({
                       <View style={styles.notifTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                           <View style={[styles.typeBadge, n.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
-                            <Text style={[styles.typeBadgeText, n.type === 'urgent' ? { color: '#DC2626' } : { color: '#1557B0' }]}>
+                            <Text style={[styles.typeBadgeText, n.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
                               {n.tag || (n.type === 'urgent' ? 'URGENT' : 'ADVISORY')}
                             </Text>
                           </View>
                           {(n.edited || n.isEdited || n.tag === 'UPDATED' || n.title?.includes('Na-update') || n.title?.includes('Updated')) && (
-                            <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                              <EditIcon size={11} color="#B45309" />
                               <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
-                                {lang === 'tl' ? '✏️ NA-UPDATE' : '✏️ EDITED'}
+                                {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
                               </Text>
                             </View>
                           )}
@@ -184,10 +187,11 @@ export default function NotificationModal({
                       <Text style={styles.notifTitle}>{n.title}</Text>
                       <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text>
 
-                      <View style={styles.tapToReadRow}>
+                      <View style={[styles.tapToReadRow, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
                         <Text style={styles.tapToReadText}>
-                          {lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo ➜' : 'Tap to read full announcement ➜'}
+                          {lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
                         </Text>
+                        <ArrowRightIcon size={12} color="#1C3F94" />
                       </View>
                     </MotionPressable>
                   ))
@@ -272,7 +276,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     borderLeftWidth: 4,
-    borderLeftColor: '#1557B0',
+    borderLeftColor: '#1C3F94',
     marginBottom: 8,
   },
   notifItemUnread: {
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
   },
   tapToReadText: {
     fontSize: 11.5,
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '700',
   },
   // DETAIL VIEW STYLES
@@ -347,17 +351,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: '#CBD5E1',
+    gap: 8,
+    ...SHADOWS.pill,
+  },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBtnText: {
-    fontSize: 12.5,
-    fontWeight: '700',
-    color: '#1557B0',
-    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1C3F94',
+    letterSpacing: 0.2,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
   },
   detailScrollView: {
     maxHeight: 460,
@@ -413,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   detailActionBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',

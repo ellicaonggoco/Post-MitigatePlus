@@ -1,10 +1,12 @@
 import React, { useContext, useState, useRef, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
-import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X } from "lucide-react";
+import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X, Info } from "lucide-react";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Sidebar from "./components/Sidebar";
+import Footer from "./components/Footer";
+import SystemInfoModal from "./components/SystemInfoModal";
 import { ROLES } from "./utils/roleUtils";
 
 // Code-Splitting / Lazy Loading for Lightning Fast Initial Load & 95+ Performance Score
@@ -157,6 +159,7 @@ function AppRoutes() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [systemInfoOpen, setSystemInfoOpen] = useState(false);
 
   const [notifs, setNotifsState] = useState(() => {
     try {
@@ -333,6 +336,28 @@ function AppRoutes() {
             </div>
           </div>
           <div className="app-topbar-actions">
+            <button
+              onClick={() => setSystemInfoOpen(true)}
+              title="About System & Developers (ONTHEWAY)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                backgroundColor: '#EDF1FB',
+                color: '#1C3F94',
+                borderRadius: '20px',
+                border: '1px solid #D6DEFA',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <Info size={14} color="#1C3F94" />
+              <span className="desktop-only">System &amp; Devs (ONTHEWAY)</span>
+            </button>
+
             <div ref={notifRef} style={{ position: "relative" }}>
               <button className="app-notification" aria-label="Notifications" onClick={() => setNotifOpen(p => !p)} style={{ position: "relative" }}>
                 <Bell size={18} />
@@ -368,7 +393,13 @@ function AppRoutes() {
             <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
           </Routes>
         </Suspense>
+
+        {/* Global Institutional & Developer Footer */}
+        <Footer onOpenInfoModal={() => setSystemInfoOpen(true)} />
       </main>
+
+      {/* Interactive System & Developer Details Modal */}
+      <SystemInfoModal isOpen={systemInfoOpen} onClose={() => setSystemInfoOpen(false)} />
     </div>
   );
 }

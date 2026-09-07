@@ -150,7 +150,9 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {onBack && (
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
-          <ArrowLeftIcon size={16} color="#1557B0" />
+          <View style={styles.backIconCircle}>
+            <ArrowLeftIcon size={14} color="#1C3F94" />
+          </View>
           <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
         </TouchableOpacity>
       )}
@@ -343,7 +345,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                       onPress={handlePickCamera}
                       activeOpacity={0.8}
                     >
-                      <CameraIcon size={22} color="#1557B0" />
+                      <CameraIcon size={22} color="#1C3F94" />
                       <Text style={styles.photoActionBtnText}>{lang === 'tl' ? 'Buksan ang Camera' : 'Take Photo (Camera)'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -411,17 +413,25 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#CBD5E1',
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 7,
+    borderRadius: 9999,
     marginBottom: 12,
-    ...SHADOWS.sm,
+    ...SHADOWS.pill,
   },
-  backBtnText: { fontSize: 12.5, fontWeight: '800', color: '#1557B0' },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
   headerCard: {
     backgroundColor: COLORS.manilaBlue,
     borderRadius: RADIUS.card,
@@ -473,6 +483,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: TOUCH_TARGET.min,
     justifyContent: 'center',
+    ...SHADOWS.button,
   },
   deliverBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
   deliveredTimeText: { fontSize: 11, color: COLORS.bayTealDeep, fontWeight: '700', textAlign: 'center', marginTop: 4 },
@@ -494,7 +505,7 @@ const styles = StyleSheet.create({
   modalKicker: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
@@ -531,7 +542,7 @@ const styles = StyleSheet.create({
   photoActionBtnText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   photoPreviewBox: {
     borderRadius: 12,
@@ -594,6 +605,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.button,
   },
   modalSubmitBtnText: {
     fontSize: 12.5,

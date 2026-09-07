@@ -152,7 +152,7 @@ export default function LandingScreen({ onGetStarted }) {
 const styles = StyleSheet.create({
   splashRoot: {
     flex: 1,
-    backgroundColor: '#071D3A',
+    backgroundColor: '#0B1D4E',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   closeBtn: {
-    backgroundColor: '#071D3A',
+    backgroundColor: '#0B1D4E',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',

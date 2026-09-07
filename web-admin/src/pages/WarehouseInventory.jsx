@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Warehouse, AlertTriangle, RefreshCw, PlusCircle, MinusCircle, History, PackageCheck, Send, Package, Droplet, HeartPulse, Sparkles, Home, Shirt, Wrench, ArrowUpRight, ArrowDownRight, Truck, FileText, UserCheck, Building } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import Pagination from '../components/Pagination';
 import { AuthContext } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import { MotionCard } from '../components/motion';
@@ -37,6 +38,10 @@ export default function WarehouseInventory() {
   const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [logPage, setLogPage] = useState(1);
+  const LOGS_PER_PAGE = 8;
+
+  const paginatedLogs = logs.slice((logPage - 1) * LOGS_PER_PAGE, logPage * LOGS_PER_PAGE);
 
   const fetchInventory = async () => {
     try {
@@ -469,7 +474,7 @@ export default function WarehouseInventory() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map(log => (
+                {paginatedLogs.map(log => (
                   <tr key={log.id || log._id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '10px 12px', fontSize: 12, color: 'var(--ink-soft)' }}>
                       {log.time || new Date(log.timestamp || log.createdAt).toLocaleString()}
@@ -507,6 +512,12 @@ export default function WarehouseInventory() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              currentPage={logPage}
+              totalItems={logs.length}
+              itemsPerPage={LOGS_PER_PAGE}
+              onPageChange={setLogPage}
+            />
           </div>
         )}
       </div>

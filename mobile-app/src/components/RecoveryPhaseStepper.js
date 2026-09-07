@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, FONT_WEIGHT, SHADOWS } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { ShieldCheckIcon, CheckIcon } from './AppIcons';
-import { MotionProgressTrack } from './motion';
 
 const STAGES_EN = [
   { key: 'verification', label: '1. Verification', shortLabel: 'Verification', desc: 'Household document review by Barangay Admin in Queue' },
@@ -71,46 +71,43 @@ export default function RecoveryPhaseStepper({
           <Text style={styles.subTitle}>{t.stepperKicker}</Text>
         </View>
 
-        <View style={[styles.percentBadge, !isVerified && { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
-          <Text style={[styles.percentText, !isVerified && { color: '#B45309' }]}>
+        <View style={styles.percentBadge}>
+          <Text style={styles.percentText}>
             {percentage}% {lang === 'tl' ? 'Natapos' : 'Done'}
           </Text>
         </View>
       </View>
 
-      {/* Progress Track (Motion Primitive Liquid Fill) */}
-      <MotionProgressTrack
-        percentage={percentage}
-        height={5}
-        color={!isVerified ? '#D97706' : '#1557B0'}
-        style={{ marginVertical: 6 }}
-      />
+      {/* Progress Track with Red to Gold Gradient */}
+      <View style={styles.trackBackground}>
+        <LinearGradient
+          colors={['#C8102E', '#D97706', '#C9A84C']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.trackFill,
+            { width: `${Math.min(Math.max(percentage, 5), 100)}%` },
+          ]}
+        />
+      </View>
 
       {/* 5-Step Segmented Markers */}
       <View style={styles.stepsRow}>
         {stages.map((stage, idx) => {
-          const isCompleted = isVerified && idx < activeIndex;
-          const isCurrent = idx === activeIndex;
+          const isCompletedOrCurrent = isVerified && idx <= activeIndex;
 
           return (
             <View key={stage.key} style={styles.stepItem}>
               <View
                 style={[
                   styles.stepNode,
-                  isCompleted && styles.stepNodeCompleted,
-                  isCurrent && (isVerified ? styles.stepNodeCurrent : styles.stepNodePending),
+                  isCompletedOrCurrent ? styles.stepNodeCompleted : styles.stepNodeUpcoming,
                 ]}
               >
-                {isCompleted || (isCurrent && isVerified) ? (
-                  <CheckIcon size={11} color="#FFFFFF" />
+                {isCompletedOrCurrent ? (
+                  <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
                 ) : (
-                  <Text
-                    style={[
-                      styles.stepNumber,
-                      (isCompleted || isCurrent) && styles.stepNumberActive,
-                      !isVerified && isCurrent && { color: '#B45309' },
-                    ]}
-                  >
+                  <Text style={styles.stepNumberUpcoming}>
                     {idx + 1}
                   </Text>
                 )}
@@ -119,8 +116,7 @@ export default function RecoveryPhaseStepper({
               <Text
                 style={[
                   styles.stepLabel,
-                  (isCompleted || isCurrent) && styles.stepLabelActive,
-                  !isVerified && isCurrent && { color: '#B45309', fontWeight: '800' },
+                  isCompletedOrCurrent && styles.stepLabelActive,
                 ]}
                 numberOfLines={1}
               >
@@ -132,14 +128,14 @@ export default function RecoveryPhaseStepper({
       </View>
 
       {/* Current Active Stage Description Callout */}
-      <View style={[styles.activeCallout, !isVerified && { backgroundColor: '#FFFDF5', borderColor: '#FDE68A' }]}>
+      <View style={styles.activeCallout}>
         <View style={styles.activeCalloutHeader}>
-          <ShieldCheckIcon size={14} color={!isVerified ? '#D97706' : '#1557B0'} />
-          <Text style={[styles.activeCalloutTitle, !isVerified && { color: '#92400E' }]}>
+          <View style={styles.activePhaseDot} />
+          <Text style={styles.activeCalloutTitle}>
             {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'} {!isVerified ? (lang === 'tl' ? '1. Beripikasyon (Nakabinbin)' : '1. Verification (Pending)') : currentStage.label}
           </Text>
         </View>
-        <Text style={[styles.activeCalloutDesc, !isVerified && { color: '#78350F' }]}>
+        <Text style={styles.activeCalloutDesc}>
           {!isVerified
             ? (lang === 'tl'
                 ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
@@ -154,120 +150,137 @@ export default function RecoveryPhaseStepper({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 12,
-    marginBottom: 12,
-    ...SHADOWS.sm,
+    borderColor: '#DDE4F0',
+    padding: 18,
+    marginBottom: 14,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(11, 29, 78, 0.08), 0 2px 6px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 14,
+      elevation: 3,
+    }),
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   title: {
-    fontSize: 13,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.3,
   },
   subTitle: {
-    fontSize: 9.5,
-    color: '#64748B',
-    fontWeight: '600',
-    marginTop: 0.5,
-    letterSpacing: 0.2,
+    fontSize: 12,
+    color: '#8A9BB8',
+    fontWeight: '500',
+    marginTop: 2,
   },
   percentBadge: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F6EF',
     borderWidth: 1,
     borderColor: '#A7F3D0',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
   },
   percentText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#16A34A',
+    color: '#0D8A5A',
+  },
+  trackBackground: {
+    height: 7,
+    backgroundColor: '#DCE6F5',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  trackFill: {
+    height: '100%',
+    borderRadius: 4,
   },
   stepsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 4,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   stepItem: {
     flex: 1,
     alignItems: 'center',
   },
   stepNode: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 3,
+    marginBottom: 6,
   },
   stepNodeCompleted: {
-    backgroundColor: '#16A34A',
-    borderColor: '#16A34A',
+    backgroundColor: '#C8102E',
+    shadowColor: '#C8102E',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 12px rgba(200, 16, 46, 0.35)' } : {}),
   },
-  stepNodeCurrent: {
-    backgroundColor: '#16A34A',
-    borderColor: '#15803D',
-    borderWidth: 1.5,
+  stepNodeUpcoming: {
+    backgroundColor: '#DCE6F5',
   },
-  stepNodePending: {
-    backgroundColor: '#FEF3C7',
-    borderColor: '#D97706',
-    borderWidth: 1.5,
-  },
-  stepNumber: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: '#94A3B8',
-  },
-  stepNumberActive: {
-    color: '#FFFFFF',
+  stepNumberUpcoming: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6882A9',
   },
   stepLabel: {
-    fontSize: 8.5,
-    color: '#94A3B8',
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#8A9BB8',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   stepLabelActive: {
-    color: '#0F172A',
-    fontWeight: '800',
+    color: '#3D5070',
+    fontWeight: '700',
   },
   activeCallout: {
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    marginTop: 8,
+    backgroundColor: '#FEF9EC',
+    borderWidth: 1.5,
+    borderColor: '#F0DFB0',
+    borderRadius: 14,
+    padding: 14,
   },
   activeCalloutHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 1,
+    marginBottom: 3,
+  },
+  activePhaseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#B8932A',
+    marginRight: 8,
   },
   activeCalloutTitle: {
-    fontSize: 9.5,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#B45309',
+    color: '#A17A16',
     letterSpacing: 0.3,
   },
   activeCalloutDesc: {
-    fontSize: 10,
-    color: '#78350F',
-    lineHeight: 13,
+    fontSize: 11.5,
+    color: '#997A20',
+    lineHeight: 16,
+    paddingLeft: 16,
   },
 });

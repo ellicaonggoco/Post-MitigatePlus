@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { RADIUS, FONT_WEIGHT, SPACING, RESPONSIVE, wp, hp } from '../theme';
+import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { fetchDistributionEvents } from '../services/api';
-import { MapPinIcon, PackageIcon, CheckIcon } from '../components/AppIcons';
+import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, QrCodeIcon } from '../components/AppIcons';
 import { MotionPressable, MotionProgressTrack } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
@@ -203,7 +203,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                 {!isScheduled && (
                   <View style={styles.progressRow}>
                     <View style={{ flex: 1 }}>
-                      <MotionProgressTrack percentage={progressPercent} height={7} color={isOngoing ? '#1557B0' : '#059669'} />
+                      <MotionProgressTrack percentage={progressPercent} height={7} color={isOngoing ? '#1C3F94' : '#059669'} />
                     </View>
                     <Text style={styles.progressText}>{item.scannedCount}/{item.totalTarget} ({progressPercent}%)</Text>
                   </View>
@@ -216,8 +216,9 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                     onPress={() => handleStartDistribution(item)}
                     activeOpacity={0.85}
                   >
+                    <PlayIcon size={14} color="#FFFFFF" />
                     <Text style={styles.startActionBtnText}>
-                      {lang === 'tl' ? '▶ Simulan ang Pamamahagi (Leader Action)' : '▶ Start Distribution (Leader Action)'}
+                      {lang === 'tl' ? 'Simulan ang Pamamahagi (Leader Action)' : 'Start Distribution (Leader Action)'}
                     </Text>
                   </MotionPressable>
                 ) : isOngoing ? (
@@ -227,6 +228,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                       onPress={() => onSelectScanEvent && onSelectScanEvent(item)}
                       activeOpacity={0.85}
                     >
+                      <QrCodeIcon size={14} color="#FFFFFF" />
                       <Text style={styles.scanActionBtnText}>
                         {lang === 'tl' ? 'Buksan ang QR Scanner' : 'Launch QR Scanner'}
                       </Text>
@@ -236,8 +238,9 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
                       onPress={() => handleCompleteDistribution(item)}
                       activeOpacity={0.85}
                     >
+                      <CheckIcon size={14} color="#FFFFFF" />
                       <Text style={styles.completeActionBtnText}>
-                        {lang === 'tl' ? '✓ Tapusin ang Pamamahagi (Leader Action)' : '✓ Complete Distribution (Leader Action)'}
+                        {lang === 'tl' ? 'Tapusin ang Pamamahagi (Leader Action)' : 'Complete Distribution (Leader Action)'}
                       </Text>
                     </MotionPressable>
                   </View>
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   tabTextActive: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   eventList: {
@@ -389,11 +392,15 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   startActionBtn: {
-    backgroundColor: '#1557B0',
-    paddingVertical: 10,
+    backgroundColor: '#1C3F94',
+    paddingVertical: 11,
     borderRadius: RADIUS.sm,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 6,
+    ...SHADOWS.button,
   },
   startActionBtnText: {
     color: '#FFFFFF',
@@ -402,10 +409,14 @@ const styles = StyleSheet.create({
   },
   scanActionBtn: {
     backgroundColor: '#0F172A',
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.sm,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 6,
+    ...SHADOWS.md,
   },
   scanActionBtnText: {
     color: '#FFFFFF',
@@ -414,10 +425,14 @@ const styles = StyleSheet.create({
   },
   completeActionBtn: {
     backgroundColor: '#15803D',
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.sm,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: 4,
+    ...SHADOWS.md,
   },
   completeActionBtnText: {
     color: '#FFFFFF',
@@ -445,7 +460,7 @@ const styles = StyleSheet.create({
   },
   viewAuditText: {
     fontSize: 11,
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '700',
   },
 });

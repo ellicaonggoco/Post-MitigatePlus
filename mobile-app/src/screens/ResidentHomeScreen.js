@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
@@ -9,7 +9,7 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -31,7 +31,7 @@ const EMERGENCY_HOTLINES = [
   { name: 'MDRRMO Rescue', phone: '(02) 8527-5174', tag: '24/7 Dispatch' },
   { name: 'Ambulance / EMS', phone: '(02) 8527-5175', tag: 'Medical EMS' },
   { name: 'BFP Fire & Rescue', phone: '(02) 8527-3627', tag: 'Fire Rescue' },
-  { name: 'PNP Police Emergency', phone: '911', tag: 'Police Emergency' },
+  { name: 'PNP Police', phone: '911', tag: 'Police Emergency' },
 ];
 
 /**
@@ -41,28 +41,11 @@ const EMERGENCY_HOTLINES = [
  * - High-taste micro-interactions without layout thrashing
  */
 function AnimatedNavItem({ item, isActive, onPress }) {
-  const scaleAnim = useRef(new Animated.Value(isActive ? 1.04 : 1)).current;
-  const fadeAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: isActive ? 1.04 : 1,
-        friction: 6,
-        tension: 120,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: isActive ? 1 : 0,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [isActive]);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.92,
+      toValue: 0.88,
       friction: 5,
       tension: 150,
       useNativeDriver: true,
@@ -71,7 +54,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
 
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
-      toValue: isActive ? 1.04 : 1,
+      toValue: 1,
       friction: 6,
       tension: 120,
       useNativeDriver: true,
@@ -79,22 +62,30 @@ function AnimatedNavItem({ item, isActive, onPress }) {
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <TouchableOpacity
-        style={isActive ? styles.navActivePill : styles.navInactiveBtn}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.9}
+    <TouchableOpacity
+      style={[
+        { flex: 1, alignItems: 'center', paddingVertical: 6, paddingBottom: 18, gap: 3 },
+        Platform.OS === 'web' ? { outlineStyle: 'none' } : {},
+      ]}
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
+    >
+      <Animated.View
+        style={[
+          isActive ? styles.navIconPillActive : styles.navIconPillInactive,
+          { transform: [{ scale: scaleAnim }] },
+        ]}
       >
         {item.renderIcon(isActive)}
-        {isActive && (
-          <Animated.Text style={[styles.navActiveLabel, { opacity: fadeAnim }]}>
-            {item.label}
-          </Animated.Text>
-        )}
-      </TouchableOpacity>
-    </Animated.View>
+      </Animated.View>
+      <Text style={[
+        { fontSize: 10, fontWeight: isActive ? '700' : '400', color: isActive ? '#C8102E' : '#8A9BB8' },
+      ]}>
+        {item.label}
+      </Text>
+    </TouchableOpacity>
   );
 }
 
@@ -112,6 +103,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   }, [activeTab]);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showVerifInfoModal, setShowVerifInfoModal] = useState(false);
+  const [modalCodeCopied, setModalCodeCopied] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
   const [inAppNotifs, setInAppNotifs] = useState([]);
@@ -275,6 +267,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     }
   };
 
+  // Handle 1-Tap Copy of Household QR Code
+  const handleCopyHouseholdCode = () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(qrCodeString).catch(() => {});
+      }
+    } catch (e) {}
+    setModalCodeCopied(true);
+    setTimeout(() => setModalCodeCopied(false), 2200);
+  };
+
   // Handle Print / Share PDF Voucher
   const handlePrintPdfVoucher = async () => {
     try {
@@ -312,53 +315,68 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     <View style={styles.container}>
       {/* 1. App Header (Avatar + Location + Notifications Bell) - Only on Dashboard */}
       {activeTab === 'home' && (
-        <View style={styles.topHeader}>
-          <View style={styles.avatarWell}>
-            {profilePhoto ? (
-              <Image source={{ uri: profilePhoto }} style={styles.avatarImg} resizeMode="cover" />
-            ) : (
-              <Text style={styles.avatarInitials}>
-                {householdName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.headerTitleArea}>
-            <Text style={styles.residentTitle} numberOfLines={1}>{householdName}</Text>
-            <View style={styles.civicLocationRow}>
-              <MapPinIcon size={12} color="#1557B0" />
-              <Text style={styles.civicLocationText} numberOfLines={1}>
-                Barangay {brgyCode} • {address}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.headerActionArea}>
-            {/* Universal Notification Bell Button */}
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => {
-                setShowNotifModal(true);
-                setHasUnreadNotifs(false);
-              }}
-              activeOpacity={0.8}
-            >
-              <BellIcon size={18} color="#172B4D" />
-              {(hasUnreadNotifs || unreadCount > 0) && <View style={styles.unreadBadgeDot} />}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.verifCheckCircleBtn,
-                isVerified ? styles.verifCheckCircleSuccess : styles.verifCheckCirclePending,
-              ]}
-              onPress={() => setShowVerifInfoModal(true)}
-              activeOpacity={0.7}
-            >
-              <CheckIcon size={14} color={isVerified ? '#16A34A' : '#94A3B8'} />
-            </TouchableOpacity>
-          </View>
+  <LinearGradient
+    colors={['#5A0515', '#8B0A20', '#C8102E']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={styles.topHeader}
+  >
+    {/* Gold rule top */}
+    <View style={styles.headerGoldRule} />
+    {/* Status bar safe area */}
+    <View style={{ height: Platform.OS === 'web' ? 0 : STATUSBAR_INSET }} />
+    {/* Profile Row */}
+    <View style={styles.profileRow}>
+      {/* Avatar */}
+      <View style={styles.avatarGoldRing}>
+        {profilePhoto ? (
+          <Image source={{ uri: profilePhoto }} style={styles.avatarImg} resizeMode="cover" />
+        ) : (
+          <Text style={styles.avatarInitials}>
+            {householdName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+          </Text>
+        )}
+      </View>
+      {/* Name + Location */}
+      <View style={styles.headerTitleArea}>
+        <Text style={styles.residentTitle} numberOfLines={1}>{householdName}</Text>
+        <View style={styles.civicLocationRow}>
+          <MapPinIcon size={12} color="rgba(255,255,255,0.7)" />
+          <Text style={styles.civicLocationText} numberOfLines={1}>
+            Brgy {brgyCode} · Sta Cruz, Manila
+          </Text>
         </View>
-      )}
+      </View>
+      {/* Bell + Verified */}
+      <View style={styles.headerActionArea}>
+        <TouchableOpacity
+          style={styles.bellBtn}
+          onPress={() => { setShowNotifModal(true); setHasUnreadNotifs(false); }}
+          activeOpacity={0.8}
+        >
+          <BellIcon size={18} color="#FFFFFF" />
+          {(hasUnreadNotifs || unreadCount > 0) && (
+            <View style={styles.unreadBadgeDot} />
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.verifCheckCircleBtn,
+            isVerified ? styles.verifCheckCircleSuccess : styles.verifCheckCirclePending,
+          ]}
+          onPress={() => setShowVerifInfoModal(true)}
+          activeOpacity={0.7}
+        >
+          {isVerified ? (
+            <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
+          ) : (
+            <ClockIcon size={15} color="#FCD34D" strokeWidth={2.2} />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  </LinearGradient>
+)}
 
       {/* 2. Main Tab Screen Content */}
       <View style={styles.body}>
@@ -373,7 +391,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
             {/* Familiar Digital ID / Relief QR Pass Hero Card with Modern SingPass-Style Gradient */}
             <LinearGradient
-              colors={isVerified ? ['#071D3A', '#0D3C75', '#154A8A'] : ['#1E293B', '#0F172A']}
+              colors={isVerified ? ['#0B1D4E', '#1C3F94', '#234AAA'] : ['#1E293B', '#0F172A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.qrHeroCardGradient}
@@ -396,8 +414,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </MotionPressable>
                 ) : (
                   <View style={styles.pendingTagHeaderPill}>
+                    <ClockIcon size={11} color="#B45309" />
                     <Text style={styles.pendingTagHeaderText}>
-                      {lang === 'tl' ? '⏳ HINDI PA APPRUBADO' : '⏳ PENDING APPROVAL'}
+                      {lang === 'tl' ? 'HINDI PA APPRUBADO' : 'PENDING APPROVAL'}
                     </Text>
                   </View>
                 )}
@@ -440,8 +459,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </Text>
 
                   <View style={styles.pendingStatusBadgeRow}>
+                    <ClockIcon size={13} color="#92400E" />
                     <Text style={styles.pendingStatusBadgeText}>
-                      {lang === 'tl' ? '⏳ KATAYUAN: NAKABINBIN SA VERIFICATION QUEUE' : '⏳ STATUS: PENDING VERIFICATION QUEUE'}
+                      {lang === 'tl' ? 'KATAYUAN: NAKABINBIN SA VERIFICATION QUEUE' : 'STATUS: PENDING VERIFICATION QUEUE'}
                     </Text>
                   </View>
 
@@ -498,40 +518,34 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               )}
             </LinearGradient>
 
-            {/* ── Awtomatikong Nakatalagang Ayuda (Auto Relief Computation) ── */}
+            {/* ── Relief Entitlement ── */}
             <View style={styles.entitlementBannerCard}>
-              <View style={styles.entitlementBannerHeader}>
-                <View style={styles.entitlementIconWell}>
-                  <BoxPackageIcon size={18} color="#1557B0" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.entitlementTitleText}>
-                    {lang === 'tl' ? 'Auto Relief Computation' : 'Auto Relief Computation'}
+              <View style={styles.entitlementHeaderRow}>
+                <Text style={styles.entitlementMainTitle}>
+                  {lang === 'tl' ? 'Alokasyon ng Ayuda' : 'Relief Entitlement'}
+                </Text>
+                <View style={styles.entitlementMembersBadge}>
+                  <Text style={styles.entitlementMembersText}>
+                    {headcount} {lang === 'tl' ? 'Miyembro' : 'Members'}
                   </Text>
                 </View>
               </View>
-
-              <Text style={styles.entitlementExplainer}>
-                {lang === 'tl'
-                  ? `Batay sa ${headcount} rehistradong miyembro ng inyong pamilya sa Barangay ${brgyCode}, ito ang opisyal na iaabot ng Relief Staff kapag na-scan ang inyong QR Pass:`
-                  : `Computed from your ${headcount} registered household member(s) in Barangay ${brgyCode}. Present your QR Pass during release:`}
-              </Text>
 
               {/* Specific Package Item Rows */}
               <View style={styles.entitlementItemsList}>
                 {/* 1. Base All-in-One Family Relief Pack */}
                 <View style={styles.entitlementItemRow}>
-                  <View style={[styles.entitlementItemDot, { backgroundColor: '#1557B0' }]} />
+                  <View style={[styles.entitlementItemDot, { backgroundColor: '#1C3F94' }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.entitlementItemName}>
                        {basePacks}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
                     </Text>
                     <Text style={styles.entitlementItemDesc}>
-                      {lang === 'tl' ? 'Kumpletong Bigas/Pagkain, Gamot & First Aid, at Inuming Tubig (Sakop ang hanggang 5 miyembro)' : 'Core Food Pack, Medical/First Aid Kit, and Drinking Water (Covers up to 5 members)'}
+                      {lang === 'tl' ? 'Kumpletong Bigas/Pagkain, Gamot & First Aid, at Inuming Tubig (Sakop ang hanggang 5 miyembro)' : 'Core Food Pack, Medical/First Aid Kit, Drinking Water (up to 5 members)'}
                     </Text>
                   </View>
-                  <View style={[styles.entitlementQtyPill, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
-                    <Text style={[styles.entitlementQtyText, { color: '#1557B0' }]}>{basePacks} {basePacks > 1 ? 'packs' : 'pack'}</Text>
+                  <View style={[styles.entitlementQtyPill, styles.pillBlue]}>
+                    <Text style={styles.entitlementQtyText}>{basePacks} {basePacks > 1 ? 'PACKS' : 'PACK'}</Text>
                   </View>
                 </View>
 
@@ -547,8 +561,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         {lang === 'tl' ? `Karagdagang pagkain para sa ${topUpUnits} miyembrong lampas sa 5-pax base capacity` : `Additional food allocation for ${topUpUnits} member(s) beyond base 5-pax coverage`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#0284C7' }]}>+{topUpUnits} units</Text>
+                    <View style={[styles.entitlementQtyPill, styles.pillSky]}>
+                      <Text style={styles.entitlementQtyText}>+{topUpUnits} UNITS</Text>
                     </View>
                   </View>
                 )}
@@ -556,17 +570,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 {/* 3. Senior Citizen Maintenance & Nutrition Top-Up */}
                 {seniorCount > 0 && (
                   <View style={styles.entitlementItemRow}>
-                    <View style={[styles.entitlementItemDot, { backgroundColor: '#D97706' }]} />
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#C9A84C' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
                          +{seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
                       </Text>
                       <Text style={styles.entitlementItemDesc}>
-                        {lang === 'tl' ? `Masustansyang pagkain at Maintenance Medicines para sa ${seniorCount} Senior Citizen` : `Nutritious food & maintenance medicines for ${seniorCount} Senior Citizen(s)`}
+                        {lang === 'tl' ? `Masustansyang pagkain at Maintenance Medicines para sa ${seniorCount} Senior Citizen` : `Nutritious food & maintenance medicines for ${seniorCount} Senior Citizens`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#D97706' }]}>+{seniorCount} pack</Text>
+                    <View style={[styles.entitlementQtyPill, styles.pillGold]}>
+                      <Text style={styles.entitlementQtyText}>+{seniorCount} PACK</Text>
                     </View>
                   </View>
                 )}
@@ -574,7 +588,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 {/* 4. Infant Care & Baby Nutrition Top-Up */}
                 {infantCount > 0 && (
                   <View style={styles.entitlementItemRow}>
-                    <View style={[styles.entitlementItemDot, { backgroundColor: '#EC4899' }]} />
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#BE185D' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
                          +{infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
@@ -583,8 +597,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         {lang === 'tl' ? `Gatas/infant formula at baby food para sa ${infantCount} sanggol (0-2 yo)` : `Infant milk formula & baby nutrition for ${infantCount} infant(s)`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#475569' }]}>+{infantCount} pack</Text>
+                    <View style={[styles.entitlementQtyPill, styles.pillPink]}>
+                      <Text style={styles.entitlementQtyText}>+{infantCount} PACK</Text>
                     </View>
                   </View>
                 )}
@@ -592,7 +606,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 {/* 5. PWD Health Support Top-Up */}
                 {pwdCount > 0 && (
                   <View style={styles.entitlementItemRow}>
-                    <View style={[styles.entitlementItemDot, { backgroundColor: '#7C3AED' }]} />
+                    <View style={[styles.entitlementItemDot, { backgroundColor: '#6D28D9' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.entitlementItemName}>
                          +{pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
@@ -601,8 +615,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         {lang === 'tl' ? `Medikal at health support para sa ${pwdCount} PWD member` : `Medical & health care support for ${pwdCount} PWD member(s)`}
                       </Text>
                     </View>
-                    <View style={[styles.entitlementQtyPill, { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}>
-                      <Text style={[styles.entitlementQtyText, { color: '#475569' }]}>+{pwdCount} pack</Text>
+                    <View style={[styles.entitlementQtyPill, styles.pillPurple]}>
+                      <Text style={styles.entitlementQtyText}>+{pwdCount} PACK</Text>
                     </View>
                   </View>
                 )}
@@ -652,7 +666,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         ann.isUrgent && styles.announcementCardUrgent,
                         isUnread && {
                           borderLeftWidth: 4,
-                          borderLeftColor: ann.isUrgent ? '#DC2626' : '#1557B0',
+                          borderLeftColor: ann.isUrgent ? '#DC2626' : '#1C3F94',
                           backgroundColor: '#F8FAFC',
                         },
                       ]}
@@ -662,7 +676,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       <View style={styles.annTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           {isUnread && (
-                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#DC2626' : '#1557B0' }} />
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#DC2626' : '#1C3F94' }} />
                           )}
                           <View style={styles.annTagBadge}>
                             <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
@@ -716,11 +730,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               <View style={styles.emergencySectionHeader}>
                 <View style={styles.emergencyIconDot} />
                 <Text style={styles.emergencySectionTitle}>
-                  {lang === 'tl' ? '24/7 TULONG AT RESCUE HOTLINES' : '24/7 MANILA EMERGENCY RESCUE HOTLINES'}
+                  {lang === 'tl' ? '24/7 TULONG AT RESCUE HOTLINES' : '24/7 EMERGENCY RESCUE HOTLINES'}
                 </Text>
               </View>
               <Text style={styles.emergencySectionSub}>
-                {lang === 'tl' ? 'Pindutin ang alinman para direktang tumawag sa oras ng sakuna o baha:' : 'Tap any service below to dial immediately in an emergency:'}
+                {lang === 'tl' ? 'Pindutin ang alinman para direktang tumawag sa oras ng sakuna o baha:' : 'Tap any service to call immediately in an emergency.'}
               </Text>
               <View style={styles.emergencyGrid}>
                 {EMERGENCY_HOTLINES.map((hotline, hIdx) => (
@@ -734,7 +748,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     activeOpacity={0.8}
                   >
                     <View style={styles.emergencyIconWell}>
-                      <PhoneCallIcon size={14} color="#1557B0" />
+                      <PhoneCallIcon size={14} color="#C8102E" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.emergencyDialName}>{hotline.name}</Text>
@@ -790,24 +804,27 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       </View>
 
       {/* 3. Iconly Dynamic Island Floating Nav Bar with Impeccable Spring Animations (5 Clean Tabs) */}
-      <View style={styles.floatingIslandNav}>
-        {[
-          { key: 'home', label: t.navHome, renderIcon: (isActive) => <HomeIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <BriefcaseIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'damage', label: t.navDamage, renderIcon: (isActive) => <DamageIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'history', label: t.navHistory, renderIcon: (isActive) => <HistoryIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-          { key: 'settings', label: t.navSettings, renderIcon: (isActive) => <SettingsIcon size={20} color={isActive ? '#1557B0' : '#64748B'} filled={isActive} /> },
-        ].map((item) => (
-          <AnimatedNavItem
-            key={item.key}
-            item={item}
-            isActive={activeTab === item.key}
-            onPress={() => setActiveTab(item.key)}
-          />
-        ))}
-      </View>
+      {/* Tab Bar - frosted glass */}
+<View style={styles.tabBarContainer}>
+  {[
+    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
+    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} strokeWidth={2.2} /> },
+    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
+    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
+    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
+  ].map((item) => (
+    <AnimatedNavItem
+      key={item.key}
+      item={item}
+      isActive={activeTab === item.key}
+      onPress={() => setActiveTab(item.key)}
+    />
+  ))}
+  {/* Home indicator pill */}
+  <View style={styles.homeIndicatorPill} />
+</View>
 
-      {/* 4. Full-Screen Digital Relief QR Pass Modal with Prominent Back & Close Buttons */}
+      {/* 4. Full-Screen Digital Relief QR Pass Modal with Figma SingPass Design System */}
       <Modal visible={showQRModal} animationType="fade" transparent onRequestClose={() => setShowQRModal(false)}>
         <View style={styles.modalBackdrop}>
           <TouchableOpacity
@@ -824,70 +841,123 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 onPress={() => setShowQRModal(false)}
                 activeOpacity={0.8}
               >
+                <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2.4} />
                 <Text style={styles.modalBackBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
               </TouchableOpacity>
-
+              <Text style={styles.modalTopBarTitle}>
+                {lang === 'tl' ? 'Opisyal na QR Pass' : 'Official QR Pass'}
+              </Text>
               <TouchableOpacity
                 style={styles.modalCircularCloseBtn}
                 onPress={() => setShowQRModal(false)}
                 activeOpacity={0.8}
               >
-                <CloseIcon size={16} color="#172B4D" />
+                <CloseIcon size={16} color="#64748B" strokeWidth={2.4} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalKicker}>LGU MANILA • BARANGAY {brgyCode}</Text>
-                <Text style={styles.modalTitle}>{t.modalPassTitle}</Text>
-                <Text style={styles.modalSub}>{t.modalPassSub}</Text>
-              </View>
-
-              <View style={styles.modalQRContainer}>
-                {isVerified ? (
-                  <QRCodeVisual value={qrCodeString} size={180} lang={lang} />
-                ) : (
-                  <View style={{ alignItems: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-                    <ShieldCheckIcon size={48} color="#D97706" />
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#92400E', marginTop: 12, textAlign: 'center' }}>
-                      {lang === 'tl' ? 'HINDI PA NA-APRUBAHAN NG BARANGAY' : 'NOT YET APPROVED BY BARANGAY'}
-                    </Text>
-                    <Text style={{ fontSize: 11.5, color: '#78350F', textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                      {lang === 'tl'
-                        ? 'Kasalukuyang sinusuri ng Barangay 291 Admin ang inyong mga dokumento sa Verification Queue. Lalabas ang inyong QR Pass pagka-apruba.'
-                        : 'Your documents are currently under review in the Barangay 291 Verification Queue. Your official QR pass will appear once approved.'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.modalDetails}>
-                <Text style={styles.modalResidentName}>{householdName}</Text>
-                <Text style={styles.modalAddress}>{address}, Brgy {brgyCode}</Text>
-
-                {/* Clean Info Row with NO Pill Backgrounds */}
-                <View style={styles.modalInfoRow}>
-                  <Text style={styles.modalInfoMemberText}>
-                    {headcount} {t.headcountUnit}
-                  </Text>
-                  <Text style={styles.modalInfoDividerText}>•</Text>
-                  <Text
-                    style={[
-                      styles.modalInfoPriorityText,
-                      String(priorityLevel).toLowerCase().includes('high') || String(priorityLevel).toLowerCase().includes('mataas')
-                        ? { color: '#DC2626' }
-                        : String(priorityLevel).toLowerCase().includes('med') || String(priorityLevel).toLowerCase().includes('katamtaman')
-                        ? { color: '#D97706' }
-                        : { color: '#16A34A' },
-                    ]}
+              {isVerified ? (
+                <>
+                  {/* ── Official SingPass Digital Relief Pass Hero Card ── */}
+                  <LinearGradient
+                    colors={['#0B1D4E', '#163B8C', '#234AAA']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.modalPassCard}
                   >
-                    {priorityLevel} {lang === 'tl' ? 'Prayoridad' : 'Priority'}
-                  </Text>
-                </View>
+                    {/* Gold Accent Top Bar */}
+                    <View style={styles.modalPassGoldTop} />
 
-                {/* Equal-Width & Perfectly Aligned Action Buttons (Only when verified) */}
-                {isVerified && (
-                  <View style={styles.modalActionsContainer}>
+                    {/* Header Row: Seal, Title, Verified Badge */}
+                    <View style={styles.modalPassHeaderRow}>
+                      <View style={styles.modalPassSealCircle}>
+                        <Image
+                          source={require('../../assets/logo-mark.png')}
+                          style={{ width: 22, height: 22 }}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.modalPassKicker}>
+                          {lang === 'tl' ? 'OPISYAL NA CITIZEN RELIEF PASS' : 'OFFICIAL CITIZEN RELIEF PASS'}
+                        </Text>
+                        <Text style={styles.modalPassTitleWhite}>Household Digital ID</Text>
+                        <Text style={styles.modalPassSubWhite} numberOfLines={1}>
+                          {householdName} · Brgy {brgyCode}
+                        </Text>
+                      </View>
+                      <View style={styles.modalPassVerifiedBadge}>
+                        <CheckIcon size={11} color="#FFFFFF" strokeWidth={3} />
+                        <Text style={styles.modalPassVerifiedBadgeText}>
+                          {lang === 'tl' ? 'BERIPIKADO' : 'VERIFIED'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 3 Metrics Row in Glass Cards */}
+                    <View style={styles.modalPassMetricsGrid}>
+                      <View style={styles.modalPassMetricCard}>
+                        <Text style={styles.modalPassMetricLabel}>{t.headcountLabel || 'HEADCOUNT'}</Text>
+                        <Text style={styles.modalPassMetricValue}>{headcount}</Text>
+                        <Text style={styles.modalPassMetricSub}>{t.headcountUnit || 'Members'}</Text>
+                      </View>
+                      <View style={styles.modalPassMetricCard}>
+                        <Text style={styles.modalPassMetricLabel}>{t.priorityIndexLabel || 'PRIORITY INDEX'}</Text>
+                        <Text style={[styles.modalPassMetricValue, { color: '#FCD34D' }]}>{priorityScore} pts</Text>
+                        <Text style={[styles.modalPassMetricSub, { color: '#FDE68A' }]} numberOfLines={1}>{priorityLevel}</Text>
+                      </View>
+                      <View style={styles.modalPassMetricCard}>
+                        <Text style={styles.modalPassMetricLabel}>{t.reliefQuotaLabel || 'RIGHT-SIZED'}</Text>
+                        <Text style={[styles.modalPassMetricValue, { color: '#93C5FD' }]}>{basePacks}x Base</Text>
+                        <Text style={[styles.modalPassMetricSub, { color: '#BFDBFE' }]} numberOfLines={1}>
+                          {topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit || 'Top-Up'}` : (t.basePackUnit || 'Base Pack')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Scannable Large QR Frame with Gold Border */}
+                    <View style={styles.modalPassQRFrame}>
+                      <QRCodeVisual value={qrCodeString} size={200} lang={lang} isCompact />
+                      <View style={styles.modalPassScannablePill}>
+                        <CheckIcon size={11} color="#059669" strokeWidth={2.6} />
+                        <Text style={styles.modalPassScannableText}>
+                          {lang === 'tl' ? '100% Ma-i-scan na Opisyal na Beneficiary Pass' : '100% Scannable Official Beneficiary Pass'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 1-Tap Direct Tap-to-Copy Manual Household ID */}
+                    <TouchableOpacity
+                      style={[styles.modalPassCodeContainer, modalCodeCopied && styles.modalPassCodeContainerCopied]}
+                      onPress={handleCopyHouseholdCode}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.modalPassCodeLabel, modalCodeCopied && { color: '#34D399' }]}>
+                        {modalCodeCopied
+                          ? (lang === 'tl' ? 'Na-kopya na sa clipboard!' : 'Copied to clipboard!')
+                          : (lang === 'tl' ? 'MANUAL HOUSEHOLD ID (I-TAP UPANG KOPYAHIN):' : 'MANUAL HOUSEHOLD ID (TAP CODE TO COPY):')}
+                      </Text>
+                      <View style={[styles.modalPassCodePill, modalCodeCopied && styles.modalPassCodePillCopied]}>
+                        <CopyIcon size={14} color={modalCodeCopied ? '#10B981' : '#FCD34D'} />
+                        <Text style={[styles.modalPassCodeText, modalCodeCopied && { color: '#065F46' }]}>{qrCodeString}</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Beneficiary Address Footer inside Pass */}
+                    <View style={styles.modalPassAddressRow}>
+                      <MapPinIcon size={12} color="rgba(255,255,255,0.7)" />
+                      <Text style={styles.modalPassAddressText} numberOfLines={1}>
+                        {address}, Brgy {brgyCode} · Sta Cruz, Manila
+                      </Text>
+                    </View>
+
+                    {/* Gold Accent Bottom Bar */}
+                    <View style={styles.modalPassGoldBottom} />
+                  </LinearGradient>
+
+                  {/* Equal-Width Action Buttons */}
+                  <View style={styles.modalPassActionsArea}>
                     <TouchableOpacity
                       style={styles.modalPrimaryActionBtn}
                       onPress={handleSavePassToGallery}
@@ -904,14 +974,49 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       onPress={handlePrintPdfVoucher}
                       activeOpacity={0.85}
                     >
-                      <FileTextIcon size={16} color="#1557B0" />
+                      <FileTextIcon size={16} color="#1C3F94" />
                       <Text style={styles.modalSecondaryActionBtnText}>
                         {lang === 'tl' ? 'I-print / I-save bilang PDF Voucher' : 'Print / Save as PDF Voucher'}
                       </Text>
                     </TouchableOpacity>
                   </View>
-                )}
-              </View>
+                </>
+              ) : (
+                <View style={styles.modalPendingCard}>
+                  <View style={styles.modalPendingIconWell}>
+                    <ClockIcon size={40} color="#D97706" />
+                  </View>
+                  <Text style={styles.modalPendingTitle}>
+                    {lang === 'tl' ? 'PENDING VERIFICATION' : 'PENDING VERIFICATION'}
+                  </Text>
+                  <Text style={styles.modalPendingSubTitle}>
+                    {lang === 'tl' ? '(Hindi Pa Beripikado)' : '(Under Verification)'}
+                  </Text>
+
+                  <View style={styles.modalPendingBadge}>
+                    <ClockIcon size={12} color="#92400E" />
+                    <Text style={styles.modalPendingBadgeText}>
+                      {lang === 'tl' ? 'KATAYUAN: NAKABINBIN SA PAGSUSURI' : 'STATUS: PENDING REVIEW'}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.modalPendingMessage}>
+                    {lang === 'tl'
+                      ? 'Kasalukuyang sinusuri ng Barangay Council ang inyong rehistrasyon sa Verification Queue sa Web Admin. Awtomatikong magiging tsek at magiging aktibo ang inyong QR Pass oras na maaprubahan.'
+                      : 'Your registration is currently under review by the Barangay Council in the Verification Queue on the Web Admin. Your official QR Pass will automatically activate once approved.'}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.modalCloseBtnFallback}
+                    onPress={() => setShowQRModal(false)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.modalCloseBtnFallbackText}>
+                      {lang === 'tl' ? 'Naiintindihan Ko' : 'I Understand'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -932,8 +1037,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             onPress={() => setShowVerifInfoModal(false)}
           />
           <View style={styles.verifInfoCard}>
-            <View style={[styles.verifInfoIconCircle, isVerified ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' } : { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' }]}>
-              <CheckIcon size={24} color={isVerified ? '#16A34A' : '#64748B'} />
+            <View style={[styles.verifInfoIconCircle, isVerified ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' } : { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+              {isVerified ? (
+                <CheckIcon size={24} color="#16A34A" strokeWidth={2.5} />
+              ) : (
+                <ClockIcon size={24} color="#D97706" strokeWidth={2.2} />
+              )}
             </View>
 
             <Text style={styles.verifInfoTitle}>
@@ -942,7 +1051,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 : (lang === 'tl' ? 'Hindi Pa Beripikado' : 'Pending Verification')}
             </Text>
 
-            <View style={[styles.verifStatusTag, isVerified ? { backgroundColor: '#DCFCE7' } : { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.verifStatusTag, isVerified ? { backgroundColor: '#DCFCE7' } : { backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#FDE68A' }]}>
               <Text style={[styles.verifStatusTagText, isVerified ? { color: '#15803D' } : { color: '#B45309' }]}>
                 {isVerified ? 'STATUS: VERIFIED' : 'STATUS: PENDING REVIEW'}
               </Text>
@@ -954,8 +1063,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     ? 'Ang inyong pamilya ay opisyal nang beripikado ng Barangay 291 at LGU Maynila. Aktibo ang inyong QR Pass para sa agarang pagtanggap ng ayuda at emergency services.'
                     : 'Your household is officially verified by Barangay 291 and City Government of Manila. Your Digital Relief Pass is fully active.')
                 : (lang === 'tl'
-                    ? 'Kasalukuyang sinusuri ng Barangay Council ang inyong rehistrasyon sa Verification Queue. Awtomatikong magiging berde ang selyo kapag naaprubahan.'
-                    : 'Your household registration is currently undergoing verification by the Barangay Council in the Verification Queue.')}
+                    ? 'Kasalukuyang sinusuri ng Barangay Council ang inyong rehistrasyon sa Verification Queue sa Web Admin. Awtomatikong magiging beripikado at magiging aktibo ang inyong QR Pass oras na maaprubahan.'
+                    : 'Your household registration is currently being reviewed by the Barangay Council in the Verification Queue on the Web Admin. Your Digital Relief QR Pass will automatically activate once approved by the Barangay Official.')}
             </Text>
 
             <TouchableOpacity
@@ -1004,7 +1113,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
             <View style={styles.annDetailMetaRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <MapPinIcon size={12} color="#1557B0" />
+                <MapPinIcon size={12} color="#1C3F94" />
                 <Text style={styles.annDetailMetaText}>Barangay {brgyCode} Disaster Council</Text>
               </View>
               <Text style={styles.annDetailTimeText}>
@@ -1148,7 +1257,7 @@ const styles = StyleSheet.create({
   },
   verifInfoCloseBtn: {
     width: '100%',
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1162,272 +1271,368 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#F3F6FC',
   },
-  topHeader: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 4,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#D9E2EC',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    ...SHADOWS.sm,
-  },
-  avatarWell: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1.5,
-    borderColor: '#BFDBFE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 22,
-  },
-  avatarInitials: {
-    fontSize: 15,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#1557B0',
-  },
-  headerTitleArea: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  residentTitle: {
-    fontSize: 16,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
-    letterSpacing: -0.3,
-    marginBottom: 2,
-  },
-  civicLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  civicLocationText: {
-    flex: 1,
-    fontSize: 11.5,
-    color: '#475569',
-    fontWeight: '600',
-  },
-  headerActionArea: {
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  bellBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    ...SHADOWS.sm,
-  },
-  unreadBadgeDot: {
-    position: 'absolute',
-    top: 7,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#DC2626',
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-  },
-  verifCheckCircleBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  verifCheckCircleSuccess: {
-    backgroundColor: '#DCFCE7',
-    borderColor: '#86EFAC',
-  },
-  verifCheckCirclePending: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#CBD5E1',
-  },
+  // Hero header styles
+topHeader: {
+  flexShrink: 0,
+  position: 'relative',
+  overflow: 'hidden',
+},
+headerGoldRule: {
+  height: 3,
+  backgroundColor: '#C9A84C',
+},
+profileRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: 18,
+  paddingVertical: 14,
+  gap: 12,
+},
+avatarGoldRing: {
+  width: 46,
+  height: 46,
+  borderRadius: 23,
+  borderWidth: 2,
+  borderColor: '#C9A84C',
+  backgroundColor: '#5B1624',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'hidden',
+},
+avatarImg: {
+  width: '100%',
+  height: '100%',
+},
+avatarInitials: {
+  fontSize: 16,
+  fontWeight: '800',
+  color: '#FFFFFF',
+},
+headerTitleArea: {
+  flex: 1,
+},
+residentTitle: {
+  fontSize: 18,
+  fontWeight: '800',
+  color: '#FFFFFF',
+  letterSpacing: -0.2,
+},
+civicLocationRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 4,
+  marginTop: 2,
+},
+civicLocationText: {
+  fontSize: 11,
+  color: 'rgba(255,255,255,0.6)',
+  fontWeight: '500',
+},
+headerActionArea: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+},
+bellBtn: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: 'rgba(255,255,255,0.15)',
+  borderWidth: 1,
+  borderColor: 'rgba(255,255,255,0.25)',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+},
+unreadBadgeDot: {
+  position: 'absolute',
+  top: 7,
+  right: 7,
+  width: 8,
+  height: 8,
+  borderRadius: 4,
+  backgroundColor: '#FFE500',
+  borderWidth: 1.5,
+  borderColor: '#C8102E',
+},
+verifCheckCircleBtn: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+verifCheckCircleSuccess: {
+  backgroundColor: 'rgba(255,255,255,0.15)',
+  borderWidth: 1,
+  borderColor: 'rgba(255,255,255,0.25)',
+},
+verifCheckCirclePending: {
+  backgroundColor: 'rgba(252, 211, 77, 0.16)',
+  borderWidth: 1,
+  borderColor: 'rgba(252, 211, 77, 0.40)',
+},
   body: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: 12,
-    paddingBottom: hp(12),
+    paddingBottom: 16,
   },
   qrHeroCardGradient: {
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 14,
-    marginBottom: 12,
-    ...SHADOWS.md,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3,
+    borderBottomColor: '#C9A84C',
+    borderBottomWidth: 2.5,
+    padding: 18,
+    marginBottom: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 12px 32px rgba(11, 29, 78, 0.22), 0 4px 12px rgba(11, 29, 78, 0.12)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.20,
+      shadowRadius: 18,
+      elevation: 8,
+    }),
   },
   qrHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   qrKickerText: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#FDE68A',
+    color: '#C9A84C',
     letterSpacing: 0.8,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   qrTitleWhite: {
-    fontSize: 17,
-    fontWeight: FONT_WEIGHT.black,
+    fontSize: 22,
+    fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.2,
+    letterSpacing: -0.4,
   },
   qrSubTextWhite: {
-    fontSize: 11,
-    color: '#E2E8F0',
-    marginTop: 2,
-    fontWeight: '600',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.65)',
+    marginTop: 3,
+    fontWeight: '500',
   },
   expandQRBtnGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   expandQRTextWhite: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   metricsGridRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
+    gap: 10,
+    marginTop: 12,
+    marginBottom: 16,
   },
   metricGridCardGlass: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.09)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
-    paddingVertical: 9,
-    paddingHorizontal: 6,
-    alignItems: 'center',
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: 'flex-start',
   },
   metricGridLabelGlass: {
     fontSize: 8.5,
     fontWeight: '800',
-    color: '#BFDBFE',
+    color: 'rgba(255, 255, 255, 0.5)',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   metricGridValueWhite: {
-    fontSize: 13.5,
-    fontWeight: FONT_WEIGHT.black,
+    fontSize: 18,
+    fontWeight: '900',
     color: '#FFFFFF',
-    marginTop: 2,
+    marginTop: 3,
   },
   metricGridSubGlass: {
-    fontSize: 9,
-    color: '#E2E8F0',
-    fontWeight: '700',
-    marginTop: 1,
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontWeight: '500',
+    marginTop: 2,
   },
   qrInteractiveFrameWhite: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    ...SHADOWS.sm,
+    backgroundColor: 'rgba(11, 29, 78, 0.55)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    width: '100%',
   },
   entitlementBannerCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 11,
-    marginBottom: 12,
-    ...SHADOWS.sm,
+    borderColor: '#DDE4F0',
+    padding: 18,
+    marginBottom: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.10,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
   },
-  entitlementBannerHeader: {
+  entitlementHeaderRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  entitlementIconWell: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  entitlementTitleText: {
-    fontSize: 13,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#0F172A',
-  },
-  entitlementExplainer: {
-    fontSize: 10.5,
-    color: '#64748B',
-    lineHeight: 14,
     marginBottom: 8,
   },
+  entitlementMainTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.3,
+  },
+  entitlementMembersBadge: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+    }),
+  },
+  entitlementMembersText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1C3F94',
+  },
   entitlementItemsList: {
-    gap: 5,
+    marginTop: 4,
   },
   entitlementItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    padding: 8,
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   entitlementItemDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   entitlementItemName: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0B1525',
   },
   entitlementItemDesc: {
-    fontSize: 9.5,
+    fontSize: 11,
     color: '#64748B',
-    marginTop: 1,
-    lineHeight: 12,
+    marginTop: 2,
+    lineHeight: 14,
   },
   entitlementQtyPill: {
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   entitlementQtyText: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  pillBlue: {
+    backgroundColor: '#1C3F94',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(28, 63, 148, 0.42)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.40,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
+  },
+  pillGold: {
+    backgroundColor: '#C4972B',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(196, 151, 43, 0.48)',
+    } : {
+      shadowColor: '#C4972B',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.45,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
+  },
+  pillSky: {
+    backgroundColor: '#0284C7',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.40)',
+    } : {
+      shadowColor: '#0284C7',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.38,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
+  },
+  pillPink: {
+    backgroundColor: '#BE185D',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(190, 24, 93, 0.40)',
+    } : {
+      shadowColor: '#BE185D',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.38,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
+  },
+  pillPurple: {
+    backgroundColor: '#6D28D9',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 12px rgba(109, 40, 217, 0.40)',
+    } : {
+      shadowColor: '#6D28D9',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.38,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
   },
   qrInteractiveFrame: {
     alignItems: 'center',
@@ -1444,6 +1649,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   pendingTagHeaderText: {
     fontSize: 9.5,
@@ -1488,6 +1696,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   pendingStatusBadgeText: {
     fontSize: 10,
@@ -1495,13 +1706,13 @@ const styles = StyleSheet.create({
     color: '#B45309',
   },
   refreshStatusBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     width: '100%',
     alignItems: 'center',
-    ...SHADOWS.sm,
+    ...SHADOWS.button,
   },
   refreshStatusBtnText: {
     fontSize: 12,
@@ -1509,12 +1720,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   tapToEnlargeRow: {
-    marginTop: 8,
+    marginTop: 14,
   },
   tapToEnlargeHint: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#1557B0',
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.65)',
+    textAlign: 'center',
   },
   quickActionGrid: {
     flexDirection: 'row',
@@ -1557,21 +1769,22 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   announcementsSection: {
-    marginBottom: 12,
+    marginBottom: 18,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 14.5,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.3,
   },
   unreadCountBadge: {
-    backgroundColor: '#DC2626',
+    backgroundColor: '#C8102E',
     paddingHorizontal: 6,
     paddingVertical: 1.5,
     borderRadius: 10,
@@ -1586,12 +1799,21 @@ const styles = StyleSheet.create({
   },
   announcementCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 15,
-    marginBottom: 10,
-    ...SHADOWS.card,
+    borderColor: '#DDE4F0',
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(11, 29, 78, 0.07), 0 2px 6px rgba(11, 29, 78, 0.03)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 14,
+      elevation: 3,
+    }),
   },
   announcementCardUrgent: {
     borderColor: '#FCA5A5',
@@ -1612,7 +1834,7 @@ const styles = StyleSheet.create({
   annTagText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#1C3F94',
     textTransform: 'uppercase',
   },
   annTime: {
@@ -1650,10 +1872,11 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   annActionBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingHorizontal: 12,
-    paddingVertical: 4.5,
-    borderRadius: 6,
+    paddingVertical: 6,
+    borderRadius: 8,
+    ...SHADOWS.sm,
   },
   annActionBtnText: {
     fontSize: 11,
@@ -1702,7 +1925,7 @@ const styles = StyleSheet.create({
   annDetailMetaText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   annDetailTimeText: {
     fontSize: 11,
@@ -1715,7 +1938,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   annDetailActionBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1740,66 +1963,94 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
   },
-  floatingIslandNav: {
-    position: 'absolute',
-    bottom: 16,
-    left: RESPONSIVE.padding,
-    right: RESPONSIVE.padding,
-    maxWidth: 500,
-    alignSelf: 'center',
-    height: 60,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#D9E2EC',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-    ...SHADOWS.md,
-  },
-  navActivePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#E8F2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
-  },
-  navInactiveBtn: {
-    padding: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navActiveLabel: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#1557B0',
-  },
+  // Tab bar styles
+tabBarContainer: {
+  flexShrink: 0,
+  backgroundColor: 'rgba(255,255,255,0.94)',
+  borderTopWidth: 1,
+  borderTopColor: '#DDE4F0',
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  paddingTop: 8,
+  paddingHorizontal: 4,
+  ...(Platform.OS === 'web' ? { boxShadow: '0 -4px 24px rgba(28,63,148,0.07)' } : {
+    shadowColor: '#1C3F94',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 10,
+  }),
+},
+homeIndicatorPill: {
+  position: 'absolute',
+  bottom: 6,
+  left: '50%',
+  marginLeft: -67,
+  width: 134,
+  height: 5,
+  borderRadius: 3,
+  backgroundColor: 'rgba(0,0,0,0.18)',
+},
+// Nav item styles (used by AnimatedNavItem)
+navActivePill: {
+  flex: 1,
+  flexDirection: 'column',
+  alignItems: 'center',
+  paddingVertical: 6,
+  paddingHorizontal: 4,
+  paddingBottom: 18,
+  gap: 4,
+},
+navInactiveBtn: {
+  flex: 1,
+  flexDirection: 'column',
+  alignItems: 'center',
+  paddingVertical: 6,
+  paddingHorizontal: 4,
+  paddingBottom: 18,
+  gap: 4,
+},
+navActiveLabel: {
+  fontSize: 10,
+  fontWeight: '700',
+  color: '#C8102E',
+},
+navIconPillActive: {
+  width: 38,
+  height: 34,
+  borderRadius: 10,
+  backgroundColor: '#FEF0F2',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+navIconPillInactive: {
+  width: 38,
+  height: 34,
+  borderRadius: 10,
+  backgroundColor: 'transparent',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(11, 29, 78, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 18,
+    padding: 16,
   },
   modalBackdropTapZone: {
     ...StyleSheet.absoluteFillObject,
   },
   modalCard: {
     width: '100%',
-    maxWidth: RESPONSIVE.maxCardWidth,
-    maxHeight: '88%',
+    maxWidth: 440,
+    maxHeight: '92%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     overflow: 'hidden',
-    ...SHADOWS.md,
+    ...SHADOWS.lg,
   },
   modalTopBar: {
     flexDirection: 'row',
@@ -1809,114 +2060,239 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
   },
   modalBackBtn: {
-    backgroundColor: '#F8F9F7',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#E2E8F0',
   },
   modalBackBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#172B4D',
+    fontWeight: '800',
+    color: '#1C3F94',
+  },
+  modalTopBarTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1E293B',
+    letterSpacing: 0.3,
   },
   modalCircularCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F1F5F9',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalScrollView: {
-    padding: 18,
+    padding: 16,
   },
   modalScrollContent: {
     alignItems: 'center',
     paddingBottom: 24,
   },
-  modalHeader: {
-    alignItems: 'center',
-    marginBottom: 16,
+  modalPassCard: {
+    width: '100%',
+    borderRadius: 22,
+    padding: 16,
+    borderTopWidth: 3,
+    borderTopColor: '#C9A84C',
+    borderBottomWidth: 2.5,
+    borderBottomColor: '#C9A84C',
+    ...SHADOWS.md,
   },
-  modalKicker: {
-    fontSize: 10,
+  modalPassGoldTop: {
+    height: 1,
+    backgroundColor: 'rgba(201, 168, 76, 0.35)',
+    marginBottom: 12,
+    borderRadius: 1,
+  },
+  modalPassHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  modalPassSealCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  modalPassKicker: {
+    fontSize: 9.5,
     fontWeight: '800',
-    color: '#1557B0',
+    color: '#E0B84C',
     letterSpacing: 0.8,
-    marginBottom: 2,
     textTransform: 'uppercase',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+  modalPassTitleWhite: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginTop: 1,
+    letterSpacing: 0.2,
   },
-  modalSub: {
-    fontSize: 11.5,
-    color: '#64748B',
-    textAlign: 'center',
-    marginTop: 2,
+  modalPassSubWhite: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 1,
   },
-  modalQRContainer: {
-    width: '100%',
+  modalPassVerifiedBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalDetails: {
-    width: '100%',
-    backgroundColor: '#F8F9F7',
-    borderRadius: 12,
-    padding: 12,
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#10B981',
+  },
+  modalPassVerifiedBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#34D399',
+    letterSpacing: 0.4,
+  },
+  modalPassMetricsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  modalPassMetricCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
   },
-  modalResidentName: {
-    fontSize: 14,
+  modalPassMetricLabel: {
+    fontSize: 8.5,
     fontWeight: '800',
-    color: '#172B4D',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
-  modalAddress: {
-    fontSize: 11.5,
-    color: '#64748B',
-    marginTop: 2,
+  modalPassMetricValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
-  modalInfoRow: {
+  modalPassMetricSub: {
+    fontSize: 9.5,
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  modalPassQRFrame: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#C9A84C',
+    alignSelf: 'center',
+    ...SHADOWS.sm,
+  },
+  modalPassScannablePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.pill,
+    marginTop: 8,
+  },
+  modalPassScannableText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  modalPassCodeContainer: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  modalPassCodeContainerCopied: {},
+  modalPassCodeLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.75)',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  modalPassCodePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#C9A84C',
+  },
+  modalPassCodePillCopied: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  modalPassCodeText: {
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    color: '#FFFFFF',
+  },
+  modalPassAddressRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginTop: 6,
-    marginBottom: 2,
+    gap: 5,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  modalInfoMemberText: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: '#1557B0',
+  modalPassAddressText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontWeight: '500',
   },
-  modalInfoDividerText: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: '#94A3B8',
+  modalPassGoldBottom: {
+    height: 1,
+    backgroundColor: 'rgba(201, 168, 76, 0.35)',
+    marginTop: 10,
+    borderRadius: 1,
   },
-  modalInfoPriorityText: {
-    fontSize: 12.5,
-    fontWeight: '800',
-  },
-  modalActionsContainer: {
+  modalPassActionsArea: {
     width: '100%',
     gap: 10,
     marginTop: 14,
   },
   modalPrimaryActionBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#C8102E',
     width: '100%',
     height: 46,
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1933,9 +2309,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     width: '100%',
     height: 46,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#1C3F94',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1943,41 +2319,105 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   modalSecondaryActionBtnText: {
-    color: '#1E293B',
+    color: '#1C3F94',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  modalPendingCard: {
+    width: '100%',
+    backgroundColor: '#FFFBEB',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FCD34D',
+    ...SHADOWS.sm,
+  },
+  modalPendingIconWell: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(252, 211, 77, 0.25)',
+    borderWidth: 1.5,
+    borderColor: '#FCD34D',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  modalPendingTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  modalPendingSubTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#B45309',
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  modalPendingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    marginBottom: 14,
+  },
+  modalPendingBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  modalPendingMessage: {
+    fontSize: 12.5,
+    color: '#78350F',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 18,
+  },
+  modalCloseBtnFallback: {
+    backgroundColor: '#D97706',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  modalCloseBtnFallbackText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
   },
   emergencyHotlineSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    ...SHADOWS.sm,
+    marginBottom: 8,
   },
   emergencySectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+    gap: 7,
+    marginBottom: 2,
   },
   emergencyIconDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#DC2626',
+    backgroundColor: '#C8102E',
   },
   emergencySectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: 0.4,
+    color: '#0B1525',
+    letterSpacing: 0.3,
   },
   emergencySectionSub: {
     fontSize: 11,
-    color: '#64748B',
-    marginBottom: 10,
+    color: '#8A9BB8',
+    marginBottom: 12,
   },
   emergencyGrid: {
     flexDirection: 'row',
@@ -1985,39 +2425,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   emergencyDialBtn: {
-    width: '48%',
+    width: '48.5%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 10,
-    marginBottom: 8,
-    gap: 8,
+    padding: 12,
+    marginBottom: 10,
+    gap: 10,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 14px rgba(11, 29, 78, 0.06), 0 1px 3px rgba(11, 29, 78, 0.03)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
+      elevation: 3,
+    }),
   },
   emergencyDialIcon: {
     fontSize: 20,
   },
   emergencyIconWell: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FEF0F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
   emergencyDialName: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 1,
+    color: '#0B1525',
+    marginBottom: 2,
   },
   emergencyDialPhone: {
     fontSize: 11,
-    color: '#1557B0',
+    color: '#C8102E',
     fontWeight: '700',
   },
   healthHeroBanner: {

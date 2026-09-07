@@ -8,7 +8,7 @@ import Svg, { Path, Rect, Circle, Line, Polyline, Polygon } from 'react-native-s
 // - Scalable, crisp rendering with customizable size and color tokens
 // ============================================================================
 
-export function HomeIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function HomeIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -30,7 +30,7 @@ export function HomeIcon({ size = 22, color = '#1557B0', filled = false }) {
   );
 }
 
-export function DamageIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function DamageIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -63,7 +63,7 @@ export function DamageIcon({ size = 22, color = '#1557B0', filled = false }) {
   );
 }
 
-export function CategoryIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function CategoryIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Rect x="3" y="3" width="7.5" height="7.5" rx="2.5" fill={filled ? color : 'none'} />
@@ -74,7 +74,7 @@ export function CategoryIcon({ size = 22, color = '#1557B0', filled = false }) {
   );
 }
 
-export function PackageIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function PackageIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
@@ -84,7 +84,7 @@ export function PackageIcon({ size = 22, color = '#1557B0', filled = false }) {
   );
 }
 
-export function HistoryIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function HistoryIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="12" cy="12" r="10" />
@@ -93,7 +93,7 @@ export function HistoryIcon({ size = 22, color = '#1557B0', filled = false }) {
   );
 }
 
-export function SettingsIcon({ size = 22, color = '#1557B0', filled = false }) {
+export function SettingsIcon({ size = 22, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.5 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="12" cy="7" r="4" fill={filled ? color : 'none'} stroke={color} />
@@ -140,7 +140,7 @@ export function ArrowRightIcon({ size = 18, color = '#FFFFFF' }) {
   );
 }
 
-export function ArrowLeftIcon({ size = 18, color = '#1557B0' }) {
+export function ArrowLeftIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <Line x1="19" y1="12" x2="5" y2="12" />
@@ -149,7 +149,7 @@ export function ArrowLeftIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function ChevronLeftIcon({ size = 18, color = '#1557B0' }) {
+export function ChevronLeftIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="15 18 9 12 15 6" />
@@ -157,7 +157,7 @@ export function ChevronLeftIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function ChevronDownIcon({ size = 18, color = '#1557B0' }) {
+export function ChevronDownIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="6 9 12 15 18 9" />
@@ -165,7 +165,7 @@ export function ChevronDownIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function ChevronUpIcon({ size = 18, color = '#1557B0' }) {
+export function ChevronUpIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="18 15 12 9 6 15" />
@@ -318,7 +318,7 @@ export function DownloadIcon({ size = 18, color = '#FFFFFF' }) {
   );
 }
 
-export function PrinterIcon({ size = 18, color = '#1557B0' }) {
+export function PrinterIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="6 9 6 2 18 2 18 9" />
@@ -328,7 +328,7 @@ export function PrinterIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function FileTextIcon({ size = 18, color = '#1557B0' }) {
+export function FileTextIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -340,7 +340,7 @@ export function FileTextIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function RefreshIcon({ size = 18, color = '#1557B0' }) {
+export function RefreshIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="23 4 23 10 17 10" />
@@ -350,7 +350,7 @@ export function RefreshIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function FoodIcon({ size = 18, color = '#1557B0' }) {
+export function FoodIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M18 8h1a4 4 0 0 1 0 8h-1" />
@@ -362,7 +362,7 @@ export function FoodIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function BabyIcon({ size = 18, color = '#1557B0' }) {
+export function BabyIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M9 12h6" />
@@ -373,7 +373,7 @@ export function BabyIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function MedicineIcon({ size = 18, color = '#1557B0' }) {
+export function MedicineIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
@@ -382,7 +382,7 @@ export function MedicineIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function HygieneIcon({ size = 18, color = '#1557B0' }) {
+export function HygieneIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M7 21h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z" />
@@ -392,7 +392,7 @@ export function HygieneIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function WaterDropIcon({ size = 18, color = '#1557B0' }) {
+export function WaterDropIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
@@ -400,7 +400,7 @@ export function WaterDropIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function WheelchairIcon({ size = 18, color = '#1557B0' }) {
+export function WheelchairIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="9" cy="4.5" r="2.5" />
@@ -410,7 +410,7 @@ export function WheelchairIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function PregnantIcon({ size = 18, color = '#1557B0' }) {
+export function PregnantIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="12" cy="4.5" r="2.5" />
@@ -420,7 +420,7 @@ export function PregnantIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function SeniorIcon({ size = 18, color = '#1557B0' }) {
+export function SeniorIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="10" cy="5" r="2.5" />
@@ -431,7 +431,7 @@ export function SeniorIcon({ size = 18, color = '#1557B0' }) {
   );
 }
 
-export function HeartPulseIcon({ size = 18, color = '#1557B0' }) {
+export function HeartPulseIcon({ size = 18, color = '#1C3F94' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <Path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
@@ -544,7 +544,30 @@ export function HammerToolIcon({ size = 20, color = '#B45309' }) {
   );
 }
 
-export function BriefcaseIcon({ size = 20, color = '#1557B0', filled = false }) {
+export function WrenchIcon({ size = 22, color = '#1C3F94', strokeWidth = 2, filled = false }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Path
+        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+        transform="scale(-1, 1) translate(-24, 0)"
+        fill={filled ? color : 'none'}
+      />
+    </Svg>
+  );
+}
+
+export function BriefcaseOutlineIcon({ size = 32, color = '#1C3F94', strokeWidth = 2 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="2" y="7" width="20" height="14" rx="3" />
+      <Path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3" />
+      <Line x1="2" y1="13" x2="22" y2="13" />
+      <Rect x="10" y="11" width="4" height="4" rx="1" fill="#EFF4FE" stroke={color} strokeWidth={strokeWidth} />
+    </Svg>
+  );
+}
+
+export function BriefcaseIcon({ size = 20, color = '#1C3F94', filled = false }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={filled ? 2.2 : 2.0} strokeLinecap="round" strokeLinejoin="round">
       {/* Hammer Handle & Head */}
@@ -559,5 +582,98 @@ export function BriefcaseIcon({ size = 20, color = '#1557B0', filled = false }) 
 }
 
 export function LivelihoodIcon(props) {
-  return <BriefcaseIcon {...props} />;
+  return <WrenchIcon {...props} />;
 }
+
+export function ClockIcon({ size = 18, color = '#64748B', strokeWidth = 2 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx="12" cy="12" r="10" />
+      <Polyline points="12 6 12 12 16 14" />
+    </Svg>
+  );
+}
+
+export function HourglassIcon({ size = 18, color = '#D97706' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M5 22h14" />
+      <Path d="M5 2h14" />
+      <Path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+      <Path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+    </Svg>
+  );
+}
+
+export function PlayIcon({ size = 16, color = '#FFFFFF' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Polygon points="5 3 19 12 5 21 5 3" />
+    </Svg>
+  );
+}
+
+export function RadioCheckedIcon({ size = 18, color = '#0B1D4E' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+      <Circle cx="12" cy="12" r="10" />
+      <Circle cx="12" cy="12" r="5" fill={color} />
+    </Svg>
+  );
+}
+
+export function RadioUncheckedIcon({ size = 18, color = '#94A3B8' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+      <Circle cx="12" cy="12" r="10" />
+    </Svg>
+  );
+}
+
+export function EditIcon({ size = 16, color = '#1C3F94' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <Path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </Svg>
+  );
+}
+
+export function FingerprintIcon({ size = 20, color = '#0B1D4E' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4" />
+      <Path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2" />
+      <Path d="M17.29 21.02c.12-.6.18-1.23.18-1.87 0-3.31-2.69-6-6-6s-6 2.69-6 6c0 .64.06 1.27.18 1.87" />
+      <Path d="M12 10a2 2 0 0 0-2 2c0 1.25.35 2.41.96 3.4" />
+      <Path d="M14 13.1a2 2 0 0 0 1.15-1.1" />
+      <Path d="M12 2a10 10 0 0 1 9.95 9" />
+      <Path d="M18 15a6 6 0 0 0-1.8-4.24" />
+    </Svg>
+  );
+}
+
+export function ConstructionIcon({ size = 40, color = '#0B1D4E' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="2" y="6" width="20" height="8" rx="1" />
+      <Path d="M17 14v7" />
+      <Path d="M7 14v7" />
+      <Path d="M17 3v3" />
+      <Path d="M7 3v3" />
+      <Line x1="10" y1="14" x2="2.3" y2="6.3" />
+      <Line x1="14" y1="6" x2="21.7" y2="13.7" />
+      <Line x1="8" y1="6" x2="16" y2="14" />
+    </Svg>
+  );
+}
+
+export function CopyIcon({ size = 16, color = '#1C3F94' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <Path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </Svg>
+  );
+}
+

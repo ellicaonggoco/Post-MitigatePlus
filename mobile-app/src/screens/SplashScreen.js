@@ -63,7 +63,7 @@ export default function SplashScreen({ onFinish }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#020617', '#071D3A', '#0D3C75']}
+        colors={['#0B1D4E', '#163B8C', '#234AAA']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.gradient}
@@ -109,13 +109,13 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+    borderWidth: 2,
+    borderColor: '#C9A84C',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#0D3C75',
+    shadowColor: '#0B1D4E',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 20,
@@ -128,15 +128,15 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   brandTagline: {
-    fontSize: 10,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#F59E0B',
-    letterSpacing: 1.2,
+    fontSize: 10.5,
+    fontWeight: '900',
+    color: '#C9A84C',
+    letterSpacing: 1.5,
     marginTop: 4,
   },
   brandSub: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 4,
     textAlign: 'center',
   },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#38BDF8',
+    backgroundColor: '#C9A84C',
     borderRadius: 3,
   },
   loadingText: {

@@ -1,14 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HomeIcon, ShieldCheckIcon, ArrowRightIcon } from '../components/AppIcons';
-import { RADIUS, FONT_WEIGHT, SPACING, TOUCH_TARGET, RESPONSIVE, wp, hp } from '../theme';
+import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, TOUCH_TARGET, RESPONSIVE, wp, hp } from '../theme';
 
 export default function AuthChoiceScreen({ onSelectRole }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#071D3A', '#0D3C75', '#154A8A']}
+        colors={['#0B1D4E', '#163B8C', '#234AAA']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.gradient}
@@ -41,8 +41,8 @@ export default function AuthChoiceScreen({ onSelectRole }) {
               onPress={() => onSelectRole('resident')}
               activeOpacity={0.85}
             >
-              <View style={[styles.iconCircle, { backgroundColor: '#EBF3FC' }]}>
-                <HomeIcon size={22} color="#002BB8" />
+              <View style={[styles.iconCircle, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
+                <HomeIcon size={22} color="#C8102E" />
               </View>
               <View style={styles.cardTextGroup}>
                 <Text style={styles.roleTitle}>Portal ng Residente</Text>
@@ -50,7 +50,7 @@ export default function AuthChoiceScreen({ onSelectRole }) {
                   Tingnan ang QR Pass, ulat ng pinsala, at mga anunsyo ng barangay.
                 </Text>
               </View>
-              <ArrowRightIcon size={16} color="#002BB8" />
+              <ArrowRightIcon size={16} color="#C8102E" />
             </TouchableOpacity>
 
             {/* Option 2: Field Staff Portal */}
@@ -59,8 +59,8 @@ export default function AuthChoiceScreen({ onSelectRole }) {
               onPress={() => onSelectRole('staff')}
               activeOpacity={0.85}
             >
-              <View style={[styles.iconCircle, { backgroundColor: '#FEF3C7' }]}>
-                <ShieldCheckIcon size={22} color="#D97706" />
+              <View style={[styles.iconCircle, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0' }]}>
+                <ShieldCheckIcon size={22} color="#B8932A" />
               </View>
               <View style={styles.cardTextGroup}>
                 <Text style={styles.roleTitle}>Field Staff Portal</Text>
@@ -68,7 +68,7 @@ export default function AuthChoiceScreen({ onSelectRole }) {
                   QR Scanner, relief distribution verification, at incident reports.
                 </Text>
               </View>
-              <ArrowRightIcon size={16} color="#D97706" />
+              <ArrowRightIcon size={16} color="#B8932A" />
             </TouchableOpacity>
           </View>
 
@@ -82,7 +82,7 @@ export default function AuthChoiceScreen({ onSelectRole }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#071D3A' },
+  container: { flex: 1, backgroundColor: '#0B1D4E' },
   gradient: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
@@ -98,17 +98,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoFrame: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 2.5,
+    borderColor: '#C9A84C',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+    } : {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      elevation: 5,
+    }),
   },
-  logo: { width: 75, height: 75 },
+  logo: { width: 80, height: 80 },
   title: {
     fontSize: 32,
     fontWeight: FONT_WEIGHT.black,
@@ -116,10 +125,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   tagline: {
-    fontSize: 10,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#F59E0B',
-    letterSpacing: 1.2,
+    fontSize: 10.5,
+    fontWeight: '900',
+    color: '#C9A84C',
+    letterSpacing: 1.5,
     marginTop: 4,
   },
   subtitle: {
@@ -133,48 +142,50 @@ const styles = StyleSheet.create({
   roleCard: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.card,
-    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.16), 0 2px 8px rgba(11, 29, 78, 0.06)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.14,
+      shadowRadius: 16,
+      elevation: 5,
+    }),
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
   },
   cardTextGroup: { flex: 1 },
   roleTitle: {
-    fontSize: 15,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#0F172A',
+    fontSize: 15.5,
+    fontWeight: FONT_WEIGHT.black,
+    color: '#0B1525',
+    letterSpacing: -0.2,
   },
   roleSub: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#475569',
     marginTop: 3,
     lineHeight: 16,
   },
-  arrowText: {
-    fontSize: 18,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#0D3C75',
-    marginLeft: 8,
-  },
   footerNote: {
-    fontSize: 9,
-    fontWeight: FONT_WEIGHT.bold,
-    color: 'rgba(255, 255, 255, 0.4)',
-    letterSpacing: 1,
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: 1.2,
     marginBottom: 10,
   },
 });

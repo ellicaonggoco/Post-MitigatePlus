@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { submitDamageReport } from '../services/api';
@@ -60,7 +61,7 @@ function PhotoAttachmentSection({ selectedPhoto, onPickCamera, onPickLibrary, on
       ) : (
         <View style={styles.uploadActionsRow}>
           <TouchableOpacity style={styles.cameraBtn} onPress={onPickCamera} activeOpacity={0.85}>
-            <CameraIcon size={20} color="#1557B0" />
+            <CameraIcon size={20} color="#1C3F94" />
             <Text style={styles.uploadBtnText}>{lang === 'tl' ? 'Camera' : 'Take Photo'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.galleryBtn} onPress={onPickLibrary} activeOpacity={0.85}>
@@ -154,10 +155,10 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
   };
 
   const severities = [
-    { level: 'Minor', label: t.sevMinor, sub: t.sevMinorSub, color: '#059669', badgeBg: '#ECFDF5' },
-    { level: 'Moderate', label: t.sevModerate, sub: t.sevModerateSub, color: '#D97706', badgeBg: '#FEF3C7' },
-    { level: 'Severe', label: t.sevSevere, sub: t.sevSevereSub, color: '#DC2626', badgeBg: '#FEE2E2' },
-    { level: 'Total', label: t.sevTotal, sub: t.sevTotalSub, color: '#7F1D1D', badgeBg: '#F3E8FF' },
+    { level: 'Minor', label: t.sevMinor, sub: t.sevMinorSub, color: '#0D8A5A', badgeBg: '#E6F6EF' },
+    { level: 'Moderate', label: t.sevModerate, sub: t.sevModerateSub, color: '#B8932A', badgeBg: '#FEF3C7' },
+    { level: 'Severe', label: t.sevSevere, sub: t.sevSevereSub, color: '#C8102E', badgeBg: '#FEF0F2' },
+    { level: 'Total', label: t.sevTotal, sub: t.sevTotalSub, color: '#0B1525', badgeBg: '#F3F6FC' },
   ];
 
   const handlePickCamera = async () => {
@@ -326,21 +327,27 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: 95 + keyboardHeight }]}
+        contentContainerStyle={[{ paddingBottom: 24 + keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <MotionPressable style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
-          <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1557B0" />
+        <LinearGradient colors={['#6E071A', '#C8102E', '#9E0B24']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
+          <View style={{height: 3, backgroundColor: '#C9A84C'}} />
+          <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
+            <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'}}>
+              <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={{flex: 1, alignItems: 'center'}}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Report Damage</Text>
+            </View>
+            <View style={{width: 36}} />
           </View>
-          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
-        </MotionPressable>
-
-        <Text style={styles.headerTitle}>{lang === 'tl' ? 'I-ulat ang Pinsala ng Bahay' : 'Report Structural Damage'}</Text>
-        <Text style={styles.headerSub}>
-          {lang === 'tl' ? 'Mabilisang pagsusuri ng pinsala para sa agarang tulong.' : 'Rapid damage assessment for emergency response.'}
-        </Text>
+          <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
+            <Text style={{ fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', marginBottom: 4 }}>DAMAGE ASSESSMENT</Text>
+            <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>Structural Damage Report</Text>
+          </View>
+        </LinearGradient>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
@@ -357,7 +364,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 
           <View style={styles.autoLocationBody}>
             <View style={styles.autoLocationIconCircle}>
-              <MapPinIcon size={18} color="#1557B0" />
+              <MapPinIcon size={18} color="#1C3F94" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.autoLocationAddressText}>
@@ -402,33 +409,31 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 95 },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
+  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 24 },
   backBtnPill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
+    borderRadius: 9999,
     marginBottom: 14,
     ...SHADOWS.pill,
   },
   backIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
   },
-  backBtnText: { fontSize: 12, fontWeight: '800', color: '#1557B0', letterSpacing: 0.2 },
+  backBtnText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
   headerTitle: { fontSize: 20, fontWeight: FONT_WEIGHT.black, color: '#172B4D' },
   headerSub: { fontSize: 11.5, color: '#64748B', marginTop: 2, marginBottom: 16 },
   sectionHeader: { marginBottom: 8 },
@@ -436,8 +441,8 @@ const styles = StyleSheet.create({
   autoLocationCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 16,
+    borderColor: '#DDE4F0',
+    borderRadius: 16, shadowColor: '#1C3F94',
     padding: 16,
     marginBottom: 16,
     ...SHADOWS.card,
@@ -457,7 +462,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
@@ -487,10 +492,10 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: '47%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 14,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderWidth: 2,
+    borderColor: '#DDE4F0',
     ...SHADOWS.card,
   },
   severityHeaderRow: {
@@ -546,9 +551,9 @@ const styles = StyleSheet.create({
   previewBox: { alignItems: 'center' },
   previewImg: { width: '100%', height: 150, borderRadius: 10, backgroundColor: '#E2E8F0', marginBottom: 8 },
   removePhotoBtn: { paddingVertical: 6, paddingHorizontal: 12 },
-  removePhotoText: { fontSize: 11, fontWeight: '700', color: '#1557B0' },
+  removePhotoText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   submitBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -560,6 +565,6 @@ const styles = StyleSheet.create({
   successIconWell: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#DCFCE7', justifyContent: 'center', alignItems: 'center', marginBottom: 16, ...SHADOWS.md },
   successTitle: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#172B4D', marginBottom: 6 },
   successSub: { fontSize: 12, color: '#64748B', textAlign: 'center', marginBottom: 20 },
-  backHomeBtn: { backgroundColor: '#1557B0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, ...SHADOWS.button },
+  backHomeBtn: { backgroundColor: '#1C3F94', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, ...SHADOWS.button },
   backHomeBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 });

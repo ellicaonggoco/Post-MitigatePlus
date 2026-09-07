@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, GeoJSON, CircleMarker, Marker, Tooltip, Popup,
 import L from 'leaflet';
 import * as topojson from 'topojson-client';
 import { AuthContext } from '../context/AuthContext';
-import { MapPin, Filter, Eye, Layers, AlertTriangle, ShieldCheck, Home, Activity, Zap, Compass, RefreshCw } from 'lucide-react';
+import { MapPin, Filter, Eye, Layers, AlertTriangle, ShieldCheck, Home, Activity, Zap, Compass, RefreshCw, Maximize2, X } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 import manilaTopo from '../data/manila-barangays.topo.json';
@@ -866,19 +866,27 @@ export default function BarangayHeatmap() {
                 {/* ── 4-Box Severity Breakdown ── */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
                   <div style={{ background: '#F3E8FF', border: '1px solid #D8B4FE', padding: '8px 10px', borderRadius: 'var(--radius-inner)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#7E22CE', display: 'block' }}>● Critical</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#7E22CE', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#7E22CE', display: 'inline-block' }} /> Critical
+                    </span>
                     <strong style={{ fontSize: '16px', color: '#6B21A8' }}>{criticalCount}</strong>
                   </div>
                   <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '8px 10px', borderRadius: 'var(--radius-inner)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626', display: 'block' }}>● High Risk</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} /> High Risk
+                    </span>
                     <strong style={{ fontSize: '16px', color: '#991B1B' }}>{severeCount}</strong>
                   </div>
                   <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: '8px 10px', borderRadius: 'var(--radius-inner)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#D97706', display: 'block' }}>● Moderate</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#D97706', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#D97706', display: 'inline-block' }} /> Moderate
+                    </span>
                     <strong style={{ fontSize: '16px', color: '#92400E' }}>{moderateCount}</strong>
                   </div>
                   <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', padding: '8px 10px', borderRadius: 'var(--radius-inner)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309', display: 'block' }}>● Minor</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#B45309', display: 'inline-block' }} /> Minor
+                    </span>
                     <strong style={{ fontSize: '16px', color: '#78350F' }}>{minorCount}</strong>
                   </div>
                 </div>
@@ -902,8 +910,8 @@ export default function BarangayHeatmap() {
                             alt="Evidence" 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                           />
-                          <div style={{ position: 'absolute', bottom: 4, right: 6, background: 'rgba(0,0,0,0.65)', color: '#FFF', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                            🔍 Click to Enlarge
+                          <div style={{ position: 'absolute', bottom: 4, right: 6, background: 'rgba(0,0,0,0.65)', color: '#FFF', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Maximize2 size={11} color="#FFF" /> Click to Enlarge
                           </div>
                         </div>
                       </div>
@@ -947,8 +955,8 @@ export default function BarangayHeatmap() {
                               <span style={{ fontSize: '11px', background: 'rgba(9,1,84,0.08)', padding: '2px 6px', borderRadius: 999, color: 'var(--manila-blue)' }}>{dot.priorityScore} pts</span>
                             </div>
                             <div style={{ fontSize: '11px', color: 'var(--ink-soft)', marginTop: 2 }}>{dot.address}</div>
-                            <div style={{ fontSize: '11px', fontWeight: 700, color: dot.damageLevel === 'Severe' || dot.damageLevel === 'Totally Damaged' ? '#DC2626' : '#D97706', marginTop: 2 }}>
-                              ● {dot.damageLevel}
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: dot.damageLevel === 'Severe' || dot.damageLevel === 'Totally Damaged' ? '#DC2626' : '#D97706', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot.damageLevel === 'Severe' || dot.damageLevel === 'Totally Damaged' ? '#DC2626' : '#D97706', display: 'inline-block' }} /> {dot.damageLevel}
                             </div>
                           </div>
                         ))}
@@ -1088,9 +1096,9 @@ export default function BarangayHeatmap() {
               <span style={{ color: '#F8FAFC', fontWeight: 800, fontSize: 14 }}>Attached Evidence / ID Photo Preview</span>
               <button 
                 onClick={() => setPreviewImage(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}
               >
-                ✕ Close
+                <X size={14} /> Close
               </button>
             </div>
             <div style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#020617' }}>

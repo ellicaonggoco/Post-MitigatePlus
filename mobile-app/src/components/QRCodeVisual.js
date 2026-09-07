@@ -209,7 +209,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#071D3A', '#0D3C75', '#154A8A']}
+        colors={['#0B1D4E', '#163B8C', '#234AAA']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.qrCard, SHADOWS.lg]}
@@ -223,8 +223,11 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
             />
           </View>
           <View style={{ flex: 1 }}>
+            <Text style={styles.passKicker}>
+              {lang === 'tl' ? 'OPISYAL NA CITIZEN RELIEF PASS' : 'OFFICIAL CITIZEN RELIEF PASS'}
+            </Text>
             <Text style={styles.passTitle}>
-              {lang === 'tl' ? 'OPISYAL NA DISASTER RELIEF PASS' : 'OFFICIAL DISASTER RELIEF PASS'}
+              {lang === 'tl' ? 'Household Digital ID' : 'Household Digital ID'}
             </Text>
             <Text style={styles.passSub}>
               {lang === 'tl' ? 'Pamahalaang Lungsod ng Maynila • LGU Recovery' : 'City Government of Manila • LGU Recovery'}
@@ -251,7 +254,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                       width={moduleSize}
                       height={moduleSize}
                       rx={1.2}
-                      fill="#071D3A"
+                      fill="#0B1D4E"
                     />
                   );
                 }
@@ -259,8 +262,8 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
               })
             )}
             <G transform={`translate(${svgSize / 2 - 18}, ${svgSize / 2 - 18})`}>
-              <Rect width="36" height="36" rx="8" fill="#FFFFFF" stroke="#0D3C75" strokeWidth="3" />
-              <Rect x="4" y="4" width="28" height="28" rx="6" fill="#0D3C75" />
+              <Rect width="36" height="36" rx="8" fill="#FFFFFF" stroke="#0B1D4E" strokeWidth="3" />
+              <Rect x="4" y="4" width="28" height="28" rx="6" fill="#0B1D4E" />
               <Path d="M18 10L25 14V21C25 24 21 26 18 27C15 26 11 24 11 21V14L18 10Z" fill="#F59E0B" />
             </G>
           </Svg>
@@ -301,18 +304,26 @@ const styles = StyleSheet.create({
   compactFrame: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderWidth: 2,
+    borderColor: '#C9A84C',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 4,
-    ...SHADOWS.sm,
+    shadowColor: '#C9A84C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   qrCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 20,
     alignItems: 'center',
     width: '100%',
+    borderTopWidth: 3,
+    borderTopColor: '#C9A84C',
+    borderBottomWidth: 2.5,
+    borderBottomColor: '#C9A84C',
   },
   passHeader: {
     flexDirection: 'row',
@@ -322,39 +333,52 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   passSealCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  passKicker: {
+    color: '#E0B84C',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
   passTitle: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: FONT_WEIGHT.black,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
+    marginTop: 1,
   },
   passSub: {
     color: 'rgba(255, 255, 255, 0.75)',
-    fontSize: 10,
+    fontSize: 10.5,
     marginTop: 1,
   },
   goldBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#10B981',
   },
   goldBadgeText: {
-    color: '#D97706',
-    fontSize: 9,
+    color: '#34D399',
+    fontSize: 9.5,
     fontWeight: FONT_WEIGHT.black,
+    letterSpacing: 0.5,
   },
   qrSvgFrame: {
     padding: 8,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#C9A84C',
     ...SHADOWS.md,
   },
   verifyBadge: {
@@ -369,14 +393,15 @@ const styles = StyleSheet.create({
   },
   manualCodeContainer: {
     width: '100%',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 12,
     marginTop: 14,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
+    borderStyle: 'solid',
     alignItems: 'center',
+    ...SHADOWS.sm,
   },
   manualCodeContainerCopied: {
     backgroundColor: '#ECFDF5',
@@ -384,19 +409,21 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
   },
   manualCodeLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#334155',
     marginBottom: 4,
     textAlign: 'center',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   codePillBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#C9A84C',
     marginTop: 2,
   },
   codePillBoxCopied: {
@@ -407,7 +434,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: FONT_WEIGHT.black,
     letterSpacing: 1.2,
-    color: '#002BB8',
+    color: '#0B1D4E',
     textAlign: 'center',
   },
 });

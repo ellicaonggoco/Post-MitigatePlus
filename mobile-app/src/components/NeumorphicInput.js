@@ -1,14 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
 import { AlertTriangleIcon, CheckIcon, EyeIcon, EyeOffIcon } from './AppIcons';
 import { COLORS, FONT_WEIGHT } from '../theme';
 
 /**
  * Civic Standard Input Component (WCAG AAA Compliant)
  * ----------------------------------------------------------------------------
- * - Clean pure white surface (#FFFFFF) with high-contrast text (#172B4D)
+ * - Clean pure white surface (#FFFFFF) with high-contrast text (#0B1525)
  * - 48px minimum touch target height (Fitts's Law)
- * - Crisp 1.5px border (#D9E2EC) with active Blue focus ring (#1557B0)
+ * - Crisp 1.5px border (#DDE4F0) with active Blue focus ring (#1C3F94)
  * - Persistent label, helper hints, and friendly inline error feedback
  * - Built-in interactive [Show / Hide] Password eye toggle
  */
@@ -94,7 +94,7 @@ export default function NeumorphicInput({
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#1557B0" />}
+              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#1C3F94" />}
             </TouchableOpacity>
           )}
         </View>
@@ -131,12 +131,12 @@ const styles = StyleSheet.create({
   persistentLabel: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#172B4D',
+    color: '#0B1525',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
   labelFocused: {
-    color: '#1557B0',
+    color: '#1C3F94',
   },
   labelError: {
     color: '#DC2626',
@@ -163,19 +163,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     paddingHorizontal: 14,
     minHeight: 48, // 48px touch target
     justifyContent: 'center',
   },
   containerFocused: {
-    borderColor: '#1557B0',
+    borderColor: '#1C3F94',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#1557B0',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 2,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 0 0 3px rgba(28, 63, 148, 0.14)',
+    } : {
+      shadowColor: '#1C3F94',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 2,
+    }),
   },
   containerError: {
     backgroundColor: '#FEF2F2',
@@ -191,7 +195,7 @@ const styles = StyleSheet.create({
   },
   inputField: {
     fontSize: 14,
-    color: '#172B4D',
+    color: '#0B1525',
     fontWeight: '600',
     paddingVertical: 10,
     width: '100%',

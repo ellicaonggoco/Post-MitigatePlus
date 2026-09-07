@@ -1,98 +1,115 @@
-# MitigatePlus - Complete Capstone Diagrams Portfolio
-**Official Disaster Relief and Social Protection Management Platform for the City of Manila, Philippines**
+# MitigatePlus - Revised Diagrams (Per Professor's Feedback)
+
+## What Changed From Previous Version
+
+| Old Version (Wrong) | New Version (Correct) |
+|---|---|
+| Use Case ovals had activity steps | Use Case ovals = Module/Feature names only |
+| One big process flow for everything | One dedicated process flow diagram per use case |
+| Use Case and Process Flow were separate | Each Process Flow is directly linked to a specific Use Case oval |
 
 ---
 
-## 📂 Directory Layout & Structure
+## File Structure
 
-### 🏛️ 1. Root Level: Core System Architecture & Methodology
-- `01_Three_Tier_System_Architecture.drawio` - 3-Tier Layered Architecture (Presentation, Business Logic, Data Layer)
-- `02_Agile_Scrum_Methodology.drawio` - Agile/Scrum Development Process, Sprint Cycles & LGU Stakeholder Integration
-- `03a_FDD_LGU_SuperAdmin.drawio` - Functional Decomposition Diagram: LGU SuperAdmin Role
-- `03b_FDD_LGU_Admin.drawio` - Functional Decomposition Diagram: LGU Admin Role
-- `03c_FDD_Barangay_Admin.drawio` - Functional Decomposition Diagram: Barangay Official Role
-- `03d_FDD_Resident.drawio` - Functional Decomposition Diagram: Resident / Citizen Role
-- `03e_FDD_Field_Staff.drawio` - Functional Decomposition Diagram: Field Response Staff Role
-- `04a_ProcessFlow_Registration_OTP.drawio` - BPMN Flow: Citizen Registration, ID Upload & Semaphore SMS OTP
-- `04b_ProcessFlow_Relief_Distribution_AntiFraud.drawio` - BPMN Flow: Relief Distribution & Anti-Duplicate QR Scan
-- `04c_ProcessFlow_Damage_Report_Heatmap.drawio` - BPMN Flow: Structural Damage Reporting & GIS Risk Heatmap
-- `04d_ProcessFlow_Special_Assistance.drawio` - BPMN Flow: Special Door-to-Door Assistance & Field Staff Dispatch
-- `05_Comprehensive_UML_UseCase_Diagram.drawio` - Unified System Use Case Boundaries (All 5 Roles)
-- `06_All_Activities_System_Process_Flow.drawio` - Master End-to-End System Process Flow
+```
+new diagrams/
+  Use_Case_Diagram.drawio          <- 1 Use Case Diagram (all 5 actors, 38 modules)
+  Process_Flows/
+    Resident/                      <- 11 Process Flow diagrams
+    Field_Staff/                   <- 4 Process Flow diagrams
+    Barangay_Official/             <- 8 Process Flow diagrams
+    LGU_Admin/                     <- 10 Process Flow diagrams
+    LGU_Superadmin/                <- 5 Process Flow diagrams
+```
+
+**Total: 39 .drawio files**
 
 ---
 
-### 📱 2. Subdirectory: `Per_Module_Process_Flows/` (31 Screen/Page Flowcharts)
-*Interactive Web Index: Open `Per_Module_Process_Flows/index.html` in any browser.*
+## Use Case Diagram - Actors and Their Modules
 
-#### Mobile Application Screens (12 Diagrams):
-- `Mobile_01_AuthChoice_Landing_Splash_Flow.drawio`
-- `Mobile_02_ResidentRegisterScreen_Flow.drawio`
-- `Mobile_03_ResidentLogin_ForgotPassword_Flow.drawio`
-- `Mobile_04_ResidentHomeScreen_DigitalQRFastPass_Flow.drawio`
-- `Mobile_05_ReportDamageScreen_Flow.drawio`
-- `Mobile_06_AssistanceRequestScreen_Flow.drawio`
-- `Mobile_07_ResidentClaimsHistoryScreen_Flow.drawio`
-- `Mobile_08_SettingsScreen_Roster_QRRenewal_Flow.drawio`
-- `Mobile_09_StaffLogin_Auth_Flow.drawio`
-- `Mobile_10_StaffScannerScreen_AntiDuplicate_Flow.drawio`
-- `Mobile_11_StaffTasks_SpecialRequestAssignment_Flow.drawio`
-- `Mobile_12_StaffIncidentReportScreen_Flow.drawio`
+### Resident (11 Use Cases)
+- UC-R01: Register Account
+- UC-R02: Login
+- UC-R03: View Announcements
+- UC-R04: Report Structural Damage
+- UC-R05: View Digital QR Relief Pass
+- UC-R06: Apply for Cash-for-Work
+- UC-R07: View Claims History
+- UC-R08: Request Special Assistance
+- UC-R09: Manage Household Members
+- UC-R10: Change Password
+- UC-R11: Sync Offline Data
 
-#### Web Admin Command Center Pages (19 Diagrams):
-- `Web_01_Login_Authentication_Flow.drawio`
-- `Web_02_Dashboard_CommandCenter_Flow.drawio`
-- `Web_03_VerificationQueue_Flow.drawio`
-- `Web_04_DistributionEvents_Flow.drawio`
-- `Web_05_ReliefAllocationPage_Flow.drawio`
-- `Web_06_BarangayHeatmap_Flow.drawio`
-- `Web_07_SmartPriorityDashboard_Flow.drawio`
-- `Web_08_SpecialRequestRelief_Flow.drawio`
-- `Web_09_WarehouseInventory_Flow.drawio`
-- `Web_10_FraudInterception_Flow.drawio`
-- `Web_11_AnnouncementsPage_Flow.drawio`
-- `Web_12_LivelihoodAssistance_Flow.drawio`
-- `Web_13_RecoveryProgressTracker_Flow.drawio`
-- `Web_14_ProvisionAccounts_Flow.drawio`
-- `Web_15_GlobalPolicyConfig_Flow.drawio`
-- `Web_16_AccountSecurityPage_Flow.drawio`
-- `Web_17_ReportsPage_Flow.drawio`
-- `Web_18_SettingsPage_Flow.drawio`
-- `Web_19_SystemAuditLogs_Flow.drawio`
+### Field Staff (4 Use Cases)
+- UC-FS01: Login (Staff)
+- UC-FS02: Scan QR for Relief Distribution
+- UC-FS03: Assign and Complete Special Request
+- UC-FS04: Submit Field Incident Report
 
----
+### Barangay Official (8 Use Cases)
+- UC-BO01: Login (Barangay Official)
+- UC-BO02: Verify Household Applications
+- UC-BO03: View Priority Index
+- UC-BO04: Manage Announcements
+- UC-BO05: Request Cash-for-Work Project
+- UC-BO06: Review CFW Worker Applicants
+- UC-BO07: Manage Special Relief Requests
+- UC-BO08: View Recovery Progress
 
-### ⚡ 3. Subdirectory: `Per_Activity_Process_Flows/` (24 Granular Transaction Flows)
-*Interactive Web Index: Open `Per_Activity_Process_Flows/index.html` in any browser.*
+### LGU Admin (10 Use Cases)
+- UC-LA01: Login (LGU Admin)
+- UC-LA02: Create Livelihood Project
+- UC-LA03: Approve CFW Project Proposals
+- UC-LA04: Manage Distribution Events
+- UC-LA05: Manage Warehouse Inventory
+- UC-LA06: View Payroll and Export CSV
+- UC-LA07: Manage Special Relief Requests
+- UC-LA08: Manage Staff Accounts
+- UC-LA09: View Reports and Audit
+- UC-LA10: Allocate Relief Resources
 
-- `Activity_01_Citizen_Registration_SMS_OTP_Verification.drawio`
-- `Activity_02_Citizen_Authentication_Password_Reset.drawio`
-- `Activity_03_Digital_QR_Pass_Offline_Sync.drawio`
-- `Activity_04_Post_Disaster_Cash_For_Work_Employment.drawio`
-- `Activity_05_Disaster_Damage_Reporting_GPS_Photo.drawio`
-- `Activity_06_Relief_Claims_History_Tracking.drawio`
-- `Activity_07_Household_Profile_Members_i18n_Update.drawio`
-- `Activity_08_Staff_QR_Scan_Anti_Duplicate_Release.drawio`
-- `Activity_09_Special_Assistance_Door_to_Door_Delivery.drawio`
-- `Activity_10_Field_Staff_Incident_Hazard_Reporting.drawio`
-- `Activity_11_Barangay_Household_Verification_Queue.drawio`
-- `Activity_12_Relief_Distribution_Event_Scheduling.drawio`
-- `Activity_13_Right_Sized_Relief_Allocation_Policy.drawio`
-- `Activity_14_Fraud_Interception_Duplicate_Stream.drawio`
-- `Activity_15_Warehouse_Inventory_Buffer_Alert.drawio`
-- `Activity_16_GIS_Flood_Risk_Heatmap_Mapping.drawio`
-- `Activity_17_Smart_Priority_Vulnerability_Ranking.drawio`
-- `Activity_18_Special_Assistance_Staff_Dispatch.drawio`
-- `Activity_19_Emergency_Bulletins_Announcements_Broadcast.drawio`
-- `Activity_20_Official_Account_Provisioning_Governance.drawio`
-- `Activity_21_Global_Relief_Policy_Thresholds_Config.drawio`
-- `Activity_22_Disaster_Recovery_Phase_Milestone_Transition.drawio`
-- `Activity_23_Relief_Assistance_Gap_Analysis_Reporting.drawio`
-- `Activity_24_System_Security_Audit_Trail_Archiving.drawio`
+### LGU Superadmin (5 Use Cases)
+- UC-SA01: Login (Superadmin)
+- UC-SA02: View Barangay Heatmap
+- UC-SA03: Configure Global Policy
+- UC-SA04: Manage All Accounts
+- UC-SA05: View System Audit Logs
 
 ---
 
-## 🛠️ How to Open & Edit Diagrams
-1. Visit **[draw.io (diagrams.net)](https://app.diagrams.net)** in your web browser.
-2. Select **Open Existing Diagram** and pick any `.drawio` file from this folder.
-3. Export as PNG, SVG, or PDF for your thesis defense slides and capstone documentation.
+## Use Case to Process Flow Mapping
+
+Each Process Flow diagram title says: "PF-XXX: Process Flow - [Module Name]"
+The Linked Use Case field shows exactly which UC oval it corresponds to.
+
+```
+UC-R01: Register Account       ->  PF-R01_Register_Account.drawio
+UC-R02: Login                  ->  PF-R02_Login.drawio
+UC-FS02: Scan QR Distribution  ->  PF-FS02_Scan_QR_Relief_Distribution.drawio
+UC-BO05: Request CFW Project   ->  PF-BO05_Request_CFW_Project.drawio
+UC-LA06: View Payroll + CSV    ->  PF-LA06_View_Payroll_Export_CSV.drawio
+... and so on for all 38 flows
+```
+
+---
+
+## How to Open Diagrams
+
+1. Go to **[https://app.diagrams.net](https://app.diagrams.net)**
+2. Click **File > Open From > Device**
+3. Navigate to this folder and select any `.drawio` file
+4. Export as PNG, SVG, or PDF for your thesis documentation
+
+---
+
+## Process Flow Legend
+
+| Shape | Color | Meaning |
+|---|---|---|
+| Rounded rectangle | Green | Start / End terminal |
+| Rectangle | Blue | Process step / Activity |
+| Diamond | Yellow | Decision point (Yes/No) |
+| Red dashed arrow | Red | "No" branch looping back (retry) |
+| Solid black arrow | Blue | Normal flow (Yes / Next step) |

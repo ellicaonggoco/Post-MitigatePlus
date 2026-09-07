@@ -41,7 +41,7 @@ export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkM
   const fillWidthPercent = `${(activeIdx / (STOPS.length - 1)) * 100}%`;
 
   const theme = {
-    card: darkMode ? '#071D3A' : '#FFFFFF',
+    card: darkMode ? '#0B1D4E' : '#FFFFFF',
     border: darkMode ? 'rgba(255, 255, 255, 0.2)' : '#E2E8F0',
     title: darkMode ? '#FFFFFF' : '#002BB8',
     sub: darkMode ? '#93C5FD' : '#64748B',

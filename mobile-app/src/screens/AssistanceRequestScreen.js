@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
   Text,
@@ -23,6 +24,8 @@ import {
   SprayIcon,
   BoxPackageIcon,
   HammerToolIcon,
+  ConstructionIcon,
+  BriefcaseOutlineIcon,
 } from '../components/AppIcons';
 import { SHADOWS, RESPONSIVE } from '../theme';
 import { API_BASE_URL } from '../config';
@@ -197,7 +200,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#1557B0" />
+        <ActivityIndicator size="large" color="#1C3F94" />
         <Text style={styles.loadingText}>
           {lang === 'tl' ? 'Kinakarga ang Livelihood Program...' : 'Loading Livelihood Program...'}
         </Text>
@@ -220,30 +223,29 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
     >
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[styles.content, { paddingBottom: 95 + keyboardHeight }]}
+        contentContainerStyle={[{ paddingBottom: 24 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <TouchableOpacity style={styles.backBtnPill} onPress={onBack} activeOpacity={0.75}>
-          <ArrowLeftIcon size={14} color="#1557B0" />
-          <Text style={styles.backBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.header}>
-          <View style={styles.kickerRow}>
-            <View style={styles.kickerDot} />
-            <Text style={styles.kicker}>LGU EMERGENCY EMPLOYMENT AND REHABILITATION</Text>
+        <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{x:0, y:0}} end={{x:1, y:1}}>
+          <View style={{height: 3, backgroundColor: '#C9A84C'}} />
+          <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 12 }}>
+            <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center'}}>
+              <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Cash-for-Work</Text>
+            <View style={{width: 36}} />
           </View>
-          <Text style={styles.title}>
-            {lang === 'tl' ? 'Post-Disaster Cash-for-Work' : 'Post-Disaster Cash-for-Work'}
-          </Text>
-          <Text style={styles.sub}>
-            {lang === 'tl'
-              ? 'TUPAD-style na pangkabuhayang tulong para sa mga residenteng nawalan ng kita matapos ang kalamidad.'
-              : 'Emergency paid employment program providing short-term income and community rebuilding assistance.'}
-          </Text>
-        </View>
+          <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
+            <Text style={{ fontSize: 9.5, fontWeight: '800', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 5 }}>LGU EMERGENCY EMPLOYMENT & REHABILITATION</Text>
+            <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.6 }}>Post-Disaster Cash-for-Work</Text>
+            <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 19.5, marginTop: 4 }}>
+              Emergency paid employment providing short-term income and community rebuilding assistance.
+            </Text>
+          </View>
+        </LinearGradient>
 
         {/* STATE 2: PENDING BARANGAY REVIEW */}
         {isPending && (
@@ -351,15 +353,15 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
         {!userApplication && (
           <>
             {!activeProject ? (
-              <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24 }}>
-                <Text style={{ fontSize: 40, marginBottom: 16 }}>🏗️</Text>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#172B4D', textAlign: 'center', marginBottom: 8 }}>
-                  {lang === 'tl' ? 'Walang Aktibong Proyekto' : 'No Active CFW Project'}
+              <View style={{ alignItems: 'center', paddingVertical: 56, paddingHorizontal: 24 }}>
+                <View style={{ width: 78, height: 78, borderRadius: 24, backgroundColor: '#EFF4FE', borderWidth: 1.5, borderColor: '#D9E4FA', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                  <BriefcaseOutlineIcon size={34} color="#1C3F94" strokeWidth={2.2} />
+                </View>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1525', textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
+                  No Active CFW Project
                 </Text>
-                <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', lineHeight: 20 }}>
-                  {lang === 'tl'
-                    ? 'Walang Cash-for-Work na proyekto ang naka-publish para sa inyong barangay sa ngayon. Mangyaring bumalik mamaya o makipag-ugnayan sa inyong Barangay Council.'
-                    : 'There are no Cash-for-Work projects posted for your barangay at this time. Please check back later or contact your Barangay Council.'}
+                <Text style={{ fontSize: 14, color: '#5A6E8C', textAlign: 'center', maxWidth: 280, lineHeight: 21 }}>
+                  No Cash-for-Work projects posted for your barangay. Check back later or contact your Barangay Council.
                 </Text>
               </View>
             ) : (
@@ -420,8 +422,8 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
                 >
                   <View style={styles.categoryHeaderRow}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <View style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: isSelected ? '#EFF6FF' : '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: isSelected ? '#1557B0' : '#E2E8F0' }}>
-                        <Icon size={20} color={isSelected ? '#1557B0' : '#475569'} />
+                      <View style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: isSelected ? '#EFF6FF' : '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: isSelected ? '#1C3F94' : '#E2E8F0' }}>
+                        <Icon size={20} color={isSelected ? '#1C3F94' : '#475569'} />
                       </View>
                       <Text style={[styles.categoryTitle, isSelected && styles.categoryTitleSelected]}>
                         {cat.title}
@@ -553,13 +555,13 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     padding: 20,
   },
   loadingText: {
@@ -571,25 +573,35 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: RESPONSIVE.topSafe + 8,
-    paddingBottom: 95,
+    paddingBottom: 24,
   },
   backBtnPill: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#CBD5E1',
     marginBottom: 16,
+    gap: 8,
+    ...SHADOWS.pill,
+  },
+  backIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 20,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBtnText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#1557B0',
-    marginLeft: 6,
+    fontWeight: '800',
+    color: '#1C3F94',
+    letterSpacing: 0.2,
   },
   header: {
     marginBottom: 16,
@@ -603,13 +615,13 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     marginRight: 6,
   },
   kicker: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#1557B0',
+    color: '#1C3F94',
     letterSpacing: 0.8,
   },
   title: {
@@ -626,10 +638,10 @@ const styles = StyleSheet.create({
   },
   projectCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 18,
     elevation: 2,
   },
@@ -701,15 +713,15 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 14,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 10,
   },
   categoryCardSelected: {
-    borderColor: '#1557B0',
-    backgroundColor: '#F8FAFC',
+    borderColor: '#1C3F94',
+    backgroundColor: '#F3F6FC',
   },
   categoryHeaderRow: {
     flexDirection: 'row',
@@ -724,7 +736,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryTitleSelected: {
-    color: '#1557B0',
+    color: '#1C3F94',
     fontWeight: '700',
   },
   categoryBadge: {
@@ -745,10 +757,10 @@ const styles = StyleSheet.create({
   },
   commitmentCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginTop: 6,
     marginBottom: 18,
   },
@@ -768,8 +780,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxChecked: {
-    backgroundColor: '#1557B0',
-    borderColor: '#1557B0',
+    backgroundColor: '#1C3F94',
+    borderColor: '#1C3F94',
   },
   checkboxCheck: {
     color: '#FFFFFF',
@@ -784,10 +796,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   experienceInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 12.5,
@@ -797,13 +809,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   submitBtn: {
-    backgroundColor: '#1557B0',
-    borderRadius: 10,
+    backgroundColor: '#1C3F94',
+    borderRadius: 20,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
     marginBottom: 4,
+    ...SHADOWS.button,
   },
   submitBtnDisabled: {
     opacity: 0.6,
@@ -816,7 +828,7 @@ const styles = StyleSheet.create({
   },
   pendingCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 18,
     borderWidth: 1,
     borderColor: '#FDE68A',
@@ -880,7 +892,7 @@ const styles = StyleSheet.create({
   },
   activeDutyCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 18,
     borderWidth: 1,
     borderColor: '#BBF7D0',
@@ -924,12 +936,12 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   stepperContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: '#F3F6FC',
+    borderRadius: 20,
     padding: 14,
     marginTop: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   stepperHeader: {
     flexDirection: 'row',
@@ -1054,7 +1066,7 @@ const styles = StyleSheet.create({
   voucherGovKicker: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#1557B0',
+    color: '#1C3F94',
     letterSpacing: 0.8,
   },
   voucherMainTitle: {
@@ -1072,11 +1084,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   voucherDetailsBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: '#F3F6FC',
+    borderRadius: 20,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 14,
   },
   voucherMetaRow: {
@@ -1122,7 +1134,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   modalCloseBtn: {
-    backgroundColor: '#1557B0',
+    backgroundColor: '#1C3F94',
     borderRadius: 8,
     paddingVertical: 11,
     alignItems: 'center',
