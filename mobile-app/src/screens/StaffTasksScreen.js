@@ -286,8 +286,10 @@ const styles = StyleSheet.create({
   badge: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#002BB8',
-    backgroundColor: '#EDF2F9',
+    color: '#C8102E',
+    backgroundColor: '#FEF0F2',
+    borderWidth: 1,
+    borderColor: '#FECDD3',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
@@ -323,7 +325,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   tabTextActive: {
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '800',
   },
   eventList: {
@@ -408,7 +410,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scanActionBtn: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#C8102E',
     paddingVertical: 11,
     borderRadius: RADIUS.sm,
     flexDirection: 'row',

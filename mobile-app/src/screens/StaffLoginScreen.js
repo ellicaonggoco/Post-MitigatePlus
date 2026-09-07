@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Keyboard, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeftIcon, ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon, AlertTriangleIcon } from '../components/AppIcons';
