@@ -322,7 +322,7 @@ function AppRoutes() {
       )}
 
       {/* ── SHELL: sidebar + main content (below the full-width topbar) ── */}
-      <div className="app-shell" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <div className="app-shell" style={{ flex: 1, display: 'flex', minHeight: 0, paddingTop: 0 }}>
         {isAuthLayout && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
