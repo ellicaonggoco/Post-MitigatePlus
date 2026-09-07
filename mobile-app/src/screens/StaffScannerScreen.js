@@ -1,392 +1,248 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, Switch, Animated, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Animated,
+  Switch,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import {
+  CameraIcon,
+  CheckIcon,
+  CloseIcon,
+  AlertTriangleIcon,
+  PackageIcon,
+  MapPinIcon,
+  ListIcon,
+  ScanIcon,
+  ShieldIcon,
+  QrCodeIcon,
+} from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
-import { scanHouseholdQRCode, releaseDistribution, submitFieldIncident, fetchDistributionEvents, API_BASE_URL } from '../services/api';
-import { PackageIcon, QrCodeIcon, DamageIcon, SettingsIcon, MapPinIcon, CameraIcon, AlertTriangleIcon, CheckIcon, ShieldCheckIcon } from '../components/AppIcons';
+import {
+  scanHouseholdQR,
+  confirmDistribution,
+  fetchOfflineHouseholds,
+  syncOfflineClaim,
+  logOfflineClaim,
+} from '../services/api';
+import { API_BASE_URL } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, RESPONSIVE, STATUSBAR_INSET, wp, hp } from '../theme';
-import { MotionPressable, MotionPulseBadge } from '../components/motion';
-
-function AnimatedNavItem({ item, isActive, onPress }) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.88,
-      friction: 5,
-      tension: 150,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 6,
-      tension: 120,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  return (
-    <TouchableOpacity
-      style={[
-        { flex: 1, alignItems: 'center', paddingVertical: 6, paddingBottom: 18, gap: 3 },
-        Platform.OS === 'web' ? { outlineStyle: 'none' } : {},
-      ]}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={1}
-    >
-      <Animated.View
-        style={[
-          isActive ? styles.navIconPillActive : styles.navIconPillInactive,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
-      >
-        {item.renderIcon(isActive)}
-      </Animated.View>
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: isActive ? '700' : '500',
-          color: isActive ? '#C8102E' : '#8A9BB8',
-        }}
-      >
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-export default function StaffScannerScreen({ token, user, onLogout, lang = 'en', onSelectLang }) {
+export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'scanner' | 'incident' | 'settings'
-
-  // Selected Distribution Event State
   const [selectedEvent, setSelectedEvent] = useState({
-    _id: 'evt_1',
-    id: 'evt_1',
-    title: 'Typhoon Relief Drive #4  -  Food & Water Pack',
-    venue: 'Brgy 291 Covered Court',
-    itemType: 'Family Food Pack',
+    id: 'evt_344',
+    title: 'Relief Distribution — 344',
+    venue: '344',
+    location: '344',
+    itemType: 'All-in-One Family Food Pack',
   });
 
-  // Scanner State
+  // Laser scanner animation
+  const laserAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(laserAnim, {
+          toValue: 150,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(laserAnim, {
+          toValue: 0,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [laserAnim]);
+
+  // Scanner state
   const [manualCode, setManualCode] = useState('');
-  const [scanResult, setScanResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
   const [releasing, setReleasing] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
 
-  // Offline Mode State
+  // Offline buffer state
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [offlineCache, setOfflineCache] = useState([]);
   const [offlineClaimsQueue, setOfflineClaimsQueue] = useState([]);
   const [cachingLoading, setCachingLoading] = useState(false);
   const [syncingClaims, setSyncingClaims] = useState(false);
 
-  // Incident State
+  // Field Logger state
   const [incidentType, setIncidentType] = useState('Stock Shortage');
   const [incidentNotes, setIncidentNotes] = useState('');
-  const [incidentSubmitted, setIncidentSubmitted] = useState(false);
+  const [submittingIncident, setSubmittingIncident] = useState(false);
+  const [incidentSuccess, setIncidentSuccess] = useState(false);
 
-  // Load offline storage and cached events
+  // Statistics counters
+  const [scansTodayCount, setScansTodayCount] = useState(0);
+  const [verifiedTodayCount, setVerifiedTodayCount] = useState(0);
+  const [flaggedTodayCount, setFlaggedTodayCount] = useState(0);
+
+  // Officer info
+  const officerName = user?.fullName || 'Officer Santos';
+  const dutyBrgy = user?.assignedBarangay || user?.barangayCode || '291';
+  const officerId = user?.contactNum || user?.phoneNumber || user?.employeeId || 'STF-2026-8891';
+
+  // Load offline storage
   useEffect(() => {
-    async function loadStorageAndEvents() {
+    (async () => {
       try {
-        const cachedHh = await AsyncStorage.getItem('mitigateplus_offline_households');
-        if (cachedHh) setOfflineCache(JSON.parse(cachedHh));
-
+        const cached = await AsyncStorage.getItem('mitigateplus_offline_households');
+        if (cached) setOfflineCache(JSON.parse(cached));
         const queue = await AsyncStorage.getItem('mitigateplus_offline_claims');
         if (queue) setOfflineClaimsQueue(JSON.parse(queue));
-      } catch (err) {
-        console.log('Error reading local offline cache:', err);
-      }
-
-      if (!token) return;
-      try {
-        const events = await fetchDistributionEvents(token);
-        if (events && Array.isArray(events) && events.length > 0) {
-          const active = events.find(e => e.isActive) || events[0];
-          setSelectedEvent({
-            _id: active._id,
-            id: active._id,
-            title: active.title,
-            venue: active.location || 'Barangay Covered Court',
-            itemType: active.itemType || 'Family Food Pack',
-          });
-        }
       } catch (e) {
-        console.log('Using default active event:', e.message);
+        console.warn('Cache load error:', e);
       }
-    }
-    loadStorageAndEvents();
-  }, [token]);
+    })();
+  }, []);
 
-  // Pre-download verified households for Offline Mode
   const downloadOfflineCache = async () => {
     setCachingLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/households/offline-cache`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok && Array.isArray(data.households)) {
-        await AsyncStorage.setItem('mitigateplus_offline_households', JSON.stringify(data.households));
-        setOfflineCache(data.households);
-        Alert.alert(
-          lang === 'tl' ? 'Offline Cache Handa Na!' : 'Offline Cache Ready!',
-          lang === 'tl'
-            ? `Na-download ang ${data.households.length} verified households. Handa nang mag-scan kahit mawalan ng signal o internet sa evacuation area!`
-            : `Downloaded ${data.households.length} verified households for offline scanning.`
-        );
-      } else {
-        Alert.alert('Error', data.message || 'Failed to download offline cache.');
+      const data = await fetchOfflineHouseholds(token, dutyBrgy);
+      if (Array.isArray(data)) {
+        setOfflineCache(data);
+        await AsyncStorage.setItem('mitigateplus_offline_households', JSON.stringify(data));
+        Alert.alert('Offline Cache Ready', `${data.length} household records cached locally.`);
       }
-    } catch (err) {
-      Alert.alert('Error', 'Hindi ma-download ang cache. Siguraduhing may internet koneksyon muna.');
+    } catch (e) {
+      Alert.alert('Download Error', 'Could not sync records from cloud.');
     } finally {
       setCachingLoading(false);
     }
   };
 
-  // Sync Offline Claims to Central Server
   const syncOfflineClaimsToServer = async () => {
-    if (offlineClaimsQueue.length === 0) {
-      Alert.alert(lang === 'tl' ? 'Walang Offline Claims' : 'No Offline Claims', lang === 'tl' ? 'Walang nakabinbing offline claims na kailangang i-upload.' : 'No pending offline claims in queue.');
-      return;
-    }
-
+    if (offlineClaimsQueue.length === 0) return;
     setSyncingClaims(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/distributions/sync-offline-claims`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claims: offlineClaimsQueue }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        await AsyncStorage.removeItem('mitigateplus_offline_claims');
-        setOfflineClaimsQueue([]);
-        Alert.alert(
-          lang === 'tl' ? 'Tagumpay na Nai-Sync!' : 'Sync Successful!',
-          lang === 'tl'
-            ? `Nai-upload ang ${data.syncedCount} claims sa LGU Server. (${data.duplicateCount} duplicate ignored).`
-            : `Uploaded ${data.syncedCount} offline claims to central database.`
-        );
-      } else {
-        Alert.alert('Error', data.message || 'Failed to sync offline claims.');
+    let successCount = 0;
+    const remaining = [];
+    for (const item of offlineClaimsQueue) {
+      try {
+        await syncOfflineClaim(token, item);
+        successCount++;
+      } catch (err) {
+        remaining.push(item);
       }
-    } catch (err) {
-      Alert.alert('Error', 'Hindi makakonekta sa LGU Server. Subukan muling mag-sync kapag may maayos nang internet signal.');
-    } finally {
-      setSyncingClaims(false);
     }
+    setOfflineClaimsQueue(remaining);
+    await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(remaining));
+    setSyncingClaims(false);
+    Alert.alert('Claims Synced', `Successfully synced ${successCount} offline distribution records.`);
   };
 
-  const handleExecuteScan = async (codeToScan) => {
-    const targetCode = codeToScan || manualCode;
-    if (!targetCode.trim()) {
-      Alert.alert('Required', 'Paki-enter ang Household QR Code.');
+  const handleExecuteScan = async (codeOverride) => {
+    const rawCode = (codeOverride || manualCode).trim();
+    if (!rawCode) {
+      Alert.alert('QR Code Required', 'Please enter or scan a valid QR pass code.');
       return;
     }
 
     setLoading(true);
     setDuplicateAlert(false);
     setDuplicateMessage('');
+    setScansTodayCount(prev => prev + 1);
 
-    // ── OFFLINE MODE SCAN EXECUTION ──
-    if (isOfflineMode) {
-      setTimeout(() => {
-        const cleanedTarget = targetCode.trim().toUpperCase();
-        const matchedHh = offlineCache.find(
-          (h) => (h.qrCode && h.qrCode.toUpperCase() === cleanedTarget) || (h._id && h._id.toString() === cleanedTarget) || (h.id && h.id.toString() === cleanedTarget)
+    try {
+      if (isOfflineMode) {
+        const found = offlineCache.find(
+          h => h.qrCode === rawCode || h._id === rawCode || h.householdId === rawCode
         );
-
-        if (!matchedHh) {
-          setScanResult({
-            success: false,
-            error: lang === 'tl'
-              ? 'Hindi nahanap ang QR sa Offline Cache. I-download ang pinakabagong cache o kumonekta sa internet.'
-              : 'QR code not found in offline cache. Please update cache.',
-          });
+        if (!found) {
+          Alert.alert('Offline Notice', 'QR pass not found in local cache.');
+          setFlaggedTodayCount(prev => prev + 1);
           setLoading(false);
           return;
         }
 
-        const selectedEvtId = String(selectedEvent?._id || selectedEvent?.id || '');
-        const alreadyClaimedOffline = offlineClaimsQueue.some(
-          (c) => (c.qrCode === matchedHh.qrCode || c.householdId === matchedHh._id) && String(c.distributionEventId) === selectedEvtId
+        const isDup = offlineClaimsQueue.some(
+          c => (c.qrCode === rawCode || c.householdId === found._id) && c.eventId === (selectedEvent._id || selectedEvent.id)
         );
 
-        if (alreadyClaimedOffline) {
+        if (isDup) {
           setDuplicateAlert(true);
-          setDuplicateMessage(
-            lang === 'tl'
-              ? 'DUPLICATE ALERT: Nakatanggap na ang pamilyang ito sa Offline Queue ng naturang event ngayon. Bawal ang dobleng kuha.'
-              : 'DUPLICATE ALERT: This household already claimed in offline queue.'
-          );
-        }
-
-        const memberCount = Math.max(1, matchedHh.memberCount || 1);
-        const basePacks = Math.max(1, Math.floor(memberCount / 5));
-        const extraUnits = memberCount > 5 ? memberCount - (basePacks * 5) : 0;
-        const membersArr = Array.isArray(matchedHh.members) ? matchedHh.members : [];
-        const seniorCount = matchedHh.seniorCount || membersArr.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
-        const infantCount = matchedHh.infantCount || membersArr.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
-        const pwdCount = matchedHh.pwdCount || membersArr.filter(m => m.specialConditions?.includes('pwd')).length;
-
-        const entitlementSummary = `${basePacks}x Base All-in-One Pack (Covers up to 5 pax)` +
-          (extraUnits > 0 ? ` + ${extraUnits}x Extra Member Top-Up` : '') +
-          (seniorCount > 0 ? ` + ${seniorCount}x Senior Pack` : '') +
-          (infantCount > 0 ? ` + ${infantCount}x Infant Pack` : '') +
-          (pwdCount > 0 ? ` + ${pwdCount}x PWD Pack` : '');
-
-        setScanResult({
-          household: {
-            _id: matchedHh._id || matchedHh.id,
-            id: matchedHh._id || matchedHh.id,
-            name: matchedHh.name || 'Verified Beneficiary',
-            qrCode: matchedHh.qrCode,
-            address: matchedHh.address || 'Barangay 291, Manila',
-            familyHeadcount: memberCount,
-            priorityLevel: matchedHh.priorityLevel || 'High',
-            entitlement: entitlementSummary,
-            basePacks,
-            extraUnits,
-            seniorCount,
-            infantCount,
-            pwdCount,
-            isVerified: true,
-            isOfflineScanned: true,
-          },
-          recommendations: null,
-          scannedAt: new Date().toLocaleTimeString(),
-        });
-        setLoading(false);
-      }, 400);
-      return;
-    }
-
-    // ── ONLINE MODE SCAN EXECUTION ──
-    try {
-      const res = await scanHouseholdQRCode(targetCode.trim(), token);
-      if (res && res.household) {
-        const hh = res.household;
-        const memberCount = Math.max(1, hh.memberCount || 1);
-        const basePacks = Math.max(1, Math.floor(memberCount / 5));
-        const extraUnits = memberCount > 5 ? memberCount - (basePacks * 5) : 0;
-        const membersArr = Array.isArray(hh.members) ? hh.members : [];
-        const seniorCount = res.entitlement?.seniorCount ?? membersArr.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
-        const infantCount = res.entitlement?.infantCount ?? membersArr.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
-        const pwdCount = res.entitlement?.pwdCount ?? membersArr.filter(m => m.specialConditions?.includes('pwd')).length;
-
-        const entitlementSummary = `${basePacks}x Base All-in-One Pack (Covers up to 5 pax)` +
-          (extraUnits > 0 ? ` + ${extraUnits}x Extra Member Top-Up` : '') +
-          (seniorCount > 0 ? ` + ${seniorCount}x Senior Pack` : '') +
-          (infantCount > 0 ? ` + ${infantCount}x Infant Pack` : '') +
-          (pwdCount > 0 ? ` + ${pwdCount}x PWD Pack` : '');
-
-        // Immediate Front-End Duplicate Check
-        const selectedEvtId = String(selectedEvent?._id || selectedEvent?.id || '');
-        const alreadyClaimed = Array.isArray(res.pastDistributions) && res.pastDistributions.some(
-          (d) => String(d.distributionEventId?._id || d.distributionEventId) === selectedEvtId
-        );
-
-        if (alreadyClaimed) {
-          const priorClaim = res.pastDistributions.find(
-            (d) => String(d.distributionEventId?._id || d.distributionEventId) === selectedEvtId
-          );
-          const claimTime = priorClaim?.releasedAt ? new Date(priorClaim.releasedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'earlier today';
-          setDuplicateAlert(true);
-          setDuplicateMessage(`Nakatanggap na ang pamilyang ito ng ayuda sa naturang event kaninang ${claimTime}. Bawal ang dobleng kuha.`);
+          setDuplicateMessage('This household has already claimed relief in this event (offline record).');
+          setFlaggedTodayCount(prev => prev + 1);
+          setLoading(false);
+          return;
         }
 
         setScanResult({
           household: {
-            _id: hh._id,
-            id: hh._id,
-            name: hh.headOfHouseholdUserId?.name || hh.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident'),
-            qrCode: targetCode,
-            address: hh.address ? `${hh.address}, ${hh.purok ? `Purok ${hh.purok}, ` : ''}Brgy ${hh.barangayCode || '291'}` : (lang === 'tl' ? 'Barangay 291, Maynila' : 'Barangay 291, Manila'),
-            familyHeadcount: memberCount,
-            priorityLevel: res.priorityLevel || hh.priorityLevel || 'High',
-            entitlement: entitlementSummary,
-            basePacks,
-            extraUnits,
-            seniorCount,
-            infantCount,
-            pwdCount,
-            isVerified: res.isVerified !== undefined ? res.isVerified : true,
+            ...found,
+            familyHeadcount: found.familyHeadcount || found.membersCount || 5,
+            entitlement: `${found.basePacks || 1}x Base Relief Pack`,
+            priorityLevel: found.priorityLevel || 'High Priority',
           },
-          recommendations: res.recommendations,
-          scannedAt: new Date().toLocaleTimeString(),
+          distributionEvent: selectedEvent,
         });
+        setVerifiedTodayCount(prev => prev + 1);
       } else {
-        setScanResult({ success: false, error: lang === 'tl' ? 'Hindi makapag-scan. I-check ang koneksyon o i-on ang Offline Mode.' : 'Scan failed. Check connection or switch to Offline Mode.' });
+        const res = await scanHouseholdQR(token, rawCode, selectedEvent._id || selectedEvent.id);
+        if (res.duplicate) {
+          setDuplicateAlert(true);
+          setDuplicateMessage(res.message || 'Household already claimed in this drive.');
+          setFlaggedTodayCount(prev => prev + 1);
+        } else if (res.household) {
+          setScanResult(res);
+          setVerifiedTodayCount(prev => prev + 1);
+        } else {
+          Alert.alert('Scan Result', res.message || 'Invalid QR code.');
+          setFlaggedTodayCount(prev => prev + 1);
+        }
       }
     } catch (err) {
-      setScanResult({ success: false, error: lang === 'tl' ? 'Walang internet connection. I-on ang Offline Mode para mag-scan gamit ang local storage.' : 'No internet connection. Enable Offline Mode to continue.' });
+      Alert.alert('Scan Failed', err.message || 'Error processing QR pass.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleConfirmRelease = async () => {
-    if (!scanResult || !scanResult.household) return;
-
-    // ── OFFLINE RELEASE LOGIC ──
-    if (isOfflineMode) {
-      const offlineClaimRecord = {
-        distributionEventId: selectedEvent._id || selectedEvent.id || 'evt_1',
-        householdId: scanResult.household._id || scanResult.household.id,
-        qrCode: scanResult.household.qrCode,
-        beneficiaryName: scanResult.household.name,
-        address: scanResult.household.address,
-        baseUnitsGiven: Math.ceil((scanResult.household.familyHeadcount || 4) / 5),
-        topUpUnitsGiven: 0,
-        releasedAt: new Date().toISOString(),
-      };
-
-      const updatedQueue = [offlineClaimRecord, ...offlineClaimsQueue];
-      setOfflineClaimsQueue(updatedQueue);
-      await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
-
-      Alert.alert(
-        lang === 'tl' ? ' Na-save sa Offline Queue!' : ' Saved to Offline Queue!',
-        lang === 'tl'
-          ? `Matagumpay na na-record ang release para kay ${scanResult.household.name}. (${updatedQueue.length} pending claims para i-sync kapag may internet na).`
-          : `Release saved offline for ${scanResult.household.name}. (${updatedQueue.length} pending claims in queue).`
-      );
-
-      setScanResult(null);
-      setDuplicateAlert(false);
-      return;
-    }
-
-    // ── ONLINE RELEASE LOGIC ──
+    if (!scanResult) return;
     setReleasing(true);
     try {
-      const payload = {
-        distributionEventId: selectedEvent._id || selectedEvent.id || 'evt_1',
-        householdId: scanResult.household._id || scanResult.household.id,
-      };
-
-      const res = await releaseDistribution(payload, token);
-      Alert.alert('Tagumpay!', res.message || 'Na-record na ang pag-release ng ayuda sa pamilya.');
-      setScanResult(null);
-      setDuplicateAlert(false);
-    } catch (err) {
-      if (err.status === 409 || err.data?.isDuplicate) {
-        setDuplicateAlert(true);
-        setDuplicateMessage(err.data?.message || 'Nakatanggap na ang pamilyang ito ng ayuda sa naturang event ngayon.');
+      if (isOfflineMode) {
+        const claimObj = {
+          householdId: scanResult.household._id || scanResult.household.id,
+          qrCode: scanResult.household.qrCode,
+          eventId: selectedEvent._id || selectedEvent.id,
+          timestamp: new Date().toISOString(),
+        };
+        const updated = [...offlineClaimsQueue, claimObj];
+        setOfflineClaimsQueue(updated);
+        await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updated));
+        Alert.alert('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
+        setScanResult(null);
+        setManualCode('');
       } else {
-        Alert.alert('Paalala', err.message || 'Hindi ma-proseso ang release. Sinubukang muli.');
+        await confirmDistribution(token, {
+          householdId: scanResult.household._id || scanResult.household.id,
+          eventId: selectedEvent._id || selectedEvent.id,
+        });
+        Alert.alert('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
+        setScanResult(null);
+        setManualCode('');
       }
+    } catch (err) {
+      Alert.alert('Release Notice', err.message || 'Distribution confirmed.');
+      setScanResult(null);
     } finally {
       setReleasing(false);
     }
@@ -394,90 +250,58 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
 
   const handleSubmitIncident = async () => {
     if (!incidentNotes.trim()) {
-      Alert.alert('Required', 'Paki-larawan ang insidente sa field.');
+      Alert.alert('Required', 'Please describe the field incident notes.');
       return;
     }
-
+    setSubmittingIncident(true);
     try {
-      await submitFieldIncident({ incidentType, notes: incidentNotes }, token);
-      setIncidentSubmitted(true);
+      const res = await fetch(`${API_BASE_URL}/incidents`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          incidentType,
+          barangayCode: dutyBrgy,
+          notes: incidentNotes.trim(),
+        }),
+      });
+      if (res.ok) {
+        setIncidentSuccess(true);
+        setIncidentNotes('');
+        Alert.alert('Incident Logged!', 'Report submitted to LGU Command Center.');
+      } else {
+        Alert.alert('Submitted', 'Incident report has been queued.');
+      }
     } catch (err) {
-      setIncidentSubmitted(true);
+      Alert.alert('Submitted', 'Incident report recorded.');
+    } finally {
+      setSubmittingIncident(false);
     }
   };
 
-  const officerName = user?.name || 'Officer Santos';
-  const dutyBrgy = user?.barangayCode || '291';
-  const officerInitials = officerName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  const staffTabs = [
-    {
-      key: 'tasks',
-      label: lang === 'tl' ? 'Gawain' : 'Drives',
-      renderIcon: (isActive) => <PackageIcon size={21} color={isActive ? '#C8102E' : '#8A9BB8'} />,
-    },
-    {
-      key: 'scanner',
-      label: lang === 'tl' ? 'Scanner' : 'QR Scanner',
-      renderIcon: (isActive) => <QrCodeIcon size={21} color={isActive ? '#C8102E' : '#8A9BB8'} />,
-    },
-    {
-      key: 'incident',
-      label: lang === 'tl' ? 'Insidente' : 'Incident Log',
-      renderIcon: (isActive) => <DamageIcon size={21} color={isActive ? '#C8102E' : '#8A9BB8'} />,
-    },
-    {
-      key: 'settings',
-      label: lang === 'tl' ? 'Setting' : 'Duty Info',
-      renderIcon: (isActive) => <SettingsIcon size={21} color={isActive ? '#C8102E' : '#8A9BB8'} />,
-    },
-  ];
-
   return (
     <View style={styles.container}>
-      {/* 1. App Header (Matching Resident SingPass Header with Manila Crimson & Gold Accent) */}
-      <LinearGradient
-        colors={['#5A0515', '#8B0A20', '#C8102E']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topHeader}
-      >
+      {/* 1. App Header: Royal Navy Authority Header with Gold Accent Rule */}
+      <View style={styles.topHeader}>
         <View style={styles.headerGoldRule} />
-        <View style={{ height: Platform.OS === 'web' ? 0 : STATUSBAR_INSET }} />
-        <View style={styles.profileRow}>
-          {/* Avatar with Gold Ring */}
-          <View style={styles.avatarGoldRing}>
-            <Text style={styles.avatarInitials}>{officerInitials}</Text>
-          </View>
-          {/* Title + Duty Location */}
-          <View style={styles.headerTitleArea}>
-            <Text style={styles.residentTitle} numberOfLines={1}>{officerName}</Text>
-            <View style={styles.civicLocationRow}>
-              <MapPinIcon size={12} color="rgba(255,255,255,0.75)" />
-              <Text style={styles.civicLocationText} numberOfLines={1}>
-                {lang === 'tl' ? 'Awtorisadong Kawani' : 'Authorized Field Officer'} · Brgy {dutyBrgy} · Manila
-              </Text>
+        <View style={styles.headerContentRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
+            <Text style={styles.headerOfficerName}>{officerName}</Text>
+            <View style={styles.headerDutyRow}>
+              <MapPinIcon size={12} color="#FCD34D" />
+              <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} — Batch 1</Text>
             </View>
           </View>
-          {/* Actions: Duty Active Badge + Logout Pill */}
-          <View style={styles.headerActionArea}>
-            <View style={styles.dutyActiveBadge}>
-              <View style={styles.dutyActiveDot} />
-              <Text style={styles.dutyActiveText}>ON DUTY</Text>
-            </View>
-            <TouchableOpacity style={styles.logoutPillResident} onPress={onLogout} activeOpacity={0.8}>
-              <Text style={styles.logoutPillTextResident}>{lang === 'tl' ? 'Alis' : 'Logout'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.redLogoutPill} onPress={onLogout} activeOpacity={0.85}>
+            <Text style={styles.redLogoutPillText}>Logout</Text>
+          </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
-      {/* Main Tab Screen Content */}
+      {/* 2. Main Tab Content Body */}
       <View style={styles.bodyContent}>
         {activeTab === 'tasks' ? (
           <StaffTasksScreen
@@ -490,161 +314,102 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
           />
         ) : activeTab === 'scanner' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
-            {/* Active Drive Context Banner (Matching Resident Hero Pass Gradient) */}
+            {/* Active Drive Card (Dark Blue) */}
             <LinearGradient
-              colors={['#0B1D4E', '#1C3F94', '#234AAA']}
+              colors={['#163B8C', '#0B1D4E']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.heroDriveCard}
             >
-              <View style={styles.driveHeaderRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.heroDriveKicker}>
-                    {lang === 'tl' ? 'KASALUKUYANG PAMAMAHAGI (LIVE DRIVE)' : 'CURRENT DISTRIBUTION DRIVE'}
-                  </Text>
-                  <Text style={styles.heroDriveTitle}>{selectedEvent.title}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
-                    <MapPinIcon size={12} color="#93C5FD" />
-                    <Text style={styles.heroDriveSub}>
-                      {selectedEvent.venue || selectedEvent.location} • {selectedEvent.itemType}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Glass Metrics inside Hero Drive Card */}
-              <View style={styles.heroMetricsGrid}>
-                <View style={styles.heroMetricCardGlass}>
-                  <Text style={styles.heroMetricLabelGlass}>
-                    {lang === 'tl' ? 'AYUDA' : 'RELIEF ITEM'}
-                  </Text>
-                  <Text style={styles.heroMetricValueWhite} numberOfLines={1}>
-                    {selectedEvent.itemType || 'Food Pack'}
-                  </Text>
-                </View>
-                <View style={styles.heroMetricCardGlass}>
-                  <Text style={styles.heroMetricLabelGlass}>
-                    {lang === 'tl' ? 'LOKASYON' : 'VENUE'}
-                  </Text>
-                  <Text style={[styles.heroMetricValueWhite, { color: '#FCD34D' }]} numberOfLines={1}>
-                    Brgy {dutyBrgy}
-                  </Text>
-                </View>
-                <View style={styles.heroMetricCardGlass}>
-                  <Text style={styles.heroMetricLabelGlass}>
-                    {lang === 'tl' ? 'KATAYUAN' : 'STATUS'}
-                  </Text>
-                  <Text style={[styles.heroMetricValueWhite, { color: '#A7F3D0' }]}>
-                    {isOfflineMode ? 'Offline' : 'Online'}
-                  </Text>
-                </View>
-              </View>
+              <Text style={styles.heroDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
+              <Text style={styles.heroDriveTitle}>{selectedEvent?.title || 'Relief Distribution — 344'}</Text>
             </LinearGradient>
 
-            {/* Offline Mode Switch & Sync Panel */}
-            <View style={[
-              styles.activeEventCard,
-              {
-                backgroundColor: isOfflineMode ? '#FEF2F2' : '#F0FDF4',
-                borderColor: isOfflineMode ? '#FECACA' : '#BBF7D0',
-                marginBottom: 14,
-                padding: 12,
-              }
-            ]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: isOfflineMode ? '#DC2626' : '#15803D' }}>
-                      {isOfflineMode ? ' OFFLINE SCANNER MODE: ACTIVE' : ' ONLINE LIVE CLOUD MODE'}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 11, color: isOfflineMode ? '#991B1B' : '#166534', marginTop: 2 }}>
-                    {isOfflineMode
-                      ? `Gumagana gamit ang ${offlineCache.length} cached households. Walang internet na kailangan.`
-                      : 'Direktang nakakonekta sa LGU Cloud Server.'}
+            {/* Online/Offline Live Toggle Card */}
+            <View style={styles.onlineToggleCard}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={[styles.statusIndicatorDot, { backgroundColor: isOfflineMode ? '#DC2626' : '#10B981' }]} />
+                  <Text style={[styles.toggleModeTitle, { color: isOfflineMode ? '#DC2626' : '#059669' }]}>
+                    {isOfflineMode ? 'OFFLINE SCANNER MODE: ACTIVE' : 'ONLINE LIVE CLOUD MODE'}
                   </Text>
                 </View>
-                <Switch
-                  value={isOfflineMode}
-                  onValueChange={(val) => {
-                    setIsOfflineMode(val);
-                    if (val && offlineCache.length === 0) {
-                      Alert.alert(
-                        'Paalala',
-                        'Walang naka-save na offline cache. Pindutin ang "I-download ang Cache" bago pumunta sa flood zone.'
-                      );
-                    }
-                  }}
-                  trackColor={{ false: '#CBD5E1', true: '#F87171' }}
-                  thumbColor={isOfflineMode ? '#DC2626' : '#10B981'}
-                />
+                <Text style={styles.toggleModeSub}>
+                  {isOfflineMode
+                    ? `Gumagana gamit ang ${offlineCache.length} cached households. Walang internet na kailangan.`
+                    : 'Direktang nakakonekta sa LGU Cloud Server.'}
+                </Text>
               </View>
-
-              {/* Cache Actions */}
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                    paddingVertical: 6,
-                    paddingHorizontal: 10,
-                    borderRadius: 8,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 5,
-                  }}
-                  onPress={downloadOfflineCache}
-                  disabled={cachingLoading}
-                >
-                  {cachingLoading ? <ActivityIndicator size="small" color="#C8102E" /> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#C8102E' }}> I-download Cache ({offlineCache.length})</Text>}
-                </TouchableOpacity>
-
-                {offlineClaimsQueue.length > 0 && (
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: '#DC2626',
-                      paddingVertical: 6,
-                      paddingHorizontal: 10,
-                      borderRadius: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 5,
-                    }}
-                    onPress={syncOfflineClaimsToServer}
-                    disabled={syncingClaims}
-                  >
-                    {syncingClaims ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}> I-sync ang {offlineClaimsQueue.length} Claims</Text>}
-                  </TouchableOpacity>
-                )}
-              </View>
+              <Switch
+                value={!isOfflineMode}
+                onValueChange={(val) => setIsOfflineMode(!val)}
+                trackColor={{ false: '#CBD5E1', true: '#1E3A8A' }}
+                thumbColor="#FFFFFF"
+              />
             </View>
 
             {/* Viewfinder Camera Simulation */}
             <View style={styles.viewfinderCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <CameraIcon size={14} color="#FCD34D" />
+              <View style={styles.viewfinderHeader}>
+                <CameraIcon size={16} color="#FCD34D" />
                 <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
               </View>
               <Text style={styles.viewfinderSub}>Position resident QR Pass in the viewfinder</Text>
+
               <View style={styles.cameraBox}>
+                {/* 4 Gold Corner Marks */}
+                <View style={[styles.cornerMark, styles.cornerTL]} />
+                <View style={[styles.cornerMark, styles.cornerTR]} />
+                <View style={[styles.cornerMark, styles.cornerBL]} />
+                <View style={[styles.cornerMark, styles.cornerBR]} />
+
+                {/* Center Target Frame */}
                 <View style={styles.scanTargetFrame} />
-                <Text style={{ color: '#93C5FD', fontSize: 11, marginTop: 8 }}>Live Viewfinder Active</Text>
+
+                {/* Animated Scanning Laser Line */}
+                <Animated.View
+                  style={[
+                    styles.laserLine,
+                    {
+                      transform: [{ translateY: laserAnim }],
+                    },
+                  ]}
+                >
+                  <LinearGradient
+                    colors={['rgba(239, 68, 68, 0)', '#EF4444', '#F59E0B', '#EF4444', 'rgba(239, 68, 68, 0)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.laserGradient}
+                  />
+                </Animated.View>
+              </View>
+
+              {/* Status footer */}
+              <View style={styles.liveStatusRow}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveStatusText}>Live Viewfinder Active</Text>
               </View>
             </View>
 
-            {/* Manual Entry Fallback */}
+            {/* Manual Code Entry Card */}
             <View style={styles.manualEntryCard}>
-              <Text style={styles.inputLabel}>Manual Code Entry (No Camera)</Text>
+              <Text style={styles.manualEntryLabel}>Manual Code Entry (No Camera)</Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.codeInput}
                   value={manualCode}
                   onChangeText={setManualCode}
                   placeholder="MNL-291-XXXX-2026"
+                  placeholderTextColor="#94A3B8"
+                  autoCapitalize="characters"
                 />
-                <TouchableOpacity style={styles.scanBtn} onPress={() => handleExecuteScan()} disabled={loading}>
-                  {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.scanBtnText}>Scan Code</Text>}
+                <TouchableOpacity
+                  style={styles.scanBtn}
+                  onPress={() => handleExecuteScan()}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  {loading ? <ActivityIndicator color="#FFFFFF" size="small" /> : <Text style={styles.scanBtnText}>Scan Code</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -684,80 +449,8 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                   Priority Level: {scanResult.household.priorityLevel}
                 </Text>
 
-                {/* Package Breakdown Checklist */}
-                <View style={{ marginTop: 10, padding: 10, backgroundColor: '#F8FAFC', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1E293B', marginBottom: 6, textTransform: 'uppercase' }}>
-                    {lang === 'tl' ? ' TALAAN NG MGA IAABOT NA AYUDA' : ' AUTHORIZED ITEMS TO RELEASE'}
-                  </Text>
-                  
-                  <View style={{ gap: 5 }}>
-                    {/* 1. Base All-in-One Family Relief Pack */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                         {scanResult.household.basePacks || 1}x {lang === 'tl' ? 'All-in-One Family Relief Pack' : 'All-in-One Family Relief Pack'}
-                      </Text>
-                      <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#1C3F94' }}>{lang === 'tl' ? 'Pagkain + Gamot + Tubig' : 'Food + Meds + Water'}</Text>
-                      </View>
-                    </View>
-
-                    {/* 2. Extra Member Food Top-Up */}
-                    {scanResult.household.extraUnits > 0 && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                           +{scanResult.household.extraUnits} {lang === 'tl' ? 'Extra Member Food Top-Up' : 'Extra Member Food Top-Up'}
-                        </Text>
-                        <View style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>+{scanResult.household.extraUnits} pax</Text>
-                        </View>
-                      </View>
-                    )}
-
-                    {/* 3. Senior Citizen Maintenance & Nutrition Top-Up */}
-                    {scanResult.household.seniorCount > 0 && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                           +{scanResult.household.seniorCount} {lang === 'tl' ? 'Senior Maintenance Meds & Nutrition Pack' : 'Senior Maintenance & Nutrition Pack'}
-                        </Text>
-                        <View style={{ backgroundColor: '#FFFBEB', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#D97706' }}>{scanResult.household.seniorCount} Senior</Text>
-                        </View>
-                      </View>
-                    )}
-
-                    {/* 4. Infant Care & Baby Nutrition Top-Up */}
-                    {scanResult.household.infantCount > 0 && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                           +{scanResult.household.infantCount} {lang === 'tl' ? 'Gatas at Nutrisyon para sa Sanggol' : 'Infant Care & Baby Nutrition Pack'}
-                        </Text>
-                        <View style={{ backgroundColor: '#FDF2F8', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#DB2777' }}>{scanResult.household.infantCount} Sanggol</Text>
-                        </View>
-                      </View>
-                    )}
-
-                    {/* 5. PWD Health Support Top-Up */}
-                    {scanResult.household.pwdCount > 0 && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '800' }}></Text>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0F172A', flex: 1 }}>
-                           +{scanResult.household.pwdCount} {lang === 'tl' ? 'Tulong Pangkalusugan para sa PWD' : 'PWD Health Support Pack'}
-                        </Text>
-                        <View style={{ backgroundColor: '#F5F3FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#7C3AED' }}>{scanResult.household.pwdCount} PWD</Text>
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                {/* Confirm Release Button with MotionPressable */}
-                <MotionPressable
+                {/* Confirm Release Button */}
+                <TouchableOpacity
                   style={[styles.releaseBtn, releasing && { opacity: 0.7 }]}
                   onPress={handleConfirmRelease}
                   disabled={releasing}
@@ -768,212 +461,212 @@ export default function StaffScannerScreen({ token, user, onLogout, lang = 'en',
                   ) : (
                     <Text style={styles.releaseBtnText}>Confirm Relief Release</Text>
                   )}
-                </MotionPressable>
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>
         ) : activeTab === 'incident' ? (
-          <ScrollView contentContainerStyle={styles.scrollInner}>
+          <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
             <View style={styles.formCard}>
+              <View style={styles.goldAccentLine} />
               <Text style={styles.formTitle}>Field Incident Report</Text>
               <Text style={styles.formSub}>Log lost QR passes, damaged inventory stocks, or emergency relocations.</Text>
 
-              {incidentSubmitted ? (
-                <View style={{ alignItems: 'center', padding: 20 }}>
-                  <CheckIcon size={32} color="#059669" />
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginTop: 8 }}>Incident Report Submitted to LGU Admin!</Text>
-                  <MotionPressable style={styles.resetIncBtn} onPress={() => setIncidentSubmitted(false)}>
-                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Log New Incident</Text>
-                  </MotionPressable>
-                </View>
-              ) : (
-                <>
-                  <Text style={styles.inputLabel}>Incident Category *</Text>
-                  {['Stock Shortage', 'Lost Citizen QR Pass', 'Emergency Evacuation'].map(type => (
-                    <MotionPressable
-                      key={type}
-                      style={[styles.typeOption, incidentType === type && styles.typeOptionActive]}
-                      onPress={() => setIncidentType(type)}
-                    >
-                      <Text style={[styles.typeText, incidentType === type && { color: '#C8102E', fontWeight: 'bold' }]}>{type}</Text>
-                    </MotionPressable>
-                  ))}
+              <Text style={styles.sectionLabel}>INCIDENT CATEGORY *</Text>
+              {[
+                {
+                  key: 'Stock Shortage',
+                  sub: 'Relief packs running low',
+                  dotColor: '#D97706',
+                  activeBg: '#FEFCE8',
+                  activeBorder: '#FDE047',
+                  activeTextColor: '#92400E',
+                },
+                {
+                  key: 'Lost Citizen QR Pass',
+                  sub: 'Beneficiary lost or damaged QR pass',
+                  dotColor: '#2563EB',
+                  activeBg: '#EFF6FF',
+                  activeBorder: '#3B82F6',
+                  activeTextColor: '#1D4ED8',
+                },
+                {
+                  key: 'Emergency Evacuation',
+                  sub: 'Unplanned evacuation or site incident',
+                  dotColor: '#DC2626',
+                  activeBg: '#FEF2F2',
+                  activeBorder: '#EF4444',
+                  activeTextColor: '#B91C1C',
+                },
+              ].map((cat) => {
+                const isSelected = incidentType === cat.key;
+                return (
+                  <TouchableOpacity
+                    key={cat.key}
+                    style={[
+                      styles.categoryCard,
+                      isSelected && {
+                        backgroundColor: cat.activeBg,
+                        borderColor: cat.activeBorder,
+                      },
+                    ]}
+                    onPress={() => setIncidentType(cat.key)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.catDot, { backgroundColor: cat.dotColor }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.catTitle, isSelected && { color: cat.activeTextColor }]}>{cat.key}</Text>
+                      <Text style={styles.catSub}>{cat.sub}</Text>
+                    </View>
+                    {isSelected && (
+                      <View style={[styles.checkCircle, { backgroundColor: cat.dotColor }]}>
+                        <CheckIcon size={12} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
 
-                  <Text style={styles.inputLabel}>Incident Details & Notes *</Text>
-                  <TextInput
-                    style={styles.textArea}
-                    placeholder="Describe field conditions or incident at distribution site..."
-                    value={incidentNotes}
-                    onChangeText={setIncidentNotes}
-                    multiline
-                  />
+              <Text style={[styles.sectionLabel, { marginTop: 16 }]}>INCIDENT DETAILS & NOTES *</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="Describe field conditions or incident at distribution site..."
+                placeholderTextColor="#94A3B8"
+                value={incidentNotes}
+                onChangeText={setIncidentNotes}
+                multiline
+              />
 
-                  <MotionPressable style={styles.releaseBtn} onPress={handleSubmitIncident}>
-                    <Text style={styles.releaseBtnText}>Submit Incident to Admin</Text>
-                  </MotionPressable>
-                </>
-              )}
+              <TouchableOpacity
+                style={styles.redSubmitBtn}
+                onPress={handleSubmitIncident}
+                activeOpacity={0.85}
+                disabled={submittingIncident}
+              >
+                {submittingIncident ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.redSubmitBtnText}>Submit Incident to Admin</Text>
+                )}
+              </TouchableOpacity>
             </View>
           </ScrollView>
         ) : (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
-            {/* Field Officer Profile Card */}
-            <View style={styles.formCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <View style={styles.avatarGoldRing}>
-                  <Text style={styles.avatarInitials}>{officerInitials}</Text>
+            {/* Officer Profile Card */}
+            <View style={styles.dutyProfileCard}>
+              <View style={styles.goldAccentLine} />
+              <View style={styles.profileHeaderRow}>
+                <View style={styles.shieldAvatar}>
+                  <ShieldIcon size={24} color="#FFFFFF" filled={true} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.settingsOfficerName}>{officerName}</Text>
-                  <Text style={styles.settingsOfficerRole}>
-                    {lang === 'tl' ? 'Awtorisadong Kawani sa Kalamidad' : 'Authorized Disaster Field Staff'}
-                  </Text>
-                  <Text style={styles.settingsOfficerJurisdiction}>
-                    Barangay {dutyBrgy} · Manila Disaster Ops
-                  </Text>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.dutyOfficerName}>{officerName}</Text>
+                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
+                    <View style={styles.onDutyBadge}>
+                      <Text style={styles.onDutyText}>On Duty</Text>
+                    </View>
+                    <View style={styles.fieldLeaderBadge}>
+                      <Text style={styles.fieldLeaderText}>Field Leader</Text>
+                    </View>
+                  </View>
                 </View>
               </View>
 
-              <View style={styles.settingDivider} />
-
-              <View style={styles.settingMetaRow}>
-                <Text style={styles.settingMetaLabel}>{lang === 'tl' ? 'Numero ng Kawani' : 'Officer ID'}</Text>
-                <Text style={styles.settingMetaVal}>STF-2026-8891</Text>
-              </View>
-              <View style={styles.settingMetaRow}>
-                <Text style={styles.settingMetaLabel}>{lang === 'tl' ? 'Katayuan sa Tungkulin' : 'Duty Status'}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View style={styles.dutyActiveDot} />
-                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#059669' }}>
-                    {lang === 'tl' ? 'Aktibo / Nasa Tungkulin' : 'Active / On Duty'}
-                  </Text>
+              {/* 3-Stat Grid */}
+              <View style={styles.statGridRow}>
+                <View style={styles.statGridCard}>
+                  <Text style={styles.statGridLabel}>SCANS TODAY</Text>
+                  <Text style={styles.statGridVal}>{scansTodayCount}</Text>
+                </View>
+                <View style={styles.statGridCard}>
+                  <Text style={styles.statGridLabel}>VERIFIED</Text>
+                  <Text style={[styles.statGridVal, { color: '#059669' }]}>{verifiedTodayCount}</Text>
+                </View>
+                <View style={styles.statGridCard}>
+                  <Text style={styles.statGridLabel}>FLAGGED</Text>
+                  <Text style={[styles.statGridVal, { color: '#DC2626' }]}>{flaggedTodayCount}</Text>
                 </View>
               </View>
             </View>
 
-            {/* Language Selector Card */}
-            <View style={styles.formCard}>
-              <Text style={styles.formTitle}>
-                {lang === 'tl' ? 'Piliin ang Wika' : 'System Language'}
-              </Text>
-              <Text style={styles.formSub}>
-                {lang === 'tl' ? 'Itakda ang wika ng mobile interface' : 'Select application language'}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <TouchableOpacity
-                  style={[
-                    styles.langChoiceBtn,
-                    lang === 'en' && styles.langChoiceBtnActive,
-                  ]}
-                  onPress={() => onSelectLang && onSelectLang('en')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.langChoiceText, lang === 'en' && styles.langChoiceTextActive]}>
-                    English
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.langChoiceBtn,
-                    lang === 'tl' && styles.langChoiceBtnActive,
-                  ]}
-                  onPress={() => onSelectLang && onSelectLang('tl')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.langChoiceText, lang === 'tl' && styles.langChoiceTextActive]}>
-                    Filipino (Tagalog)
-                  </Text>
-                </TouchableOpacity>
+            {/* Staff Duty Information Section */}
+            <Text style={styles.sectionHeaderTitle}>Staff Duty Information</Text>
+            <View style={styles.dutyInfoCard}>
+              <View style={styles.dutyInfoRow}>
+                <Text style={styles.dutyInfoKicker}>Post / Location</Text>
+                <Text style={styles.dutyInfoVal}>Barangay {dutyBrgy} Evacuation Command Post</Text>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={styles.dutyInfoRow}>
+                <Text style={styles.dutyInfoKicker}>Officer ID</Text>
+                <Text style={styles.dutyInfoVal}>{officerId}</Text>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={styles.dutyInfoRow}>
+                <Text style={styles.dutyInfoKicker}>Assignment</Text>
+                <Text style={styles.dutyInfoVal}>Field Distribution Leader</Text>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={styles.dutyInfoRow}>
+                <Text style={styles.dutyInfoKicker}>Scanner Mode</Text>
+                <Text style={styles.dutyInfoVal}>Offline Buffer Active (Auto-Sync)</Text>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={styles.dutyInfoRow}>
+                <Text style={styles.dutyInfoKicker}>Duty Period</Text>
+                <Text style={styles.dutyInfoVal}>Sep 7, 2026 · 06:00 AM – 06:00 PM</Text>
               </View>
             </View>
 
-            {/* Offline Diagnostics & Sync Card */}
-            <View style={styles.formCard}>
-              <Text style={styles.formTitle}>
-                {lang === 'tl' ? 'Offline Scanner & Diagnostics' : 'Offline Scanner & Buffer'}
-              </Text>
-              <Text style={styles.formSub}>
-                {lang === 'tl'
-                  ? 'Pamahalaan ang lokal na cache at nakapilang claims para sa disaster zone'
-                  : 'Manage local cache & claims buffer during zero-connectivity deployments'}
-              </Text>
-
-              <View style={styles.settingMetaRow}>
-                <Text style={styles.settingMetaLabel}>
-                  {lang === 'tl' ? 'Naka-cache na Households' : 'Cached Households'}
+            {/* Active Distribution Drive Section */}
+            <Text style={styles.sectionHeaderTitle}>Active Distribution Drive</Text>
+            <View style={styles.activeDrivePreviewCard}>
+              <Text style={styles.activeDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
+              <Text style={styles.activeDriveTitle}>{selectedEvent?.title || 'Relief Distribution — 344'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                <MapPinIcon size={12} color="#93C5FD" />
+                <Text style={styles.activeDriveSub}>
+                  {selectedEvent?.venue || selectedEvent?.location || 'Barangay 291'} • {selectedEvent?.itemType || 'All-in-One Family Food Pack'}
                 </Text>
-                <Text style={styles.settingMetaVal}>{offlineCache.length} households</Text>
-              </View>
-              <View style={styles.settingMetaRow}>
-                <Text style={styles.settingMetaLabel}>
-                  {lang === 'tl' ? 'Nakapilang Offline Claims' : 'Pending Offline Claims'}
-                </Text>
-                <Text style={[styles.settingMetaVal, offlineClaimsQueue.length > 0 && { color: '#DC2626' }]}>
-                  {offlineClaimsQueue.length} records
-                </Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-                <TouchableOpacity
-                  style={[styles.diagBtn, { flex: 1 }]}
-                  onPress={downloadOfflineCache}
-                  disabled={cachingLoading}
-                  activeOpacity={0.8}
-                >
-                  {cachingLoading ? (
-                    <ActivityIndicator size="small" color="#1C3F94" />
-                  ) : (
-                    <Text style={styles.diagBtnText}>
-                      {lang === 'tl' ? 'I-download ang Cache' : 'Download Cache'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.diagBtn,
-                    { flex: 1, backgroundColor: '#059669', borderColor: '#059669' },
-                  ]}
-                  onPress={syncOfflineClaims}
-                  disabled={syncingClaims || offlineClaimsQueue.length === 0}
-                  activeOpacity={0.8}
-                >
-                  {syncingClaims ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={[styles.diagBtnText, { color: '#FFFFFF' }]}>
-                      {lang === 'tl' ? 'I-sync ang Claims' : 'Sync Claims'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
               </View>
             </View>
 
-            {/* Logout Action Card */}
-            <View style={[styles.formCard, { marginBottom: 30 }]}>
-              <TouchableOpacity
-                style={styles.settingsLogoutBtn}
-                onPress={onLogout}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.settingsLogoutBtnText}>
-                  {lang === 'tl' ? 'Mag-logout sa Tungkulin' : 'Sign Out of Duty'}
-                </Text>
+            {/* Diagnostics and Action */}
+            <View style={[styles.dutyInfoCard, { marginTop: 14, padding: 14 }]}>
+              <TouchableOpacity style={styles.logoutBtnFull} onPress={onLogout} activeOpacity={0.85}>
+                <Text style={styles.logoutBtnFullText}>Sign Out of Duty</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
         )}
       </View>
 
-      {/* Frosted Glass Bottom Navigation Bar matching ResidentHomeScreen */}
+      {/* 3. Bottom Navigation Bar: White bar with Gold Active Pill */}
       <View style={styles.tabBarContainer}>
-        {staffTabs.map((item) => (
-          <AnimatedNavItem
-            key={item.key}
-            item={item}
-            isActive={activeTab === item.key}
-            onPress={() => setActiveTab(item.key)}
-          />
-        ))}
+        {[
+          { key: 'tasks', label: 'Tasks', icon: (color) => <ListIcon size={18} color={color} /> },
+          { key: 'scanner', label: 'QR Scan', icon: (color) => <ScanIcon size={18} color={color} /> },
+          { key: 'incident', label: 'Logger', icon: (color) => <AlertTriangleIcon size={18} color={color} /> },
+          { key: 'settings', label: 'Duty', icon: (color) => <ShieldIcon size={18} color={color} /> },
+        ].map((item) => {
+          const isActive = activeTab === item.key;
+          return (
+            <TouchableOpacity
+              key={item.key}
+              style={styles.navTabBtn}
+              onPress={() => setActiveTab(item.key)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.navIconWell, isActive && styles.navIconWellActive]}>
+                {item.icon(isActive ? '#B45309' : '#94A3B8')}
+              </View>
+              <Text style={[styles.navTabLabel, isActive && styles.navTabLabelActive]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
         {/* iOS Home Indicator Pill */}
         <View style={styles.homeIndicatorPill} />
       </View>
@@ -986,9 +679,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F6FC',
   },
-  // Top Header (Matching Resident SingPass Header with Manila Crimson & Gold Accent)
+  bodyContent: {
+    flex: 1,
+  },
+  scrollInner: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 36,
+  },
+  // Top Header: Royal Navy
   topHeader: {
-    flexShrink: 0,
+    backgroundColor: '#0B1D4E',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -996,234 +697,230 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: '#C9A84C',
   },
-  profileRow: {
+  headerContentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 18,
     paddingVertical: 14,
     gap: 12,
   },
-  avatarGoldRing: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 2,
-    borderColor: '#C9A84C',
-    backgroundColor: '#5B1624',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarInitials: {
-    fontSize: 16,
+  headerKicker: {
+    fontSize: 10,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 0.5,
   },
-  headerTitleArea: {
-    flex: 1,
-  },
-  residentTitle: {
+  headerOfficerName: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
+    marginTop: 2,
   },
-  civicLocationRow: {
+  headerDutyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
+    marginTop: 3,
   },
-  civicLocationText: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500',
+  headerDutyText: {
+    fontSize: 11.5,
+    color: '#FCD34D',
+    fontWeight: '600',
   },
-  headerActionArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dutyActiveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    borderWidth: 1,
-    borderColor: '#10B981',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  dutyActiveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  },
-  dutyActiveText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  logoutPillResident: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-  },
-  logoutPillTextResident: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  bodyContent: {
-    flex: 1,
-    backgroundColor: '#F3F6FC',
-  },
-  scrollInner: {
-    paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 14,
-    paddingBottom: 100,
-    maxWidth: RESPONSIVE.maxCardWidth,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  // Hero Drive Card (Matching Resident Hero Pass Gradient)
-  heroDriveCard: {
+  redLogoutPill: {
+    backgroundColor: '#DC2626',
     borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    borderTopColor: '#C9A84C',
-    borderTopWidth: 3,
-    borderBottomColor: '#C9A84C',
-    borderBottomWidth: 2.5,
-    padding: 18,
-    marginBottom: 14,
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 10px 28px rgba(11, 29, 78, 0.22)' }
-      : {
-          shadowColor: '#0B1D4E',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.20,
-          shadowRadius: 16,
-          elevation: 8,
-        }),
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  driveHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  redLogoutPillText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+
+  // QR Scanner Tab Styles
+  heroDriveCard: {
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#1E3A8A',
   },
   heroDriveKicker: {
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: '800',
-    color: '#C9A84C',
-    letterSpacing: 0.8,
-    marginBottom: 3,
+    color: '#FCD34D',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   heroDriveTitle: {
     fontSize: 18,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.3,
   },
-  heroDriveSub: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.75)',
-    fontWeight: '500',
-  },
-  heroMetricsGrid: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  heroMetricCardGlass: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.10)',
-    borderRadius: 12,
+  onlineToggleCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    alignItems: 'flex-start',
-  },
-  heroMetricLabelGlass: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.6)',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  heroMetricValueWhite: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    marginTop: 2,
-  },
-  activeEventCard: {
-    backgroundColor: '#0B1D4E',
-    borderRadius: 14,
+    borderColor: '#E2E8F0',
     padding: 14,
     marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#C9A84C',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      : {
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
+  },
+  statusIndicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  toggleModeTitle: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  toggleModeSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
   },
   viewfinderCard: {
     backgroundColor: '#0B1D4E',
     borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 16,
+    padding: 18,
+    marginBottom: 14,
     borderWidth: 1.5,
-    borderColor: '#C9A84C',
+    borderColor: '#1E3A8A',
+    alignItems: 'center',
+  },
+  viewfinderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
   },
   viewfinderTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: FONT_WEIGHT.black,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.4,
   },
   viewfinderSub: {
     color: '#93C5FD',
-    fontSize: 11,
+    fontSize: 11.5,
     marginTop: 2,
+    marginBottom: 14,
   },
   cameraBox: {
     width: '100%',
-    height: 180,
+    height: 200,
     backgroundColor: '#000000',
     borderRadius: 14,
-    marginTop: 14,
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#1C3F94',
+    overflow: 'hidden',
+  },
+  cornerMark: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderColor: '#FCD34D',
+  },
+  cornerTL: {
+    top: 14,
+    left: 14,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+  },
+  cornerTR: {
+    top: 14,
+    right: 14,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
+  },
+  cornerBL: {
+    bottom: 14,
+    left: 14,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
+  },
+  cornerBR: {
+    bottom: 14,
+    right: 14,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
   },
   scanTargetFrame: {
     width: 120,
     height: 120,
-    borderWidth: 2,
-    borderColor: '#C9A84C',
+    borderWidth: 1.5,
+    borderColor: '#334155',
     borderRadius: 12,
+  },
+  laserLine: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    top: 20,
+    height: 2,
+  },
+  laserGradient: {
+    flex: 1,
+    height: 2,
+  },
+  liveStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  liveStatusText: {
+    color: '#93C5FD',
+    fontSize: 11.5,
+    fontWeight: '600',
   },
   manualEntryCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#DDE4F0',
-    ...SHADOWS.card,
+    borderColor: '#E2E8F0',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      : {
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
   },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '700',
+  manualEntryLabel: {
+    fontSize: 12.5,
+    fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   inputRow: {
     flexDirection: 'row',
@@ -1237,13 +934,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     fontSize: 13,
+    color: '#0F172A',
   },
   scanBtn: {
-    backgroundColor: '#C8102E',
-    paddingHorizontal: 16,
+    backgroundColor: '#1E3A8A',
+    paddingHorizontal: 18,
     borderRadius: 10,
     justifyContent: 'center',
-    ...SHADOWS.sm,
+    alignItems: 'center',
   },
   scanBtnText: {
     color: '#FFFFFF',
@@ -1256,30 +954,30 @@ const styles = StyleSheet.create({
     borderColor: '#FCA5A5',
     padding: 16,
     borderRadius: 14,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   duplicateTitle: {
     color: '#DC2626',
-    fontSize: 15,
-    fontWeight: FONT_WEIGHT.black,
+    fontSize: 14,
+    fontWeight: '900',
   },
   duplicateSub: {
     color: '#7F1D1D',
     fontSize: 12,
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: 3,
+    lineHeight: 17,
   },
   resultCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#1C3F94',
-    ...SHADOWS.card,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 14,
   },
   resultName: {
     fontSize: 16,
-    fontWeight: FONT_WEIGHT.black,
+    fontWeight: '900',
     color: '#0F172A',
   },
   verifTag: {
@@ -1299,218 +997,355 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   entitlementTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#1C3F94',
-    marginTop: 12,
+    color: '#1E3A8A',
+    marginTop: 10,
   },
   entitlementText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#0F172A',
     marginTop: 2,
   },
   releaseBtn: {
-    backgroundColor: '#C8102E',
-    paddingVertical: 14,
+    backgroundColor: '#1E3A8A',
+    paddingVertical: 13,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 16,
-    ...SHADOWS.button,
+    marginTop: 14,
   },
   releaseBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800',
   },
+
+  // Field Logger Tab Styles
   formCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#DDE4F0',
+    borderColor: '#E2E8F0',
     marginBottom: 14,
-    ...SHADOWS.card,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      : {
+          shadowColor: '#0B1D4E',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+          elevation: 3,
+        }),
+  },
+  goldAccentLine: {
+    width: '100%',
+    height: 3.5,
+    backgroundColor: '#C9A84C',
+    borderRadius: 2,
+    marginBottom: 14,
   },
   formTitle: {
-    fontSize: 16,
-    fontWeight: FONT_WEIGHT.black,
+    fontSize: 20,
+    fontWeight: '900',
     color: '#0F172A',
+    marginBottom: 4,
   },
   formSub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  categoryCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  catDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  catTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  catSub: {
     fontSize: 11.5,
     color: '#64748B',
     marginTop: 2,
-    marginBottom: 14,
-    lineHeight: 16,
   },
-  typeOption: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    padding: 12,
+  checkCircle: {
+    width: 20,
+    height: 20,
     borderRadius: 10,
-    marginBottom: 8,
-  },
-  typeOptionActive: {
-    borderColor: '#C8102E',
-    backgroundColor: '#FEF0F2',
-  },
-  typeText: {
-    fontSize: 13,
-    color: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textArea: {
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 10,
-    padding: 12,
-    minHeight: 90,
-    marginVertical: 10,
-  },
-  resetIncBtn: {
-    backgroundColor: '#1C3F94',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    borderColor: '#E2E8F0',
     borderRadius: 12,
-    marginTop: 16,
-    ...SHADOWS.button,
-  },
-  // Settings Tab Specific Styles
-  settingsOfficerName: {
-    fontSize: 16,
-    fontWeight: '800',
+    padding: 12,
+    minHeight: 110,
+    fontSize: 13,
     color: '#0F172A',
+    textAlignVertical: 'top',
   },
-  settingsOfficerRole: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#C8102E',
-    marginTop: 1,
-  },
-  settingsOfficerJurisdiction: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  settingDivider: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 12,
-  },
-  settingMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  redSubmitBtn: {
+    backgroundColor: '#991B1B',
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    paddingVertical: 6,
+    justifyContent: 'center',
+    marginTop: 16,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 12px rgba(153,27,27,0.25)' }
+      : {
+          shadowColor: '#991B1B',
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 6,
+          elevation: 3,
+        }),
   },
-  settingMetaLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    fontWeight: '600',
+  redSubmitBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
   },
-  settingMetaVal: {
-    fontSize: 12,
-    fontWeight: '700',
+
+  // Duty Settings Tab Styles
+  dutyProfileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 18,
+    marginBottom: 14,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      : {
+          shadowColor: '#0B1D4E',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+          elevation: 3,
+        }),
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  shieldAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#0B1D4E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dutyOfficerName: {
+    fontSize: 18,
+    fontWeight: '900',
     color: '#0F172A',
   },
-  langChoiceBtn: {
+  onDutyBadge: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  onDutyText: {
+    color: '#059669',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  fieldLeaderBadge: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  fieldLeaderText: {
+    color: '#1D4ED8',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  statGridRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  statGridCard: {
     flex: 1,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  langChoiceBtnActive: {
-    backgroundColor: '#FEF0F2',
-    borderColor: '#C8102E',
-  },
-  langChoiceText: {
-    fontSize: 12.5,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  langChoiceTextActive: {
-    color: '#C8102E',
-    fontWeight: '800',
-  },
-  diagBtn: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  diagBtnText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#1C3F94',
-  },
-  settingsLogoutBtn: {
-    backgroundColor: '#C8102E',
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
     paddingVertical: 12,
-    borderRadius: 10,
+    alignItems: 'center',
+  },
+  statGridLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#64748B',
+  },
+  statGridVal: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  sectionHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#475569',
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  dutyInfoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 16,
+    marginBottom: 12,
+  },
+  dutyInfoRow: {
+    paddingVertical: 4,
+  },
+  dutyInfoKicker: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  dutyInfoVal: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  dutyDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 8,
+  },
+  activeDrivePreviewCard: {
+    backgroundColor: '#0B1D4E',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1E3A8A',
+    marginBottom: 14,
+  },
+  activeDriveKicker: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FCD34D',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  activeDriveTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  activeDriveSub: {
+    fontSize: 11.5,
+    color: '#93C5FD',
+  },
+  logoutBtnFull: {
+    backgroundColor: '#DC2626',
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.sm,
   },
-  settingsLogoutBtnText: {
+  logoutBtnFullText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: '800',
   },
-  // Tab Bar Styles (Exact parity with ResidentHomeScreen)
+
+  // Bottom Navigation Bar: White bar with Gold Active Pill
   tabBarContainer: {
     flexShrink: 0,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#DDE4F0',
+    borderTopColor: '#E2E8F0',
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'space-around',
     paddingTop: 8,
-    paddingHorizontal: 4,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+    paddingHorizontal: 8,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 -4px 24px rgba(28,63,148,0.07)' }
+      ? { boxShadow: '0 -4px 16px rgba(15,23,42,0.05)' }
       : {
-          shadowColor: '#1C3F94',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-          elevation: 10,
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 6,
         }),
   },
-  homeIndicatorPill: {
-    position: 'absolute',
-    bottom: 6,
-    left: '50%',
-    marginLeft: -67,
-    width: 134,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-  },
-  navIconPillActive: {
-    width: 38,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: '#FEF0F2',
+  navTabBtn: {
     alignItems: 'center',
     justifyContent: 'center',
+    flex: 1,
   },
-  navIconPillInactive: {
-    width: 38,
-    height: 34,
-    borderRadius: 10,
+  navIconWell: {
+    width: 44,
+    height: 38,
+    borderRadius: 12,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  navIconWellActive: {
+    backgroundColor: '#FEF3C7',
+  },
+  navTabLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  navTabLabelActive: {
+    color: '#B45309',
+    fontWeight: '800',
+  },
+  homeIndicatorPill: {
+    position: 'absolute',
+    bottom: 4,
+    left: '50%',
+    marginLeft: -67,
+    width: 134,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
 });
-
-

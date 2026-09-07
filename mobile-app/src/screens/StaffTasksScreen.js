@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, RESPONSIVE } from '../theme';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { fetchDistributionEvents } from '../services/api';
-import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, QrCodeIcon } from '../components/AppIcons';
-import { MotionPressable } from '../components/motion';
+import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
 
 export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en' }) {
@@ -17,7 +14,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
     setLoading(true);
     try {
       const liveEvents = await fetchDistributionEvents(token);
-      if (Array.isArray(liveEvents)) {
+      if (Array.isArray(liveEvents) && liveEvents.length > 0) {
         setEvents(liveEvents.map((e, idx) => {
           const rawStatus = String(e.status || (e.isActive ? 'ongoing' : e.closedAt ? 'completed' : 'scheduled')).toLowerCase();
           return {
@@ -26,7 +23,7 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
             title: e.title,
             venue: e.location || 'Barangay Center',
             location: e.location || 'Barangay Center',
-            itemType: e.itemType || 'Family Food Pack',
+            itemType: e.itemType || 'All-in-One Family Food Pack',
             status: rawStatus === 'ongoing' ? 'ongoing' : rawStatus === 'completed' ? 'completed' : 'scheduled',
             scannedCount: e.claimedCount || 0,
             totalTarget: e.targetHouseholds || e.targetCount || 150,
@@ -34,9 +31,46 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
             scheduledTime: e.scheduledTime || '08:00 AM',
             startTime: new Date(e.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             completedTime: e.completedAt ? new Date(e.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
-            allocatedItems: e.itemType || 'Family Food Pack',
+            allocatedItems: e.itemType || 'All-in-One Family Food Pack',
           };
         }));
+      } else {
+        // Fallback default demonstration events
+        setEvents([
+          {
+            id: 'evt_344',
+            title: 'Relief Distribution — 344',
+            venue: '344',
+            location: '344',
+            itemType: 'All-in-One Family Food Pack',
+            allocatedItems: 'All-in-One Family Food Pack',
+            status: 'scheduled',
+            scannedCount: 0,
+            totalTarget: 150,
+          },
+          {
+            id: 'evt_222',
+            title: 'Relief Distribution — brgy 222',
+            venue: 'Brgy 222',
+            location: 'Brgy 222',
+            itemType: 'Food',
+            allocatedItems: 'Food',
+            status: 'scheduled',
+            scannedCount: 0,
+            totalTarget: 120,
+          },
+          {
+            id: 'evt_291',
+            title: 'Post-Typhoon Relief Distribution Batch 1',
+            venue: 'Barangay 291 Covered Court',
+            location: 'Barangay 291 Covered Court',
+            itemType: 'Family Food Pack',
+            allocatedItems: 'Family Food Pack',
+            status: 'scheduled',
+            scannedCount: 0,
+            totalTarget: 200,
+          },
+        ]);
       }
     } catch (err) {
       console.warn('Events fetch fallback:', err);
@@ -62,14 +96,16 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
           onPress: async () => {
             try {
               const evId = item._id || item.id;
-              await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
-                method: 'PATCH',
-                headers: {
-                  Authorization: 'Bearer ' + token,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status: 'Ongoing', isActive: true }),
-              });
+              if (item._id) {
+                await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ status: 'Ongoing', isActive: true }),
+                });
+              }
               setEvents(prev => prev.map(e => (e._id || e.id) === evId ? { ...e, status: 'ongoing' } : e));
               setFilterTab('ongoing');
               if (onSelectScanEvent) {
@@ -98,14 +134,16 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
           onPress: async () => {
             try {
               const evId = item._id || item.id;
-              await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
-                method: 'PATCH',
-                headers: {
-                  Authorization: 'Bearer ' + token,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status: 'Completed', isActive: false }),
-              });
+              if (item._id) {
+                await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ status: 'Completed', isActive: false }),
+                });
+              }
               setEvents(prev => prev.map(e => (e._id || e.id) === evId ? { ...e, status: 'completed' } : e));
               setFilterTab('completed');
             } catch (err) {
@@ -124,93 +162,56 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* 1. Hero Mission Dispatch Card (Parity with Resident SingPass Hero Card) */}
-      <LinearGradient
-        colors={['#0B1D4E', '#163B8C', '#234AAA']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.heroCard}
-      >
-        <View style={styles.heroGoldTop} />
-
-        <View style={styles.heroHeaderRow}>
-          <View style={styles.heroSealCircle}>
-            <Image
-              source={require('../../assets/logo-mark.png')}
-              style={{ width: 22, height: 22 }}
-              resizeMode="contain"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.heroKicker}>
-              {lang === 'tl' ? 'OPISYAL NA FIELD OPERATIONS DISPATCH' : 'OFFICIAL FIELD OPERATIONS DISPATCH'}
-            </Text>
-            <Text style={styles.heroTitle}>
-              {lang === 'tl' ? 'Pamamahagi at Gawain' : 'Distribution Drives'}
-            </Text>
-            <Text style={styles.heroSub} numberOfLines={1}>
-              {lang === 'tl' ? 'Pamahalaang Lungsod ng Maynila · MDRRMO' : 'City Government of Manila · MDRRMO'}
-            </Text>
-          </View>
-          <View style={styles.liveDispatchBadge}>
-            <View style={styles.liveDotPulse} />
-            <Text style={styles.liveDispatchText}>LIVE</Text>
-          </View>
-        </View>
-
-        {/* 3-Column Translucent Glass Metrics Grid */}
-        <View style={styles.heroMetricsGrid}>
-          <View style={styles.metricCardGlass}>
-            <Text style={styles.metricLabelGlass}>{lang === 'tl' ? 'NAKATAKDA' : 'SCHEDULED'}</Text>
-            <Text style={styles.metricValWhite}>{scheduledCount}</Text>
-            <Text style={styles.metricSubGlass}>{lang === 'tl' ? 'Mga Drive' : 'Drives'}</Text>
-          </View>
-          <View style={styles.metricCardGlass}>
-            <Text style={styles.metricLabelGlass}>{lang === 'tl' ? 'KASALUKUYAN' : 'ONGOING'}</Text>
-            <Text style={[styles.metricValWhite, { color: '#FCD34D' }]}>{ongoingCount}</Text>
-            <Text style={[styles.metricSubGlass, { color: '#FDE68A' }]}>{lang === 'tl' ? 'Aktibo' : 'Active'}</Text>
-          </View>
-          <View style={styles.metricCardGlass}>
-            <Text style={styles.metricLabelGlass}>{lang === 'tl' ? 'NATAPOS' : 'COMPLETED'}</Text>
-            <Text style={[styles.metricValWhite, { color: '#93C5FD' }]}>{completedCount}</Text>
-            <Text style={[styles.metricSubGlass, { color: '#BFDBFE' }]}>{lang === 'tl' ? 'Nai-sync' : 'Synced'}</Text>
-          </View>
-        </View>
-      </LinearGradient>
-
-      {/* 2. Claymorphic Segmented Filter Tabs */}
-      <View style={styles.tabBar}>
-        {[
-          { key: 'scheduled', label: lang === 'tl' ? 'Nakatakda' : 'Scheduled', count: scheduledCount },
-          { key: 'ongoing', label: lang === 'tl' ? 'Kasalukuyan' : 'Ongoing', count: ongoingCount },
-          { key: 'completed', label: lang === 'tl' ? 'Natapos Na' : 'Completed', count: completedCount },
-        ].map(t => {
-          const isActive = filterTab === t.key;
-          return (
-            <TouchableOpacity
-              key={t.key}
-              style={[styles.tabBtn, isActive && styles.tabBtnActive]}
-              onPress={() => setFilterTab(t.key)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                {t.label}
-              </Text>
-              <View style={[styles.tabCountPill, isActive && styles.tabCountPillActive]}>
-                <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
-                  {t.count}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+      {/* 1. Header Kicker Pill Tag */}
+      <View style={styles.taskManagerPill}>
+        <ListIcon size={13} color="#1D4ED8" />
+        <Text style={styles.taskManagerPillText}>LGU FIELD STAFF TASK MANAGER</Text>
       </View>
 
-      {/* 3. Distribution Events List with Claymorphic Cards */}
+      {/* 2. Screen Title & Subtitle */}
+      <Text style={styles.pageTitle}>Field Tasks & Distribution Drives</Text>
+      <Text style={styles.pageSub}>
+        Field Leaders have authority to start on-site relief distribution drives.
+      </Text>
+
+      {/* 3. Blue Segmented Filter Container */}
+      <View style={styles.segmentedContainer}>
+        <TouchableOpacity
+          style={[styles.segmentBtn, filterTab === 'scheduled' && styles.segmentBtnActive]}
+          onPress={() => setFilterTab('scheduled')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.segmentText, filterTab === 'scheduled' && styles.segmentTextActive]}>
+            Scheduled ({scheduledCount})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.segmentBtn, filterTab === 'ongoing' && styles.segmentBtnActive]}
+          onPress={() => setFilterTab('ongoing')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.segmentText, filterTab === 'ongoing' && styles.segmentTextActive]}>
+            Ongoing ({ongoingCount})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.segmentBtn, filterTab === 'completed' && styles.segmentBtnActive]}
+          onPress={() => setFilterTab('completed')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.segmentText, filterTab === 'completed' && styles.segmentTextActive]}>
+            Completed ({completedCount})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 4. Distribution Events List */}
       <View style={styles.eventList}>
         {loading && events.length === 0 ? (
           <View style={styles.emptyStateCard}>
-            <ActivityIndicator color="#C8102E" size="small" />
+            <ActivityIndicator color="#1E3A8A" size="small" />
             <Text style={[styles.emptyStateText, { marginTop: 10 }]}>
               {lang === 'tl' ? 'Kinakarga ang mga distribution events...' : 'Loading distribution events...'}
             </Text>
@@ -233,160 +234,72 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
           filteredEvents.map(item => {
             const isOngoing = item.status === 'ongoing';
             const isScheduled = item.status === 'scheduled';
-            const progressPercent = item.totalTarget > 0 ? Math.round((item.scannedCount / item.totalTarget) * 100) : 0;
 
             return (
-              <View key={item.id} style={styles.eventCard}>
-                {/* Top Status Accent Stripe */}
-                <View style={[
-                  styles.cardAccentStripe,
-                  isScheduled ? styles.stripeGold : isOngoing ? styles.stripeCrimson : styles.stripeEmerald
-                ]} />
-
-                <View style={styles.eventCardHeader}>
+              <View key={item.id} style={styles.taskCard}>
+                {/* Header Row: Event Title + Status Pill */}
+                <View style={styles.cardHeaderRow}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                   <View style={[
-                    styles.eventIconWell,
-                    isOngoing ? styles.wellCrimson : isScheduled ? styles.wellGold : styles.wellEmerald
+                    styles.statusPill,
+                    isScheduled ? styles.statusPillScheduled : isOngoing ? styles.statusPillOngoing : styles.statusPillCompleted
                   ]}>
-                    <PackageIcon size={20} color={isOngoing ? '#C8102E' : isScheduled ? '#C9A84C' : '#059669'} />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.eventTitle}>{item.title}</Text>
-                    <View style={styles.venueRow}>
-                      <MapPinIcon size={12} color="#64748B" />
-                      <Text style={styles.eventVenue} numberOfLines={1}>{item.venue || item.location} · Manila</Text>
-                    </View>
-                  </View>
-                  <View style={[
-                    styles.statusBadge,
-                    isScheduled ? styles.statusScheduled : isOngoing ? styles.statusOngoing : styles.statusCompleted
-                  ]}>
-                    <View style={[
-                      styles.statusDot,
-                      isScheduled ? { backgroundColor: '#3B82F6' } : isOngoing ? { backgroundColor: '#D97706' } : { backgroundColor: '#10B981' }
-                    ]} />
                     <Text style={[
-                      styles.statusBadgeText,
-                      isScheduled ? { color: '#1E40AF' } : isOngoing ? { color: '#B45309' } : { color: '#047857' }
+                      styles.statusPillText,
+                      isScheduled ? styles.statusTextScheduled : isOngoing ? styles.statusTextOngoing : styles.statusTextCompleted
                     ]}>
-                      {isScheduled ? (lang === 'tl' ? 'NAKATAKDA' : 'SCHEDULED') : isOngoing ? (lang === 'tl' ? 'AKTIBO' : 'ONGOING') : (lang === 'tl' ? 'TAPOS NA' : 'COMPLETED')}
+                      {isScheduled ? 'SCHEDULED' : isOngoing ? 'ONGOING' : 'COMPLETED'}
                     </Text>
                   </View>
                 </View>
 
-                {/* Allocation Box in Soft Well */}
-                <View style={styles.allocationWell}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1 }}>
-                      <PackageIcon size={15} color="#C8102E" />
-                      <Text style={styles.allocationText} numberOfLines={1}>
-                        {lang === 'tl' ? 'Alokasyon' : 'Item'}: <Text style={{ fontWeight: '800', color: '#0F172A' }}>{item.allocatedItems}</Text>
-                      </Text>
-                    </View>
-                    <View style={styles.quotaPill}>
-                      <Text style={styles.quotaPillText}>{item.totalTarget} {lang === 'tl' ? 'pamilya' : 'families'}</Text>
-                    </View>
-                  </View>
-
-                  {/* Progress Row for ongoing / completed */}
-                  {!isScheduled && (
-                    <View style={{ marginTop: 10 }}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-                        <Text style={styles.progressLabel}>
-                          {lang === 'tl' ? 'Naipamahaging Ayuda' : 'Distributed Relief'}
-                        </Text>
-                        <Text style={styles.progressValue}>
-                          {item.scannedCount}/{item.totalTarget} ({progressPercent}%)
-                        </Text>
-                      </View>
-                      <View style={styles.progressTrackShell}>
-                        <LinearGradient
-                          colors={isOngoing ? ['#8B0A20', '#C8102E'] : ['#059669', '#10B981']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={[styles.progressTrackFill, { width: `${Math.min(100, progressPercent)}%` }]}
-                        />
-                      </View>
-                    </View>
-                  )}
+                {/* Location Row */}
+                <View style={styles.metaRow}>
+                  <MapPinIcon size={14} color="#94A3B8" />
+                  <Text style={styles.metaText} numberOfLines={1}>{item.venue || item.location}</Text>
                 </View>
 
-                {/* Action Buttons */}
+                {/* Allocation Row */}
+                <View style={[styles.metaRow, { marginBottom: 14 }]}>
+                  <PackageIcon size={14} color="#94A3B8" />
+                  <Text style={styles.metaText} numberOfLines={1}>
+                    Allocation: <Text style={{ color: '#334155', fontWeight: '600' }}>{item.allocatedItems || item.itemType}</Text>
+                  </Text>
+                </View>
+
+                {/* Royal Blue Action Button */}
                 {isScheduled ? (
                   <TouchableOpacity
-                    style={styles.actionBtnWrapper}
+                    style={styles.royalBlueBtn}
                     onPress={() => handleStartDistribution(item)}
-                    activeOpacity={0.88}
+                    activeOpacity={0.85}
                   >
-                    <LinearGradient
-                      colors={['#8B0A20', '#C8102E']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.actionBtnGradient}
-                    >
-                      <PlayIcon size={14} color="#FFFFFF" />
-                      <Text style={styles.actionBtnGradientText}>
-                        {lang === 'tl' ? 'Simulan ang Pamamahagi (Leader Action)' : 'Start Distribution (Leader Action)'}
-                      </Text>
-                    </LinearGradient>
+                    <PlayIcon size={13} color="#FFFFFF" />
+                    <Text style={styles.royalBlueBtnText}>Start Distribution (Leader Action)</Text>
                   </TouchableOpacity>
                 ) : isOngoing ? (
                   <View style={{ gap: 8 }}>
                     <TouchableOpacity
-                      style={styles.actionBtnWrapper}
+                      style={styles.royalBlueBtn}
                       onPress={() => onSelectScanEvent && onSelectScanEvent(item)}
-                      activeOpacity={0.88}
+                      activeOpacity={0.85}
                     >
-                      <LinearGradient
-                        colors={['#5A0515', '#8B0A20', '#C8102E']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.actionBtnGradient}
-                      >
-                        <QrCodeIcon size={15} color="#FFFFFF" />
-                        <Text style={styles.actionBtnGradientText}>
-                          {lang === 'tl' ? 'Buksan ang QR Scanner' : 'Launch QR Scanner'}
-                        </Text>
-                      </LinearGradient>
+                      <QrCodeIcon size={15} color="#FFFFFF" />
+                      <Text style={styles.royalBlueBtnText}>Open QR Scanner (Leader Action)</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
-                      style={styles.actionBtnWrapper}
+                      style={styles.completeBtn}
                       onPress={() => handleCompleteDistribution(item)}
-                      activeOpacity={0.88}
+                      activeOpacity={0.85}
                     >
-                      <LinearGradient
-                        colors={['#047857', '#059669']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.actionBtnGradient}
-                      >
-                        <CheckIcon size={15} color="#FFFFFF" />
-                        <Text style={styles.actionBtnGradientText}>
-                          {lang === 'tl' ? 'Tapusin ang Pamamahagi (Leader Action)' : 'Complete Distribution (Leader Action)'}
-                        </Text>
-                      </LinearGradient>
+                      <CheckIcon size={14} color="#059669" />
+                      <Text style={styles.completeBtnText}>Finalize & Complete Event</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <View style={styles.completedInfoRow}>
-                    <Text style={styles.completedInfoText}>
-                      {lang === 'tl' ? `Natapos: ${item.completedTime || 'Matagumpay'}` : `Completed: ${item.completedTime || 'Success'}`}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.viewAuditBtn}
-                      onPress={() => {
-                        Alert.alert(
-                          lang === 'tl' ? 'Buod ng Distribusyon' : 'Distribution Summary',
-                          `${item.title}\n\nLugar: ${item.venue || item.location}\nUri ng Ayuda: ${item.itemType}\nStatus: Matagumpay na natapos at nai-sync sa LGU Command Center.`
-                        );
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.viewAuditText}>
-                        {lang === 'tl' ? 'Tingnan ang Buod' : 'View Summary'}
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={styles.completedBanner}>
+                    <CheckIcon size={14} color="#059669" />
+                    <Text style={styles.completedBannerText}>Distribution Successfully Completed</Text>
                   </View>
                 )}
               </View>
@@ -401,399 +314,225 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
   },
   content: {
-    paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 14,
-    paddingBottom: 100,
-    maxWidth: RESPONSIVE.maxCardWidth,
-    alignSelf: 'center',
-    width: '100%',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
-  // 1. Hero Mission Dispatch Card (Parity with SingPass QR Hero Card)
-  heroCard: {
-    borderRadius: 22,
-    padding: 18,
-    marginBottom: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 8px 24px rgba(11, 29, 78, 0.22), 0 2px 6px rgba(11, 29, 78, 0.12)' }
-      : {
-          shadowColor: '#0B1D4E',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.25,
-          shadowRadius: 14,
-          elevation: 6,
-        }),
-  },
-  heroGoldTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    backgroundColor: '#C9A84C',
-  },
-  heroHeaderRow: {
+  // Kicker Pill
+  taskManagerPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroSealCircle: {
-    width: 40,
-    height: 40,
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1.5,
-    borderColor: '#C9A84C',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
   },
-  heroKicker: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#C9A84C',
-    letterSpacing: 0.6,
-  },
-  heroTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    marginTop: 1,
-  },
-  heroSub: {
+  taskManagerPillText: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.75)',
-    marginTop: 1,
-  },
-  liveDispatchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    borderWidth: 1,
-    borderColor: '#10B981',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-  },
-  liveDotPulse: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  },
-  liveDispatchText: {
-    color: '#A7F3D0',
-    fontSize: 9.5,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  heroMetricsGrid: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  metricCardGlass: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.09)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-  },
-  metricLabelGlass: {
-    fontSize: 9,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#1D4ED8',
     letterSpacing: 0.4,
   },
-  metricValWhite: {
-    fontSize: 18,
+  // Heading
+  pageTitle: {
+    fontSize: 22,
     fontWeight: '900',
-    color: '#FFFFFF',
-    marginVertical: 1,
+    color: '#0F172A',
+    letterSpacing: -0.4,
+    marginBottom: 4,
   },
-  metricSubGlass: {
-    fontSize: 9.5,
-    color: 'rgba(255, 255, 255, 0.65)',
-    fontWeight: '600',
+  pageSub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 16,
   },
-  // 2. Claymorphic Segmented Filter Tabs
-  tabBar: {
+  // Segmented Filter
+  segmentedContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     padding: 4,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     marginBottom: 16,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: 12,
-  },
-  tabBtnActive: {
-    backgroundColor: '#FFFFFF',
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 8px rgba(11, 29, 78, 0.08)' }
+      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
       : {
-          shadowColor: '#0B1D4E',
+          shadowColor: '#0F172A',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.08,
+          shadowOpacity: 0.04,
           shadowRadius: 6,
           elevation: 2,
         }),
   },
-  tabText: {
-    fontSize: 12,
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  segmentBtnActive: {
+    backgroundColor: '#1E3A8A',
+  },
+  segmentText: {
+    fontSize: 12.5,
     fontWeight: '600',
     color: '#64748B',
   },
-  tabTextActive: {
-    color: '#C8102E',
-    fontWeight: '800',
-  },
-  tabCountPill: {
-    backgroundColor: '#E2E8F0',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 999,
-  },
-  tabCountPillActive: {
-    backgroundColor: '#FEF0F2',
-  },
-  tabCountText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  tabCountTextActive: {
-    color: '#C8102E',
-    fontWeight: '800',
-  },
-  // 3. Distribution Drive Cards (Claymorphic Elevated Cards)
-  eventList: {
-    gap: 14,
-  },
-  eventCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.9)',
-    position: 'relative',
-    overflow: 'hidden',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 8px 24px rgba(11, 29, 78, 0.06), 0 2px 6px rgba(11, 29, 78, 0.03)' }
-      : {
-          shadowColor: '#0B1D4E',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 10,
-          elevation: 3,
-        }),
-  },
-  cardAccentStripe: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3.5,
-  },
-  stripeGold: {
-    backgroundColor: '#C9A84C',
-  },
-  stripeCrimson: {
-    backgroundColor: '#C8102E',
-  },
-  stripeEmerald: {
-    backgroundColor: '#10B981',
-  },
-  eventCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  eventIconWell: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  wellCrimson: {
-    backgroundColor: '#FEF0F2',
-    borderColor: '#FECDD3',
-  },
-  wellGold: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-  },
-  wellEmerald: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-  },
-  eventTitle: {
-    fontSize: 15.5,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  venueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 3,
-  },
-  eventVenue: {
-    fontSize: 12,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusScheduled: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  statusOngoing: {
-    backgroundColor: '#FEF3C7',
-    borderColor: '#FCD34D',
-  },
-  statusCompleted: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  allocationWell: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    marginBottom: 12,
-  },
-  allocationText: {
-    fontSize: 12,
-    color: '#475569',
-  },
-  quotaPill: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  quotaPillText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  progressLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  progressValue: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  progressTrackShell: {
-    height: 7,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  progressTrackFill: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  actionBtnWrapper: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 12px rgba(200, 16, 46, 0.2)' }
-      : {
-          shadowColor: '#C8102E',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.2,
-          shadowRadius: 6,
-          elevation: 3,
-        }),
-  },
-  actionBtnGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 14,
-  },
-  actionBtnGradientText: {
+  segmentTextActive: {
     color: '#FFFFFF',
-    fontSize: 13,
     fontWeight: '800',
   },
-  completedInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 4,
+  // Event Cards
+  eventList: {
+    gap: 12,
   },
-  completedInfoText: {
-    fontSize: 11.5,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  viewAuditBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  viewAuditText: {
-    fontSize: 11,
-    color: '#C8102E',
-    fontWeight: '700',
-  },
-  emptyStateCard: {
-    padding: 32,
-    alignItems: 'center',
+  taskCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    padding: 18,
+    marginBottom: 12,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      : {
+          shadowColor: '#0B1D4E',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+          elevation: 3,
+        }),
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    flex: 1,
+  },
+  statusPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusPillScheduled: {
+    backgroundColor: '#EFF6FF',
+  },
+  statusPillOngoing: {
+    backgroundColor: '#FEF3C7',
+  },
+  statusPillCompleted: {
+    backgroundColor: '#ECFDF5',
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  statusTextScheduled: {
+    color: '#2563EB',
+  },
+  statusTextOngoing: {
+    color: '#B45309',
+  },
+  statusTextCompleted: {
+    color: '#059669',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 5,
+  },
+  metaText: {
+    fontSize: 13,
+    color: '#64748B',
+    flex: 1,
+  },
+  // Royal Blue Action Button
+  royalBlueBtn: {
+    backgroundColor: '#1E3A8A',
+    borderRadius: 12,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 12px rgba(30,58,138,0.25)' }
+      : {
+          shadowColor: '#1E3A8A',
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 6,
+          elevation: 3,
+        }),
+  },
+  royalBlueBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+  completeBtn: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  completeBtnText: {
+    color: '#059669',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  completedBanner: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  completedBannerText: {
+    color: '#059669',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  // Empty State
+  emptyStateCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 30,
+    alignItems: 'center',
     marginTop: 10,
   },
   emptyIconWell: {
@@ -806,9 +545,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   emptyStateTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#0F172A',
     marginBottom: 4,
     textAlign: 'center',
   },
@@ -819,4 +558,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-

@@ -200,6 +200,42 @@ export function AlertTriangleIcon({ size = 20, color = '#DC2626' }) {
   );
 }
 
+export function ListIcon({ size = 20, color = '#64748B' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Line x1="8" y1="6" x2="21" y2="6" />
+      <Line x1="8" y1="12" x2="21" y2="12" />
+      <Line x1="8" y1="18" x2="21" y2="18" />
+      <Line x1="3" y1="6" x2="3.01" y2="6" />
+      <Line x1="3" y1="12" x2="3.01" y2="12" />
+      <Line x1="3" y1="18" x2="3.01" y2="18" />
+    </Svg>
+  );
+}
+
+export function ScanIcon({ size = 20, color = '#64748B' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M3 7V5a2 2 0 0 1 2-2h2" />
+      <Path d="M17 3h2a2 2 0 0 1 2 2v2" />
+      <Path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+      <Path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+      <Circle cx="9" cy="9" r="1.5" fill={color} />
+      <Circle cx="15" cy="9" r="1.5" fill={color} />
+      <Circle cx="9" cy="15" r="1.5" fill={color} />
+      <Circle cx="15" cy="15" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+export function ShieldIcon({ size = 20, color = '#64748B', filled = false }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill={filled ? color : 'none'} />
+    </Svg>
+  );
+}
+
 export function MapPinIcon({ size = 16, color = '#64748B' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
