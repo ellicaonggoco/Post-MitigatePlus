@@ -79,10 +79,10 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   const handleLogin = async () => {
     const errs = {};
     if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = 'Wrong Phone Number';
+      errs.emailOrPhone = lang === 'tl' ? 'Ilagay ang Phone Number o Email' : 'Please enter Phone Number or Email';
     }
     if (!password) {
-      errs.password = 'Wrong Password';
+      errs.password = lang === 'tl' ? 'Ilagay ang Password' : 'Please enter Password';
     }
 
     if (Object.keys(errs).length > 0) {
@@ -106,26 +106,32 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
       } else {
         const msg = (res?.message || '').toLowerCase();
         if (msg.includes('password')) {
-          setErrors({ password: 'Wrong Password' });
-        } else if (msg.includes('not found') || msg.includes('user') || msg.includes('phone') || msg.includes('mobile')) {
-          setErrors({ emailOrPhone: 'Wrong Phone Number' });
+          setErrors({ password: lang === 'tl' ? 'Maling Password' : 'Wrong Password' });
+        } else if (msg.includes('not found') || msg.includes('user') || msg.includes('account')) {
+          setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Account' : 'Account Not Found' });
         } else {
           setErrors({
-            emailOrPhone: 'Wrong Phone Number',
-            password: 'Wrong Password',
+            emailOrPhone: lang === 'tl' ? 'Maling Phone o Email' : 'Wrong Phone or Email',
+            password: lang === 'tl' ? 'Maling Password' : 'Wrong Password',
           });
         }
       }
     } catch (err) {
       const errMsg = (err?.message || '').toLowerCase();
-      if (errMsg.includes('password')) {
-        setErrors({ password: 'Wrong Password' });
-      } else if (errMsg.includes('not found') || errMsg.includes('user')) {
-        setErrors({ emailOrPhone: 'Wrong Phone Number' });
+      if (errMsg.includes('failed to fetch') || errMsg.includes('network') || errMsg.includes('connect')) {
+        setErrors({
+          general: lang === 'tl'
+            ? 'Hindi makakonekta sa backend server sa port 5000. Pakisuri kung tumatakbo ang backend.'
+            : 'Cannot connect to backend server on port 5000. Please ensure the backend is running.',
+        });
+      } else if (errMsg.includes('password')) {
+        setErrors({ password: lang === 'tl' ? 'Maling Password' : 'Wrong Password' });
+      } else if (errMsg.includes('not found') || errMsg.includes('user') || errMsg.includes('account')) {
+        setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Account' : 'Account Not Found' });
       } else {
         setErrors({
-          emailOrPhone: 'Wrong Phone Number',
-          password: 'Wrong Password',
+          emailOrPhone: lang === 'tl' ? 'Maling Phone o Email' : 'Wrong Phone or Email',
+          password: lang === 'tl' ? 'Maling Password' : 'Wrong Password',
         });
       }
     } finally {
@@ -174,15 +180,23 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </Text>
           </View>
 
-          {/* Mobile Number Input */}
+          {errors.general ? (
+            <View style={{ backgroundColor: '#FEE2E2', borderColor: '#EF4444', borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 14 }}>
+              <Text style={{ color: '#B91C1C', fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 18 }}>
+                {errors.general}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Mobile Number / Email Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
+            label={lang === 'tl' ? 'Phone Number o Email' : 'Phone Number or Email'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder="Enter Phone Number"
+            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number o Email' : 'Enter Phone Number or Email'}
             errorText={errors.emailOrPhone}
             required
-            keyboardType="phone-pad"
+            keyboardType="email-address"
             autoCapitalize="none"
           />
 

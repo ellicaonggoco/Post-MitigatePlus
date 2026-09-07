@@ -335,7 +335,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please enter both valid email/phone and password.' });
     }
 
-    const user = await User.findOne({ emailOrPhone: emailOrPhone.trim().toLowerCase() });
+    const trimmedInput = emailOrPhone.trim();
+    const lowerInput = trimmedInput.toLowerCase();
+    const user = await User.findOne({
+      $or: [
+        { emailOrPhone: lowerInput },
+        { contactNum: trimmedInput },
+        { employeeId: trimmedInput },
+      ]
+    });
 
     // Check if account is temporarily locked due to failed logins
     if (user && user.lockUntil && user.lockUntil > Date.now()) {
