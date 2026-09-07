@@ -64,8 +64,8 @@ export default function Footer() {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-            <span style={{ display: 'inline-flex', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>
+            <span style={{ display: 'inline-flex', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1C3F94' }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#1C3F94' }}>
               System Operational &bull; A.Y. 2025–2026
             </span>
           </div>
