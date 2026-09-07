@@ -12,6 +12,10 @@ export default function Footer() {
         padding: '24px 32px 18px',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
         color: '#0B1525',
+        width: '100%',
+        boxSizing: 'border-box',
+        position: 'relative',
+        zIndex: 10,
       }}
     >
       <div

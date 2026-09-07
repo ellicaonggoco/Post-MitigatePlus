@@ -235,10 +235,11 @@ function AppRoutes() {
   const isAuthLayout = Boolean(token && !isLoginPage);
 
   return (
-    <div className="app-shell">
-      {isAuthLayout && (
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+    <div className="app-layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <div className="app-shell" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        {isAuthLayout && (
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
           title={isCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
           className="sidebar-collapse-btn desktop-only"
@@ -397,13 +398,14 @@ function AppRoutes() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-
-        {/* Global Institutional & Developer Footer */}
-        {isAuthLayout && <Footer />}
       </main>
-
-      {/* Interactive System & Developer Details Modal */}
-      <SystemInfoModal isOpen={systemInfoOpen} onClose={() => setSystemInfoOpen(false)} />
     </div>
-  );
+
+    {/* Global Institutional & Developer Footer — FULL WIDTH (across sidebar & main content) */}
+    {isAuthLayout && <Footer />}
+
+    {/* Interactive System & Developer Details Modal */}
+    <SystemInfoModal isOpen={systemInfoOpen} onClose={() => setSystemInfoOpen(false)} />
+  </div>
+);
 }

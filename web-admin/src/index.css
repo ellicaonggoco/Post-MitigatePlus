@@ -714,6 +714,7 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
 /* Dark mode surface correction: keep depth through navy/teal tones only.
    The light-mode white sheen was washing out cards and making the dark UI
    look foggy. */
+[data-theme="dark"] .app-layout,
 [data-theme="dark"] .app-shell {
   background:
     radial-gradient(circle at 92% -8%, rgba(14,116,144,.16), transparent 24rem),
@@ -947,11 +948,11 @@ table.clay-table tbody tr:hover td:first-child { border-left-color: var(--bay-te
   --sampaguita: #0B132B; --surface-mid: #1E293B; --sidebar-bg: #111827; --card: #1E293B; --border: #334155; --line: #334155;
   --ink: #F8FAFC; --ink-soft: #94A3B8; --ink-faint: #64748B;
 }
-body { background: var(--sampaguita); }
-.app-shell { min-height: 100vh; display: flex; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); }
-.app-main { flex: 1; min-width: 0; overflow: auto; padding: 0; }
+.app-layout { min-height: 100vh; display: flex; flex-direction: column; width: 100%; background: radial-gradient(circle at 85% 0%, rgba(9,1,84,.06), transparent 25rem), var(--sampaguita); }
+.app-shell { flex: 1; display: flex; width: 100%; min-height: 0; }
+.app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0; }
 .app-main--public { padding: 0; }
-.app-topbar { height: 68px; width: 100%; max-width: none; margin: 0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--sampaguita); }
+.app-topbar { position: sticky; top: 0; z-index: 50; height: 68px; width: 100%; max-width: none; margin: 0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--sampaguita); }
 .app-crumbs, .app-topbar-actions, .app-status { display: flex; align-items: center; gap: 9px; }
 .app-crumbs { color: var(--ink-soft); font-size: 13px; font-weight: 700; letter-spacing: .01em; }
 .app-crumbs span { color: var(--ink-soft); }
