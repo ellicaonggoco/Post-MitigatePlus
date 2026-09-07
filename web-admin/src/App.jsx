@@ -249,9 +249,13 @@ function AppRoutes() {
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
               title="Open Navigation"
-              style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.15)' }}
+              style={{
+                color: '#1C3F94',
+                borderColor: '#D6DEFA',
+                background: '#EDF1FB',
+              }}
             >
-              <Menu size={20} />
+              <Menu size={20} color="#1C3F94" />
             </button>
             <img
               src={logoFull}
@@ -261,23 +265,32 @@ function AppRoutes() {
           </div>
 
           {/* Right: notification + settings */}
-          <div className="app-topbar-actions">
+          <div className="app-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div ref={notifRef} style={{ position: "relative" }}>
               <button
                 className="app-notification"
                 aria-label="Notifications"
+                title="Notifications"
                 onClick={() => setNotifOpen(p => !p)}
                 style={{
                   position: "relative",
-                  background: 'rgba(255,255,255,0.18)',
-                  border: '1.5px solid rgba(255,255,255,0.4)',
-                  color: '#fff',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: '#EDF1FB',
+                  border: '1.5px solid #D6DEFA',
+                  color: '#1C3F94',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(28, 63, 148, 0.08)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <Bell size={18} />
+                <Bell size={18} color="#1C3F94" />
                 {unreadCount > 0 && (
-                  <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, background: "#DC2626", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #1C3F94", lineHeight: 1 }}>{unreadCount}</span>
+                  <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, background: "#DC2626", color: "#fff", borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #FFFFFF", lineHeight: 1 }}>{unreadCount}</span>
                 )}
               </button>
               {notifOpen && <NotificationPanel notifs={notifs} setNotifs={setNotifs} onClose={() => setNotifOpen(false)} />}
@@ -289,13 +302,20 @@ function AppRoutes() {
               title="Settings"
               style={{
                 textDecoration: "none",
-                color: '#fff',
-                background: 'rgba(255,255,255,0.18)',
-                border: '1.5px solid rgba(255,255,255,0.4)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: '#EDF1FB',
+                border: '1.5px solid #D6DEFA',
+                color: '#1C3F94',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 1px 3px rgba(28, 63, 148, 0.08)',
+                transition: 'all 0.15s ease',
               }}
             >
-              <Settings size={18} />
+              <Settings size={18} color="#1C3F94" />
             </Link>
           </div>
         </header>
@@ -312,20 +332,20 @@ function AppRoutes() {
             style={{
               position: 'fixed',
               left: isCollapsed ? '72px' : '256px',
-              top: '74px',
+              top: '84px',
               transform: 'translate(-50%, -50%)',
               zIndex: 9999999,
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              background: 'var(--card)',
-              border: '1.5px solid var(--border)',
-              color: 'var(--manila-blue)',
+              background: '#FFFFFF',
+              border: '1.5px solid #D6DEFA',
+              color: '#1C3F94',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              boxShadow: '0 2px 12px rgba(15,23,42,0.3)',
+              boxShadow: '0 2px 8px rgba(28, 63, 148, 0.15)',
               transition: 'left 0.25s cubic-bezier(0.2, 0, 0, 1)',
             }}
           >

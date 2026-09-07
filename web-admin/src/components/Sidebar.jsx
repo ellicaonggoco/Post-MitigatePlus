@@ -70,8 +70,6 @@ export function IconlyFileText({ size = 20, color = 'currentColor' }) {
     </svg>
   );
 }
-import logoFull from '../assets/logo-full.png';
-import logoMinimized from '../assets/logo-minimized.png';
 
 // Iconly-style SVG icons for new modules
 function IconlyWarehouse({ size = 20, color = 'currentColor' }) {
@@ -247,14 +245,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           minWidth: isCollapsed ? '72px' : '256px',
           height: 'calc(100vh - 60px)',
           position: 'sticky',
-          top: 0,
-          background: 'var(--sidebar-bg)',
+          top: '60px',
+          background: 'var(--sidebar-bg, #FFFFFF)',
           color: 'var(--ink)',
-          borderRight: '1px solid var(--border)',
+          borderRight: '1px solid var(--border, #E2E8F0)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: isCollapsed ? '20px 10px' : '20px 14px',
+          padding: isCollapsed ? '16px 8px 20px' : '16px 14px 20px',
           transition: 'width 0.25s cubic-bezier(0.2, 0, 0, 1), min-width 0.25s cubic-bezier(0.2, 0, 0, 1), padding 0.25s cubic-bezier(0.2, 0, 0, 1)',
           boxShadow: '2px 0 16px rgba(15, 23, 42, 0.04)',
           zIndex: 100,
@@ -265,71 +263,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       >
       {/* ── TOP SECTION ── */}
       <div>
-        {/* Logo + Collapse Toggle */}
-        {isCollapsed ? (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '24px',
-            width: '100%',
-          }}>
-            <button
-              onClick={() => setIsCollapsed(false)}
-              title="Click to expand sidebar"
-              aria-label="Expand sidebar"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <img
-                src={logoMinimized}
-                alt="MitigatePlus Icon"
-                className="sidebar-brand-mark sidebar-brand-icon"
-                style={{
-                  height: '36px',
-                  width: '36px',
-                  objectFit: 'contain',
-                  borderRadius: '8px',
-                  flexShrink: 0,
-                  mixBlendMode: 'multiply',
-                  background: 'transparent',
-                }}
-              />
-            </button>
-          </div>
-        ) : (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '28px',
-            width: '100%',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', overflow: 'hidden', minWidth: 0, margin: '0 auto' }}>
-              <img
-                src={logoFull}
-                alt="MitigatePlus Logo"
-                className="sidebar-brand-mark"
-                style={{
-                  height: '48px',
-                  maxWidth: '195px',
-                  objectFit: 'contain',
-                  flexShrink: 0,
-                  mixBlendMode: 'multiply',
-                  background: 'transparent',
-                  transition: 'all 0.2s ease',
-                }}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Nav Groups */}
         <nav aria-label="Primary navigation">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
