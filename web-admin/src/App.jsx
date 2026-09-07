@@ -1,6 +1,7 @@
 import React, { useContext, useState, useRef, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link, useNavigate } from "react-router-dom";
-import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X, Info } from "lucide-react";
+import { Bell, ChevronRight, ChevronLeft, Menu, Settings, CheckCircle, AlertTriangle, UserCheck, Truck, Shield, X } from "lucide-react";
+import logoFull from "./assets/logo-full.png";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -335,33 +336,14 @@ function AppRoutes() {
             >
               <Menu size={20} />
             </button>
-            <div className="app-crumbs">
-              <span>MitigatePlus</span><ChevronRight size={14} /><strong>{labels[location.pathname] || "MitigatePlus"}</strong>
-            </div>
+            {/* MitigatePlus logo in topbar */}
+            <img
+              src={logoFull}
+              alt="MitigatePlus"
+              style={{ height: 36, width: 'auto', maxWidth: 160, objectFit: 'contain', mixBlendMode: 'multiply' }}
+            />
           </div>
           <div className="app-topbar-actions">
-            <button
-              onClick={() => setSystemInfoOpen(true)}
-              title="About System & Developers (ONTHEWAY)"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#EDF1FB',
-                color: '#1C3F94',
-                borderRadius: '20px',
-                border: '1px solid #D6DEFA',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              <Info size={14} color="#1C3F94" />
-              <span className="desktop-only">System &amp; Devs (ONTHEWAY)</span>
-            </button>
-
             <div ref={notifRef} style={{ position: "relative" }}>
               <button className="app-notification" aria-label="Notifications" onClick={() => setNotifOpen(p => !p)} style={{ position: "relative" }}>
                 <Bell size={18} />
