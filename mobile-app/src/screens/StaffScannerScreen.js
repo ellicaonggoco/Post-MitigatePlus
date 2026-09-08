@@ -76,6 +76,17 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState('back');
+  const [cameraMountKey, setCameraMountKey] = useState(0);
+  const [cameraReady, setCameraReady] = useState(false);
+
+  // Remount camera cleanly when switching to scanner tab
+  useEffect(() => {
+    if (activeTab === 'scanner') {
+      setCameraMountKey(k => k + 1);
+      setCameraReady(false);
+    }
+  }, [activeTab]);
 
   // Auto request camera permission on native platforms
   useEffect(() => {
@@ -479,19 +490,34 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
                 </View>
                 {permission?.granted && Platform.OS !== 'web' && (
-                  <TouchableOpacity
-                    onPress={() => setTorchOn(prev => !prev)}
-                    style={{
-                      backgroundColor: torchOn ? '#FCD34D' : 'rgba(255,255,255,0.15)',
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      borderRadius: 12,
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: torchOn ? '#0F172A' : '#FFFFFF' }}>
-                      {torchOn ? '🔦 Flash ON' : 'Flash OFF'}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <TouchableOpacity
+                      onPress={() => setCameraFacing(prev => prev === 'back' ? 'front' : 'back')}
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.15)',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>
+                        🔄 {cameraFacing === 'back' ? 'Rear' : 'Front'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setTorchOn(prev => !prev)}
+                      style={{
+                        backgroundColor: torchOn ? '#FCD34D' : 'rgba(255,255,255,0.15)',
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: torchOn ? '#0F172A' : '#FFFFFF' }}>
+                        {torchOn ? '🔦 Flash ON' : 'Flash OFF'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
               <Text style={styles.viewfinderSub}>Position resident QR Pass inside frame to scan automatically</Text>
@@ -531,12 +557,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                 ) : (
                   <CameraView
-                    style={StyleSheet.absoluteFillObject}
-                    facing="back"
+                    key={`active-cam-${cameraMountKey}-${cameraFacing}`}
+                    style={styles.cameraPreview}
+                    facing={cameraFacing}
                     enableTorch={torchOn}
+                    ratio="16:9"
+                    autofocus="on"
                     barcodeScannerSettings={{
                       barcodeTypes: ['qr'],
                     }}
+                    onCameraReady={() => setCameraReady(true)}
                     onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
                   />
                 )}
@@ -571,19 +601,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {/* Rescan Button Overlay if already scanned */}
                 {scanned && !loading && (
                   <TouchableOpacity
-                    style={{
-                      position: 'absolute',
-                      bottom: 12,
-                      backgroundColor: 'rgba(15, 23, 42, 0.88)',
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: '#FCD34D',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                    }}
+                    style={styles.rescanOverlayBtn}
                     onPress={() => setScanned(false)}
                   >
                     <CheckIcon size={14} color="#10B981" />
@@ -594,10 +612,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
               {/* Status footer */}
               <View style={styles.liveStatusRow}>
-                <View style={[styles.liveDot, { backgroundColor: permission?.granted ? '#10B981' : '#EF4444' }]} />
+                <View style={[styles.liveDot, { backgroundColor: permission?.granted ? (cameraReady ? '#10B981' : '#F59E0B') : '#EF4444' }]} />
                 <Text style={styles.liveStatusText}>
                   {permission?.granted
-                    ? (scanned ? 'QR Code Scanned! • Processing verification...' : 'Live Hardware Camera Active')
+                    ? (scanned
+                        ? 'QR Code Scanned! • Processing verification...'
+                        : (cameraReady ? 'Live Hardware Camera Active' : 'Initializing Lens Preview...'))
                     : 'Camera Offline / Needs Permission'}
                 </Text>
               </View>
@@ -1110,19 +1130,28 @@ const styles = StyleSheet.create({
   },
   cameraBox: {
     width: '100%',
-    height: 275,
-    backgroundColor: '#000000',
+    height: 285,
+    backgroundColor: 'transparent',
     borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#1E3A8A',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
+  },
+  cameraPreview: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
   },
   cornerMark: {
     position: 'absolute',
     width: 24,
     height: 24,
     borderColor: '#FCD34D',
+    zIndex: 5,
   },
   cornerTL: {
     top: 14,
@@ -1149,11 +1178,13 @@ const styles = StyleSheet.create({
     borderRightWidth: 3,
   },
   scanTargetFrame: {
-    width: 120,
-    height: 120,
+    position: 'absolute',
+    width: 130,
+    height: 130,
     borderWidth: 1.5,
-    borderColor: '#334155',
-    borderRadius: 12,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 16,
+    zIndex: 4,
   },
   laserLine: {
     position: 'absolute',
@@ -1161,10 +1192,25 @@ const styles = StyleSheet.create({
     right: 16,
     top: 20,
     height: 2,
+    zIndex: 6,
   },
   laserGradient: {
     flex: 1,
     height: 2,
+  },
+  rescanOverlayBtn: {
+    position: 'absolute',
+    bottom: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#FCD34D',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 10,
   },
   liveStatusRow: {
     flexDirection: 'row',
