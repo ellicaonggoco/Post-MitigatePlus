@@ -239,6 +239,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     setScanResult(null);
     setDuplicateAlert(false);
     setDuplicateMessage('');
+    setDuplicateData(null);
     setScanNotice(null);
     setManualCode('');
     lastScannedRef.current = { code: '', time: 0 };
@@ -279,6 +280,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [loadingCompletedScans, setLoadingCompletedScans] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
+  const [duplicateData, setDuplicateData] = useState(null);
   const [scanNotice, setScanNotice] = useState(null);
   const scannerScrollRef = useRef(null);
 
@@ -468,10 +470,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
         if (isDup) {
           setDuplicateAlert(true);
-          setDuplicateMessage('This household has already claimed relief in this event (offline record).');
+          setDuplicateMessage(
+            lang === 'tl'
+              ? 'Ang pamilyang ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito (offline claim record).'
+              : 'This household has already claimed relief in this event (offline record).'
+          );
+          setDuplicateData({
+            name: found.name || found.headOfHouseholdUserId?.name || 'Beneficiary Head',
+            address: found.address || `Barangay ${dutyBrgy}, Manila`,
+            barangayCode: found.barangayCode || dutyBrgy,
+            qrCode: rawCode,
+          });
           setFlaggedTodayCount(prev => prev + 1);
           setLoading(false);
-          setTimeout(() => setScanned(false), 3000);
+          setScanResult(null);
           return;
         }
 
@@ -496,10 +508,23 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
         if (res.duplicate || res.isDuplicate) {
           setDuplicateAlert(true);
-          setDuplicateMessage(res.message || 'Household already claimed in this drive today.');
+          setDuplicateMessage(
+            res.message ||
+            (lang === 'tl'
+              ? 'Ang pamilyang ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
+              : 'Household already claimed relief in this drive today.')
+          );
+          setDuplicateData({
+            name: res.household?.name || 'Verified Beneficiary',
+            address: res.household?.address || `Barangay ${res.household?.barangayCode || dutyBrgy}, Manila`,
+            barangayCode: res.household?.barangayCode || dutyBrgy,
+            claimedAt: res.claimedAt || new Date().toISOString(),
+            qrCode: rawCode,
+          });
           setFlaggedTodayCount(prev => prev + 1);
           setScanResult(null);
-          setTimeout(() => setScanned(false), 3000);
+          setLoading(false);
+          return;
         } else if (res.household) {
           const hh = res.household;
           const headName = hh.name || hh.headOfHouseholdUserId?.name || 'Verified Beneficiary';
@@ -613,9 +638,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
       if (isDup) {
         setDuplicateAlert(true);
-        setDuplicateMessage(err.message || 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.');
+        setDuplicateMessage(
+          err.message ||
+          (lang === 'tl'
+            ? 'DUPLICATE CLAIM BLOCKED: Ang residenteng ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
+            : 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.')
+        );
+        setDuplicateData({
+          name: currentHh?.name || 'Verified Beneficiary',
+          address: currentHh?.address || `Barangay ${currentHh?.barangayCode || dutyBrgy}, Manila`,
+          barangayCode: currentHh?.barangayCode || dutyBrgy,
+          qrCode: currentHh?.qrCode || manualCode,
+        });
         setFlaggedTodayCount(prev => prev + 1);
-        setTimeout(() => setScanned(false), 3000);
+        setScanResult(null);
       } else {
         showNotify('Release Notice', err.message || 'Distribution confirmed.');
         handleResetScanner();
@@ -1009,27 +1045,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </View>
             )}
 
-            {/* Duplicate Claim Warning Banner */}
-            {duplicateAlert && (
-              <View style={styles.duplicateBanner}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <AlertTriangleIcon size={18} color="#DC2626" />
-                  <Text style={styles.duplicateTitle}>DUPLICATE CLAIM BLOCKED!</Text>
-                </View>
-                <Text style={styles.duplicateSub}>
-                  {duplicateMessage || 'This household has already claimed relief in this event today.'}
-                </Text>
-                <TouchableOpacity
-                  style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#DC2626', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 }}
-                  onPress={handleResetScanner}
-                  activeOpacity={0.85}
-                >
-                  <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>
-                    {lang === 'tl' ? 'I-scan ang Susunod na QR' : 'Scan Next Beneficiary'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+
 
             {/* Mga Naipamahaging Relief (Completion List) */}
             <View style={styles.completionListCard}>
@@ -1600,6 +1616,95 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </View>
             </ScrollView>
           )}
+        </View>
+      </Modal>
+
+      {/* 3. DUPLICATE CLAIM WARNING POP-UP CARD MODAL */}
+      <Modal
+        visible={duplicateAlert}
+        transparent
+        animationType="slide"
+        onRequestClose={handleResetScanner}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.duplicatePopupCard}>
+            {/* Top Red Bar */}
+            <View style={styles.duplicateTopBorder} />
+
+            {/* Warning Icon Badge */}
+            <View style={styles.duplicateIconCircle}>
+              <AlertTriangleIcon size={34} color="#DC2626" />
+            </View>
+
+            {/* Header */}
+            <Text style={styles.duplicatePopupTitle}>
+              {lang === 'tl' ? 'NAKAKUHA NA NG AYUDA!' : 'DUPLICATE CLAIM BLOCKED!'}
+            </Text>
+            <Text style={styles.duplicatePopupSub}>
+              {lang === 'tl'
+                ? 'Ang residenteng ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito ngayong araw.'
+                : 'This household has already claimed relief in this distribution drive today.'}
+            </Text>
+
+            {/* Beneficiary Details Box */}
+            <View style={styles.duplicateDetailsBox}>
+              <View style={styles.duplicateInfoRow}>
+                <Text style={styles.duplicateInfoLabel}>Benepisyaryo:</Text>
+                <Text style={styles.duplicateInfoVal}>
+                  {duplicateData?.name || 'Household Beneficiary'}
+                </Text>
+              </View>
+              <View style={styles.duplicateInfoRow}>
+                <Text style={styles.duplicateInfoLabel}>Tirahan / Purok:</Text>
+                <Text style={styles.duplicateInfoVal}>
+                  {duplicateData?.address || `Barangay ${dutyBrgy}, Manila`}
+                </Text>
+              </View>
+              {duplicateData?.claimedAt && (
+                <View style={styles.duplicateInfoRow}>
+                  <Text style={styles.duplicateInfoLabel}>Oras ng Unang Claim:</Text>
+                  <Text style={[styles.duplicateInfoVal, { color: '#DC2626', fontWeight: '800' }]}>
+                    🕒 {new Date(duplicateData.claimedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.duplicateInfoRow}>
+                <Text style={styles.duplicateInfoLabel}>QR Pass Reference:</Text>
+                <Text style={[styles.duplicateInfoVal, { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', color: '#1E3A8A' }]}>
+                  {duplicateData?.qrCode || manualCode || 'SCANNED PASS'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Anti-Fraud Alert Notice */}
+            <View style={styles.duplicateNoticeBanner}>
+              <Text style={styles.duplicateNoticeText}>
+                🛡️ <Text style={{ fontWeight: '800' }}>Anti-Fraud Protection:</Text> Nakatala na sa Central Cloud Ledger ang relief release para sa pamilyang ito. Hindi maaaring maglabas ng panibagong ayuda upang maiwasan ang dobleng pagkuha.
+              </Text>
+            </View>
+
+            {/* Primary Action Button */}
+            <TouchableOpacity
+              style={styles.duplicateActionBtn}
+              onPress={handleResetScanner}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.duplicateActionBtnText}>
+                {lang === 'tl' ? 'I-scan ang Susunod na Benepisyaryo' : 'Scan Next Beneficiary'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Close / Dismiss Button */}
+            <TouchableOpacity
+              style={styles.duplicateCloseBtn}
+              onPress={handleResetScanner}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.duplicateCloseBtnText}>
+                {lang === 'tl' ? '✕ Isara ang Babala' : '✕ Dismiss'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -2834,5 +2939,128 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '800',
     color: '#1E3A8A',
+  },
+
+  // Duplicate Claim Warning Pop-up Modal Styles
+  duplicatePopupCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 22,
+    width: '100%',
+    maxWidth: 410,
+    borderWidth: 1.5,
+    borderColor: '#FECACA',
+    alignItems: 'center',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 20px 40px rgba(220, 38, 38, 0.22)' }
+      : {
+          shadowColor: '#DC2626',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.25,
+          shadowRadius: 15,
+          elevation: 10,
+        }),
+  },
+  duplicateTopBorder: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#DC2626',
+    borderRadius: 2,
+    marginBottom: 16,
+  },
+  duplicateIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 2,
+    borderColor: '#FCA5A5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  duplicatePopupTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#DC2626',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  duplicatePopupSub: {
+    fontSize: 12.5,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: 4,
+    marginBottom: 14,
+  },
+  duplicateDetailsBox: {
+    width: '100%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 12,
+  },
+  duplicateInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  duplicateInfoLabel: {
+    fontSize: 11.5,
+    color: '#64748B',
+    fontWeight: '600',
+    flex: 1,
+  },
+  duplicateInfoVal: {
+    fontSize: 12,
+    color: '#0F172A',
+    fontWeight: '700',
+    flex: 1.4,
+    textAlign: 'right',
+  },
+  duplicateNoticeBanner: {
+    width: '100%',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginBottom: 16,
+  },
+  duplicateNoticeText: {
+    fontSize: 11.5,
+    color: '#991B1B',
+    lineHeight: 17,
+  },
+  duplicateActionBtn: {
+    width: '100%',
+    backgroundColor: '#DC2626',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  duplicateActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+  },
+  duplicateCloseBtn: {
+    marginTop: 10,
+    paddingVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+  },
+  duplicateCloseBtnText: {
+    color: '#475569',
+    fontSize: 12.5,
+    fontWeight: '700',
   },
 });
