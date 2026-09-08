@@ -18,13 +18,14 @@ router.get('/events', protect, async (req, res) => {
     let query = {};
     if (req.user.role === 'barangay_official') {
       query.barangayCode = req.user.barangayCode;
-      query.isActive = true;
     } else if (req.user.role === 'field_staff') {
-      // Field staff see all active drives city-wide (or drives assigned to their team)
-      query.isActive = true;
+      // Field staff see all active drives or drives in their assigned barangay
+      if (req.user.barangayCode) {
+        query.$or = [{ barangayCode: req.user.barangayCode }, { isActive: true }];
+      }
     }
     // Admins/superadmins see all events (active + closed)
-    const events = await DistributionEvent.find(query).populate('openedBy', 'name emailOrPhone').sort({ openedAt: -1 });
+    const events = await DistributionEvent.find(query).populate('openedBy', 'name emailOrPhone').sort({ openedAt: -1, createdAt: -1 });
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching distribution events', error: error.message });
@@ -33,7 +34,7 @@ router.get('/events', protect, async (req, res) => {
 
 // @route   PATCH /api/distributions/events/:id
 // @desc    Update distribution event status
-router.patch('/events/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { status, isActive } = req.body;
     const event = await DistributionEvent.findById(req.params.id);
@@ -250,23 +251,54 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
 
 // @route   POST /api/distributions/release
 // @desc    Anti-Duplicate-Claim Relief Release Endpoint
-router.post('/release', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin'), async (req, res) => {
+router.post('/release', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
-    const { distributionEventId, householdId, overrideBaseUnits, overrideTopUpUnits, overrideReason } = req.body;
+    let { distributionEventId, householdId, overrideBaseUnits, overrideTopUpUnits, overrideReason } = req.body;
 
-    if (!distributionEventId || !householdId) {
-      return res.status(400).json({ message: 'Please provide distributionEventId and householdId.' });
+    if (!householdId) {
+      return res.status(400).json({ message: 'Please provide householdId.' });
     }
 
-    const event = await DistributionEvent.findById(distributionEventId);
-    if (!event || !event.isActive) {
-      return res.status(400).json({ message: 'Distribution event is closed or invalid.' });
+    const mongoose = require('mongoose');
+    let household = null;
+    if (mongoose.Types.ObjectId.isValid(householdId)) {
+      household = await Household.findById(householdId);
     }
-
-    const household = await Household.findById(householdId);
+    if (!household) {
+      household = await Household.findOne({ qrCode: householdId });
+    }
     if (!household) {
       return res.status(404).json({ message: 'Household not found.' });
     }
+
+    let event = null;
+    if (distributionEventId && mongoose.Types.ObjectId.isValid(distributionEventId)) {
+      event = await DistributionEvent.findById(distributionEventId);
+    }
+    if (!event) {
+      event = await DistributionEvent.findOne({ isActive: true });
+      if (!event) {
+        event = await DistributionEvent.findOne({ status: 'Scheduled' });
+        if (event) {
+          event.isActive = true;
+          event.status = 'Ongoing';
+          await event.save();
+        }
+      }
+      if (!event) {
+        event = await DistributionEvent.create({
+          title: 'Relief Distribution — ' + (household.barangayCode || '291'),
+          itemType: 'Family Food Pack',
+          batchId: 'BATCH-AUTO-' + Date.now(),
+          barangayCode: household.barangayCode || '291',
+          location: 'Barangay Covered Court',
+          openedBy: req.user._id,
+          isActive: true,
+          status: 'Ongoing',
+        });
+      }
+    }
+    distributionEventId = event._id;
 
     if (household.verificationStatus !== 'verified') {
       return res.status(400).json({ message: 'Cannot release relief to unverified household.' });

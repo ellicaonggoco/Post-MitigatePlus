@@ -34,6 +34,7 @@ import {
   fetchOfflineHouseholds,
   syncOfflineClaim,
   logOfflineClaim,
+  fetchDistributionEvents,
 } from '../services/api';
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -76,6 +77,23 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [releasing, setReleasing] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
+  const [scanNotice, setScanNotice] = useState(null);
+
+  // Cross-platform notification helper (works on React Native Web and Native Mobile)
+  const showNotify = (title, message, isError = false) => {
+    if (isError) {
+      setScanNotice({ type: 'error', text: `${title}: ${message}` });
+    } else {
+      setScanNotice({ type: 'success', text: `${title}: ${message}` });
+    }
+    if (Platform.OS === 'web') {
+      try {
+        window.alert(`${title}\n\n${message}`);
+      } catch (e) {}
+    } else {
+      Alert.alert(title, message);
+    }
+  };
 
   // Offline buffer state
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -96,9 +114,33 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [flaggedTodayCount, setFlaggedTodayCount] = useState(0);
 
   // Officer info
-  const officerName = user?.fullName || 'Officer Santos';
+  const officerName = user?.fullName || 'Officer Cruz';
   const dutyBrgy = user?.assignedBarangay || user?.barangayCode || '291';
   const officerId = user?.contactNum || user?.phoneNumber || user?.employeeId || 'STF-2026-8891';
+
+  // Auto-fetch active distribution event from backend so selectedEvent has real MongoDB _id
+  useEffect(() => {
+    if (!token) return;
+    (async () => {
+      try {
+        const events = await fetchDistributionEvents(token);
+        if (Array.isArray(events) && events.length > 0) {
+          const active = events.find(e => e.isActive) || events[0];
+          setSelectedEvent({
+            _id: active._id,
+            id: active._id,
+            title: active.title,
+            venue: active.location || 'Covered Court',
+            location: active.location || 'Covered Court',
+            itemType: active.itemType || 'Family Food Pack',
+            isActive: active.isActive,
+          });
+        }
+      } catch (e) {
+        console.warn('Auto fetch event error:', e);
+      }
+    })();
+  }, [token]);
 
   // Load offline storage
   useEffect(() => {
@@ -152,13 +194,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const handleExecuteScan = async (codeOverride) => {
     const rawCode = (codeOverride || manualCode).trim();
     if (!rawCode) {
-      Alert.alert('QR Code Required', 'Please enter or scan a valid QR pass code.');
+      showNotify('QR Code Required', 'Please enter or scan a valid QR pass code.', true);
       return;
     }
 
     setLoading(true);
     setDuplicateAlert(false);
     setDuplicateMessage('');
+    setScanNotice(null);
     setScansTodayCount(prev => prev + 1);
 
     try {
@@ -167,7 +210,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           h => h.qrCode === rawCode || h._id === rawCode || h.householdId === rawCode
         );
         if (!found) {
-          Alert.alert('Offline Notice', 'QR pass not found in local cache.');
+          showNotify('Offline Notice', 'QR pass not found in local cache.', true);
           setFlaggedTodayCount(prev => prev + 1);
           setLoading(false);
           return;
@@ -188,29 +231,54 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         setScanResult({
           household: {
             ...found,
-            familyHeadcount: found.familyHeadcount || found.membersCount || 5,
+            name: found.name || found.headOfHouseholdUserId?.name || 'Household Beneficiary',
+            familyHeadcount: found.familyHeadcount || found.membersCount || found.memberCount || 5,
             entitlement: `${found.basePacks || 1}x Base Relief Pack`,
             priorityLevel: found.priorityLevel || 'High Priority',
           },
           distributionEvent: selectedEvent,
         });
         setVerifiedTodayCount(prev => prev + 1);
+        setScanNotice({ type: 'success', text: `Household found: ${found.name || 'Beneficiary'} (Offline)` });
       } else {
-        const res = await scanHouseholdQR(token, rawCode, selectedEvent._id || selectedEvent.id);
-        if (res.duplicate) {
+        const currentEventId = selectedEvent?._id || selectedEvent?.id;
+        const res = await scanHouseholdQR(token, rawCode, currentEventId);
+
+        if (res.duplicate || res.isDuplicate) {
           setDuplicateAlert(true);
-          setDuplicateMessage(res.message || 'Household already claimed in this drive.');
+          setDuplicateMessage(res.message || 'Household already claimed in this drive today.');
           setFlaggedTodayCount(prev => prev + 1);
+          setScanResult(null);
         } else if (res.household) {
-          setScanResult(res);
+          const hh = res.household;
+          const headName = hh.name || hh.headOfHouseholdUserId?.name || 'Verified Beneficiary';
+          const headcount = hh.familyHeadcount || hh.memberCount || (Array.isArray(hh.members) ? hh.members.length : 1);
+          const entitlementStr = typeof res.entitlement === 'object' && res.entitlement?.summaryText
+            ? res.entitlement.summaryText
+            : (typeof hh.entitlement === 'string' ? hh.entitlement : `${res.entitlement?.basePacks || 1}x All-in-One Family Food Pack`);
+
+          setScanResult({
+            ...res,
+            household: {
+              ...hh,
+              name: headName,
+              familyHeadcount: headcount,
+              entitlement: entitlementStr,
+              priorityLevel: res.priorityLevel || hh.priorityLevel || 'High Priority',
+              address: hh.address || `Barangay ${hh.barangayCode || '291'}, Manila`,
+            },
+            distributionEvent: selectedEvent,
+          });
           setVerifiedTodayCount(prev => prev + 1);
+          setScanNotice({ type: 'success', text: `Verified Household: ${headName} (${headcount} members)` });
         } else {
-          Alert.alert('Scan Result', res.message || 'Invalid QR code.');
+          showNotify('Scan Result', res.message || 'Invalid QR code.', true);
           setFlaggedTodayCount(prev => prev + 1);
         }
       }
     } catch (err) {
-      Alert.alert('Scan Failed', err.message || 'Error processing QR pass.');
+      showNotify('Scan Failed', err.message || 'Error processing QR pass.', true);
+      setFlaggedTodayCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -230,7 +298,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         const updated = [...offlineClaimsQueue, claimObj];
         setOfflineClaimsQueue(updated);
         await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updated));
-        Alert.alert('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
+        showNotify('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
         setScanResult(null);
         setManualCode('');
       } else {
@@ -238,12 +306,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           householdId: scanResult.household._id || scanResult.household.id,
           eventId: selectedEvent._id || selectedEvent.id,
         });
-        Alert.alert('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
+        showNotify('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
         setScanResult(null);
         setManualCode('');
       }
     } catch (err) {
-      Alert.alert('Release Notice', err.message || 'Distribution confirmed.');
+      const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
+      if (isDup) {
+        setDuplicateAlert(true);
+        setDuplicateMessage(err.message || 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.');
+        setFlaggedTodayCount(prev => prev + 1);
+      } else {
+        showNotify('Release Notice', err.message || 'Distribution confirmed.');
+      }
       setScanResult(null);
     } finally {
       setReleasing(false);
@@ -422,6 +497,25 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </View>
             </View>
 
+            {/* In-page Scan Notice Banner */}
+            {scanNotice && (
+              <View
+                style={[
+                  styles.scanNoticeBox,
+                  scanNotice.type === 'error' ? styles.scanNoticeError : styles.scanNoticeSuccess,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.scanNoticeText,
+                    scanNotice.type === 'error' ? styles.scanNoticeTextError : styles.scanNoticeTextSuccess,
+                  ]}
+                >
+                  {scanNotice.text}
+                </Text>
+              </View>
+            )}
+
             {/* Duplicate Claim Warning Banner */}
             {duplicateAlert && (
               <View style={styles.duplicateBanner}>
@@ -436,42 +530,60 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             )}
 
             {/* Scan Household Result Card */}
-            {scanResult && !duplicateAlert && scanResult.household && (
-              <View style={styles.resultCard}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.resultName}>{scanResult.household.name}</Text>
-                    <Text style={styles.resultMeta}>
-                      {scanResult.household.address} • Headcount: {scanResult.household.familyHeadcount} Members
-                    </Text>
+            {scanResult && !duplicateAlert && scanResult.household && (() => {
+              const isHouseholdVerified = scanResult.isVerified !== false && scanResult.household.verificationStatus !== 'pending';
+              return (
+                <View style={styles.resultCard}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={styles.resultName}>{scanResult.household.name}</Text>
+                      <Text style={styles.resultMeta}>
+                        {scanResult.household.address} • Headcount: {scanResult.household.familyHeadcount} Members
+                      </Text>
+                    </View>
+                    <View style={[styles.verifTag, isHouseholdVerified ? styles.verifTagVerified : styles.verifTagPending]}>
+                      <Text style={[styles.verifTagText, isHouseholdVerified ? styles.verifTagTextVerified : styles.verifTagTextPending]}>
+                        {isHouseholdVerified ? 'VERIFIED' : 'PENDING'}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.verifTag}>
-                    <Text style={styles.verifTagText}>VERIFIED</Text>
-                  </View>
-                </View>
 
-                {/* Quota Breakdown */}
-                <Text style={styles.entitlementTitle}>AUTHORIZED RELIEF QUOTA</Text>
-                <Text style={styles.entitlementText}>{scanResult.household.entitlement}</Text>
-                <Text style={[styles.resultMeta, { marginTop: 4, color: '#D97706', fontWeight: '700' }]}>
-                  Priority Level: {scanResult.household.priorityLevel}
-                </Text>
+                  {/* Quota Breakdown */}
+                  <Text style={styles.entitlementTitle}>AUTHORIZED RELIEF QUOTA</Text>
+                  <Text style={styles.entitlementText}>{scanResult.household.entitlement}</Text>
+                  <Text style={[styles.resultMeta, { marginTop: 4, color: '#D97706', fontWeight: '700' }]}>
+                    Priority Level: {scanResult.household.priorityLevel}
+                  </Text>
 
-                {/* Confirm Release Button */}
-                <TouchableOpacity
-                  style={[styles.releaseBtn, releasing && { opacity: 0.7 }]}
-                  onPress={handleConfirmRelease}
-                  disabled={releasing}
-                  activeOpacity={0.85}
-                >
-                  {releasing ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.releaseBtnText}>Confirm Relief Release</Text>
+                  {!isHouseholdVerified && (
+                    <View style={styles.unverifiedWarningBox}>
+                      <Text style={styles.unverifiedWarningText}>
+                        ⚠️ Paalala: Nakabinbin pa ang verification ng pamilyang ito sa Barangay. Hindi pa maaaring ipamahagi ang relief pack.
+                      </Text>
+                    </View>
                   )}
-                </TouchableOpacity>
-              </View>
-            )}
+
+                  {/* Confirm Release Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.releaseBtn,
+                      (!isHouseholdVerified || releasing) && { opacity: 0.5, backgroundColor: '#64748B' },
+                    ]}
+                    onPress={handleConfirmRelease}
+                    disabled={!isHouseholdVerified || releasing}
+                    activeOpacity={0.85}
+                  >
+                    {releasing ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.releaseBtnText}>
+                        {isHouseholdVerified ? 'Confirm Relief Release' : 'Action Locked (Unverified)'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
           </ScrollView>
         ) : activeTab === 'incident' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
@@ -957,6 +1069,31 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 13,
   },
+  scanNoticeBox: {
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+  },
+  scanNoticeError: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  scanNoticeSuccess: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  scanNoticeText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  scanNoticeTextError: {
+    color: '#B91C1C',
+  },
+  scanNoticeTextSuccess: {
+    color: '#15803D',
+  },
   duplicateBanner: {
     backgroundColor: '#FEE2E2',
     borderWidth: 1,
@@ -990,15 +1127,39 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   verifTag: {
-    backgroundColor: '#ECFDF5',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
   },
+  verifTagVerified: {
+    backgroundColor: '#ECFDF5',
+  },
+  verifTagPending: {
+    backgroundColor: '#FEF3C7',
+  },
   verifTagText: {
-    color: '#047857',
     fontSize: 10,
     fontWeight: '800',
+  },
+  verifTagTextVerified: {
+    color: '#047857',
+  },
+  verifTagTextPending: {
+    color: '#B45309',
+  },
+  unverifiedWarningBox: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  unverifiedWarningText: {
+    color: '#92400E',
+    fontSize: 11.5,
+    fontWeight: '600',
+    lineHeight: 16,
   },
   resultMeta: {
     fontSize: 12,

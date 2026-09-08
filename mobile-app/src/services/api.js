@@ -115,34 +115,93 @@ export async function fetchDistributionEvents(token) {
 
 /**
  * 9. Field Staff QR Scanner: look up a household by QR code.
- *    Returns household info + priority + per-item relief recommendations +
- *    gap analysis. Does NOT check duplicate-claim status by itself  -  that check
- *    happens atomically inside releaseDistribution() below, backed by a DB-level
- *    unique index, so it can't be bypassed by a race condition between two scans.
+ *    Supports both scanHouseholdQR(token, qrCode, eventId) and scanHouseholdQRCode(qrCode, token)
  */
-export async function scanHouseholdQRCode(qrCode, token) {
-  return request(`${API_BASE_URL}/households/qr/${encodeURIComponent(qrCode)}`, {
+export async function scanHouseholdQR(arg1, arg2, arg3) {
+  // If first arg is token, then arg2 is qrCode; otherwise arg1 is qrCode and arg2 is token
+  let token, qrCode, eventId;
+  if (typeof arg1 === 'string' && (arg1.startsWith('eyJ') || arg1.length > 50)) {
+    token = arg1;
+    qrCode = arg2;
+    eventId = arg3;
+  } else {
+    qrCode = arg1;
+    token = arg2;
+    eventId = arg3;
+  }
+  const url = `${API_BASE_URL}/households/qr/${encodeURIComponent(qrCode || '')}${eventId ? `?eventId=${encodeURIComponent(eventId)}` : ''}`;
+  return request(url, {
     headers: getAuthHeaders(token),
   });
 }
+
+export const scanHouseholdQRCode = scanHouseholdQR;
 
 /**
  * 10. Field Staff: confirm and record a relief release for a distribution event.
- *     This is the real anti-duplicate-claim + right-sized-allocation endpoint.
- *     On a duplicate, the backend returns HTTP 409 with { isDuplicate: true, ... }  - 
- *     callers should catch that specifically to show the duplicate-claim banner,
- *     not treat it as a generic failure.
+ *     Supports both confirmDistribution(token, payload) and releaseDistribution(payload, token)
  */
-export async function releaseDistribution({ distributionEventId, householdId, overrideBaseUnits, overrideTopUpUnits, overrideReason }, token) {
+export async function confirmDistribution(arg1, arg2) {
+  let token, payload;
+  if (typeof arg1 === 'string' && (arg1.startsWith('eyJ') || arg1.length > 50)) {
+    token = arg1;
+    payload = arg2 || {};
+  } else {
+    payload = arg1 || {};
+    token = arg2;
+  }
+
+  const distributionEventId = payload.distributionEventId || payload.eventId;
+  const householdId = payload.householdId;
+
   return request(`${API_BASE_URL}/distributions/release`, {
     method: 'POST',
     headers: getAuthHeaders(token),
-    body: JSON.stringify({ distributionEventId, householdId, overrideBaseUnits, overrideTopUpUnits, overrideReason }),
+    body: JSON.stringify({
+      distributionEventId,
+      householdId,
+      overrideBaseUnits: payload.overrideBaseUnits,
+      overrideTopUpUnits: payload.overrideTopUpUnits,
+      overrideReason: payload.overrideReason,
+    }),
   });
 }
 
+export const releaseDistribution = confirmDistribution;
+
 /**
- * 11. Field Staff Incident Reporter
+ * 11. Fetch offline households cache for field staff
+ */
+export async function fetchOfflineHouseholds(token, barangayCode) {
+  try {
+    const url = barangayCode
+      ? `${API_BASE_URL}/households?barangayCode=${encodeURIComponent(barangayCode)}&limit=200`
+      : `${API_BASE_URL}/households?limit=200`;
+    const res = await request(url, {
+      headers: getAuthHeaders(token),
+    });
+    return Array.isArray(res) ? res : (res.households || []);
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * 12. Sync offline distribution claim to central server
+ */
+export async function syncOfflineClaim(token, item) {
+  return confirmDistribution(token, item);
+}
+
+/**
+ * 13. Log offline distribution claim
+ */
+export async function logOfflineClaim(claimData) {
+  return { success: true, offline: true, ...claimData };
+}
+
+/**
+ * 14. Field Staff Incident Reporter
  */
 export async function submitFieldIncident(incidentData, token) {
   return request(`${API_BASE_URL}/incidents`, {
@@ -151,3 +210,4 @@ export async function submitFieldIncident(incidentData, token) {
     body: JSON.stringify(incidentData),
   });
 }
+

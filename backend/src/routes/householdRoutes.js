@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Household = require('../models/Household');
 const Distribution = require('../models/Distribution');
+const DistributionEvent = require('../models/DistributionEvent');
 const AssistanceRequest = require('../models/AssistanceRequest');
 const AuditLog = require('../models/AuditLog');
 const RecoveryStatus = require('../models/RecoveryStatus');
@@ -238,13 +240,67 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
 
 // @route   GET /api/households/qr/:code
 // @desc    Field Staff QR scan lookup endpoint
-router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin'), async (req, res) => {
+router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
-    const household = await Household.findOne({ qrCode: req.params.code })
-      .populate('headOfHouseholdUserId', 'name emailOrPhone');
+    const rawCode = (req.params.code || '').trim();
+    if (!rawCode) {
+      return res.status(400).json({ message: 'QR code parameter is required.' });
+    }
+
+    const User = require('../models/User');
+    let household = await Household.findOne({
+      $or: [
+        { qrCode: rawCode },
+        { qrCode: new RegExp('^' + rawCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+      ],
+    }).populate('headOfHouseholdUserId', 'name emailOrPhone');
+
+    if (!household && mongoose.Types.ObjectId.isValid(rawCode)) {
+      household = await Household.findById(rawCode).populate('headOfHouseholdUserId', 'name emailOrPhone');
+    }
+
+    // Also allow finding by resident phone or email if staff types resident's contact
+    if (!household) {
+      const residentUser = await User.findOne({ emailOrPhone: rawCode });
+      if (residentUser) {
+        household = await Household.findOne({ headOfHouseholdUserId: residentUser._id }).populate('headOfHouseholdUserId', 'name emailOrPhone');
+      }
+    }
 
     if (!household) {
-      return res.status(404).json({ message: 'Household QR Code not found or invalid.' });
+      return res.status(404).json({ message: `Household QR Code "${rawCode}" not found or invalid.` });
+    }
+
+    // Check anti-duplicate claim if eventId query param is provided
+    if (req.query.eventId) {
+      let evId = req.query.eventId;
+      let queryEvId = null;
+      if (mongoose.Types.ObjectId.isValid(evId)) {
+        queryEvId = evId;
+      } else {
+        const activeEv = await DistributionEvent.findOne({ isActive: true });
+        if (activeEv) queryEvId = activeEv._id;
+      }
+
+      if (queryEvId) {
+        const existingClaim = await Distribution.findOne({
+          distributionEventId: queryEvId,
+          householdId: household._id,
+        });
+        if (existingClaim) {
+          return res.json({
+            duplicate: true,
+            message: `DUPLICATE CLAIM BLOCKED: Household already claimed relief in this drive today.`,
+            claimedAt: existingClaim.releasedAt,
+            household: {
+              ...household.toObject(),
+              name: household.headOfHouseholdUserId?.name || 'Beneficiary Head',
+              familyHeadcount: household.memberCount || 1,
+            },
+            isVerified: household.verificationStatus === 'verified',
+          });
+        }
+      }
     }
 
     const pastRequests = await AssistanceRequest.find({ householdId: household._id }).sort({ requestedAt: -1 });
@@ -301,8 +357,15 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     const entitlement = calculateHouseholdEntitlement(household);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
+    const enrichedHousehold = {
+      ...(typeof household.toObject === 'function' ? household.toObject() : household),
+      name: household.headOfHouseholdUserId?.name || 'Beneficiary Head',
+      familyHeadcount: household.memberCount || 1,
+      entitlement: entitlement?.summaryText || `${entitlement?.basePacks || 1}x Base Relief Pack`,
+    };
+
     res.json({
-      household,
+      household: enrichedHousehold,
       isVerified: household.verificationStatus === 'verified',
       priorityLevel: household.priorityLevel,
       priorityScore: household.priorityScore,
