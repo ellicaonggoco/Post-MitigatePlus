@@ -644,7 +644,7 @@ export default function ProvisionAccounts() {
       team.includes(q);
 
     const isCityWide = !brgyRaw || brgy === 'city-wide' || brgy === 'citywide' || brgy === 'all' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin' || a.role === 'lgu_admin';
-    const matchesBarangay = selectedBarangayFilter === 'all' ||
+    const matchesBarangay = viewTab !== 'residents' || selectedBarangayFilter === 'all' ||
       isCityWide ||
       brgy === String(selectedBarangayFilter).trim().toLowerCase() ||
       brgy === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
@@ -1523,16 +1523,17 @@ export default function ProvisionAccounts() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative', zIndex: 1050 }}>
-          {/* Uniform Searchable Barangay Dropdown Picker */}
-          <SearchableBarangaySelect
-            value={selectedBarangayFilter}
-            onChange={(val) => {
-              setSelectedBarangayFilter(val);
-              setCurrentPage(1);
-              setResidentPage(1);
-            }}
-            style={{ minWidth: '230px', maxWidth: '300px' }}
-          />
+          {/* Uniform Searchable Barangay Dropdown Picker - Only visible on Mobile Citizens / Residents tab */}
+          {viewTab === 'residents' && (
+            <SearchableBarangaySelect
+              value={selectedBarangayFilter}
+              onChange={(val) => {
+                setSelectedBarangayFilter(val);
+                setResidentPage(1);
+              }}
+              style={{ minWidth: '230px', maxWidth: '300px' }}
+            />
+          )}
 
           <button
             onClick={() => {
@@ -1552,7 +1553,7 @@ export default function ProvisionAccounts() {
               aria-label="Search accounts or residents"
               onChange={e => setSearch(e.target.value)}
               placeholder={viewTab === 'residents' ? 'Search resident, phone, brgy, qr...' : 'Search name, phone, team...'}
-              style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: 190 }}
+              style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: viewTab === 'residents' ? 190 : 260 }}
             />
           </div>
         </div>
@@ -1566,15 +1567,6 @@ export default function ProvisionAccounts() {
               if (!a || a.role !== 'field_staff') return false;
               const belongsToTeam = (a.teamName === team) || (!a.teamName && team === 'Field Team Alpha');
               if (!belongsToTeam) return false;
-
-              const brgyRaw = String(a.barangayCode || '').trim();
-              const isCityWide = !brgyRaw || brgyRaw.toLowerCase() === 'city-wide' || brgyRaw.toLowerCase() === 'citywide' || brgyRaw.toLowerCase() === 'all';
-              const matchesBarangay = selectedBarangayFilter === 'all' ||
-                isCityWide ||
-                brgyRaw.toLowerCase() === String(selectedBarangayFilter).trim().toLowerCase() ||
-                brgyRaw === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
-                brgyRaw === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
-              if (!matchesBarangay) return false;
 
               if (!q) return true;
               const n = String(a.name || '').toLowerCase();
@@ -1718,11 +1710,6 @@ export default function ProvisionAccounts() {
               </h2>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                 {isSuperAdmin ? 'Active LGU Admin, Barangay Official & Field Staff list' : 'Active Field Staff & Barangay Officials list'} ({filteredAccounts.length})
-                {selectedBarangayFilter !== 'all' && (
-                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 999, background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)', fontWeight: 800, fontSize: 11 }}>
-                    📍 Scoped to Barangay {selectedBarangayFilter}
-                  </span>
-                )}
               </span>
             </div>
             
