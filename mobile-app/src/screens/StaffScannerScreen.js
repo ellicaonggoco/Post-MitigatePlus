@@ -30,6 +30,7 @@ import {
   ShieldIcon,
   QrCodeIcon,
   TruckIcon,
+  ImageIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
 import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
@@ -205,8 +206,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         );
       }
     } catch (e) {
-      console.warn('API decode error:', e);
-      Alert.alert('Scan API Error', 'Hindi makakonekta sa QR decoding server.');
+      console.warn('Scan decode error:', e);
+      Alert.alert(
+        lang === 'tl' ? 'Problema sa Pagbasa' : 'Scan Error',
+        lang === 'tl' ? 'Hindi makakonekta sa verification server.' : 'Cannot connect to verification server.'
+      );
     } finally {
       setDecodingPhoto(false);
     }
@@ -214,15 +218,17 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
   const showPhotoScanOptions = () => {
     Alert.alert(
-      lang === 'tl' ? 'Scan QR mula sa Larawan / API' : 'Scan QR from Photo (API)',
-      lang === 'tl' ? 'Pumili kung kukuha ng litrato gamit ang camera o pipili ng larawan mula sa gallery:' : 'Choose whether to snap a photo or pick from your photo gallery:',
+      lang === 'tl' ? 'Mag-upload ng QR Pass' : 'Upload QR Pass',
+      lang === 'tl'
+        ? 'Pumili kung kukuha ng litrato o pipili ng larawan mula sa iyong gallery:'
+        : 'Choose whether to take a photo or pick an existing image from your gallery:',
       [
         {
-          text: lang === 'tl' ? '📸 Kumuha ng Litrato' : '📸 Snap Photo',
+          text: lang === 'tl' ? 'Kumuha ng Litrato' : 'Take Photo',
           onPress: () => handleScanFromPhoto(true),
         },
         {
-          text: lang === 'tl' ? '🖼️ Pumili sa Gallery' : '🖼️ Pick from Gallery',
+          text: lang === 'tl' ? 'Pumili sa Gallery' : 'Choose from Gallery',
           onPress: () => handleScanFromPhoto(false),
         },
         {
@@ -774,92 +780,121 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
             {/* Real Hardware Camera Viewfinder */}
             <View style={styles.viewfinderCard}>
-              <View style={[styles.viewfinderHeader, { justifyContent: 'space-between' }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <CameraIcon size={16} color="#FCD34D" />
-                  <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
+              {/* Header: Official Optical Lens Console */}
+              <View style={styles.viewfinderHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={styles.viewfinderBadgeIcon}>
+                    <ScanIcon size={16} color="#38BDF8" />
+                  </View>
+                  <View>
+                    <Text style={styles.viewfinderTitle}>
+                      {lang === 'tl' ? 'OPISYAL NA QR SCANNER' : 'OFFICIAL QR SCANNER'}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                      <View style={[styles.statusPulseDot, { backgroundColor: isOfflineMode ? '#F59E0B' : '#10B981' }]} />
+                      <Text style={styles.viewfinderBadgeTag}>
+                        {isOfflineMode
+                          ? (lang === 'tl' ? 'OFFLINE CACHE AKTIBO' : 'OFFLINE CACHE ACTIVE')
+                          : (lang === 'tl' ? 'MDRRMO LGU CLOUD LIVE' : 'MDRRMO LGU CLOUD LIVE')}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
+
                 {permission?.granted && Platform.OS !== 'web' && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={styles.camControlsRow}>
                     <TouchableOpacity
                       onPress={() => setCameraZoom(prev => (prev === 0 ? 0.08 : prev === 0.08 ? 0.16 : 0))}
-                      style={{
-                        backgroundColor: cameraZoom > 0 ? '#FCD34D' : 'rgba(255,255,255,0.15)',
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                      }}
+                      style={[styles.camControlPill, cameraZoom > 0 && styles.camControlPillActive]}
+                      activeOpacity={0.8}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: cameraZoom > 0 ? '#0F172A' : '#FFFFFF' }}>
-                        🔍 {cameraZoom === 0 ? '1x Zoom' : cameraZoom === 0.08 ? '1.5x Zoom' : '2x Zoom'}
+                      <Text style={[styles.camControlPillText, cameraZoom > 0 && styles.camControlPillTextActive]}>
+                        {cameraZoom === 0 ? '1x' : cameraZoom === 0.08 ? '1.5x' : '2x'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setCameraFacing(prev => prev === 'back' ? 'front' : 'back')}
-                      style={{
-                        backgroundColor: 'rgba(255,255,255,0.15)',
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                      }}
+                      style={styles.camControlPill}
+                      activeOpacity={0.8}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>
-                        🔄 {cameraFacing === 'back' ? 'Rear' : 'Front'}
+                      <Text style={styles.camControlPillText}>
+                        {cameraFacing === 'back' ? 'Rear' : 'Front'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setTorchOn(prev => !prev)}
-                      style={{
-                        backgroundColor: torchOn ? '#FCD34D' : 'rgba(255,255,255,0.15)',
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                      }}
+                      style={[styles.camControlPill, torchOn && styles.camControlPillTorchActive]}
+                      activeOpacity={0.8}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: torchOn ? '#0F172A' : '#FFFFFF' }}>
-                        {torchOn ? '🔦 Flash ON' : 'Flash OFF'}
+                      <Text style={[styles.camControlPillText, torchOn && styles.camControlPillTorchTextActive]}>
+                        {torchOn ? '🔦 ON' : 'Flash'}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 )}
               </View>
+
               <Text style={styles.viewfinderSub}>
                 {lang === 'tl'
-                  ? 'Itapat ang QR pass sa loob ng frame (hawakan nang 15-25cm ang layo para sa malinaw na focus)'
-                  : 'Position resident QR Pass inside frame (hold 15-25cm away for clear camera focus)'}
+                  ? 'I-sentro ang QR Pass ng benepisyaryo sa loob ng viewfinder lens upang awtomatikong mabasa.'
+                  : 'Position beneficiary QR Pass within the target reticle for automatic optical scan.'}
               </Text>
 
               <View style={styles.cameraBox}>
                 {Platform.OS === 'web' ? (
                   <TouchableOpacity
-                    style={{ alignItems: 'center', justifyContent: 'center', padding: 20 }}
-                    activeOpacity={0.8}
+                    style={styles.webPreviewPlaceholder}
+                    activeOpacity={0.85}
                     onPress={() => {
                       setManualCode('MNL-291-JUAN-DEMO-2026');
                       handleExecuteScan('MNL-291-JUAN-DEMO-2026');
                     }}
                   >
-                    <CameraIcon size={36} color="#FCD34D" />
-                    <Text style={{ color: '#94A3B8', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
-                      Hardware Camera operates on Mobile Device via Expo Go. (Tap to test demo scan)
+                    <View style={styles.webLensIconCircle}>
+                      <QrCodeIcon size={38} color="#38BDF8" />
+                    </View>
+                    <Text style={styles.webLensTitle}>
+                      {lang === 'tl' ? 'Camera Scanner Standby' : 'Camera Scanner Standby'}
                     </Text>
+                    <Text style={styles.webLensSub}>
+                      {lang === 'tl'
+                        ? 'Pindutin upang subukan ang pag-verify ng opisyal na QR Pass'
+                        : 'Click here to simulate a live beneficiary QR verification'}
+                    </Text>
+                    <View style={styles.webTestBadge}>
+                      <Text style={styles.webTestBadgeText}>
+                        {lang === 'tl' ? 'I-TEST ANG SCANNER' : 'TEST SCANNER'}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 ) : !permission ? (
-                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <ActivityIndicator size="large" color="#FCD34D" />
-                    <Text style={{ color: '#CBD5E1', fontSize: 12, marginTop: 8 }}>Initializing camera...</Text>
+                  <View style={styles.camLoadingBox}>
+                    <ActivityIndicator size="large" color="#38BDF8" />
+                    <Text style={styles.camLoadingText}>
+                      {lang === 'tl' ? 'Inihahanda ang Optical Scanner...' : 'Initializing Optical Scanner...'}
+                    </Text>
                   </View>
                 ) : !permission.granted ? (
-                  <View style={{ alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                    <CameraIcon size={36} color="#FCD34D" />
-                    <Text style={{ color: '#F1F5F9', fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: 8, marginBottom: 12 }}>
-                      Camera access is needed to scan resident QR codes.
+                  <View style={styles.camPermBox}>
+                    <View style={styles.camPermIconCircle}>
+                      <CameraIcon size={28} color="#94A3B8" />
+                    </View>
+                    <Text style={styles.camPermTitle}>
+                      {lang === 'tl' ? 'Kailangan ng Camera Access' : 'Camera Permission Required'}
+                    </Text>
+                    <Text style={styles.camPermSub}>
+                      {lang === 'tl'
+                        ? 'Kailangan ng pahintulot sa camera upang ma-scan ang opisyal na QR Pass ng residente.'
+                        : 'Camera access is required to scan and verify beneficiary QR passes.'}
                     </Text>
                     <TouchableOpacity
-                      style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}
+                      style={styles.camPermBtn}
                       onPress={requestPermission}
+                      activeOpacity={0.85}
                     >
-                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>Grant Camera Permission</Text>
+                      <Text style={styles.camPermBtnText}>
+                        {lang === 'tl' ? 'Pahintulutan ang Camera' : 'Allow Camera Access'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -876,16 +911,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   />
                 )}
 
-                {/* 4 Gold Corner Marks Overlay */}
+                {/* Elegant Viewfinder Reticle Corners (4 Corner Marks) */}
                 <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTL]} />
                 <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTR]} />
                 <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBL]} />
                 <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBR]} />
 
-                {/* Center Target Frame */}
-                <View pointerEvents="none" style={styles.scanTargetFrame} />
+                {/* Subtle High-Tech Guide Reticle */}
+                <View pointerEvents="none" style={styles.scanTargetReticle} />
 
-                {/* Animated Scanning Laser Line */}
+                {/* Animated Optical Laser Sweep Line */}
                 <Animated.View
                   pointerEvents="none"
                   style={[
@@ -896,7 +931,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   ]}
                 >
                   <LinearGradient
-                    colors={['rgba(239, 68, 68, 0)', '#EF4444', '#F59E0B', '#EF4444', 'rgba(239, 68, 68, 0)']}
+                    colors={['rgba(56, 189, 248, 0)', 'rgba(56, 189, 248, 0.75)', '#FFFFFF', 'rgba(56, 189, 248, 0.75)', 'rgba(56, 189, 248, 0)']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.laserGradient}
@@ -911,57 +946,74 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     activeOpacity={0.85}
                   >
                     <CheckIcon size={14} color="#10B981" />
-                    <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
-                      {lang === 'tl' ? 'I-scan ang Susunod na QR' : 'Tap to Scan Another'}
+                    <Text style={styles.rescanOverlayBtnText}>
+                      {lang === 'tl' ? 'I-scan ang Susunod na QR Pass' : 'Scan Next Beneficiary Pass'}
                     </Text>
                   </TouchableOpacity>
                 )}
               </View>
 
-              {/* Native Google Code Scanner Direct Launch Button */}
-              {Platform.OS !== 'web' && (
+              {/* Action Buttons Row: Google System Lens + Gallery QR Upload */}
+              <View style={styles.actionButtonsContainer}>
+                {Platform.OS !== 'web' && (
+                  <TouchableOpacity
+                    style={styles.googleScannerBtn}
+                    onPress={handleLaunchNativeScanner}
+                    activeOpacity={0.85}
+                  >
+                    <ScanIcon size={16} color="#FFFFFF" />
+                    <Text style={styles.googleScannerBtnText}>
+                      {lang === 'tl' ? 'Gamitin ang Google System Scanner' : 'Use System Scanner'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
-                  style={styles.googleScannerBtn}
-                  onPress={handleLaunchNativeScanner}
+                  style={styles.photoScanSecondaryBtn}
+                  onPress={showPhotoScanOptions}
                   activeOpacity={0.85}
+                  disabled={decodingPhoto}
                 >
-                  <ScanIcon size={16} color="#FFFFFF" />
-                  <Text style={styles.googleScannerBtnText}>
-                    {lang === 'tl' ? '⚡ Gamitin ang Google Lens / System Scanner' : '⚡ Open Full-Screen Google Scanner'}
+                  {decodingPhoto ? (
+                    <ActivityIndicator size="small" color="#38BDF8" />
+                  ) : (
+                    <ImageIcon size={16} color="#38BDF8" />
+                  )}
+                  <Text style={styles.photoScanSecondaryBtnText}>
+                    {decodingPhoto
+                      ? (lang === 'tl' ? 'Sinusuri ang larawan ng QR pass...' : 'Scanning photo for QR pass...')
+                      : (lang === 'tl' ? 'Pumili ng QR sa Gallery' : 'Upload QR from Gallery')}
                   </Text>
                 </TouchableOpacity>
-              )}
+              </View>
 
-              {/* Photo QR Scan via Cloud/Backend API */}
-              <TouchableOpacity
-                style={styles.photoScanApiBtn}
-                onPress={showPhotoScanOptions}
-                activeOpacity={0.85}
-                disabled={decodingPhoto}
-              >
-                {decodingPhoto ? (
-                  <ActivityIndicator size="small" color="#0F172A" />
-                ) : (
-                  <CameraIcon size={16} color="#0F172A" />
-                )}
-                <Text style={styles.photoScanApiBtnText}>
-                  {decodingPhoto
-                    ? (lang === 'tl' ? 'Sinusuri ang QR Code sa Larawan (API)...' : 'Decoding QR via API...')
-                    : (lang === 'tl' ? '📸 Scan mula sa Larawan / Gallery (API)' : '📸 Scan from Photo / Gallery (API)')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Status footer */}
+              {/* Status Footer Pill */}
               <View style={styles.liveStatusRow}>
-                <View style={[styles.liveDot, { backgroundColor: permission?.granted ? (cameraReady ? '#10B981' : '#F59E0B') : '#EF4444' }]} />
+                <View
+                  style={[
+                    styles.liveDot,
+                    {
+                      backgroundColor:
+                        Platform.OS === 'web'
+                          ? '#10B981'
+                          : permission?.granted
+                          ? cameraReady
+                            ? '#10B981'
+                            : '#F59E0B'
+                          : '#EF4444',
+                    },
+                  ]}
+                />
                 <Text style={styles.liveStatusText}>
-                  {permission?.granted
+                  {Platform.OS === 'web'
+                    ? (lang === 'tl' ? 'Optical Scanner Standby • Handa sa pagsusuri' : 'Optical Scanner Standby • Ready to verify')
+                    : permission?.granted
                     ? (scanned
-                        ? (lang === 'tl' ? 'Na-scan ang QR Code! • Pinoproseso ang benepisyaryo...' : 'QR Code Scanned! • Processing verification...')
+                        ? (lang === 'tl' ? 'Na-scan ang QR Pass! Pinoproseso...' : 'QR Pass Detected! Verifying...')
                         : (cameraReady
-                            ? (lang === 'tl' ? 'Aktibo ang Camera Scanner • Itapat sa QR Pass' : 'Live Hardware Camera Active')
-                            : (lang === 'tl' ? 'Inihahanda ang camera...' : 'Initializing Lens Preview...')))
-                    : (lang === 'tl' ? 'Nangangailangan ng Permiso sa Camera' : 'Camera Offline / Needs Permission')}
+                            ? (lang === 'tl' ? 'Aktibo ang Camera Lens • Itapat sa QR Pass' : 'Optical Camera Active • Align with QR Pass')
+                            : (lang === 'tl' ? 'Inihahanda ang camera preview...' : 'Initializing lens preview...')))
+                    : (lang === 'tl' ? 'Pahintulutan ang camera upang mag-scan' : 'Camera access required')}
                 </Text>
               </View>
             </View>
@@ -1836,95 +1888,263 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   viewfinderCard: {
-    backgroundColor: '#0B1D4E',
-    borderRadius: 20,
-    padding: 18,
+    backgroundColor: '#0F172A',
+    borderRadius: 22,
+    padding: 16,
     marginBottom: 14,
-    borderWidth: 1.5,
-    borderColor: '#1E3A8A',
+    borderWidth: 1,
+    borderColor: '#1E293B',
     alignItems: 'center',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 8px 24px rgba(15,23,42,0.18)' }
+      : {
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 10,
+          elevation: 4,
+        }),
   },
   viewfinderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 4,
+  },
+  viewfinderBadgeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   viewfinderTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#F8FAFC',
+    fontSize: 13,
     fontWeight: '900',
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
+  },
+  viewfinderBadgeTag: {
+    color: '#94A3B8',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  statusPulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  camControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  camControlPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  camControlPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#E2E8F0',
+  },
+  camControlPillActive: {
+    backgroundColor: '#38BDF8',
+    borderColor: '#0284C7',
+  },
+  camControlPillTextActive: {
+    color: '#0F172A',
+    fontWeight: '800',
+  },
+  camControlPillTorchActive: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#D97706',
+  },
+  camControlPillTorchTextActive: {
+    color: '#0F172A',
+    fontWeight: '800',
   },
   viewfinderSub: {
-    color: '#93C5FD',
+    color: '#94A3B8',
     fontSize: 11.5,
-    marginTop: 2,
-    marginBottom: 14,
+    lineHeight: 16,
+    marginTop: 6,
+    marginBottom: 12,
+    width: '100%',
   },
   cameraBox: {
     width: '100%',
-    height: 285,
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#1E3A8A',
+    height: 290,
+    backgroundColor: '#020617',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#1E293B',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
+    overflow: 'hidden',
   },
   cameraPreview: {
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
+    borderRadius: 18,
+  },
+  webPreviewPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    width: '100%',
+    height: '100%',
+  },
+  webLensIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  webLensTitle: {
+    color: '#F8FAFC',
+    fontSize: 13.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    marginBottom: 4,
+  },
+  webLensSub: {
+    color: '#64748B',
+    fontSize: 11.5,
+    textAlign: 'center',
+    maxWidth: 240,
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  webTestBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 16,
+  },
+  webTestBadgeText: {
+    color: '#38BDF8',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  camLoadingBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  camLoadingText: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  camPermBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+  },
+  camPermIconCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  camPermTitle: {
+    color: '#F8FAFC',
+    fontSize: 13.5,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  camPermSub: {
+    color: '#94A3B8',
+    fontSize: 11.5,
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 12,
+    maxWidth: 240,
+  },
+  camPermBtn: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  camPermBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 12,
   },
   cornerMark: {
     position: 'absolute',
-    width: 24,
-    height: 24,
-    borderColor: '#FCD34D',
+    width: 28,
+    height: 28,
+    borderColor: '#FFFFFF',
     zIndex: 5,
   },
   cornerTL: {
-    top: 14,
-    left: 14,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
+    top: 22,
+    left: 22,
+    borderTopWidth: 2.5,
+    borderLeftWidth: 2.5,
+    borderTopLeftRadius: 10,
   },
   cornerTR: {
-    top: 14,
-    right: 14,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
+    top: 22,
+    right: 22,
+    borderTopWidth: 2.5,
+    borderRightWidth: 2.5,
+    borderTopRightRadius: 10,
   },
   cornerBL: {
-    bottom: 14,
-    left: 14,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
+    bottom: 22,
+    left: 22,
+    borderBottomWidth: 2.5,
+    borderLeftWidth: 2.5,
+    borderBottomLeftRadius: 10,
   },
   cornerBR: {
-    bottom: 14,
-    right: 14,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
+    bottom: 22,
+    right: 22,
+    borderBottomWidth: 2.5,
+    borderRightWidth: 2.5,
+    borderBottomRightRadius: 10,
   },
-  scanTargetFrame: {
+  scanTargetReticle: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderWidth: 2,
-    borderColor: 'rgba(252, 211, 77, 0.75)',
-    borderRadius: 20,
+    width: 205,
+    height: 205,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderRadius: 16,
     zIndex: 4,
   },
   laserLine: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    top: 20,
+    left: 22,
+    right: 22,
+    top: 24,
     height: 2,
     zIndex: 6,
   },
@@ -1934,63 +2154,75 @@ const styles = StyleSheet.create({
   },
   rescanOverlayBtn: {
     position: 'absolute',
-    bottom: 14,
-    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    bottom: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.94)',
     paddingHorizontal: 18,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#FCD34D',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
     zIndex: 10,
+  },
+  rescanOverlayBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  actionButtonsContainer: {
+    width: '100%',
+    marginTop: 12,
+    gap: 8,
   },
   googleScannerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1E3A8A',
-    borderRadius: 14,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    marginTop: 12,
     width: '100%',
-    borderWidth: 1.5,
-    borderColor: '#3B82F6',
   },
   googleScannerBtnText: {
     color: '#FFFFFF',
     fontSize: 12.5,
     fontWeight: '800',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
-  photoScanApiBtn: {
+  photoScanSecondaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#FCD34D',
-    borderRadius: 14,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    marginTop: 8,
     width: '100%',
-    borderWidth: 1.5,
-    borderColor: '#F59E0B',
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  photoScanApiBtnText: {
-    color: '#0F172A',
+  photoScanSecondaryBtnText: {
+    color: '#E2E8F0',
     fontSize: 12.5,
-    fontWeight: '900',
-    letterSpacing: 0.2,
+    fontWeight: '700',
+    letterSpacing: 0.1,
   },
   liveStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
     marginTop: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   liveDot: {
     width: 6,
@@ -1999,8 +2231,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   liveStatusText: {
-    color: '#93C5FD',
-    fontSize: 11.5,
+    color: '#94A3B8',
+    fontSize: 11,
     fontWeight: '600',
   },
   manualEntryCard: {
