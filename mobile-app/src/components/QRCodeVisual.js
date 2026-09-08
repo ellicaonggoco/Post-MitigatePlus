@@ -2,144 +2,48 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import Svg, { Rect, Path, G } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCodeCore from 'qrcode/lib/core/qrcode';
 import { COLORS, RADIUS, FONT_WEIGHT, SPACING, SHADOWS } from '../theme';
 
-const ALPHANUMERIC_TABLE = {
-  '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-  'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15, 'G': 16, 'H': 17, 'I': 18,
-  'J': 19, 'K': 20, 'L': 21, 'M': 22, 'N': 23, 'O': 24, 'P': 25, 'Q': 26, 'R': 27,
-  'S': 28, 'T': 29, 'U': 30, 'V': 31, 'W': 32, 'X': 33, 'Y': 34, 'Z': 35,
-  ' ': 36, '$': 37, '%': 38, '*': 39, '+': 40, '-': 41, '.': 42, '/': 43, ':': 44
-};
-
-function generateRealQRMatrix(text) {
-  const size = 29;
-  const matrix = Array.from({ length: size }, () => Array(size).fill(0));
-  const isReserved = Array.from({ length: size }, () => Array(size).fill(false));
-
-  const setModule = (r, c, val, reserved = true) => {
-    if (r >= 0 && r < size && c >= 0 && c < size) {
-      matrix[r][c] = val;
-      if (reserved) isReserved[r][c] = true;
+/**
+ * Generates an ISO/IEC 18004 compliant QR Matrix with full Reed-Solomon
+ * Error Correction Codewords. Uses Level 'H' (High - 30% error recovery)
+ * so phone-to-phone scanning is instantaneous even under screen glare,
+ * distance, or center civic seal badge overlay.
+ */
+function generateStandardQRMatrix(text, ecc = 'H') {
+  const cleanCode = String(text || 'MNL-QR-OFFICIAL-PASS').trim();
+  try {
+    const qr = QRCodeCore.create(cleanCode, { errorCorrectionLevel: ecc });
+    const size = qr.modules.size;
+    const matrix = [];
+    for (let r = 0; r < size; r++) {
+      const row = [];
+      for (let c = 0; c < size; c++) {
+        row.push(qr.modules.get(r, c) ? 1 : 0);
+      }
+      matrix.push(row);
     }
-  };
-
-  const drawFinder = (top, left) => {
-    for (let r = -1; r <= 7; r++) {
-      for (let c = -1; c <= 7; c++) {
-        const row = top + r;
-        const col = left + c;
-        if (row >= 0 && row < size && col >= 0 && col < size) {
-          if (r >= 0 && r <= 6 && (c === 0 || c === 6 || r === 0 || r === 6)) {
-            setModule(row, col, 1);
-          } else if (r >= 2 && r <= 4 && c >= 2 && c <= 4) {
-            setModule(row, col, 1);
-          } else {
-            setModule(row, col, 0);
-          }
+    return matrix;
+  } catch (err) {
+    console.warn('Standard QR generation ECC H warning, trying M:', err);
+    try {
+      const qr = QRCodeCore.create(cleanCode, { errorCorrectionLevel: 'M' });
+      const size = qr.modules.size;
+      const matrix = [];
+      for (let r = 0; r < size; r++) {
+        const row = [];
+        for (let c = 0; c < size; c++) {
+          row.push(qr.modules.get(r, c) ? 1 : 0);
         }
+        matrix.push(row);
       }
-    }
-  };
-
-  drawFinder(0, 0);
-  drawFinder(0, size - 7);
-  drawFinder(size - 7, 0);
-
-  const drawAlignment = (top, left) => {
-    for (let r = -2; r <= 2; r++) {
-      for (let c = -2; c <= 2; c++) {
-        const isBorder = Math.abs(r) === 2 || Math.abs(c) === 2;
-        const isCenter = r === 0 && c === 0;
-        setModule(top + r, left + c, isBorder || isCenter ? 1 : 0);
-      }
-    }
-  };
-  drawAlignment(22, 22);
-
-  for (let i = 8; i < size - 8; i++) {
-    setModule(6, i, i % 2 === 0 ? 1 : 0);
-    setModule(i, 6, i % 2 === 0 ? 1 : 0);
-  }
-
-  setModule(size - 8, 8, 1);
-
-  for (let i = 0; i < 9; i++) {
-    setModule(8, i, 0);
-    setModule(i, 8, 0);
-    setModule(8, size - 1 - i, 0);
-    setModule(size - 1 - i, 8, 0);
-  }
-
-  const str = text.toUpperCase();
-  const bits = [];
-  bits.push(0, 0, 1, 0);
-
-  const charCount = str.length;
-  for (let i = 8; i >= 0; i--) {
-    bits.push((charCount >> i) & 1);
-  }
-
-  for (let i = 0; i < str.length; i += 2) {
-    if (i + 1 < str.length) {
-      const val = (ALPHANUMERIC_TABLE[str[i]] || 0) * 45 + (ALPHANUMERIC_TABLE[str[i + 1]] || 0);
-      for (let b = 10; b >= 0; b--) {
-        bits.push((val >> b) & 1);
-      }
-    } else {
-      const val = ALPHANUMERIC_TABLE[str[i]] || 0;
-      for (let b = 5; b >= 0; b--) {
-        bits.push((val >> b) & 1);
-      }
+      return matrix;
+    } catch (e) {
+      console.error('Fatal QR generation failure:', e);
+      return [];
     }
   }
-
-  bits.push(0, 0, 0, 0);
-  while (bits.length % 8 !== 0) bits.push(0);
-
-  const padBytes = [0xEC, 0x11];
-  let pIdx = 0;
-  while (bits.length < 70 * 8) {
-    const pad = padBytes[pIdx % 2];
-    for (let b = 7; b >= 0; b--) {
-      bits.push((pad >> b) & 1);
-    }
-    pIdx++;
-  }
-
-  let bitIdx = 0;
-  let upward = true;
-
-  for (let c = size - 1; c > 0; c -= 2) {
-    if (c === 6) c--;
-    const rows = upward
-      ? Array.from({ length: size }, (_, i) => size - 1 - i)
-      : Array.from({ length: size }, (_, i) => i);
-
-    for (const r of rows) {
-      for (const colOffset of [0, -1]) {
-        const col = c + colOffset;
-        if (!isReserved[r][col]) {
-          const rawBit = bitIdx < bits.length ? bits[bitIdx++] : 0;
-          const mask = (r + col) % 2 === 0;
-          matrix[r][col] = rawBit ^ (mask ? 1 : 0);
-        }
-      }
-    }
-    upward = !upward;
-  }
-
-  const formatBits = [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0];
-  for (let i = 0; i < 6; i++) matrix[8][i] = formatBits[i];
-  matrix[8][7] = formatBits[6];
-  matrix[8][8] = formatBits[7];
-  matrix[7][8] = formatBits[8];
-  for (let i = 0; i < 6; i++) matrix[5 - i][8] = formatBits[9 + i];
-
-  for (let i = 0; i < 7; i++) matrix[size - 1 - i][8] = formatBits[i];
-  for (let i = 0; i < 8; i++) matrix[8][size - 8 + i] = formatBits[7 + i];
-
-  return matrix;
 }
 
 export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerified = true, darkMode = false, compact = false, isCompact = false }) {
@@ -148,7 +52,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
   const code = value || 'MNL-QR-OFFICIAL-PASS';
 
   const qrMatrix = useMemo(() => {
-    return generateRealQRMatrix(code);
+    return generateStandardQRMatrix(code, 'H');
   }, [code]);
 
   const handleCopy = () => {
@@ -161,10 +65,13 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
     setTimeout(() => setCopied(false), 2200);
   };
 
-  const matrixSize = qrMatrix.length;
+  const matrixSize = qrMatrix.length || 21;
   const svgSize = isCompactMode ? (size || 140) : 220;
-  const padding = isCompactMode ? 8 : 12;
+  // Quiet zone padding (critical for camera edge-detection algorithms)
+  const padding = isCompactMode ? 10 : 16;
   const moduleSize = (svgSize - padding * 2) / matrixSize;
+  const badgeSize = isCompactMode ? 22 : 32;
+  const badgeOffset = (svgSize - badgeSize) / 2;
 
   // =========================================================================
   // COMPACT MODE: Render only the clean crisp SVG matrix frame
@@ -184,7 +91,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                     y={padding + r * moduleSize}
                     width={moduleSize}
                     height={moduleSize}
-                    rx={1}
+                    rx={0.5}
                     fill="#0F172A"
                   />
                 );
@@ -192,11 +99,14 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
               return null;
             })
           )}
-          {/* Center Manila Shield Badge */}
-          <G transform={`translate(${svgSize / 2 - 12}, ${svgSize / 2 - 12})`}>
-            <Rect width="24" height="24" rx="6" fill="#FFFFFF" stroke="#002BB8" strokeWidth="2" />
-            <Rect x="3" y="3" width="18" height="18" rx="4" fill="#002BB8" />
-            <Path d="M12 6L17 9V14C17 16 14 17.5 12 18C10 17.5 7 16 7 14V9L12 6Z" fill="#F59E0B" />
+          {/* Center Manila Shield Badge with clean white border */}
+          <G transform={`translate(${badgeOffset}, ${badgeOffset})`}>
+            <Rect width={badgeSize} height={badgeSize} rx={5} fill="#FFFFFF" stroke="#002BB8" strokeWidth="1.5" />
+            <Rect x={2} y={2} width={badgeSize - 4} height={badgeSize - 4} rx={3.5} fill="#002BB8" />
+            <Path
+              d={`M${badgeSize / 2} ${badgeSize * 0.25} L${badgeSize * 0.72} ${badgeSize * 0.38} V${badgeSize * 0.58} C${badgeSize * 0.72} ${badgeSize * 0.72} ${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize / 2} ${badgeSize * 0.82} C${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize * 0.28} ${badgeSize * 0.72} ${badgeSize * 0.28} ${badgeSize * 0.58} V${badgeSize * 0.38} Z`}
+              fill="#F59E0B"
+            />
           </G>
         </Svg>
       </View>
@@ -253,7 +163,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                       y={padding + r * moduleSize}
                       width={moduleSize}
                       height={moduleSize}
-                      rx={1.2}
+                      rx={0.5}
                       fill="#0B1D4E"
                     />
                   );
@@ -261,10 +171,14 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                 return null;
               })
             )}
-            <G transform={`translate(${svgSize / 2 - 18}, ${svgSize / 2 - 18})`}>
-              <Rect width="36" height="36" rx="8" fill="#FFFFFF" stroke="#0B1D4E" strokeWidth="3" />
-              <Rect x="4" y="4" width="28" height="28" rx="6" fill="#0B1D4E" />
-              <Path d="M18 10L25 14V21C25 24 21 26 18 27C15 26 11 24 11 21V14L18 10Z" fill="#F59E0B" />
+            {/* Center Manila Shield Badge (scaled to ~14% linear coverage, well within 30% ECC level H budget) */}
+            <G transform={`translate(${badgeOffset}, ${badgeOffset})`}>
+              <Rect width={badgeSize} height={badgeSize} rx={7} fill="#FFFFFF" stroke="#0B1D4E" strokeWidth="2" />
+              <Rect x={3} y={3} width={badgeSize - 6} height={badgeSize - 6} rx={5} fill="#0B1D4E" />
+              <Path
+                d={`M${badgeSize / 2} ${badgeSize * 0.25} L${badgeSize * 0.72} ${badgeSize * 0.38} V${badgeSize * 0.58} C${badgeSize * 0.72} ${badgeSize * 0.72} ${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize / 2} ${badgeSize * 0.82} C${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize * 0.28} ${badgeSize * 0.72} ${badgeSize * 0.28} ${badgeSize * 0.58} V${badgeSize * 0.38} Z`}
+                fill="#F59E0B"
+              />
             </G>
           </Svg>
         </View>

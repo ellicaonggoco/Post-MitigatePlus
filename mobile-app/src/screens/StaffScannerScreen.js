@@ -41,6 +41,10 @@ import {
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const BARCODE_SCANNER_SETTINGS = {
+  barcodeTypes: ['qr'],
+};
+
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
   const [selectedEvent, setSelectedEvent] = useState({
@@ -79,6 +83,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [cameraFacing, setCameraFacing] = useState('back');
   const [cameraMountKey, setCameraMountKey] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
+  const lastScannedRef = useRef({ code: '', time: 0 });
 
   // Remount camera cleanly when switching to scanner tab
   useEffect(() => {
@@ -95,11 +100,39 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     }
   }, [permission]);
 
-  const handleBarcodeScanned = ({ data }) => {
+  // Unified reset function to clear scan locks and reset viewfinder
+  const handleResetScanner = () => {
+    setScanned(false);
+    setScanResult(null);
+    setDuplicateAlert(false);
+    setDuplicateMessage('');
+    setScanNotice(null);
+    setManualCode('');
+    lastScannedRef.current = { code: '', time: 0 };
+  };
+
+  const handleBarcodeScanned = (scanningResult) => {
+    const raw = typeof scanningResult === 'string'
+      ? scanningResult
+      : (scanningResult?.data || scanningResult?.raw || scanningResult?.nativeEvent?.data || '');
+
+    if (!raw) return;
+    const cleanCode = String(raw).trim();
+    if (!cleanCode) return;
+
+    // Guard: ignore if already handling a scan, currently releasing, or beneficiary is on screen
     if (scanned || loading || releasing || scanResult) return;
+
+    // Debounce duplicate reads of identical code within 2.5s
+    const now = Date.now();
+    if (lastScannedRef.current.code === cleanCode && now - lastScannedRef.current.time < 2500) {
+      return;
+    }
+    lastScannedRef.current = { code: cleanCode, time: now };
+
     setScanned(true);
-    setManualCode(data);
-    handleExecuteScan(data);
+    setManualCode(cleanCode);
+    handleExecuteScan(cleanCode);
   };
 
   // Scanner state
@@ -232,6 +265,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     const rawCode = (codeOverride || manualCode).trim();
     if (!rawCode) {
       showNotify('QR Code Required', 'Please enter or scan a valid QR pass code.', true);
+      setScanned(false);
       return;
     }
 
@@ -250,6 +284,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           showNotify('Offline Notice', 'QR pass not found in local cache.', true);
           setFlaggedTodayCount(prev => prev + 1);
           setLoading(false);
+          setTimeout(() => setScanned(false), 2500);
           return;
         }
 
@@ -262,6 +297,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           setDuplicateMessage('This household has already claimed relief in this event (offline record).');
           setFlaggedTodayCount(prev => prev + 1);
           setLoading(false);
+          setTimeout(() => setScanned(false), 3000);
           return;
         }
 
@@ -289,6 +325,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           setDuplicateMessage(res.message || 'Household already claimed in this drive today.');
           setFlaggedTodayCount(prev => prev + 1);
           setScanResult(null);
+          setTimeout(() => setScanned(false), 3000);
         } else if (res.household) {
           const hh = res.household;
           const headName = hh.name || hh.headOfHouseholdUserId?.name || 'Verified Beneficiary';
@@ -317,11 +354,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         } else {
           showNotify('Scan Result', res.message || 'Invalid QR code.', true);
           setFlaggedTodayCount(prev => prev + 1);
+          setTimeout(() => setScanned(false), 2500);
         }
       }
     } catch (err) {
       showNotify('Scan Failed', err.message || 'Error processing QR pass.', true);
       setFlaggedTodayCount(prev => prev + 1);
+      setTimeout(() => setScanned(false), 2500);
     } finally {
       setLoading(false);
     }
@@ -342,18 +381,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         setOfflineClaimsQueue(updated);
         await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updated));
         showNotify('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
-        setScanResult(null);
-        setManualCode('');
-        setScanned(false);
+        handleResetScanner();
       } else {
         await confirmDistribution(token, {
           householdId: scanResult.household._id || scanResult.household.id,
           eventId: selectedEvent._id || selectedEvent.id,
         });
         showNotify('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
-        setScanResult(null);
-        setManualCode('');
-        setScanned(false);
+        handleResetScanner();
       }
     } catch (err) {
       const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
@@ -361,11 +396,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         setDuplicateAlert(true);
         setDuplicateMessage(err.message || 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.');
         setFlaggedTodayCount(prev => prev + 1);
+        setTimeout(() => setScanned(false), 3000);
       } else {
         showNotify('Release Notice', err.message || 'Distribution confirmed.');
+        handleResetScanner();
       }
-      setScanResult(null);
-      setScanned(false);
     } finally {
       setReleasing(false);
     }
@@ -561,11 +596,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={styles.cameraPreview}
                     facing={cameraFacing}
                     enableTorch={torchOn}
-                    ratio="16:9"
                     autofocus="on"
-                    barcodeScannerSettings={{
-                      barcodeTypes: ['qr'],
-                    }}
+                    barcodeScannerSettings={BARCODE_SCANNER_SETTINGS}
                     onCameraReady={() => setCameraReady(true)}
                     onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
                   />
@@ -602,10 +634,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {scanned && !loading && (
                   <TouchableOpacity
                     style={styles.rescanOverlayBtn}
-                    onPress={() => setScanned(false)}
+                    onPress={handleResetScanner}
+                    activeOpacity={0.85}
                   >
                     <CheckIcon size={14} color="#10B981" />
-                    <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>Tap to Scan Another</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+                      {lang === 'tl' ? 'I-scan ang Susunod na QR' : 'Tap to Scan Another'}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -616,9 +651,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <Text style={styles.liveStatusText}>
                   {permission?.granted
                     ? (scanned
-                        ? 'QR Code Scanned! • Processing verification...'
-                        : (cameraReady ? 'Live Hardware Camera Active' : 'Initializing Lens Preview...'))
-                    : 'Camera Offline / Needs Permission'}
+                        ? (lang === 'tl' ? 'Na-scan ang QR Code! • Pinoproseso ang benepisyaryo...' : 'QR Code Scanned! • Processing verification...')
+                        : (cameraReady
+                            ? (lang === 'tl' ? 'Aktibo ang Camera Scanner • Itapat sa QR Pass' : 'Live Hardware Camera Active')
+                            : (lang === 'tl' ? 'Inihahanda ang camera...' : 'Initializing Lens Preview...')))
+                    : (lang === 'tl' ? 'Nangangailangan ng Permiso sa Camera' : 'Camera Offline / Needs Permission')}
                 </Text>
               </View>
             </View>
@@ -631,7 +668,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   style={styles.codeInput}
                   value={manualCode}
                   onChangeText={setManualCode}
-                  placeholder="MNL-291-JUAN-DEMO-2026"
+                  placeholder="MNL-291-ELLICA-2026"
                   placeholderTextColor="#94A3B8"
                   autoCapitalize="characters"
                 />
@@ -650,6 +687,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Quick Test:</Text>
                 <TouchableOpacity
                   onPress={() => {
+                    setManualCode('MNL-291-ELLICA-2026');
+                    handleExecuteScan('MNL-291-ELLICA-2026');
+                  }}
+                  style={{
+                    backgroundColor: '#ECFDF5',
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: '#6EE7B7',
+                  }}
+                >
+                  <Text style={{ fontSize: 11, color: '#059669', fontWeight: '700' }}>⚡ Ellica Onggoco (Brgy 291)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
                     setManualCode('MNL-291-JUAN-DEMO-2026');
                     handleExecuteScan('MNL-291-JUAN-DEMO-2026');
                   }}
@@ -662,7 +715,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     borderColor: '#93C5FD',
                   }}
                 >
-                  <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '700' }}>⚡ Tap: Juan Dela Cruz (Brgy 291)</Text>
+                  <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '700' }}>⚡ Juan Dela Cruz (Brgy 291)</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -696,6 +749,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <Text style={styles.duplicateSub}>
                   {duplicateMessage || 'This household has already claimed relief in this event today.'}
                 </Text>
+                <TouchableOpacity
+                  style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#DC2626', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 }}
+                  onPress={handleResetScanner}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>
+                    {lang === 'tl' ? 'I-scan ang Susunod na QR' : 'Scan Next Beneficiary'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -755,13 +817,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   {/* Cancel / Scan Another Button */}
                   <TouchableOpacity
                     style={{ marginTop: 8, paddingVertical: 10, alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 10 }}
-                    onPress={() => {
-                      setScanResult(null);
-                      setManualCode('');
-                      setScanned(false);
-                    }}
+                    onPress={handleResetScanner}
+                    activeOpacity={0.85}
                   >
-                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 13 }}>✕ Cancel / Scan Another</Text>
+                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 13 }}>
+                      {lang === 'tl' ? '✕ Kanselahin / I-scan ang Susunod' : '✕ Cancel / Scan Another'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               );
