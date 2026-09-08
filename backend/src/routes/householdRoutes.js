@@ -433,12 +433,18 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     }
 
     if (!queryEvId) {
-      const activeEv = await DistributionEvent.findOne({ isActive: true });
+      let activeEv = null;
+      if (household.barangayCode) {
+        activeEv = await DistributionEvent.findOne({ isActive: true, barangayCode: household.barangayCode });
+      }
+      if (!activeEv) {
+        activeEv = await DistributionEvent.findOne({ isActive: true });
+      }
       if (activeEv) {
         queryEvId = activeEv._id;
         eventName = activeEv.title;
       } else {
-        const recentEv = await DistributionEvent.findOne().sort({ createdAt: -1 });
+        const recentEv = await DistributionEvent.findOne(household.barangayCode ? { barangayCode: household.barangayCode } : {}).sort({ createdAt: -1 });
         if (recentEv) {
           queryEvId = recentEv._id;
           eventName = recentEv.title;
@@ -809,7 +815,7 @@ router.get('/qr-image/:code', async (req, res) => {
 
 // @route   POST /api/households/decode-qr-image
 // @desc    Decode QR code from uploaded or snapped image base64 via API
-router.post('/decode-qr-image', async (req, res) => {
+router.post('/decode-qr-image', protect, async (req, res) => {
   try {
     const { imageBase64 } = req.body;
     if (!imageBase64) {

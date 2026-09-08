@@ -146,20 +146,21 @@ router.post('/dispatch-buffer-restock', protect, requireRole('lgu_admin', 'lgu_s
     const { barangayCode, quantity = 500, medicineName = 'Doxycycline 200mg Capsules' } = req.body;
 
     // Deduct or check Central Warehouse
-    let warehouseItem = await WarehouseItem.findOne({ itemName: { $regex: /doxycycline|medicine|antibiotic/i } });
+    let warehouseItem = await WarehouseItem.findOne({ name: { $regex: /doxycycline|medicine|antibiotic/i } });
     if (!warehouseItem) {
       warehouseItem = await WarehouseItem.create({
-        itemName: 'Doxycycline 200mg (Prophylaxis)',
-        category: 'medical',
-        currentStock: 10000,
+        name: 'Doxycycline 200mg (Prophylaxis)',
+        category: 'Medicine',
+        stock: 10000,
         unit: 'capsules',
-        minThreshold: 1000,
-        location: 'Central Warehouse Manila',
+        minStock: 1000,
+        updatedBy: req.user._id,
       });
     }
 
-    if (warehouseItem.currentStock >= quantity) {
-      warehouseItem.currentStock -= quantity;
+    if (warehouseItem.stock >= quantity) {
+      warehouseItem.stock -= quantity;
+      warehouseItem.updatedBy = req.user._id;
       await warehouseItem.save();
     }
 
@@ -167,16 +168,16 @@ router.post('/dispatch-buffer-restock', protect, requireRole('lgu_admin', 'lgu_s
     const refNo = `WAYBILL-MED-${Date.now().toString().slice(-6)}`;
     await WarehouseLog.create({
       itemId: warehouseItem._id,
-      itemName: warehouseItem.itemName,
-      action: 'OUT',
+      itemName: warehouseItem.name,
+      action: 'dispatch',
       quantity,
       purpose: 'Outbreak Prophylaxis Buffer Restock',
       destination: `Barangay ${barangayCode} Health Center`,
-      approvingOfficial: req.user.name,
+      approvingOfficial: req.user.name || 'City Health Officer',
       transporter: 'City Health Mobile Logistics Unit',
       referenceNo: refNo,
       performedBy: req.user._id,
-      performedByName: req.user.name,
+      performedByName: req.user.name || 'System Admin',
       notes: `Dispatched ${quantity} caps buffer restock to prevent Leptospirosis outbreak in Brgy ${barangayCode}.`,
     });
 
@@ -194,7 +195,7 @@ router.post('/dispatch-buffer-restock', protect, requireRole('lgu_admin', 'lgu_s
     res.json({
       message: `Successfully dispatched ${quantity} capsules of ${medicineName} to Barangay ${barangayCode} Health Center!`,
       referenceNo: refNo,
-      remainingCentralStock: warehouseItem.currentStock,
+      remainingCentralStock: warehouseItem.stock,
     });
   } catch (error) {
     console.error('Dispatch restock error:', error);

@@ -222,11 +222,13 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
           await WarehouseLog.create({
             itemId: matchedItem._id,
             itemName: matchedItem.name,
-            type: 'dispatch',
+            action: 'dispatch',
             quantity: qtyToDeduct,
+            purpose: `Relief Distribution: ${event.title}`,
+            destination: `Barangay ${event.barangayCode || '291'}`,
             notes: `Auto-Dispatched for Event: ${event.title} (Brgy ${event.barangayCode})`,
-            performedBy: req.user.name || 'System Admin',
-            recordedBy: req.user._id,
+            performedBy: req.user._id,
+            performedByName: req.user.name || 'System Admin',
           });
 
           await AuditLog.create({
@@ -281,9 +283,14 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       event = await DistributionEvent.findById(distributionEventId);
     }
     if (!event) {
-      event = await DistributionEvent.findOne({ isActive: true });
+      if (household.barangayCode) {
+        event = await DistributionEvent.findOne({ isActive: true, barangayCode: household.barangayCode });
+      }
       if (!event) {
-        event = await DistributionEvent.findOne({ status: 'Scheduled' });
+        event = await DistributionEvent.findOne({ isActive: true });
+      }
+      if (!event) {
+        event = await DistributionEvent.findOne({ status: 'Scheduled', ...(household.barangayCode ? { barangayCode: household.barangayCode } : {}) });
         if (event) {
           event.isActive = true;
           event.status = 'Ongoing';
@@ -484,7 +491,7 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
         releasedByName: req.user.name,
         disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
       },
-      recoveryStatus: recovery.status,
+      recoveryStatus: primaryRecoveryStatus,
     });
   } catch (error) {
     if (error.code === 11000) {

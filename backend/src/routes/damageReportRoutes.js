@@ -27,11 +27,11 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
       sanitizedPhotos = photos.slice(0, 5).filter(p => {
         if (typeof p !== 'string') return false;
         const trimmed = p.trim();
-        // Allow valid HTTP/HTTPS URLs or base64 image data URIs
-        const isUrl = /^https?:\/\/.+\.(jpg|jpeg|png|webp|avif)$/i.test(trimmed);
+        // Allow valid image file URLs, base64 image data URIs, or Cloudinary image URLs
+        const isImageUrl = /^https?:\/\/.+\.(jpg|jpeg|png|webp|avif)(\?.*)?$/i.test(trimmed);
         const isDataUri = /^data:image\/(jpeg|png|webp|avif);base64,/i.test(trimmed);
-        const isStandardUrl = /^https?:\/\//i.test(trimmed);
-        return isUrl || isDataUri || isStandardUrl;
+        const isCloudinary = /^https?:\/\/res\.cloudinary\.com\/.+/i.test(trimmed);
+        return isImageUrl || isDataUri || isCloudinary;
       });
     }
 
@@ -87,10 +87,21 @@ router.get('/', protect, async (req, res) => {
       const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
       if (!household) return res.json([]);
       filter.householdId = household._id;
-    } else if (req.query.householdId) {
-      filter.householdId = req.query.householdId;
-    } else if (req.query.verificationStatus) {
-      filter.verificationStatus = req.query.verificationStatus;
+    } else {
+      let targetBrgy = req.query.barangayCode;
+      if (req.user.role === 'barangay_official' && !targetBrgy) {
+        targetBrgy = req.user.barangayCode;
+      }
+      if (targetBrgy) {
+        const brgyHhIds = await Household.find({ barangayCode: targetBrgy }).select('_id');
+        filter.householdId = { $in: brgyHhIds.map(h => h._id) };
+      }
+      if (req.query.householdId) {
+        filter.householdId = req.query.householdId;
+      }
+      if (req.query.verificationStatus) {
+        filter.verificationStatus = req.query.verificationStatus;
+      }
     }
 
     const reports = await DamageReport.find(filter)

@@ -36,14 +36,15 @@ const protect = async (req, res, next) => {
 };
 
 const requireRole = (...roles) => {
+  const flatRoles = roles.flat(Infinity);
   return (req, res, next) => {
     if (!req.user) {
       return res.status(403).json({ message: 'Forbidden: No authenticated user.' });
     }
 
     // Expand admin & superadmin permissions automatically
-    const expandedRoles = [...roles];
-    if (roles.includes('lgu_admin') || roles.includes('lgu_superadmin') || roles.includes('lgu_super_admin')) {
+    const expandedRoles = [...flatRoles];
+    if (flatRoles.includes('lgu_admin') || flatRoles.includes('lgu_superadmin') || flatRoles.includes('lgu_super_admin')) {
       expandedRoles.push('lgu_superadmin', 'lgu_super_admin', 'lgu_admin');
     }
 

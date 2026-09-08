@@ -102,15 +102,15 @@ const handleCreateOrRequestProject = async (req, res) => {
   }
 };
 
-router.post('/projects/request', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), handleCreateOrRequestProject);
-router.post('/projects', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), handleCreateOrRequestProject);
+router.post('/projects/request', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), handleCreateOrRequestProject);
+router.post('/projects', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), handleCreateOrRequestProject);
 
 
 
 // -------------------------------------------------------------
 // 2. LGU ADMIN: Approve / Reject Cash-for-Work Project & Allocate Budget
 // -------------------------------------------------------------
-router.patch('/projects/:id/review', protect, requireRole(['lgu_admin', 'lgu_superadmin']), async (req, res) => {
+router.patch('/projects/:id/review', protect, requireRole('lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { status, rejectionReason, startDate, endDate } = req.body;
     const project = await CashForWorkProject.findById(req.params.id);
@@ -325,7 +325,7 @@ router.get('/my-applications', protect, async (req, res) => {
 // -------------------------------------------------------------
 // 6. BARANGAY: Review & Approve/Reject Applicant Slot
 // -------------------------------------------------------------
-router.patch('/applications/:id/review', protect, requireRole(['barangay_official', 'lgu_admin', 'lgu_superadmin']), async (req, res) => {
+router.patch('/applications/:id/review', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { status, reviewNotes } = req.body; // 'approved_for_work' or 'rejected'
     const application = await CashForWorkApplication.findById(req.params.id).populate('projectId');
@@ -376,7 +376,7 @@ router.patch('/applications/:id/review', protect, requireRole(['barangay_officia
 // -------------------------------------------------------------
 // 7. FIELD STAFF / LGU: Scan Worker QR Code for Daily Attendance (Time-In / Time-Out)
 // -------------------------------------------------------------
-router.post('/attendance/scan', protect, requireRole(['field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin']), async (req, res) => {
+router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { qrCode, householdId, projectId } = req.body;
 
@@ -458,7 +458,7 @@ router.post('/attendance/scan', protect, requireRole(['field_staff', 'barangay_o
 // -------------------------------------------------------------
 // 8. LGU ADMIN: Live Payroll Summary & Certified Disbursement
 // -------------------------------------------------------------
-router.get('/payroll/:projectId', protect, requireRole(['lgu_admin', 'lgu_superadmin', 'barangay_official']), async (req, res) => {
+router.get('/payroll/:projectId', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
   try {
     const project = await CashForWorkProject.findById(req.params.projectId);
     if (!project) {
