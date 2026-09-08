@@ -247,6 +247,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
           </View>
         </LinearGradient>
 
+        <View style={styles.bodyWrapper}>
         {/* STATE 2: PENDING BARANGAY REVIEW */}
         {isPending && (
           <View style={styles.pendingCard}>
@@ -492,7 +493,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
           )}
           </>
         )}
-
+        </View>
       </ScrollView>
 
       {/* POP-UP MODAL: DIGITAL PAYOUT VOUCHER CARD */}
@@ -556,6 +557,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F6FC',
+  },
+  bodyWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   centerContainer: {
     flex: 1,

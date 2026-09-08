@@ -349,60 +349,62 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           </View>
         </LinearGradient>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
-        </View>
-        <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
-
-        {/* Verified Registered Household Location */}
-        <View style={styles.autoLocationCard}>
-          <View style={styles.autoLocationHeader}>
-            <Text style={styles.autoLocationLabel}>
-              {lang === 'tl' ? 'LOKASYON NG TAHANAN' : 'REGISTERED HOUSEHOLD LOCATION *'}
-            </Text>
+        <View style={styles.formBody}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
           </View>
+          <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
 
-          <View style={styles.autoLocationBody}>
-            <View style={styles.autoLocationIconCircle}>
-              <MapPinIcon size={18} color="#1C3F94" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.autoLocationAddressText}>
-                {addressLandmark}
-              </Text>
-              <Text style={styles.autoLocationGpsText}>
-                {isLocating
-                  ? (lang === 'tl' ? 'Kinukuha ang live GPS coordinates...' : 'Fetching live GPS coordinates...')
-                  : geoCoords
-                  ? `GPS: ${geoCoords.lat}, ${geoCoords.lng} (±${geoCoords.accuracy}m)`
-                  : 'Barangay 291 GIS Grid Tagged'}
+          {/* Verified Registered Household Location */}
+          <View style={styles.autoLocationCard}>
+            <View style={styles.autoLocationHeader}>
+              <Text style={styles.autoLocationLabel}>
+                {lang === 'tl' ? 'LOKASYON NG TAHANAN' : 'REGISTERED HOUSEHOLD LOCATION *'}
               </Text>
             </View>
+
+            <View style={styles.autoLocationBody}>
+              <View style={styles.autoLocationIconCircle}>
+                <MapPinIcon size={18} color="#1C3F94" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.autoLocationAddressText}>
+                  {addressLandmark}
+                </Text>
+                <Text style={styles.autoLocationGpsText}>
+                  {isLocating
+                    ? (lang === 'tl' ? 'Kinukuha ang live GPS coordinates...' : 'Fetching live GPS coordinates...')
+                    : geoCoords
+                    ? `GPS: ${geoCoords.lat}, ${geoCoords.lng} (±${geoCoords.accuracy}m)`
+                    : 'Barangay 291 GIS Grid Tagged'}
+                </Text>
+              </View>
+            </View>
           </View>
+
+          <NeumorphicInput
+            label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
+            value={description}
+            onChangeText={setDescription}
+            placeholder={lang === 'tl' ? 'Ilarawan ang nangyari...' : 'Describe the damage...'}
+            errorText={errors.description}
+            multiline
+            numberOfLines={3}
+            required
+          />
+
+          <PhotoAttachmentSection
+            selectedPhoto={selectedPhoto}
+            onPickCamera={handlePickCamera}
+            onPickLibrary={handlePickLibrary}
+            onRemove={() => setSelectedPhoto(null)}
+            lang={lang}
+          />
+
+          <MotionPressable style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmitReport} disabled={loading}>
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
+          </MotionPressable>
         </View>
-
-        <NeumorphicInput
-          label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
-          value={description}
-          onChangeText={setDescription}
-          placeholder={lang === 'tl' ? 'Ilarawan ang nangyari...' : 'Describe the damage...'}
-          errorText={errors.description}
-          multiline
-          numberOfLines={3}
-          required
-        />
-
-        <PhotoAttachmentSection
-          selectedPhoto={selectedPhoto}
-          onPickCamera={handlePickCamera}
-          onPickLibrary={handlePickLibrary}
-          onRemove={() => setSelectedPhoto(null)}
-          lang={lang}
-        />
-
-        <MotionPressable style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmitReport} disabled={loading}>
-          {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
-        </MotionPressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -410,6 +412,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
+  formBody: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 },
   content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 24 },
   backBtnPill: {
     alignSelf: 'flex-start',

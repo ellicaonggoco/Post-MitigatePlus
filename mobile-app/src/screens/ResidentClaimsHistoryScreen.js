@@ -82,9 +82,9 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
         </View>
       </LinearGradient>
 
-
-      {/* Summary Stat Card */}
-      <View style={styles.summaryCard}>
+      <View style={styles.claimsContent}>
+        {/* Summary Stat Card */}
+        <View style={styles.summaryCard}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>DISTRIBUTED</Text>
           <Text style={styles.summaryValue}>{claims.length}</Text>
@@ -186,6 +186,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
           ))}
         </View>
       )}
+      </View>
 
       {/* ── Official Digital Claim Receipt Modal ── */}
       {selectedReceipt && (
@@ -279,6 +280,11 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
+  claimsContent: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 24,
+  },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: RESPONSIVE.topSafe + 8,
@@ -325,8 +331,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 14,
-    marginBottom: 20,
+    marginHorizontal: 0,
+    marginBottom: 16,
     overflow: 'hidden',
     shadowColor: '#1C3F94',
     shadowOffset: { width: 0, height: 4 },

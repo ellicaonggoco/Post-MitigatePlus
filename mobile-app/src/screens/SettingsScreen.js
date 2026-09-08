@@ -102,7 +102,7 @@ function HouseholdProfileHeader({
   const formattedName = formatCapitalizeWords(name || 'Resident Representative');
 
   return (
-    <View style={{ marginHorizontal: 14, marginBottom: 20, marginTop: 8 }}>
+    <View style={{ marginHorizontal: 0, marginBottom: 16, marginTop: 4 }}>
       <View style={{ height: 4, backgroundColor: '#C9A84C', borderTopLeftRadius: 8, borderTopRightRadius: 8 }} />
       <View style={{ backgroundColor: '#FFFFFF', borderBottomLeftRadius: 20, borderBottomRightRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         <TouchableOpacity onPress={onToggleAvatar} activeOpacity={0.8}>
@@ -730,7 +730,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: 130 + keyboardHeight }]}
+        contentContainerStyle={[styles.content, { paddingBottom: 100 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -1969,12 +1969,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 18,
+    marginBottom: 6,
     ...SHADOWS.sm,
   },
   logoutBtnText: { fontSize: 14, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
-  trademarkCard: { alignItems: 'center', marginTop: 32, paddingBottom: 36, marginBottom: 20 },
-  trademarkLogoImg: { width: 220, height: 48, marginBottom: 8 },
+  trademarkCard: { alignItems: 'center', marginTop: 14, paddingBottom: 36, marginBottom: 8 },
+  trademarkLogoImg: { width: 200, height: 44, marginBottom: 6 },
   trademarkSub: { fontSize: 11.5, color: '#64748B', fontWeight: '600' },
 
   // ── Modal Styles ──
