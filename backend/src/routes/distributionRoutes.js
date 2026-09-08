@@ -530,4 +530,92 @@ router.post('/sync-offline-claims', protect, requireRole('field_staff', 'baranga
   }
 });
 
+// @route   GET /api/distributions/my-releases
+// @desc    Get all distributions released by the currently logged in staff member
+router.get('/my-releases', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const query = { releasedBy: req.user._id };
+    const distributions = await Distribution.find(query)
+      .populate('householdId', 'headOfHouseholdUserId address purok barangayCode memberCount qrCode')
+      .populate({
+        path: 'householdId',
+        populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' }
+      })
+      .populate('distributionEventId', 'title itemType location')
+      .sort({ releasedAt: -1 })
+      .limit(50)
+      .lean();
+
+    res.json(distributions.map(d => ({
+      id: d._id,
+      _id: d._id,
+      receiptNumber: `RCPT-${new Date(d.releasedAt || d.createdAt).getFullYear()}-${d._id.toString().slice(-6).toUpperCase()}`,
+      householdName: d.householdId?.headOfHouseholdUserId?.name || 'Verified Beneficiary',
+      householdAddress: d.householdId?.address || 'Manila City',
+      barangayCode: d.householdId?.barangayCode || d.barangayCode || '291',
+      qrCode: d.qrCode || d.householdId?.qrCode,
+      eventTitle: d.distributionEventId?.title || 'Relief Distribution',
+      itemType: d.distributionEventId?.itemType || 'Family Food Pack',
+      baseUnitsGiven: d.baseUnitsGiven || 1,
+      topUpUnitsGiven: d.topUpUnitsGiven || 0,
+      totalPacks: (d.baseUnitsGiven || 1) + (d.topUpUnitsGiven || 0),
+      releasedAt: d.releasedAt || d.createdAt,
+      releasedByName: req.user.name,
+      disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
+      status: 'claimed',
+    })));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching staff releases', error: error.message });
+  }
+});
+
+// @route   GET /api/distributions/all-claims
+// @desc    Get live distribution roster of all claims across events for web admin audit
+router.get('/all-claims', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    let query = {};
+    if (req.user.role === 'barangay_official') {
+      query.barangayCode = req.user.barangayCode;
+    } else if (req.query.barangayCode && req.query.barangayCode !== 'all') {
+      query.barangayCode = req.query.barangayCode;
+    }
+    if (req.query.eventId) {
+      query.distributionEventId = req.query.eventId;
+    }
+
+    const claims = await Distribution.find(query)
+      .populate('householdId', 'headOfHouseholdUserId address purok barangayCode memberCount qrCode')
+      .populate({
+        path: 'householdId',
+        populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' }
+      })
+      .populate('distributionEventId', 'title itemType location')
+      .populate('releasedBy', 'name role teamName')
+      .sort({ releasedAt: -1 })
+      .limit(100)
+      .lean();
+
+    res.json(claims.map(c => ({
+      id: c._id,
+      _id: c._id,
+      receiptNumber: `RCPT-${new Date(c.releasedAt || c.createdAt).getFullYear()}-${c._id.toString().slice(-6).toUpperCase()}`,
+      householdName: c.householdId?.headOfHouseholdUserId?.name || 'Verified Beneficiary',
+      householdAddress: c.householdId?.address || 'Manila City',
+      barangayCode: c.householdId?.barangayCode || c.barangayCode || '291',
+      qrCode: c.qrCode || c.householdId?.qrCode,
+      eventTitle: c.distributionEventId?.title || 'Relief Distribution',
+      itemType: c.distributionEventId?.itemType || 'Family Food Pack',
+      baseUnitsGiven: c.baseUnitsGiven || 1,
+      topUpUnitsGiven: c.topUpUnitsGiven || 0,
+      totalPacks: (c.baseUnitsGiven || 1) + (c.topUpUnitsGiven || 0),
+      releasedAt: c.releasedAt || c.createdAt,
+      releasedByName: c.releasedBy?.name || 'Field Officer',
+      disbursingTeam: c.releasedBy?.teamName || 'MDRRMO Field Operations',
+      status: 'claimed',
+    })));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching claims roster', error: error.message });
+  }
+});
+
 module.exports = router;

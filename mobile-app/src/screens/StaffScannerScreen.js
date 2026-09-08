@@ -12,6 +12,8 @@ import {
   Animated,
   Switch,
   Keyboard,
+  Modal,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -272,6 +274,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [loading, setLoading] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [releasing, setReleasing] = useState(false);
+  const [receiptModalData, setReceiptModalData] = useState(null);
+  const [completedScans, setCompletedScans] = useState([]);
+  const [loadingCompletedScans, setLoadingCompletedScans] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
   const [scanNotice, setScanNotice] = useState(null);
@@ -353,6 +358,43 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       }
     })();
   }, []);
+
+  // Load completed releases from server & cache
+  const fetchMyReleases = async () => {
+    if (!token) return;
+    setLoadingCompletedScans(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/distributions/my-releases`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setCompletedScans(data);
+          AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(data.slice(0, 50))).catch(() => {});
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching staff releases:', e);
+    } finally {
+      setLoadingCompletedScans(false);
+    }
+
+    try {
+      const local = await AsyncStorage.getItem('mitigateplus_completed_scans_' + dutyBrgy);
+      if (local) {
+        setCompletedScans(JSON.parse(local));
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchMyReleases();
+  }, [token, dutyBrgy]);
 
   const downloadOfflineCache = async () => {
     setCachingLoading(true);
@@ -500,27 +542,72 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
   const handleConfirmRelease = async () => {
     if (!scanResult) return;
+    const currentHh = scanResult.household;
+    const currentEv = selectedEvent;
     setReleasing(true);
     try {
       if (isOfflineMode) {
         const claimObj = {
-          householdId: scanResult.household._id || scanResult.household.id,
-          qrCode: scanResult.household.qrCode,
-          eventId: selectedEvent._id || selectedEvent.id,
+          householdId: currentHh._id || currentHh.id,
+          qrCode: currentHh.qrCode,
+          eventId: currentEv._id || currentEv.id,
           timestamp: new Date().toISOString(),
         };
-        const updated = [...offlineClaimsQueue, claimObj];
-        setOfflineClaimsQueue(updated);
-        await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updated));
-        showNotify('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
-        handleResetScanner();
+        const updatedQueue = [...offlineClaimsQueue, claimObj];
+        setOfflineClaimsQueue(updatedQueue);
+        await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
+
+        const offlineReceipt = {
+          receiptNumber: `RCPT-${new Date().getFullYear()}-${Date.now().toString().slice(-6).toUpperCase()}`,
+          eventTitle: currentEv.title || 'Relief Distribution',
+          barangayCode: currentHh.barangayCode || dutyBrgy,
+          householdAddress: currentHh.address || 'Manila City',
+          headOfHousehold: currentHh.name || 'Verified Beneficiary',
+          itemType: currentEv.itemType || 'All-in-One Family Food Pack',
+          totalPacks: 1,
+          baseUnitsGiven: 1,
+          topUpUnitsGiven: 0,
+          releasedAt: new Date().toISOString(),
+          releasedByName: officerName,
+          disbursingTeam: 'MDRRMO Field Operations',
+          isOffline: true,
+          status: 'claimed',
+        };
+
+        const newCompleted = [offlineReceipt, ...completedScans];
+        setCompletedScans(newCompleted);
+        AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
+        setReceiptModalData(offlineReceipt);
+        setScanResult(null);
+        setScanned(false);
       } else {
-        await confirmDistribution(token, {
-          householdId: scanResult.household._id || scanResult.household.id,
-          eventId: selectedEvent._id || selectedEvent.id,
+        const res = await confirmDistribution(token, {
+          householdId: currentHh._id || currentHh.id,
+          eventId: currentEv._id || currentEv.id,
         });
-        showNotify('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
-        handleResetScanner();
+
+        const receipt = res?.receipt || {
+          receiptNumber: res?.receiptNumber || `RCPT-${new Date().getFullYear()}-${(currentHh._id || Date.now()).toString().slice(-6).toUpperCase()}`,
+          eventTitle: currentEv.title || 'Relief Distribution',
+          barangayCode: currentHh.barangayCode || dutyBrgy,
+          householdAddress: currentHh.address || 'Manila City',
+          headOfHousehold: currentHh.name || 'Verified Beneficiary',
+          itemType: currentEv.itemType || 'All-in-One Family Food Pack',
+          totalPacks: 1,
+          baseUnitsGiven: 1,
+          topUpUnitsGiven: 0,
+          releasedAt: new Date().toISOString(),
+          releasedByName: officerName,
+          disbursingTeam: 'MDRRMO Field Operations',
+          status: 'claimed',
+        };
+
+        const newCompleted = [receipt, ...completedScans.filter(s => s.receiptNumber !== receipt.receiptNumber)];
+        setCompletedScans(newCompleted);
+        AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
+        setReceiptModalData(receipt);
+        setScanResult(null);
+        setScanned(false);
       }
     } catch (err) {
       const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
@@ -944,72 +1031,89 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </View>
             )}
 
-            {/* Scan Household Result Card */}
-            {scanResult && !duplicateAlert && scanResult.household && (() => {
-              const isHouseholdVerified = scanResult.isVerified !== false && scanResult.household.verificationStatus !== 'pending';
-              return (
-                <View style={styles.resultCard}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <View style={{ flex: 1, paddingRight: 8 }}>
-                      <Text style={styles.resultName}>{scanResult.household.name}</Text>
-                      <Text style={styles.resultMeta}>
-                        {scanResult.household.address} • Headcount: {scanResult.household.familyHeadcount} Members
-                      </Text>
-                    </View>
-                    <View style={[styles.verifTag, isHouseholdVerified ? styles.verifTagVerified : styles.verifTagPending]}>
-                      <Text style={[styles.verifTagText, isHouseholdVerified ? styles.verifTagTextVerified : styles.verifTagTextPending]}>
-                        {isHouseholdVerified ? 'VERIFIED' : 'PENDING'}
-                      </Text>
-                    </View>
+            {/* Mga Naipamahaging Relief (Completion List) */}
+            <View style={styles.completionListCard}>
+              <View style={styles.completionHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={styles.completionIconBadge}>
+                    <ListIcon size={18} color="#FFFFFF" />
                   </View>
-
-                  {/* Quota Breakdown */}
-                  <Text style={styles.entitlementTitle}>AUTHORIZED RELIEF QUOTA</Text>
-                  <Text style={styles.entitlementText}>{scanResult.household.entitlement}</Text>
-                  <Text style={[styles.resultMeta, { marginTop: 4, color: '#D97706', fontWeight: '700' }]}>
-                    Priority Level: {scanResult.household.priorityLevel}
-                  </Text>
-
-                  {!isHouseholdVerified && (
-                    <View style={styles.unverifiedWarningBox}>
-                      <Text style={styles.unverifiedWarningText}>
-                        ⚠️ Paalala: Nakabinbin pa ang verification ng pamilyang ito sa Barangay. Hindi pa maaaring ipamahagi ang relief pack.
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Confirm Release Button */}
-                  <TouchableOpacity
-                    style={[
-                      styles.releaseBtn,
-                      (!isHouseholdVerified || releasing) && { opacity: 0.5, backgroundColor: '#64748B' },
-                    ]}
-                    onPress={handleConfirmRelease}
-                    disabled={!isHouseholdVerified || releasing}
-                    activeOpacity={0.85}
-                  >
-                    {releasing ? (
-                      <ActivityIndicator color="#FFFFFF" />
-                    ) : (
-                      <Text style={styles.releaseBtnText}>
-                        {isHouseholdVerified ? 'Confirm Relief Release' : 'Action Locked (Unverified)'}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-
-                  {/* Cancel / Scan Another Button */}
-                  <TouchableOpacity
-                    style={{ marginTop: 8, paddingVertical: 10, alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 10 }}
-                    onPress={handleResetScanner}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 13 }}>
-                      {lang === 'tl' ? '✕ Kanselahin / I-scan ang Susunod' : '✕ Cancel / Scan Another'}
+                  <View>
+                    <Text style={styles.completionTitle}>
+                      {lang === 'tl' ? 'Mga Naipamahaging Relief' : "Today's Distribution Roster"}
                     </Text>
-                  </TouchableOpacity>
+                    <Text style={styles.completionSub}>
+                      {lang === 'tl' ? 'Naka-save sa Central Web Database' : 'Saved to Central Web Database'}
+                    </Text>
+                  </View>
                 </View>
-              );
-            })()}
+                <View style={styles.completionCountPill}>
+                  <Text style={styles.completionCountText}>
+                    {completedScans.length} {lang === 'tl' ? 'Naipamahagi' : 'Released'}
+                  </Text>
+                </View>
+              </View>
+
+              {loadingCompletedScans ? (
+                <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color="#1E3A8A" />
+                  <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                    {lang === 'tl' ? 'Kinakarga ang mga naipamahagi mula sa server...' : 'Loading distribution roster from cloud...'}
+                  </Text>
+                </View>
+              ) : completedScans.length === 0 ? (
+                <View style={styles.emptyCompletionBox}>
+                  <Text style={styles.emptyCompletionText}>
+                    {lang === 'tl'
+                      ? 'Wala pang naipapamahaging relief sa shift na ito. I-scan ang QR pass ng residente upang magsimula.'
+                      : 'No relief distributions logged yet for this shift. Scan a resident QR pass to begin.'}
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ gap: 10, marginTop: 14 }}>
+                  {completedScans.slice(0, 20).map((item, idx) => (
+                    <View key={item.receiptNumber || item.id || idx} style={styles.completionItem}>
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <Text style={styles.completionItemName} numberOfLines={1}>
+                            {item.householdName || item.headOfHousehold || 'Verified Beneficiary'}
+                          </Text>
+                          <View style={styles.claimedPill}>
+                            <Text style={styles.claimedPillText}>✓ CLAIMED</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.completionItemAddr} numberOfLines={1}>
+                          📍 {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                          <Text style={styles.completionReceiptCode}>
+                            {item.receiptNumber}
+                          </Text>
+                          <Text style={styles.completionTime}>
+                            🕒 {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.viewReceiptBtn}
+                        onPress={() => setReceiptModalData(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.viewReceiptBtnText}>
+                          {lang === 'tl' ? 'Resibo' : 'Receipt'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  {completedScans.length > 20 && (
+                    <Text style={{ textAlign: 'center', fontSize: 11, color: '#64748B', marginTop: 4, fontWeight: '600' }}>
+                      {lang === 'tl' ? `+ ${completedScans.length - 20} pang naitala sa database` : `+ ${completedScans.length - 20} more records in central database`}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
           </ScrollView>
         ) : activeTab === 'incident' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
@@ -1217,6 +1321,287 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         {/* iOS Home Indicator Pill */}
         <View style={styles.homeIndicatorPill} />
       </View>
+
+      {/* 1. BENEFICIARY SCAN RESULT POP-UP CARD MODAL */}
+      <Modal
+        visible={!!scanResult && !receiptModalData}
+        transparent
+        animationType="slide"
+        onRequestClose={handleResetScanner}
+      >
+        <View style={styles.modalBackdrop}>
+          {scanResult && scanResult.household && (() => {
+            const isHouseholdVerified =
+              scanResult.isVerified !== false &&
+              scanResult.household.verificationStatus !== 'pending';
+            return (
+              <View style={styles.scanPopupCard}>
+                {/* Header */}
+                <View style={styles.popupHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <View style={styles.popupIconCircle}>
+                      <PackageIcon size={20} color="#FFFFFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.popupTitle}>
+                        {lang === 'tl' ? 'Kumpirmahin ang Ayuda' : 'Beneficiary Verified'}
+                      </Text>
+                      <Text style={styles.popupSub} numberOfLines={1}>
+                        {selectedEvent?.title || 'MDRRMO Distribution Drive'}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleResetScanner}
+                    style={styles.popupCloseBtn}
+                    activeOpacity={0.8}
+                  >
+                    <CloseIcon size={18} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Beneficiary Details Box */}
+                <View style={styles.popupBeneficiaryBox}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={styles.popupHhName}>{scanResult.household.name}</Text>
+                      <Text style={styles.popupHhAddress}>
+                        📍 {scanResult.household.address}
+                      </Text>
+                      <Text style={styles.popupHhMeta}>
+                        👥 {scanResult.household.familyHeadcount} {lang === 'tl' ? 'Miyembro ng Pamilya' : 'Household Members'} • Brgy {scanResult.household.barangayCode || dutyBrgy}
+                      </Text>
+                    </View>
+                    <View style={[styles.verifTag, isHouseholdVerified ? styles.verifTagVerified : styles.verifTagPending]}>
+                      <Text style={[styles.verifTagText, isHouseholdVerified ? styles.verifTagTextVerified : styles.verifTagTextPending]}>
+                        {isHouseholdVerified ? '✓ VERIFIED' : 'PENDING'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Entitlement Quota */}
+                <View style={styles.popupQuotaBox}>
+                  <Text style={styles.entitlementTitle}>AUTHORIZED RELIEF ALLOCATION</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <PackageIcon size={18} color="#0D9488" />
+                    <Text style={styles.popupQuotaText}>{scanResult.household.entitlement}</Text>
+                  </View>
+                  <Text style={[styles.resultMeta, { marginTop: 6, color: '#D97706', fontWeight: '700' }]}>
+                    Priority Status: {scanResult.household.priorityLevel || 'Standard Priority'}
+                  </Text>
+                </View>
+
+                {!isHouseholdVerified && (
+                  <View style={styles.unverifiedWarningBox}>
+                    <Text style={styles.unverifiedWarningText}>
+                      ⚠️ Paalala: Nakabinbin pa ang verification ng pamilyang ito sa Barangay. Hindi pa maaaring ipamahagi ang relief pack.
+                    </Text>
+                  </View>
+                )}
+
+                {/* Confirm Release Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.releaseBtn,
+                    (!isHouseholdVerified || releasing) && { opacity: 0.5, backgroundColor: '#64748B' },
+                    { marginTop: 16 }
+                  ]}
+                  onPress={handleConfirmRelease}
+                  disabled={!isHouseholdVerified || releasing}
+                  activeOpacity={0.85}
+                >
+                  {releasing ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <CheckIcon size={20} color="#FFFFFF" />
+                      <Text style={styles.releaseBtnText}>
+                        {isHouseholdVerified
+                          ? (lang === 'tl' ? 'Kumpirmahin ang Pamamahagi' : 'Confirm Relief Release')
+                          : 'Action Locked (Unverified)'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                {/* Cancel / Scan Another Button */}
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={handleResetScanner}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.cancelBtnText}>
+                    {lang === 'tl' ? '✕ Kanselahin / Isara' : '✕ Cancel / Close'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })()}
+        </View>
+      </Modal>
+
+      {/* 2. OFFICIAL DIGITAL RELIEF CLAIM RECEIPT MODAL ("PARANG RESIBO") */}
+      <Modal
+        visible={!!receiptModalData}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setReceiptModalData(null);
+          handleResetScanner();
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          {receiptModalData && (
+            <ScrollView
+              contentContainerStyle={{ paddingVertical: 20, alignItems: 'center', width: '100%' }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.receiptContainer}>
+                {/* Decorative Top Line */}
+                <View style={styles.receiptTopBorder} />
+
+                {/* Header: Republic & City of Manila MDRRMO */}
+                <View style={styles.receiptHeader}>
+                  <Text style={styles.receiptGovText}>REPUBLIKA NG PILIPINAS</Text>
+                  <Text style={styles.receiptCityText}>LUNGSOD NG MAYNILA</Text>
+                  <Text style={styles.receiptDeptText}>DISASTER RISK REDUCTION & MANAGEMENT OFFICE</Text>
+                  <View style={styles.receiptDividerDashed} />
+                  <Text style={styles.receiptTitle}>OPISYAL NA RESIBO NG AYUDA</Text>
+                  <Text style={styles.receiptSubTitle}>OFFICIAL RELIEF DISTRIBUTION CLAIM VOUCHER</Text>
+                </View>
+
+                {/* Released & Audited Badge */}
+                <View style={styles.auditedBadge}>
+                  <CheckIcon size={14} color="#15803D" />
+                  <Text style={styles.auditedBadgeText}>✓ RELEASED & AUDITED</Text>
+                </View>
+
+                {/* Receipt Monospace Code Box */}
+                <View style={styles.receiptCodeBox}>
+                  <Text style={styles.receiptCodeLabel}>RECEIPT / REFERENCE NUMBER</Text>
+                  <Text style={styles.receiptCodeValue}>{receiptModalData.receiptNumber}</Text>
+                </View>
+
+                {/* Beneficiary Details Section */}
+                <View style={styles.receiptSection}>
+                  <Text style={styles.receiptSectionTitle}>BENEFICIARY INFORMATION</Text>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Benepisyaryo:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {receiptModalData.headOfHousehold || receiptModalData.householdName || 'Verified Resident'}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Tirahan / Address:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {receiptModalData.householdAddress || 'City of Manila'}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Barangay Assignment:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      Barangay {receiptModalData.barangayCode || dutyBrgy}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Pamamahagi:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {receiptModalData.eventTitle || selectedEvent?.title || 'Relief Operations'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.receiptDividerDashed} />
+
+                {/* Itemized Allocation Table */}
+                <View style={styles.receiptSection}>
+                  <Text style={styles.receiptSectionTitle}>MGA NAIPAMAHAGING AYUDA / GOODS</Text>
+                  <View style={styles.receiptTable}>
+                    <View style={styles.receiptTableHeader}>
+                      <Text style={[styles.receiptTableCol, { flex: 2 }]}>DESKRIPSYON NG AYUDA</Text>
+                      <Text style={[styles.receiptTableCol, { flex: 1, textAlign: 'right' }]}>KANTIDAD</Text>
+                    </View>
+                    <View style={styles.receiptTableRow}>
+                      <Text style={[styles.receiptTableCell, { flex: 2, fontWeight: '700' }]}>
+                        {receiptModalData.itemType || selectedEvent?.itemType || 'All-in-One Family Food Pack'}
+                      </Text>
+                      <Text style={[styles.receiptTableCell, { flex: 1, textAlign: 'right', fontWeight: '900', color: '#1E3A8A' }]}>
+                        {receiptModalData.totalPacks || 1} Pack(s)
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.receiptDividerDashed} />
+
+                {/* Audit & Dispatch Logistics Trail */}
+                <View style={styles.receiptSection}>
+                  <Text style={styles.receiptSectionTitle}>LOGISTICS & CENTRAL AUDIT TRAIL</Text>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Petsa at Oras:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {new Date(receiptModalData.releasedAt || Date.now()).toLocaleString('en-PH', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Nagpalabas na Opisyal:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {receiptModalData.releasedByName || officerName}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Disbursing Team:</Text>
+                    <Text style={styles.receiptFieldValue}>
+                      {receiptModalData.disbursingTeam || 'MDRRMO Field Operations'}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptFieldLabel}>Central Cloud Ledger:</Text>
+                    <Text style={[styles.receiptFieldValue, { color: '#059669', fontWeight: '800' }]}>
+                      ✓ SAVED & VERIFIED IN WEB
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Simulated Barcode at bottom */}
+                <View style={styles.receiptBarcodeSimulation}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 2, height: 26, alignItems: 'center' }}>
+                    {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 4, 1, 2, 3, 1, 2, 3, 2].map((w, idx) => (
+                      <View key={idx} style={{ width: w, height: 24, backgroundColor: '#334155' }} />
+                    ))}
+                  </View>
+                  <Text style={styles.receiptBarcodeText}>
+                    * {receiptModalData.receiptNumber} *
+                  </Text>
+                </View>
+
+                <View style={styles.receiptBottomBorder} />
+
+                {/* Done / Next Scan Action Button */}
+                <TouchableOpacity
+                  style={styles.receiptDoneBtn}
+                  onPress={() => {
+                    setReceiptModalData(null);
+                    handleResetScanner();
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <CheckIcon size={20} color="#FFFFFF" />
+                    <Text style={styles.receiptDoneBtnText}>
+                      {lang === 'tl' ? '✓ Tapos Na / I-scan ang Susunod' : '✓ Done / Scan Next Beneficiary'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -2010,5 +2395,444 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+
+  // Pop-Up Modal & Digital Receipt Styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  scanPopupCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 420,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 20px 40px rgba(15, 23, 42, 0.25)' }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.25,
+          shadowRadius: 15,
+          elevation: 10,
+        }),
+  },
+  popupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  popupIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#1E3A8A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  popupTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0F172A',
+  },
+  popupSub: {
+    fontSize: 11.5,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  popupCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  popupBeneficiaryBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  popupHhName: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#0F172A',
+  },
+  popupHhAddress: {
+    fontSize: 12.5,
+    color: '#334155',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  popupHhMeta: {
+    fontSize: 11.5,
+    color: '#64748B',
+    marginTop: 3,
+  },
+  popupQuotaBox: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginTop: 12,
+  },
+  popupQuotaText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#1E3A8A',
+  },
+  cancelBtn: {
+    marginTop: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+  },
+  cancelBtnText: {
+    color: '#475569',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+
+  // Official Receipt Modal Styles
+  receiptContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 22,
+    width: '100%',
+    maxWidth: 390,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    position: 'relative',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: 0.3,
+          shadowRadius: 16,
+          elevation: 12,
+        }),
+  },
+  receiptTopBorder: {
+    height: 4,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 2,
+    marginBottom: 14,
+  },
+  receiptHeader: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  receiptGovText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 1.2,
+  },
+  receiptCityText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
+  receiptDeptText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#1E3A8A',
+    letterSpacing: 0.3,
+    marginTop: 1,
+    textAlign: 'center',
+  },
+  receiptDividerDashed: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#CBD5E1',
+    borderStyle: 'dashed',
+    marginVertical: 10,
+  },
+  receiptTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: 0.3,
+  },
+  receiptSubTitle: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748B',
+    letterSpacing: 0.5,
+    marginTop: 1,
+  },
+  auditedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  auditedBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '900',
+    color: '#15803D',
+    letterSpacing: 0.5,
+  },
+  receiptCodeBox: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  receiptCodeLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.8,
+  },
+  receiptCodeValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#1E3A8A',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  receiptSection: {
+    marginBottom: 8,
+  },
+  receiptSectionTitle: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#1E3A8A',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  receiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  receiptFieldLabel: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+    flex: 1,
+  },
+  receiptFieldValue: {
+    fontSize: 11.5,
+    color: '#0F172A',
+    fontWeight: '700',
+    flex: 1.4,
+    textAlign: 'right',
+  },
+  receiptTable: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  receiptTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  receiptTableCol: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
+  },
+  receiptTableRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  receiptTableCell: {
+    fontSize: 11.5,
+    color: '#0F172A',
+  },
+  receiptBarcodeSimulation: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 14,
+  },
+  receiptBarcodeText: {
+    fontSize: 9,
+    color: '#64748B',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: 3,
+    letterSpacing: 1.5,
+  },
+  receiptBottomBorder: {
+    height: 2,
+    backgroundColor: '#E2E8F0',
+    marginBottom: 14,
+  },
+  receiptDoneBtn: {
+    backgroundColor: '#1E3A8A',
+    paddingVertical: 13,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  receiptDoneBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '900',
+  },
+
+  // Completion List Styles
+  completionListCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      : {
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  completionIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#059669',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  completionTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0F172A',
+  },
+  completionSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  completionCountPill: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  completionCountText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#15803D',
+  },
+  emptyCompletionBox: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyCompletionText: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  completionItem: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  completionItemName: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  completionItemAddr: {
+    fontSize: 11.5,
+    color: '#475569',
+    marginTop: 2,
+  },
+  completionReceiptCode: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1E3A8A',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  completionTime: {
+    fontSize: 10,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  claimedPill: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  claimedPillText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#15803D',
+  },
+  viewReceiptBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewReceiptBtnText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#1E3A8A',
   },
 });

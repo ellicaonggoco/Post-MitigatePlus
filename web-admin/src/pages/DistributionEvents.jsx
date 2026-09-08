@@ -20,6 +20,9 @@ import {
   Edit3,
   Globe,
   AlertTriangle,
+  Receipt,
+  Search,
+  FileText,
 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
@@ -50,6 +53,11 @@ export default function DistributionEvents() {
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [sentAnnouncements, setSentAnnouncements] = useState({});
+  const [claimsRoster, setClaimsRoster] = useState([]);
+  const [selectedClaimReceipt, setSelectedClaimReceipt] = useState(null);
+  const [claimsPage, setClaimsPage] = useState(1);
+  const [claimsItemsPerPage, setClaimsItemsPerPage] = useState(8);
+  const [claimsSearch, setClaimsSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = async () => {
@@ -82,9 +90,23 @@ export default function DistributionEvents() {
     }
   };
 
+  const fetchClaims = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/distributions/all-claims`, {
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setClaimsRoster(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Error fetching claims roster:', err);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchEvents(), fetchAnnouncements()]).finally(() => {
+    Promise.all([fetchEvents(), fetchAnnouncements(), fetchClaims()]).finally(() => {
       setLoading(false);
     });
   }, [token]);
@@ -511,7 +533,7 @@ export default function DistributionEvents() {
   const filtered =
     filter === 'ALL'
       ? events
-      : filter === 'ANNOUNCED'
+      : (filter === 'ANNOUNCED' || filter === 'CLAIMS')
       ? []
       : events.filter(e => getEventStatus(e) === filter);
 
@@ -521,9 +543,29 @@ export default function DistributionEvents() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setClaimsPage(1);
   }, [filter]);
 
   const paginatedEvents = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Filter claims roster
+  const filteredClaims = claimsRoster.filter(c => {
+    if (!claimsSearch.trim()) return true;
+    const q = claimsSearch.toLowerCase();
+    return (
+      (c.householdName && c.householdName.toLowerCase().includes(q)) ||
+      (c.receiptNumber && c.receiptNumber.toLowerCase().includes(q)) ||
+      (c.householdAddress && c.householdAddress.toLowerCase().includes(q)) ||
+      (c.barangayCode && String(c.barangayCode).includes(q)) ||
+      (c.releasedByName && c.releasedByName.toLowerCase().includes(q)) ||
+      (c.itemType && c.itemType.toLowerCase().includes(q))
+    );
+  });
+
+  const paginatedClaims = filteredClaims.slice(
+    (claimsPage - 1) * claimsItemsPerPage,
+    claimsPage * claimsItemsPerPage
+  );
 
   // Total count of announcements
   const totalAnnouncementsCount =
@@ -1386,6 +1428,7 @@ export default function DistributionEvents() {
           { key: 'Ongoing', label: `Ongoing (${events.filter(e => getEventStatus(e) === 'Ongoing').length})` },
           { key: 'Completed', label: `Completed (${events.filter(e => getEventStatus(e) === 'Completed').length})` },
           { key: 'ANNOUNCED', label: `Announcement Sent (${totalAnnouncementsCount})` },
+          { key: 'CLAIMS', label: `Relief Claims Roster / Resibo (${claimsRoster.length})` },
         ].map(tab => (
           <button
             key={tab.key}
@@ -1409,7 +1452,235 @@ export default function DistributionEvents() {
       </div>
 
       {/* Content Rendering based on active tab filter */}
-      {filter === 'ANNOUNCED' ? (
+      {filter === 'CLAIMS' ? (
+        /* ── Live Relief Claims Roster View (All distributions saved from staff scanners) ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Top Controls: Search & Page Selector */}
+          <div className="clay-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
+              <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+                <Search size={16} color="var(--ink-soft)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="text"
+                  placeholder="Search by Beneficiary, Receipt #, Address, or Officer..."
+                  value={claimsSearch}
+                  onChange={(e) => {
+                    setClaimsSearch(e.target.value);
+                    setClaimsPage(1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px 9px 36px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    fontSize: 13,
+                    background: 'var(--card)',
+                    color: 'var(--ink)',
+                    outline: 'none',
+                    fontWeight: 600,
+                  }}
+                />
+              </div>
+              {claimsSearch && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setClaimsSearch('');
+                    setClaimsPage(1);
+                  }}
+                  className="clay-button-ghost"
+                  style={{ fontSize: 12, padding: '6px 12px', cursor: 'pointer' }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                type="button"
+                onClick={fetchClaims}
+                className="clay-button-ghost"
+                style={{ fontSize: 12, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 700 }}
+              >
+                ↻ Refresh Central Roster
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>
+                <span>Show:</span>
+                <select
+                  value={claimsItemsPerPage}
+                  onChange={(e) => {
+                    setClaimsItemsPerPage(Number(e.target.value));
+                    setClaimsPage(1);
+                  }}
+                  style={{
+                    padding: '5px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--card)',
+                    color: 'var(--ink)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={5}>5 per page</option>
+                  <option value={8}>8 per page</option>
+                  <option value={10}>10 per page</option>
+                  <option value={20}>20 per page</option>
+                  <option value={50}>50 per page</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Claims Table / List */}
+          {filteredClaims.length === 0 ? (
+            <div className="clay-card" style={{ padding: 40, textAlign: 'center', color: 'var(--ink-soft)' }}>
+              No relief distribution claims found in the database.
+            </div>
+          ) : (
+            <div className="clay-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Resibo / Reference #</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Benepisyaryo (Household Head)</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Tirahan & Barangay</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Ayuda / Quota</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Nagpalabas na Opisyal</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Petsa & Oras</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800, textAlign: 'center' }}>Status</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800, textAlign: 'right' }}>Aksyon</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedClaims.map((claim, idx) => (
+                      <tr
+                        key={claim._id || claim.id || idx}
+                        style={{
+                          borderBottom: '1px solid #F1F5F9',
+                          transition: 'background 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#F8FAFC')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <td style={{ padding: '14px 18px' }}>
+                          <span
+                            style={{
+                              fontFamily: 'monospace',
+                              fontWeight: 800,
+                              color: '#1557B0',
+                              background: '#EFF6FF',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid #BFDBFE',
+                              fontSize: 12,
+                            }}
+                          >
+                            {claim.receiptNumber}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 18px' }}>
+                          <strong style={{ color: 'var(--ink)', display: 'block', fontSize: 13.5 }}>
+                            {claim.householdName || 'Verified Beneficiary'}
+                          </strong>
+                          {claim.qrCode && (
+                            <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'monospace' }}>
+                              QR: {claim.qrCode}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 18px' }}>
+                          <div style={{ color: 'var(--ink)', fontWeight: 600 }}>{claim.householdAddress || 'Manila City'}</div>
+                          <span style={{ fontSize: 11, color: '#1557B0', fontWeight: 700 }}>
+                            Barangay {claim.barangayCode || '291'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 18px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              fontWeight: 700,
+                              color: '#0F172A',
+                            }}
+                          >
+                            <Package size={14} color="#1557B0" />
+                            {claim.totalPacks || 1}x {claim.itemType || 'Family Food Pack'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 18px' }}>
+                          <div style={{ color: 'var(--ink)', fontWeight: 700 }}>{claim.releasedByName || 'Field Staff'}</div>
+                          <div style={{ fontSize: 11, color: '#64748B' }}>{claim.disbursingTeam || 'MDRRMO Field Operations'}</div>
+                        </td>
+                        <td style={{ padding: '14px 18px', color: '#475569', fontSize: 12 }}>
+                          {new Date(claim.releasedAt || Date.now()).toLocaleString('en-PH', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </td>
+                        <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 800,
+                              padding: '3px 9px',
+                              borderRadius: 999,
+                              background: '#DCFCE7',
+                              color: '#15803D',
+                              border: '1px solid #86EFAC',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            <CheckCircle size={12} color="#15803D" /> CLAIMED
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedClaimReceipt(claim)}
+                            className="clay-button-ghost"
+                            style={{
+                              fontSize: 12,
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              color: '#1557B0',
+                              border: '1px solid #BFDBFE',
+                              background: '#EFF6FF',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                            }}
+                          >
+                            <Receipt size={14} /> Resibo
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div style={{ padding: '12px 18px', borderTop: '1px solid #E2E8F0' }}>
+                <Pagination
+                  currentPage={claimsPage}
+                  totalItems={filteredClaims.length}
+                  itemsPerPage={claimsItemsPerPage}
+                  onPageChange={setClaimsPage}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      ) : filter === 'ANNOUNCED' ? (
         /* ── Announcement Sent View (Lists all standalone & event broadcast announcements) ── */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {totalAnnouncementsCount === 0 && (
@@ -1748,6 +2019,186 @@ export default function DistributionEvents() {
             onPageChange={setCurrentPage}
           />
         </div>
+      )}
+
+      {/* Modal 4: Official Relief Claim Receipt Modal Portal */}
+      {selectedClaimReceipt && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(15, 23, 42, 0.78)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999999,
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <div className="clay-card" style={{
+            maxWidth: '520px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            background: '#FFFFFF',
+            padding: '28px',
+            borderRadius: '16px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            border: '1.5px solid #CBD5E1',
+            position: 'relative',
+            zIndex: 100000000,
+          }}>
+            {/* Top Accent Line */}
+            <div style={{ height: 4, background: '#1557B0', borderRadius: 2, marginBottom: 16 }} />
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 12 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#64748B', letterSpacing: '0.12em', display: 'block' }}>
+                REPUBLIKA NG PILIPINAS
+              </span>
+              <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0F172A', margin: '2px 0 0' }}>
+                LUNGSOD NG MAYNILA
+              </h3>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1557B0', display: 'block', marginTop: 1 }}>
+                MANILA DISASTER RISK REDUCTION AND MANAGEMENT OFFICE (MDRRMO)
+              </span>
+              <div style={{ borderBottom: '1px dashed #CBD5E1', margin: '12px 0' }} />
+              <div style={{ fontSize: 14, fontWeight: 900, color: '#0F172A' }}>
+                OPISYAL NA RESIBO NG AYUDA (RELIEF CLAIM SLIP)
+              </div>
+              <span style={{ fontSize: 10, color: '#64748B', letterSpacing: '0.05em' }}>
+                OFFICIAL RELIEF DISTRIBUTION CLAIM VOUCHER
+              </span>
+            </div>
+
+            {/* Verified Stamp */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+              <span style={{
+                background: '#DCFCE7',
+                border: '1px solid #86EFAC',
+                color: '#15803D',
+                fontSize: 11,
+                fontWeight: 900,
+                padding: '4px 14px',
+                borderRadius: 999,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}>
+                <CheckCircle size={13} color="#15803D" /> RELEASED & AUDITED IN CENTRAL LEDGER
+              </span>
+            </div>
+
+            {/* Reference Box */}
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '10px 14px', textAlign: 'center', marginBottom: 16 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#64748B', letterSpacing: '0.08em', display: 'block' }}>
+                OFFICIAL RECEIPT / REFERENCE NUMBER
+              </span>
+              <strong style={{ fontSize: 16, fontFamily: 'monospace', color: '#1557B0', letterSpacing: '0.05em', display: 'block', marginTop: 2 }}>
+                {selectedClaimReceipt.receiptNumber}
+              </strong>
+            </div>
+
+            {/* Beneficiary Details */}
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1557B0', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                Beneficiary Information
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Pangalan (Head of HH):</span>
+                  <strong style={{ color: '#0F172A' }}>{selectedClaimReceipt.householdName}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Tirahan / Address:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{selectedClaimReceipt.householdAddress}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Barangay Jurisdiction:</span>
+                  <span style={{ color: '#1557B0', fontWeight: 800 }}>Barangay {selectedClaimReceipt.barangayCode}</span>
+                </div>
+                {selectedClaimReceipt.qrCode && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Citizen QR Pass ID:</span>
+                    <span style={{ fontFamily: 'monospace', color: '#0F172A', fontWeight: 700 }}>{selectedClaimReceipt.qrCode}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ borderBottom: '1px dashed #CBD5E1', margin: '12px 0' }} />
+
+            {/* Items Table */}
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1557B0', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                Relief Goods Released
+              </span>
+              <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', background: '#F8FAFC', padding: '8px 12px', fontSize: 11, fontWeight: 800, color: '#475569', borderBottom: '1px solid #E2E8F0' }}>
+                  <span style={{ flex: 2 }}>ITEM DESCRIPTION</span>
+                  <span style={{ flex: 1, textAlign: 'right' }}>QUANTITY</span>
+                </div>
+                <div style={{ display: 'flex', padding: '10px 12px', fontSize: 13 }}>
+                  <strong style={{ flex: 2, color: '#0F172A' }}>{selectedClaimReceipt.itemType || 'Family Food Pack'}</strong>
+                  <strong style={{ flex: 1, textAlign: 'right', color: '#1557B0' }}>{selectedClaimReceipt.totalPacks || 1} Pack(s)</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ borderBottom: '1px dashed #CBD5E1', margin: '12px 0' }} />
+
+            {/* Audit Details */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1557B0', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                Central Audit & Dispatch Trail
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Petsa at Oras ng Paglabas:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>
+                    {new Date(selectedClaimReceipt.releasedAt || Date.now()).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Nagpalabas na Opisyal:</span>
+                  <strong style={{ color: '#0F172A' }}>{selectedClaimReceipt.releasedByName}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Disbursing Team:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{selectedClaimReceipt.disbursingTeam}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>Distribution Event:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{selectedClaimReceipt.eventTitle}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+              <button
+                type="button"
+                onClick={() => setSelectedClaimReceipt(null)}
+                className="clay-button-ghost"
+                style={{ fontSize: 13, padding: '10px 18px', cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="clay-button-primary"
+                style={{ fontSize: 13, padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 800 }}
+              >
+                <FileText size={15} /> Print Receipt
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
