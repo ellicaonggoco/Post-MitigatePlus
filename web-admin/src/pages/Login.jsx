@@ -30,10 +30,17 @@ export default function Login() {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emailOrPhone: trimmedEmail, password }),
+        body: JSON.stringify({
+          emailOrPhone: trimmedEmail,
+          password,
+          requiredRole: ['lgu_superadmin', 'lgu_admin', 'barangay_official'],
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
+      if (data.role === 'resident' || data.role === 'field_staff') {
+        throw new Error('Access denied: Web Admin portal is restricted to authorized LGU Personnel only.');
+      }
       login(data, data.token);
       navigate('/');
     } catch (err) {

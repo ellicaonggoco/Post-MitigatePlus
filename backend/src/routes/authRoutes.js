@@ -542,12 +542,27 @@ router.post('/login', async (req, res) => {
       await user.save();
     }
 
-    if (requiredRole && user.role !== requiredRole) {
-      if (requiredRole === 'resident' && user.role !== 'resident') {
-        return res.status(403).json({ message: 'Access denied: This portal is for Affected Residents only.' });
-      }
-      if (requiredRole === 'field_staff' && user.role !== 'field_staff') {
-        return res.status(403).json({ message: 'Access denied: This portal is for authorized Field Staff only.' });
+    // Check if account has been suspended or deactivated by an administrator
+    if (user.isActive === false) {
+      return res.status(403).json({
+        message: 'Account is suspended or deactivated. Please contact your LGU Administrator.',
+      });
+    }
+
+    // Role-gating enforcement (supports single role string or array of permitted roles)
+    if (requiredRole) {
+      const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+      if (!allowed.includes(user.role)) {
+        if (allowed.includes('resident') && allowed.length === 1) {
+          return res.status(403).json({ message: 'Access denied: This portal is for Affected Residents only.' });
+        }
+        if (allowed.includes('field_staff') && allowed.length === 1) {
+          return res.status(403).json({ message: 'Access denied: This portal is for authorized Field Staff only.' });
+        }
+        if (allowed.some(r => ['lgu_superadmin', 'lgu_admin', 'barangay_official'].includes(r))) {
+          return res.status(403).json({ message: 'Access denied: This portal is restricted to authorized LGU Personnel only.' });
+        }
+        return res.status(403).json({ message: `Access denied: Account role '${user.role}' is not authorized for this portal.` });
       }
     }
 
