@@ -198,14 +198,14 @@ export default function ProvisionAccounts() {
       });
       if (res.ok) {
         const data = await res.json();
-        setAccounts(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          setAccounts(data);
+        }
       } else {
         console.warn('Failed to fetch provisioned accounts, HTTP status:', res.status);
-        setAccounts([]);
       }
     } catch (err) {
       console.error('Failed to fetch provisioned accounts:', err);
-      setAccounts([]);
     } finally {
       setLoadingAccounts(false);
     }
@@ -221,14 +221,14 @@ export default function ProvisionAccounts() {
       });
       if (res.ok) {
         const data = await res.json();
-        setResidentAccounts(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          setResidentAccounts(data);
+        }
       } else {
         console.warn('Failed to fetch resident accounts, HTTP status:', res.status);
-        setResidentAccounts([]);
       }
     } catch (err) {
       console.error('Failed to fetch resident accounts:', err);
-      setResidentAccounts([]);
     } finally {
       setLoadingResidents(false);
     }
@@ -643,7 +643,9 @@ export default function ProvisionAccounts() {
       brgy.includes(q) ||
       team.includes(q);
 
+    const isCityWide = !brgyRaw || brgy === 'city-wide' || brgy === 'citywide' || brgy === 'all' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin' || a.role === 'lgu_admin';
     const matchesBarangay = selectedBarangayFilter === 'all' ||
+      isCityWide ||
       brgy === String(selectedBarangayFilter).trim().toLowerCase() ||
       brgy === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
       brgy === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
@@ -1534,18 +1536,14 @@ export default function ProvisionAccounts() {
 
           <button
             onClick={() => {
-              if (viewTab === 'residents') {
-                fetchResidentAccounts();
-              } else {
-                fetchProvisionedAccounts();
-              }
+              Promise.all([fetchProvisionedAccounts(), fetchResidentAccounts()]);
             }}
-            disabled={viewTab === 'residents' ? loadingResidents : loadingAccounts}
+            disabled={loadingResidents || loadingAccounts}
             title="Refresh accounts directory"
             className="clay-button-ghost"
             style={{ height: 34, width: 34, padding: 0, justifyContent: 'center', borderRadius: 'var(--radius-pill)' }}
           >
-            <RefreshCw size={14} style={{ animation: (viewTab === 'residents' ? loadingResidents : loadingAccounts) ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw size={14} style={{ animation: (loadingResidents || loadingAccounts) ? 'spin 1s linear infinite' : 'none' }} />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 'var(--radius-pill)' }}>
             <Search size={14} color="var(--ink-soft)" />
@@ -1570,7 +1568,9 @@ export default function ProvisionAccounts() {
               if (!belongsToTeam) return false;
 
               const brgyRaw = String(a.barangayCode || '').trim();
+              const isCityWide = !brgyRaw || brgyRaw.toLowerCase() === 'city-wide' || brgyRaw.toLowerCase() === 'citywide' || brgyRaw.toLowerCase() === 'all';
               const matchesBarangay = selectedBarangayFilter === 'all' ||
+                isCityWide ||
                 brgyRaw.toLowerCase() === String(selectedBarangayFilter).trim().toLowerCase() ||
                 brgyRaw === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
                 brgyRaw === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
@@ -1786,7 +1786,7 @@ export default function ProvisionAccounts() {
                   <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--ink-soft)' }}>
                     <div style={{ marginBottom: 10, fontSize: 14, fontWeight: 600 }}>No accounts found matching your search.</div>
                     <button
-                      onClick={fetchProvisionedAccounts}
+                      onClick={() => Promise.all([fetchProvisionedAccounts(), fetchResidentAccounts()])}
                       className="clay-button-ghost"
                       style={{ fontSize: 12, padding: '6px 14px', margin: '0 auto', gap: 6 }}
                     >
