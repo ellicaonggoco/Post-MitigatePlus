@@ -50,18 +50,38 @@ router.post('/send-otp', async (req, res) => {
       return res.status(400).json({ message: 'Phone number or email is required.' });
     }
 
-    const key = rawTarget.trim().toLowerCase();
-    const isEmail = key.includes('@');
+    const isEmail = String(rawTarget).includes('@');
+    const key = isEmail
+      ? String(rawTarget).trim().toLowerCase()
+      : String(rawTarget).replace(/[\s\-\(\)]/g, '').trim();
 
     // Generate secure 6-digit random OTP code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store in MongoDB (survives restarts & scales across servers)
-    await OtpToken.deleteMany({ phoneOrEmail: key });
-    await OtpToken.create({ phoneOrEmail: key, code });
+    // Normalizing phone variants if not email (e.g. 09171234567, +639171234567, 639171234567)
+    const variants = [key];
+    if (!isEmail) {
+      if (/^09\d{9}$/.test(key)) {
+        variants.push('+63' + key.slice(1));
+        variants.push('63' + key.slice(1));
+      } else if (/^\+639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(3));
+        variants.push(key.slice(1));
+      } else if (/^639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(2));
+        variants.push('+' + key);
+      }
+    }
 
-    // Backup store in memory
-    otpStore.set(key, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
+    // Store in MongoDB (survives restarts & scales across servers)
+    await OtpToken.deleteMany({ phoneOrEmail: { $in: variants } });
+    await OtpToken.create({ phoneOrEmail: key, code, isVerified: false });
+
+    // Backup store in memory with 15-minute validity window
+    const now = Date.now();
+    for (const v of variants) {
+      otpStore.set(v, { code, verified: false, expiresAt: now + 15 * 60 * 1000 });
+    }
 
     // Dispatch Email / SMS asynchronously with 3-second timeout protection
     if (isEmail) {
@@ -69,7 +89,7 @@ router.post('/send-otp', async (req, res) => {
     } else {
       sendSMS(
         rawTarget.trim(),
-        `[MitigatePlus Manila] Your verification OTP code is ${code}. Valid for 10 minutes. Do not share.`
+        `[MitigatePlus Manila] Your verification OTP code is ${code}. Valid for 15 minutes. Do not share.`
       ).catch(err => console.error('[ASYNC SMS ERROR]', err.message));
     }
 
@@ -95,23 +115,63 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Phone/email and OTP code are required.' });
     }
 
-    const key = rawTarget.trim().toLowerCase();
+    const isEmail = String(rawTarget).includes('@');
+    const key = isEmail
+      ? String(rawTarget).trim().toLowerCase()
+      : String(rawTarget).replace(/[\s\-\(\)]/g, '').trim();
     const otpString = String(rawOtp).trim();
-    const dbRecord = await OtpToken.findOne({ phoneOrEmail: key, code: otpString });
-    const memoryRecord = otpStore.get(key);
 
-    const isValid = dbRecord || (memoryRecord && memoryRecord.code === otpString);
+    const variants = [key];
+    if (!isEmail) {
+      if (/^09\d{9}$/.test(key)) {
+        variants.push('+63' + key.slice(1));
+        variants.push('63' + key.slice(1));
+      } else if (/^\+639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(3));
+        variants.push(key.slice(1));
+      } else if (/^639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(2));
+        variants.push('+' + key);
+      }
+    }
+
+    const dbRecord = await OtpToken.findOne({ phoneOrEmail: { $in: variants }, code: otpString });
+    let memoryRecord = null;
+    for (const v of variants) {
+      const mem = otpStore.get(v);
+      if (mem && mem.code === otpString) {
+        memoryRecord = mem;
+        break;
+      }
+    }
+
+    const isValid = dbRecord || memoryRecord;
 
     if (!isValid) {
       return res.status(400).json({ message: 'Invalid or expired OTP verification code. Please check and try again.' });
     }
 
-    // Valid OTP - clean up token
-    await OtpToken.deleteMany({ phoneOrEmail: key });
-    otpStore.delete(key);
+    // Mark as verified instead of deleting immediately so that subsequent steps (such as /forgot-password or /register) can complete safely.
+    await OtpToken.updateMany(
+      { phoneOrEmail: { $in: variants } },
+      { isVerified: true, verifiedAt: new Date() }
+    );
+
+    const now = Date.now();
+    for (const v of variants) {
+      otpStore.set(v, { code: otpString, verified: true, verifiedAt: now, expiresAt: now + 15 * 60 * 1000 });
+    }
+
+    // Generate a secure resetToken (signed JWT)
+    const resetToken = jwt.sign(
+      { identifier: key, action: 'password_reset', code: otpString },
+      process.env.JWT_SECRET || 'mitigateplus_secret_fallback',
+      { expiresIn: '15m' }
+    );
 
     res.json({
       verified: true,
+      resetToken,
       message: 'OTP verification successful!',
     });
   } catch (error) {
@@ -125,35 +185,98 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const rawTarget = req.body.emailOrPhone || req.body.identifier || req.body.phoneOrEmail;
     const rawOtp = req.body.otpCode || req.body.otp || req.body.code;
-    const { newPassword } = req.body;
-    if (!rawTarget || !rawOtp || !newPassword) {
-      return res.status(400).json({ message: 'Please provide email/phone, OTP code, and new password.' });
+    const { newPassword, resetToken } = req.body;
+    if (!rawTarget || (!rawOtp && !resetToken) || !newPassword) {
+      return res.status(400).json({ message: 'Please provide email/phone, OTP verification, and new password.' });
     }
 
-    const key = rawTarget.trim().toLowerCase();
-    const otpCode = String(rawOtp).trim();
-    const dbRecord = await OtpToken.findOne({ phoneOrEmail: key, code: otpCode.trim() });
-    const memoryRecord = otpStore.get(key);
+    if (typeof newPassword !== 'string' || newPassword.trim().length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
 
-    const isValid = dbRecord || (memoryRecord && memoryRecord.code === otpCode.trim());
+    const isEmail = String(rawTarget).includes('@');
+    const key = isEmail
+      ? String(rawTarget).trim().toLowerCase()
+      : String(rawTarget).replace(/[\s\-\(\)]/g, '').trim();
+
+    const variants = [key];
+    if (!isEmail) {
+      if (/^09\d{9}$/.test(key)) {
+        variants.push('+63' + key.slice(1));
+        variants.push('63' + key.slice(1));
+      } else if (/^\+639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(3));
+        variants.push(key.slice(1));
+      } else if (/^639\d{9}$/.test(key)) {
+        variants.push('0' + key.slice(2));
+        variants.push('+' + key);
+      }
+    }
+
+    const otpCode = rawOtp ? String(rawOtp).trim() : null;
+
+    let isValid = false;
+
+    // 1. Verify signed resetToken if provided
+    if (resetToken) {
+      try {
+        const decoded = jwt.verify(resetToken, process.env.JWT_SECRET || 'mitigateplus_secret_fallback');
+        if (decoded && decoded.action === 'password_reset' && variants.includes(decoded.identifier)) {
+          isValid = true;
+        }
+      } catch (err) {
+        // Fall through to DB/memory checks
+      }
+    }
+
+    // 2. Check DB records: either matching code OR previously verified within the 15-minute window
+    if (!isValid) {
+      const dbRecord = await OtpToken.findOne({
+        phoneOrEmail: { $in: variants },
+        $or: [
+          ...(otpCode ? [{ code: otpCode }] : []),
+          { isVerified: true },
+        ],
+      });
+      if (dbRecord) {
+        isValid = true;
+      }
+    }
+
+    // 3. Check in-memory store
+    if (!isValid) {
+      for (const v of variants) {
+        const mem = otpStore.get(v);
+        if (mem && (mem.verified === true || (otpCode && mem.code === otpCode))) {
+          if (!mem.expiresAt || mem.expiresAt > Date.now()) {
+            isValid = true;
+            break;
+          }
+        }
+      }
+    }
 
     if (!isValid) {
       return res.status(400).json({ message: 'Invalid or expired OTP verification code.' });
     }
 
-    const user = await User.findOne({ emailOrPhone: key });
+    // Find the user account using flexible lookup
+    const user = await findExistingUserWithIdentifier(key);
     if (!user) {
       return res.status(404).json({ message: 'No account found with this email or phone number.' });
     }
 
-    user.passwordHash = newPassword;
+    user.passwordHash = newPassword.trim();
     user.passwordChangedAt = new Date();
     user.failedLoginAttempts = 0;
     user.lockUntil = null;
     await user.save();
 
-    await OtpToken.deleteMany({ phoneOrEmail: key });
-    otpStore.delete(key);
+    // Clean up OTP tokens now that password has been safely updated
+    await OtpToken.deleteMany({ phoneOrEmail: { $in: variants } });
+    for (const v of variants) {
+      otpStore.delete(v);
+    }
 
     await AuditLog.create({
       actorUserId: user._id,
@@ -161,7 +284,7 @@ router.post('/forgot-password', async (req, res) => {
       action: 'PASSWORD_RESET',
       targetType: 'User',
       targetId: user._id.toString(),
-      notes: `Password successfully reset via OTP verification.`,
+      notes: `User ${user.name} (${user.emailOrPhone}) successfully reset their password via OTP verification.`,
     });
 
     res.json({

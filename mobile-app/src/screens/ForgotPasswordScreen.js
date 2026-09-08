@@ -7,10 +7,12 @@ import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
 
 export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = 'en' }) {
-  const [stage, setStage] = useState(1); // 1: Find Account, 2: OTP Verification, 3: Reset Password
+  const [stage, setStage] = useState(1); // 1: Find Account, 2: OTP Verification, 3: Reset Password, 4: Success
   const [identifier, setIdentifier] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [fallbackOtp, setFallbackOtp] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,14 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   const otpRefs = useRef([]);
   const scrollRef = useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -58,6 +68,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         if (data.otpCode || data.debugOtp) setFallbackOtp(data.otpCode || data.debugOtp);
+        setResendCooldown(60);
         setStage(2);
       } else {
         setErrors({ identifier: data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP. Pakisuri ang numero o email.' : 'Failed to send OTP. Please check phone number or email.') });
@@ -70,16 +81,27 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   };
 
   const handleVerifyOtp = async () => {
+    const enteredOtp = otpCode.join('').trim();
+    if (enteredOtp.length !== 6) {
+      setErrors({ otp: lang === 'tl' ? 'Pakilagay ang kumpletong 6-digit code.' : 'Please enter the complete 6-digit code.' });
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
     try {
       const res = await fetch(API_BASE_URL + '/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: identifier.trim(), otp: otpCode.join('') }),
+        body: JSON.stringify({ identifier: identifier.trim(), otp: enteredOtp }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) setStage(3);
-      else setErrors({ otp: data.message || (lang === 'tl' ? 'Maling OTP code o paso na. Pakisubukang muli.' : 'Invalid or expired OTP code.') });
+      if (res.ok) {
+        if (data.resetToken) setResetToken(data.resetToken);
+        setStage(3);
+      } else {
+        setErrors({ otp: data.message || (lang === 'tl' ? 'Maling OTP code o paso na. Pakisubukang muli.' : 'Invalid or expired OTP code.') });
+      }
     } catch (err) {
       setErrors({ otp: lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.' });
     } finally {
@@ -115,16 +137,39 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
           identifier: identifier.trim(),
           otpCode: otpCode.join(''),
           otp: otpCode.join(''),
+          resetToken,
           newPassword,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) onResetComplete();
-      else setErrors({ newPassword: data.message || (lang === 'tl' ? 'Hindi napalitan ang password. Pakisubukang muli.' : 'Failed to reset password. Please try again.') });
+      if (res.ok) {
+        setStage(4);
+      } else {
+        const msg = data.message || (lang === 'tl' ? 'Hindi napalitan ang password. Pakisubukang muli.' : 'Failed to reset password. Please try again.');
+        if (msg.toLowerCase().includes('otp') || msg.toLowerCase().includes('expired')) {
+          setErrors({ general: msg });
+        } else {
+          setErrors({ newPassword: msg });
+        }
+      }
     } catch (err) {
       setErrors({ newPassword: lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (stage === 4) {
+      onResetComplete();
+    } else if (stage === 3) {
+      setStage(2);
+      setErrors({});
+    } else if (stage === 2) {
+      setStage(1);
+      setErrors({});
+    } else {
+      onBack();
     }
   };
 
@@ -142,12 +187,14 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         keyboardDismissMode="on-drag"
       >
         {/* Back Button */}
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.8}>
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#C8102E" />
           </View>
           <Text style={styles.backBtnText}>
-            {lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In'}
+            {stage > 1 && stage < 4
+              ? (lang === 'tl' ? 'Bumalik sa Nakaraan' : 'Back to Previous')
+              : (lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In')}
           </Text>
         </TouchableOpacity>
 
@@ -220,9 +267,6 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </Text>
 
-
-
-
             <View style={styles.otpGrid}>
               {otpCode.map((digit, i) => (
                 <TextInput
@@ -235,6 +279,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                     const newDigits = [...otpCode];
                     newDigits[i] = clean.slice(-1);
                     setOtpCode(newDigits);
+                    if (errors.otp) setErrors({ ...errors, otp: '' });
                     if (clean && i < 5) otpRefs.current[i + 1]?.focus();
                   }}
                   onKeyPress={({ nativeEvent }) => {
@@ -267,8 +312,27 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                 </Text>
               )}
             </MotionPressable>
+
+            <View style={{ marginTop: 14, alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={handleSendOtp}
+                disabled={loading || resendCooldown > 0}
+                style={{ paddingVertical: 6, paddingHorizontal: 12 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: resendCooldown > 0 ? '#94A3B8' : '#C8102E',
+                }}>
+                  {resendCooldown > 0
+                    ? (lang === 'tl' ? `Muling magpadala sa loob ng ${resendCooldown}s` : `Resend code in ${resendCooldown}s`)
+                    : (lang === 'tl' ? 'Hindi natanggap ang code? Ipadala Muli' : "Didn't receive code? Resend OTP")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        ) : (
+        ) : stage === 3 ? (
           /* STAGE 3: RESET PASSWORD */
           <View style={styles.cardPod}>
             <Text style={styles.cardTitle}>
@@ -278,12 +342,33 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               {lang === 'tl' ? 'Gumawa ng bagong ligtas na password para sa inyong account.' : 'Create a new secure password for your account.'}
             </Text>
 
+            {errors.general && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                backgroundColor: 'rgba(220, 38, 38, 0.08)',
+                borderWidth: 1,
+                borderColor: 'rgba(220, 38, 38, 0.3)',
+                padding: 10,
+                borderRadius: 8,
+                marginBottom: 14,
+              }}>
+                <AlertTriangleIcon size={16} color="#DC2626" />
+                <Text style={{ color: '#DC2626', fontSize: 12, fontWeight: '600', flex: 1 }}>
+                  {errors.general}
+                </Text>
+              </View>
+            )}
+
             <NeumorphicInput
               label={lang === 'tl' ? 'Bagong Password' : 'New Password'}
               value={newPassword}
               onChangeText={(txt) => {
                 setNewPassword(txt);
-                if (errors.newPassword) setErrors({ ...errors, newPassword: '' });
+                if (errors.newPassword || errors.general) {
+                  setErrors({ ...errors, newPassword: '', general: '' });
+                }
               }}
               placeholder="••••••••"
               errorText={errors.newPassword}
@@ -296,7 +381,9 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               value={confirmPassword}
               onChangeText={(txt) => {
                 setConfirmPassword(txt);
-                if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                if (errors.confirmPassword || errors.general) {
+                  setErrors({ ...errors, confirmPassword: '', general: '' });
+                }
               }}
               placeholder="••••••••"
               errorText={errors.confirmPassword}
@@ -314,7 +401,40 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </MotionPressable>
           </View>
-        )}
+        ) : stage === 4 ? (
+          /* STAGE 4: SUCCESS */
+          <View style={[styles.cardPod, { alignItems: 'center' }]}>
+            <View style={{
+              width: 64,
+              height: 64,
+              borderRadius: 32,
+              backgroundColor: 'rgba(21, 138, 100, 0.12)',
+              borderWidth: 2,
+              borderColor: '#158A64',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+              alignSelf: 'center',
+            }}>
+              <CheckIcon size={32} color="#158A64" />
+            </View>
+
+            <Text style={[styles.cardTitle, { textAlign: 'center', color: '#158A64', marginBottom: 8 }]}>
+              {lang === 'tl' ? 'Matagumpay na Napalitan ang Password!' : 'Password Reset Successfully!'}
+            </Text>
+            <Text style={[styles.cardSub, { textAlign: 'center', marginBottom: 24 }]}>
+              {lang === 'tl'
+                ? 'Nai-update na ang password ng inyong account. Maaari ka nang mag-sign in gamit ang inyong bagong password.'
+                : 'Your account password has been updated. You can now sign in using your new credentials.'}
+            </Text>
+
+            <MotionPressable style={styles.actionBtn} onPress={onResetComplete} activeOpacity={0.85}>
+              <Text style={styles.actionBtnText}>
+                {lang === 'tl' ? 'Mag-sign In Ngayon' : 'Sign In Now'}
+              </Text>
+            </MotionPressable>
+          </View>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
