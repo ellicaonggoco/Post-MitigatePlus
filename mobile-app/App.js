@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar } from 'react-native';
+import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar, LogBox } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Ignore benign Expo Go development warnings
+LogBox.ignoreLogs([
+  'Cannot connect to Expo CLI',
+  'The <CameraView> component does not support children',
+  'Require cycle:',
+  'VirtualizedLists should never be nested',
+]);
 
 import SplashScreen from './src/components/SplashScreen';
 import ResidentLoginScreen from './src/screens/ResidentLoginScreen';
