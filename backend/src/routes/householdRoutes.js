@@ -356,10 +356,14 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     }
 
     const User = require('../models/User');
+    const escaped = rawCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     let household = await Household.findOne({
       $or: [
         { qrCode: rawCode },
-        { qrCode: new RegExp('^' + rawCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+        { qrCode: new RegExp('^' + escaped + '$', 'i') },
+        { 'previousQrCodes.code': rawCode },
+        { 'previousQrCodes.code': new RegExp('^' + escaped + '$', 'i') },
       ],
     }).populate('headOfHouseholdUserId', 'name emailOrPhone');
 
@@ -375,44 +379,128 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       }
     }
 
+    // Fallback: Check AuditLog for historically revoked QR codes
+    if (!household) {
+      const auditMatch = await AuditLog.findOne({
+        action: 'QR_REVOKED_AND_REGENERATED',
+        notes: new RegExp(escaped, 'i'),
+      }).sort({ createdAt: -1 });
+
+      if (auditMatch && auditMatch.targetId && mongoose.Types.ObjectId.isValid(auditMatch.targetId)) {
+        household = await Household.findById(auditMatch.targetId).populate('headOfHouseholdUserId', 'name emailOrPhone');
+      }
+    }
+
     if (!household) {
       return res.status(404).json({ message: `Household QR Code "${rawCode}" not found or invalid.` });
     }
 
-    // Check anti-duplicate claim if eventId query param is provided
-    if (req.query.eventId) {
-      let evId = req.query.eventId;
-      let queryEvId = null;
-      if (mongoose.Types.ObjectId.isValid(evId)) {
-        queryEvId = evId;
-      } else {
-        const activeEv = await DistributionEvent.findOne({ isActive: true });
-        if (activeEv) queryEvId = activeEv._id;
+    // Identify if the scanned code is an obsolete/revoked QR code
+    let isRevokedQr = false;
+    let revokedDetails = null;
+    if (household.qrCode && household.qrCode.toLowerCase() !== rawCode.toLowerCase()) {
+      isRevokedQr = true;
+      if (Array.isArray(household.previousQrCodes)) {
+        revokedDetails = household.previousQrCodes.find(p => p.code && p.code.toLowerCase() === rawCode.toLowerCase());
       }
+    }
 
-      if (queryEvId) {
-        const existingClaim = await Distribution.findOne({
-          distributionEventId: queryEvId,
-          householdId: household._id,
-        });
-        if (existingClaim) {
-          return res.json({
-            duplicate: true,
-            message: `DUPLICATE CLAIM BLOCKED: Household already claimed relief in this drive today.`,
-            claimedAt: existingClaim.releasedAt,
-            household: {
-              ...household.toObject(),
-              name: household.headOfHouseholdUserId?.name || 'Beneficiary Head',
-              familyHeadcount: household.memberCount || 1,
-            },
-            isVerified: household.verificationStatus === 'verified',
-          });
+    // Consolidate all related households sharing the same headOfHouseholdUserId
+    let relatedHhIds = [household._id];
+    if (household.headOfHouseholdUserId) {
+      const headId = household.headOfHouseholdUserId._id || household.headOfHouseholdUserId;
+      const related = await Household.find({ headOfHouseholdUserId: headId }).select('_id qrCode previousQrCodes');
+      relatedHhIds = related.map(h => h._id);
+
+      for (const rel of related) {
+        if (Array.isArray(rel.previousQrCodes)) {
+          const matchPrev = rel.previousQrCodes.find(p => p.code && p.code.toLowerCase() === rawCode.toLowerCase());
+          if (matchPrev) {
+            isRevokedQr = true;
+            if (!revokedDetails) revokedDetails = matchPrev;
+          }
         }
       }
     }
 
-    const pastRequests = await AssistanceRequest.find({ householdId: household._id }).sort({ requestedAt: -1 });
-    const pastDistributions = await Distribution.find({ householdId: household._id }).sort({ releasedAt: -1 });
+    // Resolve target event to check anti-duplicate claims
+    let queryEvId = null;
+    let eventName = 'Relief Distribution';
+    if (req.query.eventId && req.query.eventId !== 'undefined' && req.query.eventId !== 'null') {
+      if (mongoose.Types.ObjectId.isValid(req.query.eventId)) {
+        queryEvId = req.query.eventId;
+      }
+    }
+
+    if (!queryEvId) {
+      const activeEv = await DistributionEvent.findOne({ isActive: true });
+      if (activeEv) {
+        queryEvId = activeEv._id;
+        eventName = activeEv.title;
+      } else {
+        const recentEv = await DistributionEvent.findOne().sort({ createdAt: -1 });
+        if (recentEv) {
+          queryEvId = recentEv._id;
+          eventName = recentEv.title;
+        }
+      }
+    }
+
+    // Check anti-duplicate claim across all related household records
+    let claimQuery = { householdId: { $in: relatedHhIds } };
+    if (queryEvId) {
+      claimQuery.distributionEventId = queryEvId;
+    }
+
+    let existingClaim = await Distribution.findOne(claimQuery).sort({ releasedAt: -1 }).populate('distributionEventId');
+    if (!existingClaim && !queryEvId) {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      existingClaim = await Distribution.findOne({
+        householdId: { $in: relatedHhIds },
+        releasedAt: { $gte: yesterday },
+      }).sort({ releasedAt: -1 }).populate('distributionEventId');
+    }
+
+    if (existingClaim) {
+      const claimTime = new Date(existingClaim.releasedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const evTitle = existingClaim.distributionEventId?.title || eventName;
+
+      return res.json({
+        duplicate: true,
+        isDuplicate: true,
+        isRevokedQr,
+        message: isRevokedQr
+          ? `DUPLICATE CLAIM & REVOKED QR: Ang pamilyang ito ay nakakuha na ng relief ayuda kaninang ${claimTime} (${evTitle}), at ang QR Code na iniscan ("${rawCode}") ay LUMANG QR na pinalitan na. Huwag nang bigyan muli.`
+          : `DUPLICATE CLAIM BLOCKED: Ang pamilyang ito ay nakatanggap na ng relief ayuda kaninang ${claimTime} sa event na ito.`,
+        claimedAt: existingClaim.releasedAt,
+        distributionEvent: existingClaim.distributionEventId || { title: evTitle },
+        household: {
+          ...household.toObject(),
+          name: household.headOfHouseholdUserId?.name || 'Beneficiary Head',
+          familyHeadcount: household.memberCount || 1,
+          activeQrCode: household.qrCode,
+        },
+        isVerified: household.verificationStatus === 'verified',
+      });
+    }
+
+    // If QR is revoked and NO claim has been recorded yet today:
+    if (isRevokedQr) {
+      return res.status(400).json({
+        isRevokedQr: true,
+        message: `LUMANG QR PASS (REVOKED): Ang QR Code na ito (${rawCode}) ay pinalitan na ng bago noong ${new Date(revokedDetails?.revokedAt || Date.now()).toLocaleDateString()}. Mangyaring buksan ang Mobile App upang maipakita ang pinakabagong QR Pass (${household.qrCode}).`,
+        activeQrCode: household.qrCode,
+        household: {
+          ...household.toObject(),
+          name: household.headOfHouseholdUserId?.name || 'Beneficiary Head',
+          familyHeadcount: household.memberCount || 1,
+          activeQrCode: household.qrCode,
+        },
+      });
+    }
+
+    const pastRequests = await AssistanceRequest.find({ householdId: { $in: relatedHhIds } }).sort({ requestedAt: -1 });
+    const pastDistributions = await Distribution.find({ householdId: { $in: relatedHhIds } }).sort({ releasedAt: -1 });
 
     // Active requests for this household
     const activeRequests = pastRequests.filter(r => ['pending', 'approved', 'under_review'].includes(r.status));
@@ -570,6 +658,17 @@ router.post('/regenerate-qr', protect, async (req, res) => {
     const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
     const newQr = `MNL-${household.barangayCode}-${Date.now().toString(36).toUpperCase()}-${randomSuffix}`;
 
+    if (!Array.isArray(household.previousQrCodes)) {
+      household.previousQrCodes = [];
+    }
+    if (oldQr) {
+      household.previousQrCodes.push({
+        code: oldQr,
+        revokedAt: new Date(),
+        reason: reason || 'Security renewal / suspected leak',
+      });
+    }
+
     household.qrCode = newQr;
     household.lastQrRegeneratedAt = new Date();
     await household.save();
@@ -616,12 +715,13 @@ router.get('/offline-cache', protect, requireRole('field_staff', 'barangay_offic
 
     const households = await Household.find(query)
       .populate('headOfHouseholdUserId', 'name emailOrPhone')
-      .select('address purok barangayCode memberCount qrCode priorityLevel verificationStatus headOfHouseholdUserId');
+      .select('address purok barangayCode memberCount qrCode priorityLevel verificationStatus headOfHouseholdUserId previousQrCodes');
 
     const cacheDataset = households.map(h => ({
       _id: h._id,
       id: h._id,
       qrCode: h.qrCode,
+      previousQrCodes: Array.isArray(h.previousQrCodes) ? h.previousQrCodes : [],
       name: h.headOfHouseholdUserId?.name || 'Beneficiary',
       address: `${h.address}, ${h.purok ? `Purok ${h.purok}, ` : ''}Brgy ${h.barangayCode}`,
       barangayCode: h.barangayCode,

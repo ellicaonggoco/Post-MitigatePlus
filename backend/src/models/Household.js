@@ -55,6 +55,11 @@ const householdSchema = new mongoose.Schema({
     index: true,
   },
   lastQrRegeneratedAt: { type: Date, default: null },
+  previousQrCodes: [{
+    code: { type: String, index: true },
+    revokedAt: { type: Date, default: Date.now },
+    reason: { type: String, default: 'Regenerated / Renewed' },
+  }],
   inAppNotifications: [{
     id: { type: String, default: () => Date.now().toString() },
     title: { type: String, required: true },

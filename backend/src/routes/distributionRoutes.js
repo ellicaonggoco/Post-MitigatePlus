@@ -265,7 +265,12 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       household = await Household.findById(householdId);
     }
     if (!household) {
-      household = await Household.findOne({ qrCode: householdId });
+      household = await Household.findOne({
+        $or: [
+          { qrCode: householdId },
+          { 'previousQrCodes.code': householdId },
+        ],
+      });
     }
     if (!household) {
       return res.status(404).json({ message: 'Household not found.' });
@@ -304,10 +309,18 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       return res.status(400).json({ message: 'Cannot release relief to unverified household.' });
     }
 
+    // Consolidate all related households sharing headOfHouseholdUserId
+    let relatedHhIds = [household._id];
+    if (household.headOfHouseholdUserId) {
+      const headId = household.headOfHouseholdUserId._id || household.headOfHouseholdUserId;
+      const related = await Household.find({ headOfHouseholdUserId: headId }).select('_id');
+      relatedHhIds = related.map(h => h._id);
+    }
+
     // 1. REAL-TIME ANTI-DUPLICATE CHECK
     const existingClaim = await Distribution.findOne({
       distributionEventId,
-      householdId,
+      householdId: { $in: relatedHhIds },
     });
 
     if (existingClaim) {
@@ -363,7 +376,7 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
     // 3. RECORD DISTRIBUTION RELEASE
     const releaseRecord = await Distribution.create({
       distributionEventId,
-      householdId,
+      householdId: household._id,
       itemType: event.itemType,
       baseUnitsGiven,
       topUpUnitsGiven,

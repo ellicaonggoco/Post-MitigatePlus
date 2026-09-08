@@ -564,8 +564,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     };
 
     const checkOfflineCacheForCode = (code) => {
+      const cleanCode = (code || '').trim().toLowerCase();
       const found = offlineCache.find(
-        h => h.qrCode === code || h._id === code || h.householdId === code
+        h => (h.qrCode && h.qrCode.toLowerCase() === cleanCode) ||
+             (h._id && h._id.toString() === code) ||
+             (h.householdId && h.householdId.toString() === code) ||
+             (Array.isArray(h.previousQrCodes) && h.previousQrCodes.some(p => p.code && p.code.toLowerCase() === cleanCode))
       );
       if (!found) {
         showNotify('Offline Notice', 'QR pass not found in local cache.', true);
@@ -575,16 +579,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         return;
       }
 
+      const isRevoked = found.qrCode && found.qrCode.toLowerCase() !== cleanCode;
+
       const isDup = offlineClaimsQueue.some(
-        c => (c.qrCode === code || c.householdId === found._id) && c.eventId === (activeDrive._id || activeDrive.id)
+        c => (c.qrCode === code || c.householdId === found._id || c.qrCode === found.qrCode) && c.eventId === (activeDrive._id || activeDrive.id)
       );
 
       if (isDup) {
         setDuplicateAlert(true);
         setDuplicateMessage(
-          lang === 'tl'
-            ? 'Ang pamilyang ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito (offline claim record).'
-            : 'This household has already claimed relief in this event (offline record).'
+          isRevoked
+            ? (lang === 'tl'
+                ? 'DUPLICATE & REVOKED QR: Ang pamilyang ito ay nakatala nang nakakuha ng ayuda, at ang QR na ito ay LUMANG QR na pinalitan na.'
+                : 'DUPLICATE & REVOKED QR: Household already claimed relief and this QR pass is obsolete.')
+            : (lang === 'tl'
+                ? 'Ang pamilyang ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito (offline claim record).'
+                : 'This household has already claimed relief in this event (offline record).')
         );
         setDuplicateData({
           name: found.name || found.headOfHouseholdUserId?.name || 'Beneficiary Head',
