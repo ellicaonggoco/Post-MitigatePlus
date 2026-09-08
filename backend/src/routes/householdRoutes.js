@@ -12,6 +12,114 @@ const { protect, requireRole, requireBarangayScope } = require('../middleware/au
 const { calculatePriorityIndex } = require('../utils/priorityIndex');
 const { calculateReliefAllocation, calculateHouseholdEntitlement } = require('../utils/reliefAllocation');
 const { detectAssistanceGaps } = require('../utils/gapDetection');
+const QRCode = require('qrcode');
+const { PNG } = require('pngjs');
+const jpeg = require('jpeg-js');
+const jsQR = require('jsqr');
+const https = require('https');
+
+/**
+ * High-speed image buffer decoder for QR codes
+ * Supports PNG and JPEG camera snapshots, with auto-centering crop for high-res photos.
+ */
+async function decodeImageBuffer(buffer) {
+  // 1. Try PNG via pngjs
+  try {
+    const png = PNG.sync.read(buffer);
+    const code = jsQR(new Uint8ClampedArray(png.data), png.width, png.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data) {
+      return { success: true, qrCode: code.data, format: 'png' };
+    }
+  } catch (err) {
+    // Not a valid PNG, proceed to JPEG
+  }
+
+  // 2. Try JPEG via jpeg-js
+  try {
+    const jpg = jpeg.decode(buffer, { useTArray: true });
+    if (jpg && jpg.data && jpg.width && jpg.height) {
+      const code = jsQR(new Uint8ClampedArray(jpg.data), jpg.width, jpg.height, { inversionAttempts: 'attemptBoth' });
+      if (code && code.data) {
+        return { success: true, qrCode: code.data, format: 'jpeg' };
+      }
+
+      // If high-resolution photo, attempt center crop (center 70% where QR pass is framed)
+      if (jpg.width > 500 && jpg.height > 500) {
+        const cropW = Math.floor(jpg.width * 0.75);
+        const cropH = Math.floor(jpg.height * 0.75);
+        const startX = Math.floor((jpg.width - cropW) / 2);
+        const startY = Math.floor((jpg.height - cropH) / 2);
+        const croppedData = new Uint8ClampedArray(cropW * cropH * 4);
+        for (let y = 0; y < cropH; y++) {
+          for (let x = 0; x < cropW; x++) {
+            const srcIdx = ((y + startY) * jpg.width + (x + startX)) * 4;
+            const dstIdx = (y * cropW + x) * 4;
+            croppedData[dstIdx] = jpg.data[srcIdx];
+            croppedData[dstIdx + 1] = jpg.data[srcIdx + 1];
+            croppedData[dstIdx + 2] = jpg.data[srcIdx + 2];
+            croppedData[dstIdx + 3] = jpg.data[srcIdx + 3];
+          }
+        }
+        const cropCode = jsQR(croppedData, cropW, cropH, { inversionAttempts: 'attemptBoth' });
+        if (cropCode && cropCode.data) {
+          return { success: true, qrCode: cropCode.data, format: 'jpeg-crop' };
+        }
+      }
+    }
+  } catch (err) {
+    // Not a valid JPEG
+  }
+
+  return { success: false };
+}
+
+/**
+ * Secondary fallback to public cloud QR decoding API
+ */
+function decodeViaQrServer(buffer) {
+  return new Promise((resolve) => {
+    try {
+      const boundary = '----MitigatePlusBoundary' + Date.now();
+      const head = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="qr.png"\r\nContent-Type: image/png\r\n\r\n`);
+      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+      const body = Buffer.concat([head, buffer, tail]);
+
+      const req = https.request({
+        hostname: 'api.qrserver.com',
+        path: '/v1/read-qr-code/',
+        method: 'POST',
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Length': body.length,
+        },
+        timeout: 6000,
+      }, (res) => {
+        let raw = '';
+        res.on('data', (chunk) => { raw += chunk; });
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(raw);
+            const foundData = parsed?.[0]?.symbol?.[0]?.data;
+            if (foundData) {
+              return resolve({ success: true, qrCode: foundData });
+            }
+          } catch (e) {}
+          resolve({ success: false });
+        });
+      });
+
+      req.on('error', () => resolve({ success: false }));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ success: false });
+      });
+      req.write(body);
+      req.end();
+    } catch (e) {
+      resolve({ success: false });
+    }
+  });
+}
 
 // @route   GET /api/households/pending
 // @desc    Get pending verification queue (Barangay official approval queue)
@@ -567,4 +675,83 @@ router.patch('/me/notifications/:id/read', protect, requireRole('resident'), asy
   }
 });
 
+// @route   GET /api/households/qr-image/:code
+// @desc    Generate an authentic, high-resolution PNG QR Code via official standard
+router.get('/qr-image/:code', async (req, res) => {
+  try {
+    const rawCode = String(req.params.code || '').trim();
+    if (!rawCode) {
+      return res.status(400).json({ message: 'QR Code value is required.' });
+    }
+
+    const width = parseInt(req.query.size, 10) || 400;
+    const margin = parseInt(req.query.margin, 10) || 2;
+
+    const buffer = await QRCode.toBuffer(rawCode, {
+      type: 'png',
+      width: Math.min(Math.max(width, 150), 1000),
+      margin: Math.min(Math.max(margin, 1), 10),
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#000000',
+        light: '#ffffff',
+      },
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('Error generating QR image:', error);
+    res.status(500).json({ message: 'Error generating QR code image', error: error.message });
+  }
+});
+
+// @route   POST /api/households/decode-qr-image
+// @desc    Decode QR code from uploaded or snapped image base64 via API
+router.post('/decode-qr-image', async (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, message: 'Walang litratong natanggap.' });
+    }
+
+    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9+]+;base64,/, '');
+    const buffer = Buffer.from(cleanBase64, 'base64');
+
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ success: false, message: 'Di-wastong format ng litrato.' });
+    }
+
+    // 1. Primary: High-speed local decoder (PNG/JPEG via jsQR)
+    const localResult = await decodeImageBuffer(buffer);
+    if (localResult.success && localResult.qrCode) {
+      return res.json({
+        success: true,
+        qrCode: localResult.qrCode.trim(),
+        source: `backend-${localResult.format}`,
+      });
+    }
+
+    // 2. Secondary fallback: Cloud QR Server API
+    const cloudResult = await decodeViaQrServer(buffer);
+    if (cloudResult.success && cloudResult.qrCode) {
+      return res.json({
+        success: true,
+        qrCode: cloudResult.qrCode.trim(),
+        source: 'cloud-api',
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: 'Hindi ma-detect ang QR Code sa litrato. Pakitiyak na malinaw at maliwanag ang pagkakuha ng QR Pass.',
+    });
+  } catch (error) {
+    console.error('Error decoding QR image:', error);
+    res.status(500).json({ success: false, message: 'Error sa pagsusuri ng QR code', error: error.message });
+  }
+});
+
 module.exports = router;
+

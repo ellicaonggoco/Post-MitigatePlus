@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import {
   CameraIcon,
   CheckIcon,
@@ -130,6 +131,104 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     } catch (e) {
       console.warn('Native scanner launch error:', e);
     }
+  };
+
+  const [decodingPhoto, setDecodingPhoto] = useState(false);
+
+  const handleScanFromPhoto = async (fromCamera = false) => {
+    try {
+      if (fromCamera) {
+        if (Platform.OS !== 'web') {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permiso', 'Kailangan ng access sa camera upang kumuha ng litrato.');
+            return;
+          }
+        }
+        const result = await ImagePicker.launchCameraAsync({
+          base64: true,
+          quality: 0.85,
+          maxWidth: 1000,
+          maxHeight: 1000,
+        });
+        if (!result.canceled && result.assets && result.assets[0]?.base64) {
+          processImageBase64(result.assets[0].base64);
+        }
+      } else {
+        if (Platform.OS !== 'web') {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permiso', 'Kailangan ng access sa photos upang pumili ng larawan.');
+            return;
+          }
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          base64: true,
+          quality: 0.85,
+          maxWidth: 1000,
+          maxHeight: 1000,
+        });
+        if (!result.canceled && result.assets && result.assets[0]?.base64) {
+          processImageBase64(result.assets[0].base64);
+        }
+      }
+    } catch (err) {
+      console.warn('Image picker scan error:', err);
+      Alert.alert('Error', 'Nagka-problema sa pagkuha o pagpili ng litrato.');
+    }
+  };
+
+  const processImageBase64 = async (base64) => {
+    setDecodingPhoto(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/households/decode-qr-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ imageBase64: base64 }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.qrCode) {
+        console.log('[STAFF SCANNER] Decoded QR via API:', data.qrCode);
+        setManualCode(data.qrCode);
+        setScanned(true);
+        handleExecuteScan(data.qrCode);
+      } else {
+        Alert.alert(
+          lang === 'tl' ? 'Hindi Ma-detect ang QR' : 'QR Not Detected',
+          data.message || (lang === 'tl' ? 'Hindi nabasa ang QR Code sa litrato. Siguraduhing maliwanag at malinaw ang kuha.' : 'Could not detect QR code in photo. Please ensure clear lighting.')
+        );
+      }
+    } catch (e) {
+      console.warn('API decode error:', e);
+      Alert.alert('Scan API Error', 'Hindi makakonekta sa QR decoding server.');
+    } finally {
+      setDecodingPhoto(false);
+    }
+  };
+
+  const showPhotoScanOptions = () => {
+    Alert.alert(
+      lang === 'tl' ? 'Scan QR mula sa Larawan / API' : 'Scan QR from Photo (API)',
+      lang === 'tl' ? 'Pumili kung kukuha ng litrato gamit ang camera o pipili ng larawan mula sa gallery:' : 'Choose whether to snap a photo or pick from your photo gallery:',
+      [
+        {
+          text: lang === 'tl' ? '📸 Kumuha ng Litrato' : '📸 Snap Photo',
+          onPress: () => handleScanFromPhoto(true),
+        },
+        {
+          text: lang === 'tl' ? '🖼️ Pumili sa Gallery' : '🖼️ Pick from Gallery',
+          onPress: () => handleScanFromPhoto(false),
+        },
+        {
+          text: lang === 'tl' ? 'Kanselahin' : 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
   };
 
   // Unified reset function to clear scan locks and reset viewfinder
@@ -709,6 +808,25 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </Text>
                 </TouchableOpacity>
               )}
+
+              {/* Photo QR Scan via Cloud/Backend API */}
+              <TouchableOpacity
+                style={styles.photoScanApiBtn}
+                onPress={showPhotoScanOptions}
+                activeOpacity={0.85}
+                disabled={decodingPhoto}
+              >
+                {decodingPhoto ? (
+                  <ActivityIndicator size="small" color="#0F172A" />
+                ) : (
+                  <CameraIcon size={16} color="#0F172A" />
+                )}
+                <Text style={styles.photoScanApiBtnText}>
+                  {decodingPhoto
+                    ? (lang === 'tl' ? 'Sinusuri ang QR Code sa Larawan (API)...' : 'Decoding QR via API...')
+                    : (lang === 'tl' ? '📸 Scan mula sa Larawan / Gallery (API)' : '📸 Scan from Photo / Gallery (API)')}
+                </Text>
+              </TouchableOpacity>
 
               {/* Status footer */}
               <View style={styles.liveStatusRow}>
@@ -1356,6 +1474,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12.5,
     fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  photoScanApiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FCD34D',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: '#F59E0B',
+  },
+  photoScanApiBtnText: {
+    color: '#0F172A',
+    fontSize: 12.5,
+    fontWeight: '900',
     letterSpacing: 0.2,
   },
   liveStatusRow: {

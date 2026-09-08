@@ -1,17 +1,15 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
-import Svg, { Rect, Path, G } from 'react-native-svg';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import Svg, { Rect } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCodeCore from 'qrcode/lib/core/qrcode';
+import { API_BASE_URL } from '../config';
 import { COLORS, RADIUS, FONT_WEIGHT, SPACING, SHADOWS } from '../theme';
 
 /**
- * Generates an ISO/IEC 18004 compliant QR Matrix with full Reed-Solomon
- * Error Correction Codewords. Uses Level 'H' (High - 30% error recovery)
- * so phone-to-phone scanning is instantaneous even under screen glare,
- * distance, or center civic seal badge overlay.
+ * Generates an ISO/IEC 18004 compliant QR Matrix for offline fallback.
  */
-function generateStandardQRMatrix(text, ecc = 'H') {
+function generateStandardQRMatrix(text, ecc = 'M') {
   const cleanCode = String(text || 'MNL-QR-OFFICIAL-PASS').trim();
   try {
     const qr = QRCodeCore.create(cleanCode, { errorCorrectionLevel: ecc });
@@ -26,34 +24,48 @@ function generateStandardQRMatrix(text, ecc = 'H') {
     }
     return matrix;
   } catch (err) {
-    console.warn('Standard QR generation ECC H warning, trying M:', err);
-    try {
-      const qr = QRCodeCore.create(cleanCode, { errorCorrectionLevel: 'M' });
-      const size = qr.modules.size;
-      const matrix = [];
-      for (let r = 0; r < size; r++) {
-        const row = [];
-        for (let c = 0; c < size; c++) {
-          row.push(qr.modules.get(r, c) ? 1 : 0);
-        }
-        matrix.push(row);
-      }
-      return matrix;
-    } catch (e) {
-      console.error('Fatal QR generation failure:', e);
-      return [];
-    }
+    console.warn('Standard QR generation error:', err);
+    return [];
   }
 }
 
-export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerified = true, darkMode = false, compact = false, isCompact = false }) {
+export default function QRCodeVisual({
+  value,
+  size = 200,
+  lang = 'tl',
+  isVerified = true,
+  darkMode = false,
+  compact = false,
+  isCompact = false,
+}) {
   const isCompactMode = compact || isCompact;
   const [copied, setCopied] = useState(false);
-  const code = value || 'MNL-QR-OFFICIAL-PASS';
+  const [useBackendFallback, setUseBackendFallback] = useState(false);
+  const [useOfflineSvg, setUseOfflineSvg] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const code = String(value || 'MNL-QR-OFFICIAL-PASS').trim();
 
-  const qrMatrix = useMemo(() => {
-    return generateStandardQRMatrix(code, 'H');
+  // Reset fallback state when code prop changes
+  useEffect(() => {
+    setUseBackendFallback(false);
+    setUseOfflineSvg(false);
+    setImgLoaded(false);
   }, [code]);
+
+  const primaryApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(code)}&margin=8&format=png`;
+  const backendApiUrl = `${API_BASE_URL}/households/qr-image/${encodeURIComponent(code)}?size=400&margin=2`;
+
+  const activeImageUri = useBackendFallback ? backendApiUrl : primaryApiUrl;
+
+  const handleImageError = () => {
+    if (!useBackendFallback) {
+      console.log('[QRVisual] Primary QRServer API unavailable, falling back to MitigatePlus backend QR API...');
+      setUseBackendFallback(true);
+    } else {
+      console.log('[QRVisual] Backend QR API unavailable, falling back to offline SVG matrix...');
+      setUseOfflineSvg(true);
+    }
+  };
 
   const handleCopy = () => {
     try {
@@ -65,45 +77,77 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
     setTimeout(() => setCopied(false), 2200);
   };
 
-  const matrixSize = qrMatrix.length || 21;
-  const svgSize = isCompactMode ? (size || 160) : 240;
-  // Wide 4-module quiet zone padding essential for hardware camera edge detection
-  const padding = isCompactMode ? 12 : 18;
-  const moduleSize = (svgSize - padding * 2) / matrixSize;
+  const qrMatrix = useMemo(() => {
+    if (!useOfflineSvg) return [];
+    return generateStandardQRMatrix(code, 'M');
+  }, [code, useOfflineSvg]);
+
+  const targetSize = isCompactMode ? (size || 160) : 220;
 
   // =========================================================================
-  // COMPACT MODE: Render 100% Unobstructed High-Contrast Pure Black QR Matrix
+  // COMPACT MODE: Render Crisp Standard QR Code Image
   // =========================================================================
   if (isCompactMode) {
     return (
-      <View style={[styles.compactFrame, { width: svgSize + 8, height: svgSize + 8 }]}>
-        <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-          <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={8} />
-          {qrMatrix.map((row, r) =>
-            row.map((cell, c) => {
-              if (cell === 1) {
-                return (
-                  <Rect
-                    key={`${r}-${c}`}
-                    x={padding + c * moduleSize}
-                    y={padding + r * moduleSize}
-                    width={moduleSize}
-                    height={moduleSize}
-                    rx={0}
-                    fill="#000000"
-                  />
+      <View style={[styles.compactContainer, { width: targetSize + 16 }]}>
+        <View style={[styles.compactFrame, { width: targetSize + 12, height: targetSize + 12 }]}>
+          {!useOfflineSvg ? (
+            <View style={{ width: targetSize, height: targetSize, alignItems: 'center', justifyContent: 'center' }}>
+              <Image
+                source={{ uri: activeImageUri }}
+                style={{ width: targetSize, height: targetSize, borderRadius: 8 }}
+                resizeMode="contain"
+                onLoad={() => setImgLoaded(true)}
+                onError={handleImageError}
+              />
+              {!imgLoaded && (
+                <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
+                  <ActivityIndicator size="small" color="#0B1D4E" />
+                </View>
+              )}
+            </View>
+          ) : (
+            // Offline SVG fallback
+            <Svg width={targetSize} height={targetSize} viewBox={`0 0 ${targetSize} ${targetSize}`}>
+              <Rect width={targetSize} height={targetSize} fill="#FFFFFF" rx={8} />
+              {(() => {
+                const matrixSize = qrMatrix.length || 21;
+                const pad = 10;
+                const modSize = (targetSize - pad * 2) / matrixSize;
+                return qrMatrix.map((row, r) =>
+                  row.map((cell, c) => {
+                    if (cell === 1) {
+                      return (
+                        <Rect
+                          key={`${r}-${c}`}
+                          x={pad + c * modSize}
+                          y={pad + r * modSize}
+                          width={modSize}
+                          height={modSize}
+                          fill="#000000"
+                        />
+                      );
+                    }
+                    return null;
+                  })
                 );
-              }
-              return null;
-            })
+              })()}
+            </Svg>
           )}
-        </Svg>
+        </View>
+
+        <View style={styles.apiTagRow}>
+          <View style={styles.apiStatusDot} />
+          <Text style={styles.apiTagText}>
+            {useOfflineSvg ? 'Offline Standard Pass' : 'Legit QR Standard (ISO/IEC 18004)'}
+          </Text>
+        </View>
       </View>
     );
   }
 
   // =========================================================================
-  // FULL EXPANDED MODE: Render Full Metallic / Civic Card
+  // FULL EXPANDED MODE: Render Full Metallic / Civic Relief Card
   // =========================================================================
   return (
     <View style={styles.container}>
@@ -140,35 +184,58 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
         </View>
 
         <View style={styles.qrSvgFrame}>
-          <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-            <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={12} />
-            {qrMatrix.map((row, r) =>
-              row.map((cell, c) => {
-                if (cell === 1) {
-                  return (
-                    <Rect
-                      key={`${r}-${c}`}
-                      x={padding + c * moduleSize}
-                      y={padding + r * moduleSize}
-                      width={moduleSize}
-                      height={moduleSize}
-                      rx={0}
-                      fill="#000000"
-                    />
-                  );
-                }
-                return null;
-              })
-            )}
-          </Svg>
+          {!useOfflineSvg ? (
+            <View style={{ width: targetSize, height: targetSize, alignItems: 'center', justifyContent: 'center' }}>
+              <Image
+                source={{ uri: activeImageUri }}
+                style={{ width: targetSize, height: targetSize, borderRadius: 10 }}
+                resizeMode="contain"
+                onLoad={() => setImgLoaded(true)}
+                onError={handleImageError}
+              />
+              {!imgLoaded && (
+                <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
+                  <ActivityIndicator size="small" color="#0B1D4E" />
+                </View>
+              )}
+            </View>
+          ) : (
+            <Svg width={targetSize} height={targetSize} viewBox={`0 0 ${targetSize} ${targetSize}`}>
+              <Rect width={targetSize} height={targetSize} fill="#FFFFFF" rx={12} />
+              {(() => {
+                const matrixSize = qrMatrix.length || 21;
+                const pad = 14;
+                const modSize = (targetSize - pad * 2) / matrixSize;
+                return qrMatrix.map((row, r) =>
+                  row.map((cell, c) => {
+                    if (cell === 1) {
+                      return (
+                        <Rect
+                          key={`${r}-${c}`}
+                          x={pad + c * modSize}
+                          y={pad + r * modSize}
+                          width={modSize}
+                          height={modSize}
+                          fill="#000000"
+                        />
+                      );
+                    }
+                    return null;
+                  })
+                );
+              })()}
+            </Svg>
+          )}
         </View>
 
-        <Text style={styles.verifyBadge}>
-          {lang === 'tl' ? '100% Ma-i-scan na Opisyal na Beneficiary Pass' : '100% Scannable Official Beneficiary Pass'}
-        </Text>
+        <View style={styles.verifyBadge}>
+          <Text style={styles.verifyBadgeText}>
+            {lang === 'tl' ? '✓ Opisyal na High-Definition QR Pass' : '✓ Official High-Definition QR Pass'}
+          </Text>
+        </View>
       </LinearGradient>
 
-      {/* 1-Tap Direct Tap-to-Copy Manual Code Box (No Extra Button Needed) */}
+      {/* 1-Tap Direct Tap-to-Copy Manual Code Box */}
       <TouchableOpacity
         style={[
           styles.manualCodeContainer,
@@ -195,19 +262,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
+  compactContainer: {
+    alignItems: 'center',
+  },
   compactFrame: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: '#C9A84C',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
+    padding: 6,
     shadowColor: '#C9A84C',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 3,
+  },
+  loadingOverlay: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  apiTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  apiStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  apiTagText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#334155',
   },
   qrCard: {
     borderRadius: 22,
@@ -276,14 +373,16 @@ const styles = StyleSheet.create({
     ...SHADOWS.md,
   },
   verifyBadge: {
-    fontSize: 11,
-    fontWeight: FONT_WEIGHT.bold,
-    color: '#34D399',
     marginTop: 16,
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 999,
+  },
+  verifyBadgeText: {
+    fontSize: 11,
+    fontWeight: FONT_WEIGHT.bold,
+    color: '#34D399',
   },
   manualCodeContainer: {
     width: '100%',
