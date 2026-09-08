@@ -11,6 +11,7 @@ import {
   Platform,
   Animated,
   Switch,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -78,6 +79,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [duplicateAlert, setDuplicateAlert] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState('');
   const [scanNotice, setScanNotice] = useState(null);
+  const scannerScrollRef = useRef(null);
 
   // Cross-platform notification helper (works on React Native Web and Native Mobile)
   const showNotify = (title, message, isError = false) => {
@@ -192,6 +194,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   };
 
   const handleExecuteScan = async (codeOverride) => {
+    try {
+      Keyboard.dismiss();
+    } catch (e) {}
+
     const rawCode = (codeOverride || manualCode).trim();
     if (!rawCode) {
       showNotify('QR Code Required', 'Please enter or scan a valid QR pass code.', true);
@@ -240,6 +246,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         });
         setVerifiedTodayCount(prev => prev + 1);
         setScanNotice({ type: 'success', text: `Household found: ${found.name || 'Beneficiary'} (Offline)` });
+        setTimeout(() => {
+          scannerScrollRef.current?.scrollToEnd({ animated: true });
+        }, 150);
       } else {
         const currentEventId = selectedEvent?._id || selectedEvent?.id;
         const res = await scanHouseholdQR(token, rawCode, currentEventId);
@@ -271,6 +280,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           });
           setVerifiedTodayCount(prev => prev + 1);
           setScanNotice({ type: 'success', text: `Verified Household: ${headName} (${headcount} members)` });
+          setTimeout(() => {
+            scannerScrollRef.current?.scrollToEnd({ animated: true });
+          }, 150);
         } else {
           showNotify('Scan Result', res.message || 'Invalid QR code.', true);
           setFlaggedTodayCount(prev => prev + 1);
@@ -396,7 +408,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             onBack={() => setActiveTab('tasks')}
           />
         ) : activeTab === 'scanner' ? (
-          <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            ref={scannerScrollRef}
+            contentContainerStyle={styles.scrollInner}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Active Drive Card (Dark Blue) */}
             <LinearGradient
               colors={['#163B8C', '#0B1D4E']}
@@ -437,9 +454,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <CameraIcon size={16} color="#FCD34D" />
                 <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
               </View>
-              <Text style={styles.viewfinderSub}>Position resident QR Pass in the viewfinder</Text>
+              <Text style={styles.viewfinderSub}>Position resident QR Pass in viewfinder or tap frame to test</Text>
 
-              <View style={styles.cameraBox}>
+              <TouchableOpacity
+                style={styles.cameraBox}
+                activeOpacity={0.88}
+                onPress={() => {
+                  setManualCode('MNL-291-JUAN-DEMO-2026');
+                  handleExecuteScan('MNL-291-JUAN-DEMO-2026');
+                }}
+              >
                 {/* 4 Gold Corner Marks */}
                 <View style={[styles.cornerMark, styles.cornerTL]} />
                 <View style={[styles.cornerMark, styles.cornerTR]} />
@@ -465,12 +489,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={styles.laserGradient}
                   />
                 </Animated.View>
-              </View>
+              </TouchableOpacity>
 
               {/* Status footer */}
               <View style={styles.liveStatusRow}>
                 <View style={styles.liveDot} />
-                <Text style={styles.liveStatusText}>Live Viewfinder Active</Text>
+                <Text style={styles.liveStatusText}>Live Viewfinder Active • Tap to test scan</Text>
               </View>
             </View>
 
@@ -482,7 +506,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   style={styles.codeInput}
                   value={manualCode}
                   onChangeText={setManualCode}
-                  placeholder="MNL-291-XXXX-2026"
+                  placeholder="MNL-291-JUAN-DEMO-2026"
                   placeholderTextColor="#94A3B8"
                   autoCapitalize="characters"
                 />
@@ -493,6 +517,27 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   activeOpacity={0.85}
                 >
                   {loading ? <ActivityIndicator color="#FFFFFF" size="small" /> : <Text style={styles.scanBtnText}>Scan Code</Text>}
+                </TouchableOpacity>
+              </View>
+
+              {/* Quick-Fill Test Chips */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Quick Test:</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setManualCode('MNL-291-JUAN-DEMO-2026');
+                    handleExecuteScan('MNL-291-JUAN-DEMO-2026');
+                  }}
+                  style={{
+                    backgroundColor: '#EFF6FF',
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: '#93C5FD',
+                  }}
+                >
+                  <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '700' }}>⚡ Tap: Juan Dela Cruz (Brgy 291)</Text>
                 </TouchableOpacity>
               </View>
             </View>
