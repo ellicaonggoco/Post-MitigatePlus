@@ -721,6 +721,263 @@ router.delete('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_s
   }
 });
 
+// =========================================================================
+// RESIDENT / CITIZEN ACCOUNT PROVISIONING & DIRECTORY (LGU ADMIN & SUPERADMIN)
+// =========================================================================
+
+// @route   GET /api/auth/resident-users
+// @desc    Get all registered / provisioned Citizen Resident accounts (LGU Admin & SuperAdmin only)
+router.get('/resident-users', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const residents = await User.find({ role: 'resident' })
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const userIds = residents.map(r => r._id);
+    const households = await Household.find({ headOfHouseholdUserId: { $in: userIds } }).lean();
+    const hhMap = new Map();
+    households.forEach(hh => {
+      if (hh.headOfHouseholdUserId) {
+        hhMap.set(hh.headOfHouseholdUserId.toString(), hh);
+      }
+    });
+
+    const result = residents.map(u => {
+      const hh = hhMap.get(u._id.toString()) || null;
+      return {
+        id: u._id,
+        _id: u._id,
+        name: u.name,
+        emailOrPhone: u.emailOrPhone,
+        role: u.role,
+        barangayCode: u.barangayCode || (hh ? hh.barangayCode : 'N/A'),
+        contactNum: u.contactNum || u.emailOrPhone,
+        status: u.isActive === false ? 'suspended' : 'active',
+        isActive: u.isActive !== false,
+        createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-08-01',
+        household: hh ? {
+          id: hh._id,
+          _id: hh._id,
+          address: hh.address,
+          purok: hh.purok,
+          barangayCode: hh.barangayCode,
+          memberCount: hh.memberCount || 1,
+          members: hh.members || [],
+          qrCode: hh.qrCode,
+          verificationStatus: hh.verificationStatus || 'verified',
+          priorityScore: hh.priorityScore || 0,
+          priorityLevel: hh.priorityLevel || 'Low',
+          damageLevel: hh.damageLevel || 'Minor',
+          validIdType: hh.validIdType || 'Philippine National ID (PhilSys / PhilID)',
+          validIdNumber: hh.validIdNumber || '',
+          validIdImage: hh.validIdImage || null,
+          verifiedAt: hh.verifiedAt,
+          verifiedBy: hh.verifiedBy,
+          verificationNotes: hh.verificationNotes,
+        } : null,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch resident accounts', error: error.message });
+  }
+});
+
+// @route   POST /api/auth/provision-resident
+// @desc    LGU Admin or SuperAdmin provisions a fully pre-verified Resident Citizen account
+router.post('/provision-resident', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const {
+      name,
+      emailOrPhone,
+      password,
+      barangayCode,
+      address,
+      purok,
+      damageLevel,
+      validIdType,
+      validIdNumber,
+      validIdImage,
+      members,
+    } = req.body;
+
+    if (!name || !emailOrPhone || !password || !barangayCode || !address || !purok) {
+      return res.status(400).json({
+        message: 'Kailangan punan ang Pangalan, Contact/Phone, Password, Barangay, Address, at Purok.',
+      });
+    }
+
+    const cleanContact = emailOrPhone.trim();
+    const existing = await findExistingUserWithIdentifier(cleanContact);
+    if (existing) {
+      const roleLabel = existing.role === 'resident' ? 'Residente' : existing.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+      return res.status(400).json({
+        message: `Ang phone number o email na ito ay rehistrado na bilang ${roleLabel} (${existing.name}). Bawal magkaparehas ang contact ng kahit sinong user.`,
+      });
+    }
+
+    const user = await User.create({
+      name: name.trim(),
+      emailOrPhone: cleanContact.toLowerCase(),
+      passwordHash: password,
+      role: 'resident',
+      barangayCode: String(barangayCode).trim(),
+      contactNum: cleanContact,
+      createdBy: req.user._id,
+      isActive: true,
+    });
+
+    const parsedMembers = Array.isArray(members) ? members : [];
+    const memberCount = parsedMembers.length > 0 ? parsedMembers.length : 1;
+    const cleanBrgy = String(barangayCode).trim();
+    const qrCode = `MNL-${cleanBrgy}-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const adminRoleTitle = req.user.role === 'lgu_superadmin' || req.user.role === 'lgu_super_admin' ? 'LGU SuperAdmin' : 'LGU Admin';
+
+    const newHousehold = new Household({
+      headOfHouseholdUserId: user._id,
+      address: address.trim(),
+      purok: purok.trim(),
+      barangayCode: cleanBrgy,
+      memberCount,
+      members: parsedMembers,
+      qrCode,
+      verificationStatus: 'verified', // AUTOMATICALLY VERIFIED WHEN PROVISIONED BY ADMIN
+      verifiedBy: req.user._id,
+      verifiedAt: new Date(),
+      verificationNotes: `Pre-verified and provisioned by ${adminRoleTitle} (${req.user.name})`,
+      registrationType: 'new_household',
+      validIdType: validIdType || 'Philippine National ID (PhilSys / PhilID)',
+      validIdNumber: validIdNumber ? String(validIdNumber).trim() : '',
+      validIdImage: validIdImage || null,
+      damageLevel: damageLevel || 'Minor',
+    });
+
+    const { priorityScore, priorityLevel } = calculatePriorityIndex(newHousehold);
+    newHousehold.priorityScore = priorityScore;
+    newHousehold.priorityLevel = priorityLevel;
+
+    newHousehold.inAppNotifications = [{
+      id: Date.now().toString(),
+      title: '✅ Opisyal na Rehistrasyon at QR Pass Naaprubahan!',
+      message: `Ang inyong resident profile at household ay opisyal nang na-verify ng Manila MDRRMO Command Center. Handa na ang inyong Official QR Pass para sa relief aid.`,
+      type: 'verification',
+      createdAt: new Date(),
+      isRead: false,
+    }];
+
+    await newHousehold.save();
+
+    await RecoveryStatus.create({
+      householdId: newHousehold._id,
+      status: 'waiting',
+    });
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'ADMIN_PROVISION_RESIDENT',
+      targetType: 'Household',
+      targetId: newHousehold._id.toString(),
+      notes: `${adminRoleTitle} ${req.user.name} created and pre-verified resident household for ${name} in Barangay ${cleanBrgy}. QR: ${qrCode}. Priority: ${priorityLevel} (${priorityScore} pts).`,
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`barangay:${cleanBrgy}`).emit('household_verified', {
+        householdId: newHousehold._id,
+        qrCode: newHousehold.qrCode,
+        priorityLevel: newHousehold.priorityLevel,
+        address: newHousehold.address,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Resident account for ${name} created and automatically verified!`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        emailOrPhone: user.emailOrPhone,
+        role: user.role,
+        barangayCode: user.barangayCode,
+      },
+      household: newHousehold,
+    });
+  } catch (error) {
+    console.error('Error provisioning resident account:', error);
+    res.status(500).json({ message: 'Error provisioning resident account', error: error.message });
+  }
+});
+
+// @route   PATCH /api/auth/resident-users/:id/status
+// @desc    Suspend or Reactivate a resident user account
+router.patch('/resident-users/:id/status', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'resident') {
+      return res.status(404).json({ message: 'Resident account not found.' });
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    const actionText = user.isActive ? 'REACTIVATE_RESIDENT' : 'SUSPEND_RESIDENT';
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: actionText,
+      targetType: 'User',
+      targetId: user._id.toString(),
+      notes: `Resident ${user.name} (${user.emailOrPhone}) status set to ${user.isActive ? 'Active' : 'Suspended'}.`,
+    });
+
+    res.json({
+      success: true,
+      status: user.isActive ? 'active' : 'suspended',
+      message: `Status for ${user.name} is now ${user.isActive ? 'Active' : 'Suspended'}.`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating resident status', error: error.message });
+  }
+});
+
+// @route   DELETE /api/auth/resident-users/:id
+// @desc    Permanently delete a resident user and associated household
+router.delete('/resident-users/:id', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'resident') {
+      return res.status(404).json({ message: 'Resident account not found.' });
+    }
+
+    const userName = user.name;
+    const userContact = user.emailOrPhone;
+
+    const userHhs = await Household.find({ headOfHouseholdUserId: user._id });
+    const hhIds = userHhs.map(h => h._id);
+
+    await RecoveryStatus.deleteMany({ householdId: { $in: hhIds } });
+    await Household.deleteMany({ headOfHouseholdUserId: user._id });
+    await User.findByIdAndDelete(req.params.id);
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'DELETE_RESIDENT_ACCOUNT',
+      targetType: 'User',
+      targetId: req.params.id,
+      notes: `Deleted resident account for ${userName} (${userContact}) and linked household record.`,
+    });
+
+    res.json({ success: true, message: `Resident account for ${userName} has been permanently deleted.` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting resident account', error: error.message });
+  }
+});
+
 // @route   POST /api/auth/register-fcm-token
 // @desc    Register or update user's FCM Push Notification Token
 router.post('/register-fcm-token', protect, async (req, res) => {
