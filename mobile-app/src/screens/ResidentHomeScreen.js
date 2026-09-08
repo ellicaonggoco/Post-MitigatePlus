@@ -512,7 +512,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   onPress={() => setShowQRModal(true)}
                   activeOpacity={0.92}
                 >
-                  <QRCodeVisual value={qrCodeString} size={170} lang={lang} isCompact />
+                  <QRCodeVisual value={qrCodeString} size={230} lang={lang} isCompact />
                   <View style={styles.tapToEnlargeRow}>
                     <Text style={styles.tapToEnlargeHint}>{t.tapToInspectPass}</Text>
                   </View>
@@ -1483,8 +1483,8 @@ verifCheckCirclePending: {
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
-    paddingVertical: 18,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     width: '100%',
   },
   entitlementBannerCard: {
@@ -1722,7 +1722,7 @@ verifCheckCirclePending: {
     color: '#FFFFFF',
   },
   tapToEnlargeRow: {
-    marginTop: 14,
+    marginTop: 10,
   },
   tapToEnlargeHint: {
     fontSize: 11,

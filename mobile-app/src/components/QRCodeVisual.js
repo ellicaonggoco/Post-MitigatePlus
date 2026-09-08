@@ -82,7 +82,7 @@ export default function QRCodeVisual({
     return generateStandardQRMatrix(code, 'M');
   }, [code, useOfflineSvg]);
 
-  const targetSize = isCompactMode ? (size || 160) : 220;
+  const targetSize = isCompactMode ? (size || 220) : 240;
 
   // =========================================================================
   // COMPACT MODE: Render Crisp Standard QR Code Image
@@ -134,13 +134,6 @@ export default function QRCodeVisual({
               })()}
             </Svg>
           )}
-        </View>
-
-        <View style={styles.apiTagRow}>
-          <View style={styles.apiStatusDot} />
-          <Text style={styles.apiTagText}>
-            {useOfflineSvg ? 'Offline Standard Pass' : 'Legit QR Standard (ISO/IEC 18004)'}
-          </Text>
         </View>
       </View>
     );
