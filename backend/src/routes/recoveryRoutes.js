@@ -133,4 +133,70 @@ router.put('/:householdId', protect, requireRole('lgu_admin', 'lgu_superadmin', 
   }
 });
 
+// POST /api/recovery/reset-barangay
+// Bulk reset all households in a barangay to 'waiting' when a new calamity or typhoon occurs
+router.post('/reset-barangay', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
+  try {
+    const { barangayCode, reason } = req.body;
+    let targetBrgy = barangayCode;
+    if (req.user.role === 'barangay_official' && req.user.barangayCode) {
+      targetBrgy = req.user.barangayCode;
+    } else if (!targetBrgy) {
+      targetBrgy = req.user.barangayCode || '291';
+    }
+
+    const households = await Household.find({ barangayCode: targetBrgy }).select('_id');
+    const hhIds = households.map(h => h._id);
+
+    if (hhIds.length === 0) {
+      return res.status(404).json({ message: `Walang natagpuang households sa Barangay ${targetBrgy}.` });
+    }
+
+    // Ensure all households have a RecoveryStatus record, then set all to 'waiting'
+    for (const hid of hhIds) {
+      await RecoveryStatus.findOneAndUpdate(
+        { householdId: hid },
+        {
+          $set: {
+            status: 'waiting',
+            updatedBy: req.user._id,
+            updatedAt: new Date(),
+          }
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'BULK_RECOVERY_RESET',
+      targetType: 'Barangay',
+      targetId: String(targetBrgy),
+      notes: `Bulk reset recovery stage to 'waiting' for ${hhIds.length} households in Barangay ${targetBrgy}. Reason: ${reason || 'New typhoon / calamity relief cycle declaration'}`,
+    });
+
+    // Broadcast via WebSockets to mobile apps and web admin
+    const io = req.app.get('io');
+    if (io) {
+      hhIds.forEach(hid => {
+        io.to(`household:${hid}`).emit('recovery_status_updated', 'waiting');
+      });
+      io.to(`brgy:${targetBrgy}`).emit('recovery_status_updated', 'waiting');
+      io.emit('barangay_recovery_reset', { barangayCode: targetBrgy, count: hhIds.length });
+    }
+
+    res.json({
+      success: true,
+      message: `Matagumpay na na-reset ang recovery progress ng ${hhIds.length} pamilya sa Barangay ${targetBrgy} pabalik sa Stage 2 (Waiting / Assessed) para sa bagong relief operation!`,
+      count: hhIds.length,
+      barangayCode: targetBrgy,
+    });
+  } catch (err) {
+    console.error('POST /api/recovery/reset-barangay error:', err);
+    res.status(500).json({ message: 'Error resetting barangay recovery progress', error: err.message });
+  }
+});
+
 module.exports = router;
+

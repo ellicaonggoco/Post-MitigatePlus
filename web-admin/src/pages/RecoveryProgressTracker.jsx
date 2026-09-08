@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useMemo, useCallback, useDeferr
 import { AuthContext } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
-import { Activity, ChevronDown, Users, CheckCircle, Clock, TrendingUp, ArrowUpCircle, X, Search, Layers, Filter } from 'lucide-react';
+import { Activity, ChevronDown, Users, CheckCircle, Clock, TrendingUp, ArrowUpCircle, X, Search, Layers, Filter, RotateCcw } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionNumberCounter } from '../components/motion';
 
@@ -279,6 +279,9 @@ export default function RecoveryProgressTracker() {
   const [selectedStage, setSelectedStage] = useState('all'); // 'all' or stage key
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showBulkResetModal, setShowBulkResetModal] = useState(false);
+  const [bulkResetting, setBulkResetting] = useState(false);
+  const [bulkResetSuccess, setBulkResetSuccess] = useState('');
   const brgy = user?.barangayCode || '291';
 
   const fetchRecovery = async () => {
@@ -419,11 +422,44 @@ export default function RecoveryProgressTracker() {
     setModal({ isOpen: false, hh: null, newStage: null });
   };
 
+  const handleConfirmBulkReset = async () => {
+    setBulkResetting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/recovery/reset-barangay`, {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          barangayCode: brgy,
+          reason: 'Panibagong Bagyo / Bagong Kalamidad (New Calamity Relief Cycle)',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setHouseholds(prev => prev.map(h => ({ ...h, stage: 'waiting' })));
+        setSelectedStage('all');
+        setCurrentPage(1);
+        setBulkResetSuccess(data.message || 'Matagumpay na na-reset ang recovery progress ng buong barangay para sa bagong relief cycle!');
+        setTimeout(() => setBulkResetSuccess(''), 6000);
+      } else {
+        alert(data.message || 'Error resetting barangay recovery');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Network error while resetting barangay recovery');
+    } finally {
+      setBulkResetting(false);
+      setShowBulkResetModal(false);
+    }
+  };
+
   const currentStageObj = STAGES.find(s => s.key === selectedStage);
 
   return (
     <div className="page-container">
-      {/* Universal Double Confirmation Modal */}
+      {/* Universal Double Confirmation Modal for Individual Stage Update */}
       <ConfirmModal
         isOpen={modal.isOpen}
         title="Update Recovery Stage?"
@@ -432,6 +468,17 @@ export default function RecoveryProgressTracker() {
         confirmText="Yes, Update Stage"
         onConfirm={confirmStageUpdate}
         onCancel={() => setModal({ isOpen: false, hh: null, newStage: null })}
+      />
+
+      {/* Universal Double Confirmation Modal for Calamity Bulk Reset */}
+      <ConfirmModal
+        isOpen={showBulkResetModal}
+        title="Declare New Calamity & Reset Barangay?"
+        message={`Sigurado ba kayo na nais ninyong i-reset ang recovery progress ng lahat ng pamilya sa Barangay ${brgy} pabalik sa "Waiting for Ayuda"? Ito ay isinasagawa kapag may bagong bagyo o kalamidad upang ihanda ang lahat ng residente para sa panibagong relief distribution drive.`}
+        type="warning"
+        confirmText={bulkResetting ? 'Nire-reset...' : 'Oo, I-reset ang Buong Barangay'}
+        onConfirm={handleConfirmBulkReset}
+        onCancel={() => setShowBulkResetModal(false)}
       />
 
       {/* ── Page Header ── */}
@@ -445,7 +492,49 @@ export default function RecoveryProgressTracker() {
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>Barangay {brgy} - Monitor and manage household recovery progression.</p>
           </div>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setShowBulkResetModal(true)}
+            className="clay-button-secondary"
+            style={{
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#B91C1C',
+              borderColor: '#FCA5A5',
+              background: '#FEF2F2',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '9px 16px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <RotateCcw size={15} /> Declare New Calamity (Reset Barangay)
+          </button>
+        </div>
       </div>
+
+      {bulkResetSuccess && (
+        <div style={{
+          marginBottom: 20,
+          padding: '12px 16px',
+          background: '#ECFDF5',
+          border: '1.5px solid #A7F3D0',
+          borderRadius: '12px',
+          color: '#065F46',
+          fontSize: '13px',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          <CheckCircle size={18} color="#059669" />
+          <span>{bulkResetSuccess}</span>
+        </div>
+      )}
 
       {/* ── Clickable Stage KPI Cards (Interactive Filters) ── */}
       <TopStageFilterCards
