@@ -178,13 +178,16 @@ export default function SystemAuditLogs() {
           </div>
 
           {/* TOP HEADER PAGINATION */}
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {filteredLogs.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 600, marginRight: 2 }}>
+                Page {currentPage} of {totalPages}
+              </span>
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="clay-button-secondary"
-                style={{ padding: '5px 9px', fontSize: 11, opacity: currentPage === 1 ? 0.5 : 1 }}
+                style={{ padding: '5px 9px', fontSize: 11, opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
               >
                 <ChevronLeft size={13} />
               </button>
@@ -202,7 +205,7 @@ export default function SystemAuditLogs() {
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="clay-button-secondary"
-                style={{ padding: '5px 9px', fontSize: 11, opacity: currentPage === totalPages ? 0.5 : 1 }}
+                style={{ padding: '5px 9px', fontSize: 11, opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
               >
                 <ChevronRight size={13} />
               </button>
@@ -261,6 +264,49 @@ export default function SystemAuditLogs() {
             </tbody>
           </table>
         </div>
+
+        {/* ── Bottom Pagination Bar ── */}
+        {filteredLogs.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+              Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredLogs.length)}</strong> of <strong>{filteredLogs.length}</strong> logs
+              <span style={{ marginLeft: 8, color: 'var(--ink-soft)' }}>
+                (Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>)
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="clay-button-ghost"
+                style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={currentPage === pageNum ? 'clay-button-primary' : 'clay-button-ghost'}
+                  style={{ fontSize: 11, width: 28, height: 28, padding: 0, justifyContent: 'center', fontWeight: currentPage === pageNum ? 800 : 600 }}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="clay-button-ghost"
+                style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

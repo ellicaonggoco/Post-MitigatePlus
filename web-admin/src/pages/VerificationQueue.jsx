@@ -495,11 +495,14 @@ export default function VerificationQueue() {
         </div>
       )}
 
-      {/* ── Pagination Bar: Page 1, Page 2, Page N ── */}
-      {totalPages > 1 && (
+      {/* ── Pagination Bar: Always visible when records exist ── */}
+      {households.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, padding: '12px 18px', background: 'var(--card)', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
             Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, households.length)}</strong> of <strong>{households.length}</strong> pending households
+            <span style={{ marginLeft: 8, color: 'var(--ink-soft)' }}>
+              (Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>)
+            </span>
           </div>
 
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -507,7 +510,7 @@ export default function VerificationQueue() {
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="clay-button-ghost"
-              style={{ fontSize: 12, padding: '5px 12px', opacity: currentPage === 1 ? 0.5 : 1 }}
+              style={{ fontSize: 12, padding: '5px 12px', opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
             >
               Previous
             </button>
@@ -527,7 +530,7 @@ export default function VerificationQueue() {
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="clay-button-ghost"
-              style={{ fontSize: 12, padding: '5px 12px', opacity: currentPage === totalPages ? 0.5 : 1 }}
+              style={{ fontSize: 12, padding: '5px 12px', opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
             >
               Next
             </button>

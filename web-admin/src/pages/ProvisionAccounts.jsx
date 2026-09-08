@@ -7,9 +7,6 @@ import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 
-const ITEMS_PER_PAGE = 8;
-const RESIDENTS_PER_PAGE = 8;
-
 export default function ProvisionAccounts() {
   const { token, user } = useContext(AuthContext);
   const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
@@ -35,7 +32,9 @@ export default function ProvisionAccounts() {
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
   const [residentPage, setResidentPage] = useState(1);
+  const [residentItemsPerPage, setResidentItemsPerPage] = useState(8);
 
   // Resident Accounts & Modal States
   const [residentAccounts, setResidentAccounts] = useState([]);
@@ -771,14 +770,14 @@ export default function ProvisionAccounts() {
   });
 
   // Pagination Math for Residents
-  const residentTotalPages = Math.ceil(filteredResidents.length / RESIDENTS_PER_PAGE);
-  const residentStartIndex = (residentPage - 1) * RESIDENTS_PER_PAGE;
-  const currentResidentItems = filteredResidents.slice(residentStartIndex, residentStartIndex + RESIDENTS_PER_PAGE);
+  const residentTotalPages = Math.max(1, Math.ceil(filteredResidents.length / residentItemsPerPage));
+  const residentStartIndex = (residentPage - 1) * residentItemsPerPage;
+  const currentResidentItems = filteredResidents.slice(residentStartIndex, residentStartIndex + residentItemsPerPage);
 
   // Pagination Math
-  const totalPages = Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentAccountItems = filteredAccounts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredAccounts.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentAccountItems = filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
 
   const fieldGroupStyle = { marginBottom: '16px' };
   const labelStyle = {
@@ -1817,13 +1816,16 @@ export default function ProvisionAccounts() {
             
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {/* TOP HEADER PAGINATION */}
-              {totalPages > 1 && (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              {filteredAccounts.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 600, marginRight: 2 }}>
+                    Page {currentPage} of {totalPages}
+                  </span>
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="clay-button-ghost"
-                    style={{ fontSize: 11, padding: '3px 8px', opacity: currentPage === 1 ? 0.5 : 1 }}
+                    style={{ fontSize: 11, padding: '3px 8px', opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
                   >
                     Prev
                   </button>
@@ -1841,7 +1843,7 @@ export default function ProvisionAccounts() {
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
                     className="clay-button-ghost"
-                    style={{ fontSize: 11, padding: '3px 8px', opacity: currentPage === totalPages ? 0.5 : 1 }}
+                    style={{ fontSize: 11, padding: '3px 8px', opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                   >
                     Next
                   </button>
@@ -1973,11 +1975,43 @@ export default function ProvisionAccounts() {
             </tbody>
           </table>
 
-          {/* ── Pagination Bar: Page 1, Page 2, Page N ── */}
-          {totalPages > 1 && (
+          {/* ── Pagination Bar: Always visible with page navigation and per-page selector ── */}
+          {filteredAccounts.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', background: 'var(--card)', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredAccounts.length)}</strong> of <strong>{filteredAccounts.length}</strong> accounts
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                  Showing <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredAccounts.length)}</strong> of <strong>{filteredAccounts.length}</strong> accounts
+                  <span style={{ marginLeft: 8, color: 'var(--ink-soft)' }}>
+                    (Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--ink-soft)' }}>
+                  <span>Rows per page:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border)',
+                      fontSize: 12,
+                      background: 'var(--card)',
+                      color: 'var(--ink)',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value={5}>5</option>
+                    <option value={8}>8</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -1985,7 +2019,7 @@ export default function ProvisionAccounts() {
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="clay-button-ghost"
-                  style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === 1 ? 0.5 : 1 }}
+                  style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
                 >
                   Previous
                 </button>
@@ -2005,7 +2039,7 @@ export default function ProvisionAccounts() {
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="clay-button-ghost"
-                  style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === totalPages ? 0.5 : 1 }}
+                  style={{ fontSize: 11, padding: '4px 10px', opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                 >
                   Next
                 </button>
@@ -2035,13 +2069,16 @@ export default function ProvisionAccounts() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {residentTotalPages > 1 && (
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              {filteredResidents.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 600, marginRight: 2 }}>
+                    Page {residentPage} of {residentTotalPages}
+                  </span>
                   <button
                     onClick={() => setResidentPage(p => Math.max(1, p - 1))}
                     disabled={residentPage === 1}
                     className="clay-button-ghost"
-                    style={{ fontSize: 11, padding: '3px 8px', opacity: residentPage === 1 ? 0.5 : 1 }}
+                    style={{ fontSize: 11, padding: '3px 8px', opacity: residentPage === 1 ? 0.4 : 1, cursor: residentPage === 1 ? 'not-allowed' : 'pointer' }}
                   >
                     Prev
                   </button>
@@ -2059,7 +2096,7 @@ export default function ProvisionAccounts() {
                     onClick={() => setResidentPage(p => Math.min(residentTotalPages, p + 1))}
                     disabled={residentPage === residentTotalPages}
                     className="clay-button-ghost"
-                    style={{ fontSize: 11, padding: '3px 8px', opacity: residentPage === residentTotalPages ? 0.5 : 1 }}
+                    style={{ fontSize: 11, padding: '3px 8px', opacity: residentPage === residentTotalPages ? 0.4 : 1, cursor: residentPage === residentTotalPages ? 'not-allowed' : 'pointer' }}
                   >
                     Next
                   </button>
@@ -2288,10 +2325,42 @@ export default function ProvisionAccounts() {
           </table>
 
           {/* ── Resident Pagination Bar ── */}
-          {residentTotalPages > 1 && (
+          {filteredResidents.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', background: 'var(--card)', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Showing <strong>{residentStartIndex + 1}-{Math.min(residentStartIndex + RESIDENTS_PER_PAGE, filteredResidents.length)}</strong> of <strong>{filteredResidents.length}</strong> residents
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                  Showing <strong>{residentStartIndex + 1}-{Math.min(residentStartIndex + residentItemsPerPage, filteredResidents.length)}</strong> of <strong>{filteredResidents.length}</strong> residents
+                  <span style={{ marginLeft: 8, color: 'var(--ink-soft)' }}>
+                    (Page <strong>{residentPage}</strong> of <strong>{residentTotalPages}</strong>)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--ink-soft)' }}>
+                  <span>Rows per page:</span>
+                  <select
+                    value={residentItemsPerPage}
+                    onChange={(e) => {
+                      setResidentItemsPerPage(Number(e.target.value));
+                      setResidentPage(1);
+                    }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border)',
+                      fontSize: 12,
+                      background: 'var(--card)',
+                      color: 'var(--ink)',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value={5}>5</option>
+                    <option value={8}>8</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -2299,7 +2368,7 @@ export default function ProvisionAccounts() {
                   onClick={() => setResidentPage(p => Math.max(1, p - 1))}
                   disabled={residentPage === 1}
                   className="clay-button-ghost"
-                  style={{ fontSize: 11, padding: '4px 10px', opacity: residentPage === 1 ? 0.5 : 1 }}
+                  style={{ fontSize: 11, padding: '4px 10px', opacity: residentPage === 1 ? 0.4 : 1, cursor: residentPage === 1 ? 'not-allowed' : 'pointer' }}
                 >
                   Previous
                 </button>
@@ -2319,7 +2388,7 @@ export default function ProvisionAccounts() {
                   onClick={() => setResidentPage(p => Math.min(residentTotalPages, p + 1))}
                   disabled={residentPage === residentTotalPages}
                   className="clay-button-ghost"
-                  style={{ fontSize: 11, padding: '4px 10px', opacity: residentPage === residentTotalPages ? 0.5 : 1 }}
+                  style={{ fontSize: 11, padding: '4px 10px', opacity: residentPage === residentTotalPages ? 0.4 : 1, cursor: residentPage === residentTotalPages ? 'not-allowed' : 'pointer' }}
                 >
                   Next
                 </button>
