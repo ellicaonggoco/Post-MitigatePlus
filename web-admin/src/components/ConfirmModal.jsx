@@ -11,7 +11,27 @@ export default function ConfirmModal({
   type = 'warning', // 'warning' | 'danger' | 'info' | 'success'
   onConfirm,
   onCancel,
+  onClose,
 }) {
+  const handleCancel = React.useCallback(() => {
+    if (typeof onCancel === 'function') {
+      onCancel();
+    } else if (typeof onClose === 'function') {
+      onClose();
+    }
+  }, [onCancel, onClose]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleCancel]);
+
   if (!isOpen) return null;
 
   const config = {
@@ -24,7 +44,13 @@ export default function ConfirmModal({
   const Icon = config.icon;
 
   const modalContent = (
-    <div style={{
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleCancel();
+        }
+      }}
+      style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -80,7 +106,7 @@ export default function ConfirmModal({
             </div>
           </div>
           <button
-            onClick={onCancel}
+            onClick={handleCancel}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-soft)', padding: 4 }}
           >
             <X size={18} />
@@ -104,7 +130,7 @@ export default function ConfirmModal({
           borderTop: '1px solid var(--border)',
         }}>
           <button
-            onClick={onCancel}
+            onClick={handleCancel}
             className="clay-button-ghost"
             style={{ fontSize: 13, padding: '8px 16px' }}
           >

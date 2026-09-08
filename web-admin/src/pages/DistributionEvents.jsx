@@ -581,6 +581,7 @@ export default function DistributionEvents() {
         type={confirmModal.type}
         confirmText={confirmModal.confirmText}
         onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
         onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
       />
 
