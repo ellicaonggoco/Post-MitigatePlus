@@ -27,7 +27,8 @@ import {
 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
-import { API_BASE_URL } from '../config';
+import io from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 
 const STATUS_CONFIG = {
@@ -110,6 +111,25 @@ export default function DistributionEvents() {
     Promise.all([fetchEvents(), fetchAnnouncements(), fetchClaims()]).finally(() => {
       setLoading(false);
     });
+
+    let socket;
+    try {
+      socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+      socket.emit('join_admin_room');
+      socket.on('assistance_released_global', () => {
+        fetchClaims();
+        fetchEvents();
+      });
+      socket.on('recovery_updated', () => {
+        fetchClaims();
+      });
+    } catch (e) {
+      console.warn('Socket note in DistributionEvents:', e);
+    }
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
   }, [token]);
 
   const [warehouseStock, setWarehouseStock] = useState([]);

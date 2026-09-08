@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const RecoveryStatus = require('../models/RecoveryStatus');
 const Household = require('../models/Household');
+const Distribution = require('../models/Distribution');
 const AuditLog = require('../models/AuditLog');
 const { protect, requireRole } = require('../middleware/auth');
 
@@ -15,16 +16,30 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       filter.householdId = { $in: householdIds.map(h => h._id) };
     }
 
-    // Auto-create recovery status for all verified households if missing
+    // Auto-create recovery status and sync with Distribution claims
     const allVerifiedHouseholds = await Household.find().populate('headOfHouseholdUserId', 'name emailOrPhone');
+    const allClaimedHhIds = await Distribution.distinct('householdId');
+    const allClaimedQrs = await Distribution.distinct('qrCode');
+    const claimedHhSet = new Set(allClaimedHhIds.map(id => String(id)));
+    const claimedQrSet = new Set(allClaimedQrs.filter(Boolean));
+
     for (const vh of allVerifiedHouseholds) {
+      const vhIdStr = String(vh._id);
+      const hasClaimed = claimedHhSet.has(vhIdStr) ||
+                         (vh.qrCode && claimedQrSet.has(vh.qrCode)) ||
+                         (vh.previousQrCodes && vh.previousQrCodes.some(p => claimedQrSet.has(p.code)));
+
       const existing = await RecoveryStatus.findOne({ householdId: vh._id });
       if (!existing) {
         await RecoveryStatus.create({
           householdId: vh._id,
-          status: 'waiting',
+          status: hasClaimed ? 'assistance_received' : 'waiting',
           updatedBy: req.user._id,
         });
+      } else if (existing.status === 'waiting' && hasClaimed) {
+        existing.status = 'assistance_received';
+        existing.updatedAt = new Date();
+        await existing.save();
       }
     }
 

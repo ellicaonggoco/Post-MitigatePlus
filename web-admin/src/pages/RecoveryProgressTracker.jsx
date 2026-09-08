@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
+import io from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { Activity, ChevronDown, Users, CheckCircle, Clock, TrendingUp, ArrowUpCircle, X, Search, Layers, Filter, RotateCcw } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionNumberCounter } from '../components/motion';
 
 const normalizeStage = (st) => {
@@ -282,10 +283,11 @@ export default function RecoveryProgressTracker() {
   const [showBulkResetModal, setShowBulkResetModal] = useState(false);
   const [bulkResetting, setBulkResetting] = useState(false);
   const [bulkResetSuccess, setBulkResetSuccess] = useState('');
+  const [liveToast, setLiveToast] = useState(null);
   const brgy = user?.barangayCode || '291';
 
-  const fetchRecovery = async () => {
-    setLoading(true);
+  const fetchRecovery = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/recovery`, {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
@@ -304,19 +306,81 @@ export default function RecoveryProgressTracker() {
         }));
         setHouseholds(formatted);
       } else {
-        setHouseholds([]);
+        if (!silent) setHouseholds([]);
       }
     } catch (e) {
       console.error(e);
-      setHouseholds([]);
+      if (!silent) setHouseholds([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [token, brgy]);
 
   useEffect(() => {
-    if (token) fetchRecovery();
-  }, [token]);
+    if (!token) return;
+    fetchRecovery(false);
+
+    let socket;
+    try {
+      socket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+      });
+
+      socket.emit('join_admin_room');
+      if (brgy) {
+        socket.emit('join_barangay_room', brgy);
+      }
+
+      socket.on('recovery_updated', (data) => {
+        if (!data) return;
+        // Instantly update affected household stage in view
+        setHouseholds(prev => prev.map(h => {
+          const isMatch = h.id === data.householdId ||
+                          h.householdId === data.householdId ||
+                          (data.relatedHouseholdIds && data.relatedHouseholdIds.includes(String(h.householdId || h.id)));
+          if (isMatch) {
+            return { ...h, stage: normalizeStage(data.status) };
+          }
+          return h;
+        }));
+
+        // Display live alert toast
+        if (data.headName) {
+          setLiveToast({
+            headName: data.headName,
+            stage: normalizeStage(data.status),
+            barangay: data.barangayCode || brgy,
+          });
+          setTimeout(() => setLiveToast(null), 8000);
+        }
+
+        // Silent background sync
+        fetchRecovery(true);
+      });
+
+      socket.on('assistance_released_global', () => {
+        fetchRecovery(true);
+      });
+
+      socket.on('barangay_recovery_reset', () => {
+        fetchRecovery(true);
+      });
+    } catch (err) {
+      console.warn('Socket connection note in Recovery Tracker:', err);
+    }
+
+    // Polling fallback every 15s when tab is active
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchRecovery(true);
+      }
+    }, 15000);
+
+    return () => {
+      clearInterval(pollInterval);
+      if (socket) socket.disconnect();
+    };
+  }, [token, brgy, fetchRecovery]);
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -515,6 +579,44 @@ export default function RecoveryProgressTracker() {
           </button>
         </div>
       </div>
+
+      {/* Real-time live alert toast when staff scans and issues relief */}
+      {liveToast && (
+        <div className="clay-card" style={{
+          marginBottom: 20,
+          borderLeft: '4.5px solid #158A64',
+          background: '#F0FDF4',
+          border: '1.5px solid #BBF7D0',
+          padding: '14px 18px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: '12px',
+          boxShadow: '0 8px 20px -4px rgba(21, 138, 100, 0.25)',
+          animation: 'card-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle size={20} color="#158A64" />
+            </div>
+            <div>
+              <strong style={{ fontSize: 13.5, color: '#166534', display: 'block' }}>
+                 Real-Time Ayuda Release Detected!
+              </strong>
+              <span style={{ fontSize: 12.5, color: '#15803D' }}>
+                Awtomatikong na-update ang recovery stage ni <strong>{liveToast.headName}</strong> (Barangay {liveToast.barangay}) sa "<strong>Relief Claimed</strong>" mula sa QR scan ng Field Staff! Hindi na kailangang i-adjust nang manu-mano.
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLiveToast(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#166534', padding: 6, display: 'flex', alignItems: 'center' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
 
       {bulkResetSuccess && (
         <div style={{

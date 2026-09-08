@@ -386,18 +386,26 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
     });
 
     // 4. UPDATE RECOVERY STATUS TO 'assistance_received' or 'ongoing'
-    let recovery = await RecoveryStatus.findOne({ householdId: household._id });
-    if (!recovery) {
-      recovery = new RecoveryStatus({ householdId: household._id });
+    const targetHhIds = Array.from(new Set([household._id, ...(relatedHhIds || [])]));
+    let primaryRecoveryStatus = 'assistance_received';
+
+    for (const hId of targetHhIds) {
+      let rec = await RecoveryStatus.findOne({ householdId: hId });
+      if (!rec) {
+        rec = new RecoveryStatus({ householdId: hId });
+      }
+      if (rec.status === 'waiting') {
+        rec.status = 'assistance_received';
+      } else if (rec.status === 'assistance_received') {
+        rec.status = 'ongoing';
+      }
+      rec.updatedBy = req.user._id;
+      rec.updatedAt = new Date();
+      await rec.save();
+      if (String(hId) === String(household._id)) {
+        primaryRecoveryStatus = rec.status;
+      }
     }
-    if (recovery.status === 'waiting') {
-      recovery.status = 'assistance_received';
-    } else if (recovery.status === 'assistance_received') {
-      recovery.status = 'ongoing';
-    }
-    recovery.updatedBy = req.user._id;
-    recovery.updatedAt = new Date();
-    await recovery.save();
 
     // 5. AUDIT LOG RELEASE
     await AuditLog.create({
@@ -412,22 +420,49 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
     // 6. GENERATE DIGITAL CLAIM RECEIPT
     const receiptNumber = `RCPT-${new Date().getFullYear()}-${releaseRecord._id.toString().slice(-6).toUpperCase()}`;
 
-    // Notify resident via Socket.IO
+    // Notify resident and web-admin real-time via Socket.IO
     const io = req.app.get('io');
     if (io) {
-      io.to(`household:${household._id}`).emit('assistance_released', {
+      for (const hId of targetHhIds) {
+        io.to(`household:${hId}`).emit('assistance_released', {
+          receiptNumber,
+          eventTitle: event.title,
+          itemType: event.itemType,
+          baseUnitsGiven,
+          topUpUnitsGiven,
+          totalPacks: baseUnitsGiven + topUpUnitsGiven,
+          releasedAt: releaseRecord.releasedAt,
+          releasedByName: req.user.name,
+          disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
+        });
+        io.to(`household:${hId}`).emit('recovery_status_updated', primaryRecoveryStatus);
+      }
+
+      // Global socket broadcasts for Web Admin (Recovery Tracker, Distribution Claims Roster, Dashboard)
+      io.emit('recovery_updated', {
+        householdId: String(household._id),
+        relatedHouseholdIds: targetHhIds.map(id => String(id)),
+        status: primaryRecoveryStatus,
+        headName: household.headOfHouseholdUserId?.name || 'Resident',
+        barangayCode: household.barangayCode,
+        releasedAt: releaseRecord.releasedAt,
         receiptNumber,
+      });
+
+      io.emit('assistance_released_global', {
+        receiptNumber,
+        distributionId: String(releaseRecord._id),
+        householdId: String(household._id),
+        relatedHouseholdIds: targetHhIds.map(id => String(id)),
+        headName: household.headOfHouseholdUserId?.name || 'Resident',
+        householdAddress: household.address,
+        barangayCode: household.barangayCode,
         eventTitle: event.title,
         itemType: event.itemType,
-        baseUnitsGiven,
-        topUpUnitsGiven,
         totalPacks: baseUnitsGiven + topUpUnitsGiven,
-        releasedAt: releaseRecord.releasedAt,
         releasedByName: req.user.name,
-        disbursingTeam: req.user.teamName || 'MDRRMO Field Operations',
+        releasedAt: releaseRecord.releasedAt,
       });
-      io.to(`household:${household._id}`).emit('recovery_status_updated', recovery.status);
-      io.emit('recovery_updated', { householdId: String(household._id), status: recovery.status });
     }
 
     res.status(201).json({
