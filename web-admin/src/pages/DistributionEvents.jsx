@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { isLguAdmin } from '../utils/roleUtils';
 import {
   Truck,
   Plus,
@@ -228,7 +229,7 @@ export default function DistributionEvents() {
     const stateBrgy = location.state?.prefillBarangay;
     const targetBrgy = queryBrgy || stateBrgy;
 
-    if (targetBrgy) {
+    if (targetBrgy && isLguAdmin(user)) {
       const cleanCode = targetBrgy.toString().replace(/[^0-9]/g, '') || targetBrgy;
       const todayStr = new Date().toISOString().split('T')[0];
       const availableTeam = getFirstAvailableTeam();
@@ -618,15 +619,17 @@ export default function DistributionEvents() {
             <Megaphone size={15} /> Announcement Only
           </button>
 
-          {/* New Event Button */}
-          <button
-            type="button"
-            onClick={() => setShowForm(!showForm)}
-            className="clay-button-primary"
-            style={{ fontSize: 13, gap: 6 }}
-          >
-            <Plus size={15} /> New Event
-          </button>
+          {/* New Event Button (LGU Admin Only) */}
+          {isLguAdmin(user) && (
+            <button
+              type="button"
+              onClick={() => setShowForm(!showForm)}
+              className="clay-button-primary"
+              style={{ fontSize: 13, gap: 6 }}
+            >
+              <Plus size={15} /> New Event
+            </button>
+          )}
         </div>
       </div>
 

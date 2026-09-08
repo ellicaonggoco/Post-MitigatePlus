@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, GeoJSON, CircleMarker, Marker, Tooltip, Popup,
 import L from 'leaflet';
 import * as topojson from 'topojson-client';
 import { AuthContext } from '../context/AuthContext';
+import { isLguAdmin } from '../utils/roleUtils';
 import { MapPin, Filter, Eye, Layers, AlertTriangle, ShieldCheck, Home, Activity, Zap, Compass, RefreshCw, Maximize2, X } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
@@ -820,13 +821,15 @@ export default function BarangayHeatmap() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button
-                  onClick={() => navigate('/distribution-events', { state: { prefillBarangay: selectedEvac.barangayCode } })}
-                  className="clay-button-approve"
-                  style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}
-                >
-                  Dispatch Emergency Relief Supply
-                </button>
+                {isLguAdmin(user) && (
+                  <button
+                    onClick={() => navigate('/distribution-events', { state: { prefillBarangay: selectedEvac.barangayCode } })}
+                    className="clay-button-approve"
+                    style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}
+                  >
+                    Dispatch Emergency Relief Supply
+                  </button>
+                )}
                 <button onClick={() => setSelectedEvac(null)} className="clay-button-secondary" style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}>
                   Close Inspector
                 </button>
@@ -966,9 +969,11 @@ export default function BarangayHeatmap() {
                 })() : null}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-                  <button onClick={() => navigate('/distribution-events', { state: { prefillBarangay: selected.code } })} className="clay-button-approve" style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}>
-                    Schedule Relief Event for Brgy {selected.code}
-                  </button>
+                  {isLguAdmin(user) && (
+                    <button onClick={() => navigate('/distribution-events', { state: { prefillBarangay: selected.code } })} className="clay-button-approve" style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}>
+                      Schedule Relief Event for Brgy {selected.code}
+                    </button>
+                  )}
                   <button onClick={() => setSelected(null)} className="clay-button-secondary" style={{ width: '100%', justifyContent: 'center', fontSize: 12, padding: '9px' }}>
                     Close Detail
                   </button>
