@@ -570,7 +570,8 @@ router.post('/provision-staff', protect, requireRole('lgu_admin', 'lgu_superadmi
 router.get('/provisioned-users', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const users = await User.find({
-      role: { $in: ['lgu_admin', 'barangay_official', 'field_staff', 'lgu_superadmin', 'lgu_super_admin'] }
+      role: { $in: ['lgu_admin', 'barangay_official', 'field_staff'] },
+      _id: { $ne: req.user._id }
     }).select('-passwordHash').sort({ createdAt: -1 }).lean();
 
     res.json(users.map(u => ({

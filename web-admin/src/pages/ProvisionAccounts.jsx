@@ -622,11 +622,20 @@ export default function ProvisionAccounts() {
   };
 
   // Filter accounts displayed:
-  // SuperAdmin sees all provisioned accounts (LGU Admin, Barangay Officials, Field Staff, SuperAdmins)
-  // LGU Admin sees Field Staff, Barangay Officials, and LGU Admins
+  // Filter accounts displayed:
+  // Provisioned subordinates list: LGU Admins, Barangay Officials, and Field Staff.
+  // SuperAdmin accounts and the currently logged-in user's own account are excluded from this directory.
   const q = (search || '').trim().toLowerCase();
+  const currentUserId = user?._id || user?.id;
   const filteredAccounts = accounts.filter(a => {
     if (!a) return false;
+
+    // Do not show SuperAdmin accounts or the logged-in user's own account in this management directory
+    const isSuperAdminRole = a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin';
+    const isSelf = (currentUserId && (a._id === currentUserId || a.id === currentUserId)) ||
+      (user?.emailOrPhone && a.emailOrPhone && a.emailOrPhone.toLowerCase() === user.emailOrPhone.toLowerCase());
+    if (isSuperAdminRole || isSelf) return false;
+
     const name = String(a.name || '').toLowerCase();
     const emailOrPhone = String(a.emailOrPhone || '').toLowerCase();
     const contactNum = String(a.contactNum || '').toLowerCase();
@@ -643,7 +652,7 @@ export default function ProvisionAccounts() {
       brgy.includes(q) ||
       team.includes(q);
 
-    const isCityWide = !brgyRaw || brgy === 'city-wide' || brgy === 'citywide' || brgy === 'all' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin' || a.role === 'lgu_admin';
+    const isCityWide = !brgyRaw || brgy === 'city-wide' || brgy === 'citywide' || brgy === 'all' || a.role === 'lgu_admin';
     const matchesBarangay = viewTab !== 'residents' || selectedBarangayFilter === 'all' ||
       isCityWide ||
       brgy === String(selectedBarangayFilter).trim().toLowerCase() ||
@@ -651,9 +660,9 @@ export default function ProvisionAccounts() {
       brgy === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
 
     if (isSuperAdmin) {
-      return (a.role === 'lgu_admin' || a.role === 'barangay_official' || a.role === 'field_staff' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin') && matchesSearch && matchesBarangay;
+      return (a.role === 'lgu_admin' || a.role === 'barangay_official' || a.role === 'field_staff') && matchesSearch && matchesBarangay;
     } else {
-      return (a.role === 'field_staff' || a.role === 'barangay_official' || a.role === 'lgu_admin') && matchesSearch && matchesBarangay;
+      return (a.role === 'field_staff' || a.role === 'barangay_official') && matchesSearch && matchesBarangay;
     }
   });
 
