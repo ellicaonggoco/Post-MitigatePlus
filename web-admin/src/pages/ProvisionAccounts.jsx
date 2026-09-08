@@ -5,7 +5,7 @@ import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Sea
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
-
+import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 
 const ITEMS_PER_PAGE = 8;
 const RESIDENTS_PER_PAGE = 8;
@@ -240,12 +240,13 @@ export default function ProvisionAccounts() {
   }, [token]);
 
   const [search, setSearch] = useState('');
+  const [selectedBarangayFilter, setSelectedBarangayFilter] = useState('all');
 
-  // Reset to page 1 when search changes
+  // Reset to page 1 when search or barangay filter changes
   useEffect(() => {
     setCurrentPage(1);
     setResidentPage(1);
-  }, [search]);
+  }, [search, selectedBarangayFilter]);
 
   // ── Confirmation Modal State ──
   const [modal, setModal] = useState({
@@ -630,7 +631,8 @@ export default function ProvisionAccounts() {
     const emailOrPhone = String(a.emailOrPhone || '').toLowerCase();
     const contactNum = String(a.contactNum || '').toLowerCase();
     const employeeId = String(a.employeeId || '').toLowerCase();
-    const brgy = String(a.barangayCode || '').toLowerCase();
+    const brgyRaw = String(a.barangayCode || '').trim();
+    const brgy = brgyRaw.toLowerCase();
     const team = String(a.teamName || '').toLowerCase();
 
     const matchesSearch = !q ||
@@ -641,10 +643,15 @@ export default function ProvisionAccounts() {
       brgy.includes(q) ||
       team.includes(q);
 
+    const matchesBarangay = selectedBarangayFilter === 'all' ||
+      brgy === String(selectedBarangayFilter).trim().toLowerCase() ||
+      brgy === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
+      brgy === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
+
     if (isSuperAdmin) {
-      return (a.role === 'lgu_admin' || a.role === 'barangay_official' || a.role === 'field_staff' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin') && matchesSearch;
+      return (a.role === 'lgu_admin' || a.role === 'barangay_official' || a.role === 'field_staff' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin') && matchesSearch && matchesBarangay;
     } else {
-      return (a.role === 'field_staff' || a.role === 'barangay_official' || a.role === 'lgu_admin') && matchesSearch;
+      return (a.role === 'field_staff' || a.role === 'barangay_official' || a.role === 'lgu_admin') && matchesSearch && matchesBarangay;
     }
   });
 
@@ -653,7 +660,8 @@ export default function ProvisionAccounts() {
     if (!r) return false;
     const name = String(r.name || '').toLowerCase();
     const phone = String(r.emailOrPhone || r.contactNum || '').toLowerCase();
-    const brgy = String(r.barangayCode || r.household?.barangayCode || '').toLowerCase();
+    const brgyRaw = String(r.barangayCode || r.household?.barangayCode || '').trim();
+    const brgy = brgyRaw.toLowerCase();
     const addr = String(r.household?.address || '').toLowerCase();
     const pur = String(r.household?.purok || '').toLowerCase();
     const qr = String(r.household?.qrCode || '').toLowerCase();
@@ -666,7 +674,12 @@ export default function ProvisionAccounts() {
       pur.includes(q) ||
       qr.includes(q);
 
-    return matchesSearch;
+    const matchesBarangay = selectedBarangayFilter === 'all' ||
+      brgy === String(selectedBarangayFilter).trim().toLowerCase() ||
+      brgy === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
+      brgy === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
+
+    return matchesSearch && matchesBarangay;
   });
 
   // Pagination Math for Residents
@@ -1481,8 +1494,8 @@ export default function ProvisionAccounts() {
         </button>
       </div>
 
-      {/* ── View Switcher Tabs ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      {/* ── View Switcher Tabs & Filter Bar ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12, position: 'relative', zIndex: 100 }}>
         <div style={{ display: 'flex', gap: 8, background: 'var(--card)', padding: '4px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
           <button
             onClick={() => setViewTab('roster')}
@@ -1507,7 +1520,18 @@ export default function ProvisionAccounts() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative', zIndex: 1050 }}>
+          {/* Uniform Searchable Barangay Dropdown Picker */}
+          <SearchableBarangaySelect
+            value={selectedBarangayFilter}
+            onChange={(val) => {
+              setSelectedBarangayFilter(val);
+              setCurrentPage(1);
+              setResidentPage(1);
+            }}
+            style={{ minWidth: '230px', maxWidth: '300px' }}
+          />
+
           <button
             onClick={() => {
               if (viewTab === 'residents') {
@@ -1544,6 +1568,14 @@ export default function ProvisionAccounts() {
               if (!a || a.role !== 'field_staff') return false;
               const belongsToTeam = (a.teamName === team) || (!a.teamName && team === 'Field Team Alpha');
               if (!belongsToTeam) return false;
+
+              const brgyRaw = String(a.barangayCode || '').trim();
+              const matchesBarangay = selectedBarangayFilter === 'all' ||
+                brgyRaw.toLowerCase() === String(selectedBarangayFilter).trim().toLowerCase() ||
+                brgyRaw === `brgy ${String(selectedBarangayFilter).trim().toLowerCase()}` ||
+                brgyRaw === `barangay ${String(selectedBarangayFilter).trim().toLowerCase()}`;
+              if (!matchesBarangay) return false;
+
               if (!q) return true;
               const n = String(a.name || '').toLowerCase();
               const ep = String(a.emailOrPhone || '').toLowerCase();
@@ -1686,6 +1718,11 @@ export default function ProvisionAccounts() {
               </h2>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                 {isSuperAdmin ? 'Active LGU Admin, Barangay Official & Field Staff list' : 'Active Field Staff & Barangay Officials list'} ({filteredAccounts.length})
+                {selectedBarangayFilter !== 'all' && (
+                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 999, background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)', fontWeight: 800, fontSize: 11 }}>
+                    📍 Scoped to Barangay {selectedBarangayFilter}
+                  </span>
+                )}
               </span>
             </div>
             
@@ -1900,6 +1937,11 @@ export default function ProvisionAccounts() {
               </h2>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                 Master directory of registered citizens and household beneficiaries ({filteredResidents.length} total)
+                {selectedBarangayFilter !== 'all' && (
+                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 999, background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)', fontWeight: 800, fontSize: 11 }}>
+                    📍 Scoped to Barangay {selectedBarangayFilter}
+                  </span>
+                )}
               </span>
             </div>
 
@@ -1960,14 +2002,32 @@ export default function ProvisionAccounts() {
               ) : filteredResidents.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--ink-soft)' }}>
-                    <div style={{ marginBottom: 10, fontSize: 14, fontWeight: 600 }}>No resident accounts found matching your search.</div>
-                    <button
-                      onClick={openCreateModal}
-                      className="clay-button-primary"
-                      style={{ fontSize: 12, padding: '6px 14px', margin: '0 auto', gap: 6 }}
-                    >
-                      <Plus size={13} /> Register Verified Resident
-                    </button>
+                    <div style={{ marginBottom: 6, fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+                      Walang residenteng natagpuan {selectedBarangayFilter !== 'all' ? `sa Barangay ${selectedBarangayFilter}` : ''}
+                    </div>
+                    <div style={{ marginBottom: 12, fontSize: 12, color: 'var(--ink-soft)' }}>
+                      {selectedBarangayFilter !== 'all'
+                        ? 'Piliin ang "Entire Manila City" upang makita ang lahat ng barangay o magrehistro ng bagong residente.'
+                        : 'Maaari kang magrehistro ng bagong residente gamit ang button sa ibaba.'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {selectedBarangayFilter !== 'all' && (
+                        <button
+                          onClick={() => setSelectedBarangayFilter('all')}
+                          className="clay-button-ghost"
+                          style={{ fontSize: 12, padding: '6px 14px' }}
+                        >
+                          Ipakita ang Lahat ng Barangay
+                        </button>
+                      )}
+                      <button
+                        onClick={openCreateModal}
+                        className="clay-button-primary"
+                        style={{ fontSize: 12, padding: '6px 14px', gap: 6 }}
+                      >
+                        <Plus size={13} /> Register Verified Resident
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ) : (
