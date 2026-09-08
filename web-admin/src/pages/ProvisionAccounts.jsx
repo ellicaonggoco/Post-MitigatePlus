@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
-import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff, Info } from 'lucide-react';
+import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff, Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
@@ -111,10 +111,12 @@ export default function ProvisionAccounts() {
 
   // Accounts List State
   const [accounts, setAccounts] = useState([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
 
   // Fetch real provisioned accounts from backend on mount
   const fetchProvisionedAccounts = async () => {
     if (!token) return;
+    setLoadingAccounts(true);
     try {
       const res = await fetch(`${API_BASE_URL}/auth/provisioned-users`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -123,11 +125,14 @@ export default function ProvisionAccounts() {
         const data = await res.json();
         setAccounts(Array.isArray(data) ? data : []);
       } else {
+        console.warn('Failed to fetch provisioned accounts, HTTP status:', res.status);
         setAccounts([]);
       }
     } catch (err) {
       console.error('Failed to fetch provisioned accounts:', err);
       setAccounts([]);
+    } finally {
+      setLoadingAccounts(false);
     }
   };
 
@@ -196,6 +201,7 @@ export default function ProvisionAccounts() {
     let finalName = name.trim();
     let finalEmployeeId = employeeId.trim();
     let finalDepartment = department.trim();
+    let finalContactNum = contactNum.trim();
 
     if (targetRole === 'barangay_official') {
       if (!finalBrgyCode) {
@@ -212,13 +218,13 @@ export default function ProvisionAccounts() {
       finalDepartment = 'Barangay Local Government Unit';
     } else if (targetRole === 'field_staff') {
       // For Field Staff: Phone number is the Staff ID for uniform mobile login
-      if (!contactNum.trim() && finalEmployeeId) {
-        contactNum = finalEmployeeId;
+      if (!finalContactNum && finalEmployeeId) {
+        finalContactNum = finalEmployeeId;
       }
-      if (!finalEmployeeId && contactNum.trim()) {
-        finalEmployeeId = contactNum.trim();
+      if (!finalEmployeeId && finalContactNum) {
+        finalEmployeeId = finalContactNum;
       }
-      if (!finalName || !contactNum.trim()) {
+      if (!finalName || !finalContactNum) {
         setStatusMsg({ type: 'error', text: 'Please complete all required fields (Full Name and Mobile Phone Number).' });
         return;
       }
@@ -243,7 +249,7 @@ export default function ProvisionAccounts() {
             emailOrPhone: emailOrPhone.trim(),
             department: finalDepartment,
             employeeId: finalEmployeeId,
-            contactNum: contactNum.trim(),
+            contactNum: finalContactNum,
             teamName: targetRole === 'field_staff' ? teamName : null,
             staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
             barangayCode: targetRole === 'barangay_official' ? finalBrgyCode : 'City-Wide',
@@ -289,7 +295,7 @@ export default function ProvisionAccounts() {
           role: targetRole,
           employeeId: finalEmployeeId,
           department: finalDepartment,
-          contactNum: contactNum.trim(),
+          contactNum: finalContactNum,
           teamName: targetRole === 'field_staff' ? teamName : null,
           staffDesignation: targetRole === 'field_staff' ? staffDesignation : null,
         }),
@@ -386,14 +392,31 @@ export default function ProvisionAccounts() {
     });
   };
 
-  // Filter accounts displayed: SuperAdmin sees LGU Admin & Barangay Officials; LGU Admin sees Field Staff & Barangay Officials
+  // Filter accounts displayed:
+  // SuperAdmin sees all provisioned accounts (LGU Admin, Barangay Officials, Field Staff, SuperAdmins)
+  // LGU Admin sees Field Staff, Barangay Officials, and LGU Admins
+  const q = (search || '').trim().toLowerCase();
   const filteredAccounts = accounts.filter(a => {
+    if (!a) return false;
+    const name = String(a.name || '').toLowerCase();
+    const emailOrPhone = String(a.emailOrPhone || '').toLowerCase();
+    const contactNum = String(a.contactNum || '').toLowerCase();
+    const employeeId = String(a.employeeId || '').toLowerCase();
+    const brgy = String(a.barangayCode || '').toLowerCase();
+    const team = String(a.teamName || '').toLowerCase();
+
+    const matchesSearch = !q ||
+      name.includes(q) ||
+      emailOrPhone.includes(q) ||
+      contactNum.includes(q) ||
+      employeeId.includes(q) ||
+      brgy.includes(q) ||
+      team.includes(q);
+
     if (isSuperAdmin) {
-      return (a.role === 'lgu_admin' || a.role === 'barangay_official') &&
-        (a.name.toLowerCase().includes(search.toLowerCase()) || a.emailOrPhone.toLowerCase().includes(search.toLowerCase()));
+      return (a.role === 'lgu_admin' || a.role === 'barangay_official' || a.role === 'field_staff' || a.role === 'lgu_superadmin' || a.role === 'lgu_super_admin') && matchesSearch;
     } else {
-      return (a.role === 'field_staff' || a.role === 'barangay_official') &&
-        (a.name.toLowerCase().includes(search.toLowerCase()) || a.emailOrPhone.toLowerCase().includes(search.toLowerCase()) || a.barangayCode.includes(search));
+      return (a.role === 'field_staff' || a.role === 'barangay_official' || a.role === 'lgu_admin') && matchesSearch;
     }
   });
 
@@ -885,15 +908,26 @@ export default function ProvisionAccounts() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 'var(--radius-pill)' }}>
-          <Search size={14} color="var(--ink-soft)" />
-          <input
-            value={search}
-            aria-label="Search account name"
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search name, phone, team..."
-            style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: 170 }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={fetchProvisionedAccounts}
+            disabled={loadingAccounts}
+            title="Refresh accounts directory"
+            className="clay-button-ghost"
+            style={{ height: 34, width: 34, padding: 0, justifyContent: 'center', borderRadius: 'var(--radius-pill)' }}
+          >
+            <RefreshCw size={14} style={{ animation: loadingAccounts ? 'spin 1s linear infinite' : 'none' }} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 'var(--radius-pill)' }}>
+            <Search size={14} color="var(--ink-soft)" />
+            <input
+              value={search}
+              aria-label="Search account name"
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search name, phone, team..."
+              style={{ border: 'none', outline: 'none', fontSize: 12, background: 'transparent', color: 'var(--ink)', width: 170 }}
+            />
+          </div>
         </div>
       </div>
 
@@ -901,11 +935,16 @@ export default function ProvisionAccounts() {
       {viewTab === 'roster' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 24 }}>
           {FIELD_TEAMS.map((team, tIdx) => {
-            const teamMembers = accounts.filter(a =>
-              a.role === 'field_staff' &&
-              (a.teamName === team || (!a.teamName && team === 'Field Team Alpha')) &&
-              (!search || a.name.toLowerCase().includes(search.toLowerCase()) || a.emailOrPhone.toLowerCase().includes(search.toLowerCase()))
-            );
+            const teamMembers = accounts.filter(a => {
+              if (!a || a.role !== 'field_staff') return false;
+              const belongsToTeam = (a.teamName === team) || (!a.teamName && team === 'Field Team Alpha');
+              if (!belongsToTeam) return false;
+              if (!q) return true;
+              const n = String(a.name || '').toLowerCase();
+              const ep = String(a.emailOrPhone || '').toLowerCase();
+              const cid = String(a.employeeId || a.contactNum || '').toLowerCase();
+              return n.includes(q) || ep.includes(q) || cid.includes(q);
+            });
             const teamLeader = teamMembers.find(m => m.staffDesignation === 'team_leader');
             const officers = teamMembers.filter(m => m.staffDesignation !== 'team_leader');
 
@@ -1038,10 +1077,10 @@ export default function ProvisionAccounts() {
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
-                {isSuperAdmin ? 'Executive Accounts Directory' : 'Field Staff Accounts Directory'}
+                {isSuperAdmin ? 'Executive & Personnel Accounts Directory' : 'All Accounts Directory'}
               </h2>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                {isSuperAdmin ? 'Active LGU Admin & Barangay Official accounts list' : 'Active Field Staff accounts list'} ({filteredAccounts.length})
+                {isSuperAdmin ? 'Active LGU Admin, Barangay Official & Field Staff list' : 'Active Field Staff & Barangay Officials list'} ({filteredAccounts.length})
               </span>
             </div>
             
@@ -1092,26 +1131,41 @@ export default function ProvisionAccounts() {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.length === 0 ? (
+              {loadingAccounts ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--ink-soft)' }}>
-                    No accounts found matching your search.
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--ink-soft)' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--manila-blue)' }}>
+                      <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading accounts directory...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredAccounts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--ink-soft)' }}>
+                    <div style={{ marginBottom: 10, fontSize: 14, fontWeight: 600 }}>No accounts found matching your search.</div>
+                    <button
+                      onClick={fetchProvisionedAccounts}
+                      className="clay-button-ghost"
+                      style={{ fontSize: 12, padding: '6px 14px', margin: '0 auto', gap: 6 }}
+                    >
+                      <RefreshCw size={13} /> Refresh Directory
+                    </button>
                   </td>
                 </tr>
               ) : (
                 currentAccountItems.map(acc => (
-                  <tr key={acc.id}>
+                  <tr key={acc.id || acc._id}>
                     <td>
                       <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{acc.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{acc.emailOrPhone}</div>
                     </td>
                     <td>
                       <span style={{
-                        background: acc.role === 'lgu_admin' ? '#F5F3FF' : acc.role === 'field_staff' ? '#FEF3C7' : '#EFF6FF',
-                        color: acc.role === 'lgu_admin' ? '#7C3AED' : acc.role === 'field_staff' ? '#B45309' : '#1D4ED8',
+                        background: acc.role === 'lgu_superadmin' || acc.role === 'lgu_super_admin' ? '#FEF2F2' : acc.role === 'lgu_admin' ? '#F5F3FF' : acc.role === 'field_staff' ? '#FEF3C7' : '#EFF6FF',
+                        color: acc.role === 'lgu_superadmin' || acc.role === 'lgu_super_admin' ? '#DC2626' : acc.role === 'lgu_admin' ? '#7C3AED' : acc.role === 'field_staff' ? '#B45309' : '#1D4ED8',
                         fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999
                       }}>
-                        {acc.role === 'lgu_admin' ? 'LGU Admin' : acc.role === 'field_staff' ? 'Field Staff' : 'Barangay Official'}
+                        {acc.role === 'lgu_superadmin' || acc.role === 'lgu_super_admin' ? 'SuperAdmin' : acc.role === 'lgu_admin' ? 'LGU Admin' : acc.role === 'field_staff' ? 'Field Staff' : 'Barangay Official'}
                       </span>
                     </td>
                     <td>
