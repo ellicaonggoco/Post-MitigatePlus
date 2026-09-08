@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { fetchDistributionEvents } from '../services/api';
-import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon } from '../components/AppIcons';
+import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
 
-export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en' }) {
+export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateDeliveries, lang = 'en' }) {
   const [filterTab, setFilterTab] = useState('scheduled'); // 'scheduled' | 'ongoing' | 'completed'
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -173,6 +173,30 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, lang = 'en'
       <Text style={styles.pageSub}>
         Field Leaders have authority to start on-site relief distribution drives.
       </Text>
+
+      {/* 2.5 Primary Operations Mode Switcher */}
+      <View style={styles.operationsToggleRow}>
+        <TouchableOpacity
+          style={[styles.operationsToggleBtn, styles.operationsToggleBtnActive]}
+          activeOpacity={0.85}
+        >
+          <PackageIcon size={14} color="#FFFFFF" />
+          <Text style={[styles.operationsToggleText, styles.operationsToggleTextActive]}>
+            Distribution Drives ({events.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.operationsToggleBtn}
+          onPress={() => onNavigateDeliveries && onNavigateDeliveries()}
+          activeOpacity={0.85}
+        >
+          <TruckIcon size={14} color="#1E3A8A" />
+          <Text style={styles.operationsToggleText}>
+            Special Delivery (Door-to-Door)
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 3. Blue Segmented Filter Container */}
       <View style={styles.segmentedContainer}>
@@ -556,5 +580,40 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  operationsToggleRow: {
+    flexDirection: 'row',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    gap: 6,
+  },
+  operationsToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  operationsToggleBtnActive: {
+    backgroundColor: '#1E3A8A',
+    shadowColor: '#1E3A8A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  operationsToggleText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1E3A8A',
+  },
+  operationsToggleTextActive: {
+    color: '#FFFFFF',
   },
 });

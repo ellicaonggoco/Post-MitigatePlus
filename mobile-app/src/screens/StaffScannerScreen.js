@@ -24,8 +24,10 @@ import {
   ScanIcon,
   ShieldIcon,
   QrCodeIcon,
+  TruckIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
+import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
 import {
   scanHouseholdQR,
   confirmDistribution,
@@ -37,7 +39,7 @@ import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
-  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'scanner' | 'incident' | 'settings'
+  const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
   const [selectedEvent, setSelectedEvent] = useState({
     id: 'evt_344',
     title: 'Relief Distribution — 344',
@@ -310,7 +312,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               setSelectedEvent(evt);
               setActiveTab('scanner');
             }}
+            onNavigateDeliveries={() => setActiveTab('deliveries')}
             lang={lang}
+          />
+        ) : activeTab === 'deliveries' ? (
+          <SpecialRequestAssignmentScreen
+            lang={lang}
+            onBack={() => setActiveTab('tasks')}
           />
         ) : activeTab === 'scanner' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
@@ -646,6 +654,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       <View style={styles.tabBarContainer}>
         {[
           { key: 'tasks', label: 'Tasks', icon: (color) => <ListIcon size={18} color={color} /> },
+          { key: 'deliveries', label: 'Delivery', icon: (color) => <TruckIcon size={18} color={color} /> },
           { key: 'scanner', label: 'QR Scan', icon: (color) => <ScanIcon size={18} color={color} /> },
           { key: 'incident', label: 'Logger', icon: (color) => <AlertTriangleIcon size={18} color={color} /> },
           { key: 'settings', label: 'Duty', icon: (color) => <ShieldIcon size={18} color={color} /> },
