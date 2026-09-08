@@ -60,11 +60,7 @@ const NOTIF_ICONS = {
 };
 
 const INITIAL_NOTIFS = [
-  { id: 1, type: "verification", title: "New Registration Pending", body: "Santos, Maria R. from Brgy 291 submitted household registration.", time: "2 min ago", read: false, link: "/verification-queue" },
-  { id: 2, type: "fraud", title: "Fraud Attempt Detected", body: "QR-MNL-00421 was used at 2 distribution points. Auto-blocked.", time: "14 min ago", read: false, link: "/fraud-interception" },
-  { id: 3, type: "distribution", title: "Distribution Event Starting", body: "Brgy 292 distribution event begins in 30 minutes. Field Team Bravo assigned.", time: "28 min ago", read: false, link: "/distribution-events" },
-  { id: 4, type: "alert", title: "Low Inventory Alert", body: "Water Jugs stock has fallen below the minimum threshold (340 remaining).", time: "1 hr ago", read: true, link: "/warehouse-inventory" },
-  { id: 5, type: "success", title: "Relief Allocation Complete", body: "Brgy 293 relief allocation has been processed. 210 households served.", time: "3 hrs ago", read: true, link: "/relief-allocation" },
+  { id: 1, type: "success", title: "MitigatePlus System Ready", body: "All systems are operational. Dashboard, verification queue, and relief operations are live.", time: "Just now", read: false, link: "/" },
 ];
 
 function NotificationPanel({ notifs, setNotifs, onClose }) {

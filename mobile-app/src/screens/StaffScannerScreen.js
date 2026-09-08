@@ -10,7 +10,6 @@ import {
   Alert,
   Platform,
   Animated,
-  Switch,
   Keyboard,
   Modal,
   Image,
@@ -55,13 +54,7 @@ const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
-  const [selectedEvent, setSelectedEvent] = useState({
-    id: 'evt_344',
-    title: 'Relief Distribution — 344',
-    venue: '344',
-    location: '344',
-    itemType: 'All-in-One Family Food Pack',
-  });
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Laser scanner animation
   const laserAnim = useRef(new Animated.Value(0)).current;
@@ -310,7 +303,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     }
   };
 
-  // Offline buffer state
+  // Offline buffer state (Automatically managed)
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [offlineCache, setOfflineCache] = useState([]);
   const [offlineClaimsQueue, setOfflineClaimsQueue] = useState([]);
@@ -357,7 +350,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     })();
   }, [token]);
 
-  // Load offline storage
+  // Load offline storage and silently preload fresh roster for duty barangay
   useEffect(() => {
     (async () => {
       try {
@@ -365,11 +358,23 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         if (cached) setOfflineCache(JSON.parse(cached));
         const queue = await AsyncStorage.getItem('mitigateplus_offline_claims');
         if (queue) setOfflineClaimsQueue(JSON.parse(queue));
+
+        // Background preload latest households for duty barangay
+        if (token && dutyBrgy) {
+          fetchOfflineHouseholds(token, dutyBrgy)
+            .then(data => {
+              if (Array.isArray(data) && data.length > 0) {
+                setOfflineCache(data);
+                AsyncStorage.setItem('mitigateplus_offline_households', JSON.stringify(data)).catch(() => {});
+              }
+            })
+            .catch(() => {});
+        }
       } catch (e) {
         console.warn('Cache load error:', e);
       }
     })();
-  }, []);
+  }, [token, dutyBrgy]);
 
   // Load completed releases from server & cache
   const fetchMyReleases = async () => {
@@ -407,6 +412,97 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   useEffect(() => {
     fetchMyReleases();
   }, [token, dutyBrgy]);
+
+  // Auto-sync offline claims when network connectivity is active
+  const autoSyncOfflineClaims = async () => {
+    if (offlineClaimsQueue.length === 0 || !token) return;
+    try {
+      let successCount = 0;
+      const remaining = [];
+      for (const item of offlineClaimsQueue) {
+        try {
+          await syncOfflineClaim(token, item);
+          successCount++;
+        } catch (err) {
+          remaining.push(item);
+        }
+      }
+      setOfflineClaimsQueue(remaining);
+      await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(remaining));
+      if (successCount > 0) {
+        setScanNotice({
+          type: 'success',
+          text: lang === 'tl'
+            ? `Awtomatikong na-sync ang ${successCount} offline claim sa cloud.`
+            : `Auto-synced ${successCount} offline distribution record(s) to cloud.`,
+        });
+      }
+    } catch (e) {
+      console.warn('Auto sync offline claims error:', e);
+    }
+  };
+
+  // Automatic Continuous Online / Offline Detection
+  useEffect(() => {
+    let isMounted = true;
+
+    const probeConnectivity = async () => {
+      // Browser fast check
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
+        if (isMounted) setIsOfflineMode(true);
+        return;
+      }
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(`${API_BASE_URL}/health`, {
+          method: 'GET',
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+
+        if (isMounted) {
+          const wasOffline = isOfflineMode;
+          const isOnlineNow = !!(res && (res.ok || res.status < 500));
+          setIsOfflineMode(!isOnlineNow);
+
+          if (wasOffline && isOnlineNow && offlineClaimsQueue.length > 0) {
+            autoSyncOfflineClaims();
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setIsOfflineMode(true);
+        }
+      }
+    };
+
+    probeConnectivity();
+    const interval = setInterval(probeConnectivity, 12000);
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleOnline = () => {
+        if (isMounted) setIsOfflineMode(false);
+        probeConnectivity();
+      };
+      const handleOffline = () => {
+        if (isMounted) setIsOfflineMode(true);
+      };
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [token, offlineClaimsQueue.length, isOfflineMode]);
 
   const downloadOfflineCache = async () => {
     setCachingLoading(true);
@@ -461,109 +557,129 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     setScanNotice(null);
     setScansTodayCount(prev => prev + 1);
 
+    const activeDrive = selectedEvent || {
+      title: lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution',
+      itemType: 'All-in-One Family Food Pack',
+      location: `Barangay ${dutyBrgy} Covered Court`,
+    };
+
+    const checkOfflineCacheForCode = (code) => {
+      const found = offlineCache.find(
+        h => h.qrCode === code || h._id === code || h.householdId === code
+      );
+      if (!found) {
+        showNotify('Offline Notice', 'QR pass not found in local cache.', true);
+        setFlaggedTodayCount(prev => prev + 1);
+        setLoading(false);
+        setTimeout(() => setScanned(false), 2500);
+        return;
+      }
+
+      const isDup = offlineClaimsQueue.some(
+        c => (c.qrCode === code || c.householdId === found._id) && c.eventId === (activeDrive._id || activeDrive.id)
+      );
+
+      if (isDup) {
+        setDuplicateAlert(true);
+        setDuplicateMessage(
+          lang === 'tl'
+            ? 'Ang pamilyang ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito (offline claim record).'
+            : 'This household has already claimed relief in this event (offline record).'
+        );
+        setDuplicateData({
+          name: found.name || found.headOfHouseholdUserId?.name || 'Beneficiary Head',
+          address: found.address || `Barangay ${dutyBrgy}, Manila`,
+          barangayCode: found.barangayCode || dutyBrgy,
+          qrCode: code,
+        });
+        setFlaggedTodayCount(prev => prev + 1);
+        setLoading(false);
+        setScanResult(null);
+        return;
+      }
+
+      setScanResult({
+        household: {
+          ...found,
+          name: found.name || found.headOfHouseholdUserId?.name || 'Household Beneficiary',
+          familyHeadcount: found.familyHeadcount || found.membersCount || found.memberCount || 5,
+          entitlement: `${found.basePacks || 1}x Base Relief Pack`,
+          priorityLevel: found.priorityLevel || 'High Priority',
+        },
+        distributionEvent: activeDrive,
+      });
+      setVerifiedTodayCount(prev => prev + 1);
+      setScanNotice({ type: 'success', text: `Household found: ${found.name || 'Beneficiary'} (Offline Cache)` });
+      setTimeout(() => {
+        scannerScrollRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    };
+
     try {
       if (isOfflineMode) {
-        const found = offlineCache.find(
-          h => h.qrCode === rawCode || h._id === rawCode || h.householdId === rawCode
-        );
-        if (!found) {
-          showNotify('Offline Notice', 'QR pass not found in local cache.', true);
-          setFlaggedTodayCount(prev => prev + 1);
-          setLoading(false);
-          setTimeout(() => setScanned(false), 2500);
-          return;
-        }
-
-        const isDup = offlineClaimsQueue.some(
-          c => (c.qrCode === rawCode || c.householdId === found._id) && c.eventId === (selectedEvent._id || selectedEvent.id)
-        );
-
-        if (isDup) {
-          setDuplicateAlert(true);
-          setDuplicateMessage(
-            lang === 'tl'
-              ? 'Ang pamilyang ito ay nakapagtala na ng natanggap na ayuda sa distribution drive na ito (offline claim record).'
-              : 'This household has already claimed relief in this event (offline record).'
-          );
-          setDuplicateData({
-            name: found.name || found.headOfHouseholdUserId?.name || 'Beneficiary Head',
-            address: found.address || `Barangay ${dutyBrgy}, Manila`,
-            barangayCode: found.barangayCode || dutyBrgy,
-            qrCode: rawCode,
-          });
-          setFlaggedTodayCount(prev => prev + 1);
-          setLoading(false);
-          setScanResult(null);
-          return;
-        }
-
-        setScanResult({
-          household: {
-            ...found,
-            name: found.name || found.headOfHouseholdUserId?.name || 'Household Beneficiary',
-            familyHeadcount: found.familyHeadcount || found.membersCount || found.memberCount || 5,
-            entitlement: `${found.basePacks || 1}x Base Relief Pack`,
-            priorityLevel: found.priorityLevel || 'High Priority',
-          },
-          distributionEvent: selectedEvent,
-        });
-        setVerifiedTodayCount(prev => prev + 1);
-        setScanNotice({ type: 'success', text: `Household found: ${found.name || 'Beneficiary'} (Offline)` });
-        setTimeout(() => {
-          scannerScrollRef.current?.scrollToEnd({ animated: true });
-        }, 150);
+        checkOfflineCacheForCode(rawCode);
       } else {
-        const currentEventId = selectedEvent?._id || selectedEvent?.id;
-        const res = await scanHouseholdQR(token, rawCode, currentEventId);
+        const currentEventId = activeDrive?._id || activeDrive?.id;
+        try {
+          const res = await scanHouseholdQR(token, rawCode, currentEventId);
 
-        if (res.duplicate || res.isDuplicate) {
-          setDuplicateAlert(true);
-          setDuplicateMessage(
-            res.message ||
-            (lang === 'tl'
-              ? 'Ang pamilyang ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
-              : 'Household already claimed relief in this drive today.')
-          );
-          setDuplicateData({
-            name: res.household?.name || 'Verified Beneficiary',
-            address: res.household?.address || `Barangay ${res.household?.barangayCode || dutyBrgy}, Manila`,
-            barangayCode: res.household?.barangayCode || dutyBrgy,
-            claimedAt: res.claimedAt || new Date().toISOString(),
-            qrCode: rawCode,
-          });
-          setFlaggedTodayCount(prev => prev + 1);
-          setScanResult(null);
-          setLoading(false);
-          return;
-        } else if (res.household) {
-          const hh = res.household;
-          const headName = hh.name || hh.headOfHouseholdUserId?.name || 'Verified Beneficiary';
-          const headcount = hh.familyHeadcount || hh.memberCount || (Array.isArray(hh.members) ? hh.members.length : 1);
-          const entitlementStr = typeof res.entitlement === 'object' && res.entitlement?.summaryText
-            ? res.entitlement.summaryText
-            : (typeof hh.entitlement === 'string' ? hh.entitlement : `${res.entitlement?.basePacks || 1}x All-in-One Family Food Pack`);
+          if (res.duplicate || res.isDuplicate) {
+            setDuplicateAlert(true);
+            setDuplicateMessage(
+              res.message ||
+              (lang === 'tl'
+                ? 'Ang pamilyang ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
+                : 'Household already claimed relief in this drive today.')
+            );
+            setDuplicateData({
+              name: res.household?.name || 'Verified Beneficiary',
+              address: res.household?.address || `Barangay ${res.household?.barangayCode || dutyBrgy}, Manila`,
+              barangayCode: res.household?.barangayCode || dutyBrgy,
+              claimedAt: res.claimedAt || new Date().toISOString(),
+              qrCode: rawCode,
+            });
+            setFlaggedTodayCount(prev => prev + 1);
+            setScanResult(null);
+            setLoading(false);
+            return;
+          } else if (res.household) {
+            const hh = res.household;
+            const headName = hh.name || hh.headOfHouseholdUserId?.name || 'Verified Beneficiary';
+            const headcount = hh.familyHeadcount || hh.memberCount || (Array.isArray(hh.members) ? hh.members.length : 1);
+            const entitlementStr = typeof res.entitlement === 'object' && res.entitlement?.summaryText
+              ? res.entitlement.summaryText
+              : (typeof hh.entitlement === 'string' ? hh.entitlement : `${res.entitlement?.basePacks || 1}x All-in-One Family Food Pack`);
 
-          setScanResult({
-            ...res,
-            household: {
-              ...hh,
-              name: headName,
-              familyHeadcount: headcount,
-              entitlement: entitlementStr,
-              priorityLevel: res.priorityLevel || hh.priorityLevel || 'High Priority',
-              address: hh.address || `Barangay ${hh.barangayCode || '291'}, Manila`,
-            },
-            distributionEvent: selectedEvent,
-          });
-          setVerifiedTodayCount(prev => prev + 1);
-          setScanNotice({ type: 'success', text: `Verified Household: ${headName} (${headcount} members)` });
-          setTimeout(() => {
-            scannerScrollRef.current?.scrollToEnd({ animated: true });
-          }, 150);
-        } else {
-          showNotify('Scan Result', res.message || 'Invalid QR code.', true);
-          setFlaggedTodayCount(prev => prev + 1);
-          setTimeout(() => setScanned(false), 2500);
+            setScanResult({
+              ...res,
+              household: {
+                ...hh,
+                name: headName,
+                familyHeadcount: headcount,
+                entitlement: entitlementStr,
+                priorityLevel: res.priorityLevel || hh.priorityLevel || 'High Priority',
+                address: hh.address || `Barangay ${hh.barangayCode || '291'}, Manila`,
+              },
+              distributionEvent: activeDrive,
+            });
+            setVerifiedTodayCount(prev => prev + 1);
+            setScanNotice({ type: 'success', text: `Verified Household: ${headName} (${headcount} members)` });
+            setTimeout(() => {
+              scannerScrollRef.current?.scrollToEnd({ animated: true });
+            }, 150);
+          } else {
+            showNotify('Scan Result', res.message || 'Invalid QR code.', true);
+            setFlaggedTodayCount(prev => prev + 1);
+            setTimeout(() => setScanned(false), 2500);
+          }
+        } catch (apiErr) {
+          const isNetErr = !apiErr.status || apiErr.message?.toLowerCase().includes('network') || apiErr.message?.toLowerCase().includes('fetch');
+          if (isNetErr) {
+            setIsOfflineMode(true);
+            checkOfflineCacheForCode(rawCode);
+            return;
+          }
+          throw apiErr;
         }
       }
     } catch (err) {
@@ -578,71 +694,89 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const handleConfirmRelease = async () => {
     if (!scanResult) return;
     const currentHh = scanResult.household;
-    const currentEv = selectedEvent;
+    const currentEv = selectedEvent || {
+      title: lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution',
+      itemType: 'All-in-One Family Food Pack',
+    };
     setReleasing(true);
+
+    const recordOfflineRelease = async () => {
+      const claimObj = {
+        householdId: currentHh._id || currentHh.id,
+        qrCode: currentHh.qrCode || manualCode,
+        eventId: currentEv._id || currentEv.id,
+        timestamp: new Date().toISOString(),
+      };
+      const updatedQueue = [...offlineClaimsQueue, claimObj];
+      setOfflineClaimsQueue(updatedQueue);
+      await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
+
+      const offlineReceipt = {
+        receiptNumber: `RCPT-${new Date().getFullYear()}-${Date.now().toString().slice(-6).toUpperCase()}`,
+        eventTitle: currentEv.title || 'Relief Distribution',
+        barangayCode: currentHh.barangayCode || dutyBrgy,
+        householdAddress: currentHh.address || 'Manila City',
+        headOfHousehold: currentHh.name || 'Verified Beneficiary',
+        itemType: currentEv.itemType || 'All-in-One Family Food Pack',
+        totalPacks: 1,
+        baseUnitsGiven: 1,
+        topUpUnitsGiven: 0,
+        releasedAt: new Date().toISOString(),
+        releasedByName: officerName,
+        disbursingTeam: 'MDRRMO Field Operations',
+        isOffline: true,
+        status: 'claimed',
+      };
+
+      const newCompleted = [offlineReceipt, ...completedScans];
+      setCompletedScans(newCompleted);
+      AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
+      setReceiptModalData(offlineReceipt);
+      setScanResult(null);
+      setScanned(false);
+    };
+
     try {
       if (isOfflineMode) {
-        const claimObj = {
-          householdId: currentHh._id || currentHh.id,
-          qrCode: currentHh.qrCode,
-          eventId: currentEv._id || currentEv.id,
-          timestamp: new Date().toISOString(),
-        };
-        const updatedQueue = [...offlineClaimsQueue, claimObj];
-        setOfflineClaimsQueue(updatedQueue);
-        await AsyncStorage.setItem('mitigateplus_offline_claims', JSON.stringify(updatedQueue));
-
-        const offlineReceipt = {
-          receiptNumber: `RCPT-${new Date().getFullYear()}-${Date.now().toString().slice(-6).toUpperCase()}`,
-          eventTitle: currentEv.title || 'Relief Distribution',
-          barangayCode: currentHh.barangayCode || dutyBrgy,
-          householdAddress: currentHh.address || 'Manila City',
-          headOfHousehold: currentHh.name || 'Verified Beneficiary',
-          itemType: currentEv.itemType || 'All-in-One Family Food Pack',
-          totalPacks: 1,
-          baseUnitsGiven: 1,
-          topUpUnitsGiven: 0,
-          releasedAt: new Date().toISOString(),
-          releasedByName: officerName,
-          disbursingTeam: 'MDRRMO Field Operations',
-          isOffline: true,
-          status: 'claimed',
-        };
-
-        const newCompleted = [offlineReceipt, ...completedScans];
-        setCompletedScans(newCompleted);
-        AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
-        setReceiptModalData(offlineReceipt);
-        setScanResult(null);
-        setScanned(false);
+        await recordOfflineRelease();
       } else {
-        const res = await confirmDistribution(token, {
-          householdId: currentHh._id || currentHh.id,
-          eventId: currentEv._id || currentEv.id,
-        });
+        try {
+          const res = await confirmDistribution(token, {
+            householdId: currentHh._id || currentHh.id,
+            eventId: currentEv._id || currentEv.id,
+          });
 
-        const receipt = res?.receipt || {
-          receiptNumber: res?.receiptNumber || `RCPT-${new Date().getFullYear()}-${(currentHh._id || Date.now()).toString().slice(-6).toUpperCase()}`,
-          eventTitle: currentEv.title || 'Relief Distribution',
-          barangayCode: currentHh.barangayCode || dutyBrgy,
-          householdAddress: currentHh.address || 'Manila City',
-          headOfHousehold: currentHh.name || 'Verified Beneficiary',
-          itemType: currentEv.itemType || 'All-in-One Family Food Pack',
-          totalPacks: 1,
-          baseUnitsGiven: 1,
-          topUpUnitsGiven: 0,
-          releasedAt: new Date().toISOString(),
-          releasedByName: officerName,
-          disbursingTeam: 'MDRRMO Field Operations',
-          status: 'claimed',
-        };
+          const receipt = res?.receipt || {
+            receiptNumber: res?.receiptNumber || `RCPT-${new Date().getFullYear()}-${(currentHh._id || Date.now()).toString().slice(-6).toUpperCase()}`,
+            eventTitle: currentEv.title || 'Relief Distribution',
+            barangayCode: currentHh.barangayCode || dutyBrgy,
+            householdAddress: currentHh.address || 'Manila City',
+            headOfHousehold: currentHh.name || 'Verified Beneficiary',
+            itemType: currentEv.itemType || 'All-in-One Family Food Pack',
+            totalPacks: 1,
+            baseUnitsGiven: 1,
+            topUpUnitsGiven: 0,
+            releasedAt: new Date().toISOString(),
+            releasedByName: officerName,
+            disbursingTeam: 'MDRRMO Field Operations',
+            status: 'claimed',
+          };
 
-        const newCompleted = [receipt, ...completedScans.filter(s => s.receiptNumber !== receipt.receiptNumber)];
-        setCompletedScans(newCompleted);
-        AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
-        setReceiptModalData(receipt);
-        setScanResult(null);
-        setScanned(false);
+          const newCompleted = [receipt, ...completedScans.filter(s => s.receiptNumber !== receipt.receiptNumber)];
+          setCompletedScans(newCompleted);
+          AsyncStorage.setItem('mitigateplus_completed_scans_' + dutyBrgy, JSON.stringify(newCompleted.slice(0, 50))).catch(() => {});
+          setReceiptModalData(receipt);
+          setScanResult(null);
+          setScanned(false);
+        } catch (apiErr) {
+          const isNetErr = !apiErr.status || apiErr.message?.toLowerCase().includes('network') || apiErr.message?.toLowerCase().includes('fetch');
+          if (isNetErr) {
+            setIsOfflineMode(true);
+            await recordOfflineRelease();
+            return;
+          }
+          throw apiErr;
+        }
       }
     } catch (err) {
       const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
@@ -765,31 +899,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               style={styles.heroDriveCard}
             >
               <Text style={styles.heroDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
-              <Text style={styles.heroDriveTitle}>{selectedEvent?.title || 'Relief Distribution — 344'}</Text>
+              <Text style={styles.heroDriveTitle}>
+                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution')}
+              </Text>
             </LinearGradient>
-
-            {/* Online/Offline Live Toggle Card */}
-            <View style={styles.onlineToggleCard}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={[styles.statusIndicatorDot, { backgroundColor: isOfflineMode ? '#DC2626' : '#10B981' }]} />
-                  <Text style={[styles.toggleModeTitle, { color: isOfflineMode ? '#DC2626' : '#059669' }]}>
-                    {isOfflineMode ? 'OFFLINE SCANNER MODE: ACTIVE' : 'ONLINE LIVE CLOUD MODE'}
-                  </Text>
-                </View>
-                <Text style={styles.toggleModeSub}>
-                  {isOfflineMode
-                    ? `Gumagana gamit ang ${offlineCache.length} cached households. Walang internet na kailangan.`
-                    : 'Direktang nakakonekta sa LGU Cloud Server.'}
-                </Text>
-              </View>
-              <Switch
-                value={!isOfflineMode}
-                onValueChange={(val) => setIsOfflineMode(!val)}
-                trackColor={{ false: '#CBD5E1', true: '#1E3A8A' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
 
             {/* Real Hardware Camera Viewfinder */}
             <View style={styles.viewfinderCard}>
@@ -807,7 +920,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       <View style={[styles.statusPulseDot, { backgroundColor: isOfflineMode ? '#F59E0B' : '#10B981' }]} />
                       <Text style={styles.viewfinderBadgeTag}>
                         {isOfflineMode
-                          ? (lang === 'tl' ? 'OFFLINE CACHE AKTIBO' : 'OFFLINE CACHE ACTIVE')
+                          ? (lang === 'tl' ? 'OFFLINE CACHE (AUTO)' : 'OFFLINE CACHE (AUTO)')
                           : (lang === 'tl' ? 'MDRRMO LGU CLOUD LIVE' : 'MDRRMO LGU CLOUD LIVE')}
                       </Text>
                     </View>
@@ -855,14 +968,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
               <View style={styles.cameraBox}>
                 {Platform.OS === 'web' ? (
-                  <TouchableOpacity
-                    style={styles.webPreviewPlaceholder}
-                    activeOpacity={0.85}
-                    onPress={() => {
-                      setManualCode('MNL-291-JUAN-DEMO-2026');
-                      handleExecuteScan('MNL-291-JUAN-DEMO-2026');
-                    }}
-                  >
+                  <View style={styles.webPreviewPlaceholder}>
                     <View style={styles.webLensIconCircle}>
                       <QrCodeIcon size={38} color="#38BDF8" />
                     </View>
@@ -871,15 +977,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     </Text>
                     <Text style={styles.webLensSub}>
                       {lang === 'tl'
-                        ? 'Pindutin upang subukan ang pag-verify ng opisyal na QR Pass'
-                        : 'Click here to simulate a live beneficiary QR verification'}
+                        ? 'Gamitin ang manual entry sa ibaba upang i-type ang QR Pass code ng benepisyaryo.'
+                        : 'Use the manual entry below to type the beneficiary QR Pass code.'}
                     </Text>
-                    <View style={styles.webTestBadge}>
-                      <Text style={styles.webTestBadgeText}>
-                        {lang === 'tl' ? 'I-TEST ANG SCANNER' : 'TEST SCANNER'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  </View>
                 ) : !permission ? (
                   <View style={styles.camLoadingBox}>
                     <ActivityIndicator size="large" color="#38BDF8" />
@@ -1053,42 +1154,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 </TouchableOpacity>
               </View>
 
-              {/* Quick-Fill Test Chips */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Quick Test:</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setManualCode('MNL-291-ELLICA-2026');
-                    handleExecuteScan('MNL-291-ELLICA-2026');
-                  }}
-                  style={{
-                    backgroundColor: '#ECFDF5',
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: '#6EE7B7',
-                  }}
-                >
-                  <Text style={{ fontSize: 11, color: '#059669', fontWeight: '700' }}>⚡ Ellica Onggoco (Brgy 291)</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setManualCode('MNL-291-JUAN-DEMO-2026');
-                    handleExecuteScan('MNL-291-JUAN-DEMO-2026');
-                  }}
-                  style={{
-                    backgroundColor: '#EFF6FF',
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 6,
-                    borderWidth: 1,
-                    borderColor: '#93C5FD',
-                  }}
-                >
-                  <Text style={{ fontSize: 11, color: '#1D4ED8', fontWeight: '700' }}>⚡ Juan Dela Cruz (Brgy 291)</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             {/* In-page Scan Notice Banner */}
@@ -1346,7 +1411,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.dutyDivider} />
               <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Duty Period</Text>
-                <Text style={styles.dutyInfoVal}>Sep 7, 2026 · 06:00 AM – 06:00 PM</Text>
+                <Text style={styles.dutyInfoVal}>
+                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · 06:00 AM – 06:00 PM
+                </Text>
               </View>
             </View>
 
@@ -1354,7 +1421,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             <Text style={styles.sectionHeaderTitle}>Active Distribution Drive</Text>
             <View style={styles.activeDrivePreviewCard}>
               <Text style={styles.activeDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
-              <Text style={styles.activeDriveTitle}>{selectedEvent?.title || 'Relief Distribution — 344'}</Text>
+              <Text style={styles.activeDriveTitle}>
+                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution')}
+              </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
                 <MapPinIcon size={12} color="#93C5FD" />
                 <Text style={styles.activeDriveSub}>

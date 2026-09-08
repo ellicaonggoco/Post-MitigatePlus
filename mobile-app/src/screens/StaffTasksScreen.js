@@ -35,42 +35,8 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
           };
         }));
       } else {
-        // Fallback default demonstration events
-        setEvents([
-          {
-            id: 'evt_344',
-            title: 'Relief Distribution — 344',
-            venue: '344',
-            location: '344',
-            itemType: 'All-in-One Family Food Pack',
-            allocatedItems: 'All-in-One Family Food Pack',
-            status: 'scheduled',
-            scannedCount: 0,
-            totalTarget: 150,
-          },
-          {
-            id: 'evt_222',
-            title: 'Relief Distribution — brgy 222',
-            venue: 'Brgy 222',
-            location: 'Brgy 222',
-            itemType: 'Food',
-            allocatedItems: 'Food',
-            status: 'scheduled',
-            scannedCount: 0,
-            totalTarget: 120,
-          },
-          {
-            id: 'evt_291',
-            title: 'Post-Typhoon Relief Distribution Batch 1',
-            venue: 'Barangay 291 Covered Court',
-            location: 'Barangay 291 Covered Court',
-            itemType: 'Family Food Pack',
-            allocatedItems: 'Family Food Pack',
-            status: 'scheduled',
-            scannedCount: 0,
-            totalTarget: 200,
-          },
-        ]);
+        // No events available from server — show empty state
+        setEvents([]);
       }
     } catch (err) {
       console.warn('Events fetch fallback:', err);
