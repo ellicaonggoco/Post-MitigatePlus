@@ -458,7 +458,7 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
 // -------------------------------------------------------------
 // 8. LGU ADMIN: Live Payroll Summary & Certified Disbursement
 // -------------------------------------------------------------
-router.get('/payroll/:projectId', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
+router.get(['/payroll/:projectId', '/projects/:projectId/payroll'], protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
   try {
     const project = await CashForWorkProject.findById(req.params.projectId);
     if (!project) {

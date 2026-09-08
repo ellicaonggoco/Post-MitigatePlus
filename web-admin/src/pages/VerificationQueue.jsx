@@ -6,6 +6,7 @@ import { IconlyVerification, IconlyShield, IconlyUserPlus } from '../components/
 import ConfirmModal from '../components/ConfirmModal';
 import io from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../config';
+import { canSeeCityWide } from '../utils/roleUtils';
 import { MotionCard, MotionButton } from '../components/motion';
 
 const ITEMS_PER_PAGE = 8;
@@ -16,7 +17,8 @@ export default function VerificationQueue() {
   const [loading, setLoading] = useState(true);
   const [selectedNotes, setSelectedNotes] = useState({});
   const [actionStatus, setActionStatus] = useState({ type: '', msg: '' });
-  const [selectedBarangay, setSelectedBarangay] = useState(user?.barangayCode || '291');
+  const isCityWide = canSeeCityWide(user);
+  const [selectedBarangay, setSelectedBarangay] = useState(isCityWide ? 'ALL' : (user?.barangayCode || '291'));
   const [currentPage, setCurrentPage] = useState(1);
   const [previewImage, setPreviewImage] = useState({ isOpen: false, url: '', title: '', idType: '' });
 
@@ -32,7 +34,7 @@ export default function VerificationQueue() {
     setLoading(true);
     try {
       let url = `${API_BASE_URL}/households/pending`;
-      if (user?.role === 'lgu_admin' && selectedBarangay !== 'ALL') {
+      if (canSeeCityWide(user) && selectedBarangay !== 'ALL') {
         url += `?barangayCode=${selectedBarangay}`;
       }
 
@@ -56,7 +58,7 @@ export default function VerificationQueue() {
     fetchPendingQueue();
 
     const socket = io(SOCKET_URL);
-    const targetCode = user?.role === 'lgu_admin' ? selectedBarangay : user?.barangayCode;
+    const targetCode = canSeeCityWide(user) ? selectedBarangay : user?.barangayCode;
 
     if (targetCode && targetCode !== 'ALL') {
       socket.emit('join_barangay_room', targetCode);
@@ -211,7 +213,7 @@ export default function VerificationQueue() {
         <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Scope
         </span>
-        {user?.role === 'lgu_admin' ? (
+        {canSeeCityWide(user) ? (
           <select
             id="barangay-filter"
             aria-label="Filter by Barangay"
@@ -220,10 +222,12 @@ export default function VerificationQueue() {
             style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)', background: 'transparent', cursor: 'pointer' }}
           >
             <option value="ALL">All Barangays (City-Wide)</option>
+            <option value="128">Barangay 128 (Smokey Mountain)</option>
             <option value="291">Barangay 291</option>
             <option value="292">Barangay 292</option>
             <option value="293">Barangay 293</option>
             <option value="294">Barangay 294</option>
+            <option value="344">Barangay 344</option>
           </select>
         ) : (
           <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)' }}>
@@ -270,7 +274,7 @@ export default function VerificationQueue() {
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 6px' }}>Queue Clear</h2>
           <p style={{ fontSize: '14px', color: 'var(--ink-soft)' }}>
-            All submitted registrations for Barangay {user?.role === 'lgu_admin' ? selectedBarangay : user?.barangayCode} have been reviewed.
+            All submitted registrations for {canSeeCityWide(user) ? (selectedBarangay === 'ALL' ? 'all barangays' : `Barangay ${selectedBarangay}`) : `Barangay ${user?.barangayCode || '291'}`} have been reviewed.
           </p>
           <button onClick={fetchPendingQueue} className="clay-button-secondary workflow-empty-state__action"><RefreshCw size={15} /> Check for new registrations</button>
         </div>

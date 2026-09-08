@@ -5,7 +5,8 @@ import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, Check
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { IconlyShield } from '../components/Sidebar';
-import { API_BASE_URL } from '../config';
+import io from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionNumberCounter } from '../components/motion';
 
 export default function SmartPriorityDashboard() {
@@ -155,6 +156,19 @@ export default function SmartPriorityDashboard() {
       localStorage.setItem('mitigateplus_user_notifications', JSON.stringify([newNotif, ...list]));
       window.dispatchEvent(new Event('mitigateplus_notif_update'));
       window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+      socket.emit('executive_directive_broadcast', {
+        barangayCode: bCode,
+        notes: `City Mayor issued priority relief deployment directive to LGU Admin for Barangay ${bCode}`,
+        familyCount,
+        issuedBy: user?.name || 'City Mayor / SuperAdmin',
+      });
+      setTimeout(() => socket.disconnect(), 1500);
     } catch (e) {
       console.error(e);
     }

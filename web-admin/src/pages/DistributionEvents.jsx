@@ -2009,6 +2009,27 @@ export default function DistributionEvents() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {evStatus === 'Scheduled' && (
+                          <button
+                            type="button"
+                            onClick={() => requestStatusUpdate(ev, 'Ongoing')}
+                            style={{
+                              fontSize: 12,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              padding: '7px 14px',
+                              background: '#2563EB',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontWeight: 800,
+                            }}
+                          >
+                            <Play size={13} /> Start Distribution
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => handleOpenEditAnnouncement(ev, e)}

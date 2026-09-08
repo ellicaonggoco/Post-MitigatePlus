@@ -131,6 +131,10 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} joined admin_room`);
   });
 
+  socket.on('executive_directive_broadcast', (data) => {
+    socket.to('admin_room').emit('executive_directive', data);
+  });
+
   socket.on('disconnect', () => {
     console.log(`Socket disconnected: ${socket.id}`);
   });
