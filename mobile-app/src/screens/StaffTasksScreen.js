@@ -162,43 +162,19 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* 1. Header Kicker Pill Tag */}
-      <View style={styles.taskManagerPill}>
-        <ListIcon size={13} color="#1D4ED8" />
-        <Text style={styles.taskManagerPillText}>LGU FIELD STAFF TASK MANAGER</Text>
+      {/* 1. Screen Title & Subtitle */}
+      <View style={{ marginBottom: 14 }}>
+        <Text style={styles.pageTitle}>
+          {lang === 'tl' ? 'Mga Gawain at Pamamahagi' : 'Tasks & Distribution Drives'}
+        </Text>
+        <Text style={styles.pageSub}>
+          {lang === 'tl'
+            ? 'Pamahalaan ang mga on-site relief distribution drives at door-to-door assignments.'
+            : 'Manage on-site relief distribution drives and track ground delivery status.'}
+        </Text>
       </View>
 
-      {/* 2. Screen Title & Subtitle */}
-      <Text style={styles.pageTitle}>Field Tasks & Distribution Drives</Text>
-      <Text style={styles.pageSub}>
-        Field Leaders have authority to start on-site relief distribution drives.
-      </Text>
-
-      {/* 2.5 Primary Operations Mode Switcher */}
-      <View style={styles.operationsToggleRow}>
-        <TouchableOpacity
-          style={[styles.operationsToggleBtn, styles.operationsToggleBtnActive]}
-          activeOpacity={0.85}
-        >
-          <PackageIcon size={14} color="#FFFFFF" />
-          <Text style={[styles.operationsToggleText, styles.operationsToggleTextActive]}>
-            Distribution Drives ({events.length})
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.operationsToggleBtn}
-          onPress={() => onNavigateDeliveries && onNavigateDeliveries()}
-          activeOpacity={0.85}
-        >
-          <TruckIcon size={14} color="#1E3A8A" />
-          <Text style={styles.operationsToggleText}>
-            Special Delivery (Door-to-Door)
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 3. Blue Segmented Filter Container */}
+      {/* 2. Blue Segmented Filter Container */}
       <View style={styles.segmentedContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, filterTab === 'scheduled' && styles.segmentBtnActive]}
@@ -298,8 +274,10 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
                     onPress={() => handleStartDistribution(item)}
                     activeOpacity={0.85}
                   >
-                    <PlayIcon size={13} color="#FFFFFF" />
-                    <Text style={styles.royalBlueBtnText}>Start Distribution (Leader Action)</Text>
+                    <PlayIcon size={14} color="#FFFFFF" />
+                    <Text style={styles.royalBlueBtnText}>
+                      {lang === 'tl' ? 'Simulan ang Pamamahagi' : 'Start Distribution Drive'}
+                    </Text>
                   </TouchableOpacity>
                 ) : isOngoing ? (
                   <View style={{ gap: 8 }}>
@@ -309,21 +287,27 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
                       activeOpacity={0.85}
                     >
                       <QrCodeIcon size={15} color="#FFFFFF" />
-                      <Text style={styles.royalBlueBtnText}>Open QR Scanner (Leader Action)</Text>
+                      <Text style={styles.royalBlueBtnText}>
+                        {lang === 'tl' ? 'Buksan ang QR Scanner' : 'Open QR Scanner'}
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.completeBtn}
                       onPress={() => handleCompleteDistribution(item)}
                       activeOpacity={0.85}
                     >
-                      <CheckIcon size={14} color="#059669" />
-                      <Text style={styles.completeBtnText}>Finalize & Complete Event</Text>
+                      <CheckIcon size={14} color="#0D8A5A" />
+                      <Text style={styles.completeBtnText}>
+                        {lang === 'tl' ? 'Tapusin ang Pamamahagi' : 'Finalize & Complete Event'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={styles.completedBanner}>
-                    <CheckIcon size={14} color="#059669" />
-                    <Text style={styles.completedBannerText}>Distribution Successfully Completed</Text>
+                    <CheckIcon size={14} color="#0D8A5A" />
+                    <Text style={styles.completedBannerText}>
+                      {lang === 'tl' ? 'Matagumpay na Naipamahagi' : 'Distribution Successfully Completed'}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -369,15 +353,14 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#0B1525',
     letterSpacing: -0.4,
     marginBottom: 4,
   },
   pageSub: {
     fontSize: 12.5,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 18,
-    marginBottom: 16,
   },
   // Segmented Filter
   segmentedContainer: {
@@ -386,14 +369,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 16,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)' }
       : {
-          shadowColor: '#0F172A',
+          shadowColor: '#1C3F94',
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.04,
+          shadowOpacity: 0.08,
           shadowRadius: 6,
           elevation: 2,
         }),
@@ -407,10 +390,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   segmentBtnActive: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
   },
   segmentText: {
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '600',
     color: '#64748B',
   },
@@ -426,16 +409,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 18,
     marginBottom: 12,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0B1D4E',
+          shadowColor: '#1C3F94',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
+          shadowOpacity: 0.10,
+          shadowRadius: 14,
           elevation: 3,
         }),
   },
@@ -449,22 +432,26 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#0B1525',
     flex: 1,
   },
   statusPill: {
-    paddingHorizontal: 9,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   statusPillScheduled: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
   },
   statusPillOngoing: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#FBF5E4',
+    borderColor: '#F0DFA0',
   },
   statusPillCompleted: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F6EF',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   statusPillText: {
     fontSize: 10,
@@ -472,13 +459,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   statusTextScheduled: {
-    color: '#2563EB',
+    color: '#1C3F94',
   },
   statusTextOngoing: {
-    color: '#B45309',
+    color: '#B8932A',
   },
   statusTextCompleted: {
-    color: '#059669',
+    color: '#0D8A5A',
   },
   metaRow: {
     flexDirection: 'row',
@@ -488,13 +475,13 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#3D5070',
     flex: 1,
   },
   // Royal Blue Action Button
   royalBlueBtn: {
-    backgroundColor: '#1E3A8A',
-    borderRadius: 12,
+    backgroundColor: '#1C3F94',
+    borderRadius: 16,
     paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
@@ -502,39 +489,40 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 12px rgba(30,58,138,0.25)' }
+      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
       : {
-          shadowColor: '#1E3A8A',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 6,
-          elevation: 3,
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+          elevation: 5,
         }),
   },
   royalBlueBtnText: {
     color: '#FFFFFF',
     fontSize: 13.5,
     fontWeight: '800',
+    letterSpacing: 0.2,
   },
   completeBtn: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F6EF',
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderColor: 'rgba(13,138,90,0.3)',
+    borderRadius: 14,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
   completeBtnText: {
-    color: '#059669',
+    color: '#0D8A5A',
     fontSize: 12.5,
     fontWeight: '700',
   },
   completedBanner: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    backgroundColor: '#E6F6EF',
+    borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -542,10 +530,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(13,138,90,0.25)',
   },
   completedBannerText: {
-    color: '#059669',
+    color: '#0D8A5A',
     fontSize: 12,
     fontWeight: '700',
   },

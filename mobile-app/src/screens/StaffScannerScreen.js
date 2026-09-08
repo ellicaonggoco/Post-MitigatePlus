@@ -14,6 +14,7 @@ import {
   Keyboard,
   Modal,
   Image,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -48,6 +49,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BARCODE_SCANNER_SETTINGS = {
   barcodeTypes: ['qr'],
 };
+
+const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : (Platform.OS === 'ios' ? 44 : 0);
+
 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
@@ -702,9 +706,17 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
   return (
     <View style={styles.container}>
-      {/* 1. App Header: Royal Navy Authority Header with Gold Accent Rule */}
-      <View style={styles.topHeader}>
+      {/* 1. App Header: Royal Navy Authority Header with LinearGradient + Gold Accent Rule */}
+      <LinearGradient
+        colors={['#0B1D4E', '#12296A', '#1C3F94']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.topHeader}
+      >
+        {/* Gold rule top */}
         <View style={styles.headerGoldRule} />
+        {/* Status bar safe area */}
+        <View style={{ height: Platform.OS === 'web' ? 0 : STATUSBAR_INSET }} />
         <View style={styles.headerContentRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
@@ -714,11 +726,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} — Batch 1</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.redLogoutPill} onPress={onLogout} activeOpacity={0.85}>
-            <Text style={styles.redLogoutPillText}>Logout</Text>
+          <TouchableOpacity style={styles.glassSignOutPill} onPress={onLogout} activeOpacity={0.82}>
+            <Text style={styles.glassSignOutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </LinearGradient>
+
 
       {/* 2. Main Tab Content Body */}
       <View style={styles.bodyContent}>
@@ -1378,7 +1391,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               activeOpacity={0.8}
             >
               <View style={[styles.navIconWell, isActive && styles.navIconWellActive]}>
-                {item.icon(isActive ? '#B45309' : '#94A3B8')}
+                {item.icon(isActive ? '#1C3F94' : '#94A3B8')}
               </View>
               <Text style={[styles.navTabLabel, isActive && styles.navTabLabelActive]}>
                 {item.label}
@@ -1776,9 +1789,8 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 54,
   },
-  // Top Header: Royal Navy
+  // Top Header: Royal Navy (LinearGradient handles the bg color)
   topHeader: {
-    backgroundColor: '#0B1D4E',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -1796,8 +1808,8 @@ const styles = StyleSheet.create({
   headerKicker: {
     fontSize: 10,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.7)',
-    letterSpacing: 0.5,
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 0.6,
   },
   headerOfficerName: {
     fontSize: 18,
@@ -1817,20 +1829,23 @@ const styles = StyleSheet.create({
     color: '#FCD34D',
     fontWeight: '600',
   },
-  redLogoutPill: {
-    backgroundColor: '#DC2626',
+  // Glassmorphic Sign-Out Pill (replaces jarring red logout rectangle)
+  glassSignOutPill: {
+    backgroundColor: 'rgba(255,255,255,0.13)',
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
   },
-  redLogoutPillText: {
+  glassSignOutText: {
     color: '#FFFFFF',
     fontSize: 12.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
+
 
   // QR Scanner Tab Styles
   heroDriveCard: {
@@ -1856,20 +1871,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 14,
     marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0F172A',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 6,
-          elevation: 2,
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 4,
         }),
   },
   statusIndicatorDot: {
@@ -2241,15 +2256,15 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0F172A',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 6,
-          elevation: 2,
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 4,
         }),
   },
   manualEntryLabel: {
@@ -2273,11 +2288,20 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   scanBtn: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     paddingHorizontal: 18,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+          elevation: 6,
+        }),
   },
   scanBtnText: {
     color: '#FFFFFF',
@@ -2394,11 +2418,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   releaseBtn: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 14,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+          elevation: 6,
+        }),
   },
   releaseBtnText: {
     color: '#FFFFFF',
@@ -2412,16 +2445,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 14,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0B1D4E',
+          shadowColor: '#1C3F94',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
-          elevation: 3,
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 4,
         }),
   },
   goldAccentLine: {
@@ -2495,20 +2528,20 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   redSubmitBtn: {
-    backgroundColor: '#991B1B',
+    backgroundColor: '#1C3F94',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 12px rgba(153,27,27,0.25)' }
+      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
       : {
-          shadowColor: '#991B1B',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 6,
-          elevation: 3,
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+          elevation: 6,
         }),
   },
   redSubmitBtnText: {
@@ -2522,17 +2555,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 18,
     marginBottom: 14,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 16px rgba(11,29,78,0.06)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0B1D4E',
+          shadowColor: '#1C3F94',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
-          elevation: 3,
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 4,
         }),
   },
   profileHeaderRow: {
@@ -2615,9 +2648,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 16,
     marginBottom: 12,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 4,
+        }),
   },
   dutyInfoRow: {
     paddingVertical: 4,
@@ -2663,14 +2705,16 @@ const styles = StyleSheet.create({
     color: '#93C5FD',
   },
   logoutBtnFull: {
-    backgroundColor: '#DC2626',
+    backgroundColor: '#FEF2F2',
     borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoutBtnFullText: {
-    color: '#FFFFFF',
+    color: '#DC2626',
     fontSize: 13.5,
     fontWeight: '800',
   },
@@ -2711,7 +2755,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navIconWellActive: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#EDF1FB',
   },
   navTabLabel: {
     fontSize: 10.5,
@@ -2720,7 +2764,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   navTabLabelActive: {
-    color: '#B45309',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   homeIndicatorPill: {

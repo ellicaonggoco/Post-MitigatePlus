@@ -250,29 +250,24 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* 0. Optional Back Button */}
-      {onBack && (
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
-          <View style={styles.backIconCircle}>
-            <ArrowLeftIcon size={14} color="#1E3A8A" />
-          </View>
-          <Text style={styles.backBtnText}>
-            {lang === 'tl' ? 'Bumalik sa Distribution Drives' : 'Back to Distribution Drives'}
+      {/* 0. Top Navigation & Header */}
+      <View style={styles.topNavRow}>
+        {onBack && (
+          <TouchableOpacity style={styles.backCircleBtn} onPress={onBack} activeOpacity={0.8}>
+            <ArrowLeftIcon size={18} color="#1C3F94" />
+          </TouchableOpacity>
+        )}
+        <View style={{ flex: 1 }}>
+          <Text style={styles.pageTitle}>
+            {lang === 'tl' ? 'Espesyal na Pamamahagi' : 'Special Request Deliveries'}
           </Text>
-        </TouchableOpacity>
-      )}
-
-      {/* 1. Header Kicker Pill Tag */}
-      <View style={styles.taskManagerPill}>
-        <TruckIcon size={13} color="#1D4ED8" />
-        <Text style={styles.taskManagerPillText}>LGU SPECIAL ASSISTANCE UNIT</Text>
+          <Text style={styles.pageSub}>
+            {lang === 'tl'
+              ? 'Direktang paghahatid ng ayuda sa tahanan ng mga vulnerable na pamilya.'
+              : 'Door-to-door direct relief delivery tasks dispatched by Command Center.'}
+          </Text>
+        </View>
       </View>
-
-      {/* 2. Screen Title & Subtitle */}
-      <Text style={styles.pageTitle}>Special Request Deliveries</Text>
-      <Text style={styles.pageSub}>
-        Door-to-door direct relief delivery tasks dispatched by the Manila LGU Command Center.
-      </Text>
 
       {/* 3. Blue Segmented Filter Container */}
       <View style={styles.segmentedContainer}>
@@ -552,68 +547,40 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 36,
   },
-  backBtn: {
-    alignSelf: 'flex-start',
+  topNavRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 14,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    marginBottom: 16,
   },
-  backIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#EFF6FF',
+  backCircleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1E3A8A',
-  },
-  taskManagerPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 6,
-    backgroundColor: 'rgba(37, 99, 235, 0.08)',
-    borderColor: 'rgba(37, 99, 235, 0.2)',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  taskManagerPillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#1D4ED8',
-    letterSpacing: 0.5,
+    marginRight: 12,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
   pageTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0B1D4E',
-    letterSpacing: -0.5,
+    color: '#0B1525',
+    letterSpacing: -0.4,
     marginBottom: 4,
   },
   pageSub: {
     fontSize: 12.5,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 18,
-    marginBottom: 16,
   },
   segmentedContainer: {
     flexDirection: 'row',
@@ -622,12 +589,16 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    borderColor: '#DDE4F0',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
   },
   segmentBtn: {
     flex: 1,
@@ -635,18 +606,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
+    backgroundColor: 'transparent',
   },
   segmentBtnActive: {
-    backgroundColor: '#1E3A8A',
-    shadowColor: '#1E3A8A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#1C3F94',
   },
   segmentText: {
-    fontSize: 12.5,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
     color: '#64748B',
   },
   segmentTextActive: {
@@ -658,15 +625,20 @@ const styles = StyleSheet.create({
   },
   taskCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#DDE4F0',
+    marginBottom: 12,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.10,
+          shadowRadius: 14,
+          elevation: 3,
+        }),
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -677,32 +649,35 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0B1525',
     letterSpacing: -0.2,
   },
   statusPill: {
-    paddingHorizontal: 9,
-    paddingVertical: 3.5,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
   },
   statusPillAssigned: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
   },
   statusPillDelivered: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#E6F6EF',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   statusPillText: {
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   statusTextAssigned: {
-    color: '#B45309',
+    color: '#1C3F94',
   },
   statusTextDelivered: {
-    color: '#15803D',
+    color: '#0D8A5A',
   },
   metaRow: {
     flexDirection: 'row',
@@ -711,48 +686,53 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   metaText: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 12.5,
+    color: '#3D5070',
     fontWeight: '500',
     flex: 1,
   },
   reasonBox: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: '#FBF5E4',
     borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 6,
+    borderColor: '#F0DFA0',
+    borderRadius: 14,
+    padding: 12,
+    marginVertical: 8,
   },
   reasonKicker: {
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#B45309',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    color: '#B8932A',
+    letterSpacing: 0.4,
+    marginBottom: 3,
   },
   reasonText: {
-    fontSize: 11.5,
-    color: '#78350F',
-    lineHeight: 16,
+    fontSize: 12,
+    color: '#0B1525',
+    lineHeight: 18,
   },
   royalBlueBtn: {
-    backgroundColor: '#1E3A8A',
-    borderRadius: 12,
-    paddingVertical: 12,
+    backgroundColor: '#1C3F94',
+    borderRadius: 16,
+    paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    shadowColor: '#1E3A8A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
+    gap: 8,
+    marginTop: 4,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+          elevation: 5,
+        }),
   },
   royalBlueBtnText: {
     color: '#FFFFFF',
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
