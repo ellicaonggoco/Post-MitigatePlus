@@ -234,10 +234,11 @@ const bootstrapSystem = async () => {
     for (const r of defaultResidents) {
       let u = await User.findOne({ emailOrPhone: r.contact.toLowerCase() });
       if (!u) {
+        const defaultPassword = r.contact === '09236051393' ? 'Camcampogi1919' : 'resident123';
         u = await User.create({
           name: r.name,
           emailOrPhone: r.contact.toLowerCase(),
-          passwordHash: 'resident123',
+          passwordHash: defaultPassword,
           role: 'resident',
           barangayCode: r.brgy,
           contactNum: r.contact,
