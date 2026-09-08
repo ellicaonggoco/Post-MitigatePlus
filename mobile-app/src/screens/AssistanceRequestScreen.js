@@ -223,7 +223,7 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
     >
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[{ paddingBottom: 24 + keyboardHeight }]}
+        contentContainerStyle={[{ paddingBottom: 50 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"

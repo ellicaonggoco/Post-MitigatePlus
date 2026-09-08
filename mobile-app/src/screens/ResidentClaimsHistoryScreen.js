@@ -62,7 +62,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
   }, [token]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[{ paddingBottom: 24 }]} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[{ paddingBottom: 50 }]} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
         <View style={{height: 3, backgroundColor: '#C9A84C'}} />

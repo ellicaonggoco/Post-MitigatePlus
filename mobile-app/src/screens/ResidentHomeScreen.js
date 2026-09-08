@@ -1382,7 +1382,7 @@ verifCheckCirclePending: {
   scrollContent: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: 12,
-    paddingBottom: 16,
+    paddingBottom: 45,
   },
   qrHeroCardGradient: {
     borderRadius: 22,

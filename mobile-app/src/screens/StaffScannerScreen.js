@@ -14,6 +14,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import {
   CameraIcon,
   CheckIcon,
@@ -56,7 +57,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     const anim = Animated.loop(
       Animated.sequence([
         Animated.timing(laserAnim, {
-          toValue: 150,
+          toValue: 220,
           duration: 1800,
           useNativeDriver: true,
         }),
@@ -70,6 +71,25 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     anim.start();
     return () => anim.stop();
   }, [laserAnim]);
+
+  // Camera & Permissions state
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
+
+  // Auto request camera permission on native platforms
+  useEffect(() => {
+    if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
+      requestPermission();
+    }
+  }, [permission]);
+
+  const handleBarcodeScanned = ({ data }) => {
+    if (scanned || loading || releasing || scanResult) return;
+    setScanned(true);
+    setManualCode(data);
+    handleExecuteScan(data);
+  };
 
   // Scanner state
   const [manualCode, setManualCode] = useState('');
@@ -313,6 +333,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         showNotify('Release Recorded (Offline)', 'Relief distribution recorded in offline storage.');
         setScanResult(null);
         setManualCode('');
+        setScanned(false);
       } else {
         await confirmDistribution(token, {
           householdId: scanResult.household._id || scanResult.household.id,
@@ -321,6 +342,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         showNotify('Relief Released!', 'Distribution confirmed and logged into Central Audit.');
         setScanResult(null);
         setManualCode('');
+        setScanned(false);
       }
     } catch (err) {
       const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
@@ -332,6 +354,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         showNotify('Release Notice', err.message || 'Distribution confirmed.');
       }
       setScanResult(null);
+      setScanned(false);
     } finally {
       setReleasing(false);
     }
@@ -448,33 +471,88 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               />
             </View>
 
-            {/* Viewfinder Camera Simulation */}
+            {/* Real Hardware Camera Viewfinder */}
             <View style={styles.viewfinderCard}>
-              <View style={styles.viewfinderHeader}>
-                <CameraIcon size={16} color="#FCD34D" />
-                <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
+              <View style={[styles.viewfinderHeader, { justifyContent: 'space-between' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <CameraIcon size={16} color="#FCD34D" />
+                  <Text style={styles.viewfinderTitle}>CAMERA QR SCANNER {isOfflineMode ? '(OFFLINE)' : ''}</Text>
+                </View>
+                {permission?.granted && Platform.OS !== 'web' && (
+                  <TouchableOpacity
+                    onPress={() => setTorchOn(prev => !prev)}
+                    style={{
+                      backgroundColor: torchOn ? '#FCD34D' : 'rgba(255,255,255,0.15)',
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: torchOn ? '#0F172A' : '#FFFFFF' }}>
+                      {torchOn ? '🔦 Flash ON' : 'Flash OFF'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
-              <Text style={styles.viewfinderSub}>Position resident QR Pass in viewfinder or tap frame to test</Text>
+              <Text style={styles.viewfinderSub}>Position resident QR Pass inside frame to scan automatically</Text>
 
-              <TouchableOpacity
-                style={styles.cameraBox}
-                activeOpacity={0.88}
-                onPress={() => {
-                  setManualCode('MNL-291-JUAN-DEMO-2026');
-                  handleExecuteScan('MNL-291-JUAN-DEMO-2026');
-                }}
-              >
-                {/* 4 Gold Corner Marks */}
-                <View style={[styles.cornerMark, styles.cornerTL]} />
-                <View style={[styles.cornerMark, styles.cornerTR]} />
-                <View style={[styles.cornerMark, styles.cornerBL]} />
-                <View style={[styles.cornerMark, styles.cornerBR]} />
+              <View style={styles.cameraBox}>
+                {Platform.OS === 'web' ? (
+                  <TouchableOpacity
+                    style={{ alignItems: 'center', justifyContent: 'center', padding: 20 }}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      setManualCode('MNL-291-JUAN-DEMO-2026');
+                      handleExecuteScan('MNL-291-JUAN-DEMO-2026');
+                    }}
+                  >
+                    <CameraIcon size={36} color="#FCD34D" />
+                    <Text style={{ color: '#94A3B8', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+                      Hardware Camera operates on Mobile Device via Expo Go. (Tap to test demo scan)
+                    </Text>
+                  </TouchableOpacity>
+                ) : !permission ? (
+                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    <ActivityIndicator size="large" color="#FCD34D" />
+                    <Text style={{ color: '#CBD5E1', fontSize: 12, marginTop: 8 }}>Initializing camera...</Text>
+                  </View>
+                ) : !permission.granted ? (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                    <CameraIcon size={36} color="#FCD34D" />
+                    <Text style={{ color: '#F1F5F9', fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: 8, marginBottom: 12 }}>
+                      Camera access is needed to scan resident QR codes.
+                    </Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}
+                      onPress={requestPermission}
+                    >
+                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>Grant Camera Permission</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <CameraView
+                    style={StyleSheet.absoluteFillObject}
+                    facing="back"
+                    enableTorch={torchOn}
+                    barcodeScannerSettings={{
+                      barcodeTypes: ['qr'],
+                    }}
+                    onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+                  />
+                )}
+
+                {/* 4 Gold Corner Marks Overlay */}
+                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTL]} />
+                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTR]} />
+                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBL]} />
+                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBR]} />
 
                 {/* Center Target Frame */}
-                <View style={styles.scanTargetFrame} />
+                <View pointerEvents="none" style={styles.scanTargetFrame} />
 
                 {/* Animated Scanning Laser Line */}
                 <Animated.View
+                  pointerEvents="none"
                   style={[
                     styles.laserLine,
                     {
@@ -489,12 +567,39 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={styles.laserGradient}
                   />
                 </Animated.View>
-              </TouchableOpacity>
+
+                {/* Rescan Button Overlay if already scanned */}
+                {scanned && !loading && (
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      bottom: 12,
+                      backgroundColor: 'rgba(15, 23, 42, 0.88)',
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: '#FCD34D',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                    onPress={() => setScanned(false)}
+                  >
+                    <CheckIcon size={14} color="#10B981" />
+                    <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>Tap to Scan Another</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               {/* Status footer */}
               <View style={styles.liveStatusRow}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveStatusText}>Live Viewfinder Active • Tap to test scan</Text>
+                <View style={[styles.liveDot, { backgroundColor: permission?.granted ? '#10B981' : '#EF4444' }]} />
+                <Text style={styles.liveStatusText}>
+                  {permission?.granted
+                    ? (scanned ? 'QR Code Scanned! • Processing verification...' : 'Live Hardware Camera Active')
+                    : 'Camera Offline / Needs Permission'}
+                </Text>
               </View>
             </View>
 
@@ -625,6 +730,18 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                         {isHouseholdVerified ? 'Confirm Relief Release' : 'Action Locked (Unverified)'}
                       </Text>
                     )}
+                  </TouchableOpacity>
+
+                  {/* Cancel / Scan Another Button */}
+                  <TouchableOpacity
+                    style={{ marginTop: 8, paddingVertical: 10, alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 10 }}
+                    onPress={() => {
+                      setScanResult(null);
+                      setManualCode('');
+                      setScanned(false);
+                    }}
+                  >
+                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 13 }}>✕ Cancel / Scan Another</Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -851,7 +968,7 @@ const styles = StyleSheet.create({
   scrollInner: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 36,
+    paddingBottom: 54,
   },
   // Top Header: Royal Navy
   topHeader: {
@@ -901,6 +1018,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 40,
   },
   redLogoutPillText: {
     color: '#FFFFFF',
@@ -992,9 +1110,9 @@ const styles = StyleSheet.create({
   },
   cameraBox: {
     width: '100%',
-    height: 200,
+    height: 275,
     backgroundColor: '#000000',
-    borderRadius: 14,
+    borderRadius: 16,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',

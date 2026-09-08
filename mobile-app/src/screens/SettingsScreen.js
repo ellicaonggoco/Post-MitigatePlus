@@ -730,7 +730,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]}
+        contentContainerStyle={[styles.content, { paddingBottom: 130 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -1973,7 +1973,7 @@ const styles = StyleSheet.create({
     ...SHADOWS.sm,
   },
   logoutBtnText: { fontSize: 14, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
-  trademarkCard: { alignItems: 'center', marginTop: 28, paddingBottom: 28 },
+  trademarkCard: { alignItems: 'center', marginTop: 32, paddingBottom: 36, marginBottom: 20 },
   trademarkLogoImg: { width: 220, height: 48, marginBottom: 8 },
   trademarkSub: { fontSize: 11.5, color: '#64748B', fontWeight: '600' },
 

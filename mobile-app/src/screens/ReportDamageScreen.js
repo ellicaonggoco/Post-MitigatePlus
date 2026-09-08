@@ -327,7 +327,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[{ paddingBottom: 24 + keyboardHeight }]}
+        contentContainerStyle={[{ paddingBottom: 50 + keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >

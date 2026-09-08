@@ -25,7 +25,7 @@ const getDevHost = () => {
   }
 
   // Active Wi-Fi IPv4 address of development machine
-  return '192.168.254.173';
+  return '192.168.100.101';
 };
 
 const DEV_LAN_IP = getDevHost();
