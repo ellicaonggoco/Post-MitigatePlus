@@ -167,6 +167,7 @@ export default function ProvisionAccounts() {
 
   const openEditModal = (acc) => {
     setEditingAccount(acc);
+    setLockedTeam(null);
     setName(acc.name || '');
     setEmailOrPhone(acc.emailOrPhone || '');
     setEmployeeId(acc.employeeId || '');
@@ -180,6 +181,29 @@ export default function ProvisionAccounts() {
     setBarangaySearch(bc ? `Barangay ${bc}` : '');
     setShowBarangaySuggestions(false);
     setPassword('');
+    setStatusMsg({ type: '', text: '' });
+    setIsCreateModalOpen(true);
+  };
+
+  const openEditResidentModal = (res) => {
+    setEditingAccount(res);
+    setLockedTeam(null);
+    setTargetRole('resident');
+    setName(res.name || '');
+    setEmailOrPhone(res.emailOrPhone || res.contactNum || '');
+    setContactNum(res.contactNum || res.emailOrPhone || '');
+    setPassword('');
+    const hh = res.household || {};
+    const bc = res.barangayCode || hh.barangayCode || '';
+    setBarangayCode(bc && bc !== 'City-Wide' && bc !== 'N/A' ? bc : '');
+    setBarangaySearch(bc && bc !== 'City-Wide' && bc !== 'N/A' ? `Barangay ${bc}` : '');
+    setShowBarangaySuggestions(false);
+    setAddress(hh.address || '');
+    setPurok(hh.purok || '');
+    setDamageLevel(hh.damageLevel || 'Minor');
+    setValidIdType(hh.validIdType || 'Philippine National ID (PhilSys / PhilID)');
+    setValidIdNumber(hh.validIdNumber || '');
+    setMembersList(Array.isArray(hh.members) ? JSON.parse(JSON.stringify(hh.members)) : []);
     setStatusMsg({ type: '', text: '' });
     setIsCreateModalOpen(true);
   };
@@ -293,10 +317,14 @@ export default function ProvisionAccounts() {
     e.preventDefault();
     setStatusMsg({ type: '', text: '' });
 
-    // Handle Resident / Citizen Account Creation
+    // Handle Resident / Citizen Account Creation OR Update
     if (targetRole === 'resident') {
-      if (!name.trim() || !emailOrPhone.trim() || !password.trim() || !address.trim() || !purok.trim()) {
-        setStatusMsg({ type: 'error', text: 'Punan ang lahat ng kinakailangang impormasyon ng residente (Pangalan, Mobile Phone, Password, Barangay, Address, Purok).' });
+      if (!name.trim() || !emailOrPhone.trim() || !address.trim() || !purok.trim()) {
+        setStatusMsg({ type: 'error', text: 'Punan ang lahat ng kinakailangang impormasyon ng residente (Pangalan, Mobile Phone, Barangay, Address, Purok).' });
+        return;
+      }
+      if (!editingAccount && !password.trim()) {
+        setStatusMsg({ type: 'error', text: 'Kinakailangan ang password para sa bagong rehistradong resident account.' });
         return;
       }
       let finalBrgyCode = barangayCode.trim();
@@ -310,6 +338,47 @@ export default function ProvisionAccounts() {
       }
 
       setLoading(true);
+
+      // If editing existing resident
+      if (editingAccount) {
+        try {
+          const targetId = editingAccount.id || editingAccount._id;
+          const res = await fetch(`${API_BASE_URL}/auth/resident-users/${targetId}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: name.trim(),
+              emailOrPhone: emailOrPhone.trim(),
+              password: password.trim() ? password.trim() : undefined,
+              barangayCode: finalBrgyCode,
+              address: address.trim(),
+              purok: purok.trim(),
+              damageLevel,
+              validIdType,
+              validIdNumber: validIdNumber.trim(),
+              members: membersList.filter(m => m.name && m.name.trim()),
+            }),
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            setStatusMsg({ type: 'success', text: `✅ Na-update na ang resident account at household profile ni ${name.trim()}!` });
+            await fetchResidentAccounts();
+            setEditingAccount(null);
+            setIsCreateModalOpen(false);
+          } else {
+            setStatusMsg({ type: 'error', text: data.message || 'Nabigo ang pag-update ng resident account.' });
+          }
+        } catch (err) {
+          console.error('Update resident error:', err);
+          setStatusMsg({ type: 'error', text: 'Error habang ina-update ang resident account.' });
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // If creating new resident
       try {
         const res = await fetch(`${API_BASE_URL}/auth/provision-resident`, {
           method: 'POST',
@@ -356,9 +425,16 @@ export default function ProvisionAccounts() {
       return;
     }
 
-    if (!emailOrPhone.trim() || !password.trim() || !contactNum.trim()) {
-      setStatusMsg({ type: 'error', text: 'Please complete all required fields.' });
-      return;
+    if (!editingAccount) {
+      if (!emailOrPhone.trim() || !password.trim() || !contactNum.trim()) {
+        setStatusMsg({ type: 'error', text: 'Please complete all required fields.' });
+        return;
+      }
+    } else {
+      if (!emailOrPhone.trim() || !contactNum.trim()) {
+        setStatusMsg({ type: 'error', text: 'Please complete all required fields.' });
+        return;
+      }
     }
 
     let finalBrgyCode = barangayCode.trim();
@@ -401,7 +477,7 @@ export default function ProvisionAccounts() {
 
     setLoading(true);
 
-    // If editing existing account
+    // If editing existing staff / admin account
     if (editingAccount) {
       try {
         const targetId = editingAccount.id || editingAccount._id;
@@ -411,6 +487,7 @@ export default function ProvisionAccounts() {
           body: JSON.stringify({
             name: finalName,
             emailOrPhone: emailOrPhone.trim(),
+            password: password.trim() ? password.trim() : undefined,
             department: finalDepartment,
             employeeId: finalEmployeeId,
             contactNum: finalContactNum,
@@ -754,7 +831,11 @@ export default function ProvisionAccounts() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {editingAccount ? <Edit3 size={22} color="var(--manila-blue)" /> : <UserPlus size={22} color="var(--manila-blue)" />}
                 <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--manila-blue)', margin: 0 }}>
-                  {editingAccount ? 'Edit Account Details' : lockedTeam ? `Add Field Staff (${lockedTeam})` : 'Create Official LGU Account'}
+                  {editingAccount
+                    ? (targetRole === 'resident' ? `Edit Resident: ${editingAccount.name}` : `Edit Account: ${editingAccount.name}`)
+                    : lockedTeam
+                    ? `Add Field Staff (${lockedTeam})`
+                    : 'Create Official LGU Account'}
                 </h2>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="clay-button-ghost" style={{ padding: '4px 10px', fontSize: 13 }}> Close</button>
@@ -892,15 +973,17 @@ export default function ProvisionAccounts() {
                   {/* Password & Barangay Selection */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>Mobile App Password *</label>
+                      <label style={labelStyle}>
+                        {editingAccount ? 'Reset Password (Optional — leave blank to keep current)' : 'Mobile App Password *'}
+                      </label>
                       <div style={{ position: 'relative' }}>
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Create resident password"
+                          placeholder={editingAccount ? 'Leave blank to retain current password' : 'Create resident password (min 6 characters)'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           style={{ ...inputStyle, paddingRight: '40px' }}
-                          required
+                          required={!editingAccount}
                         />
                         <button
                           type="button"
@@ -1435,15 +1518,17 @@ export default function ProvisionAccounts() {
 
               {/* Initial Password with Show / Hide Toggle */}
               <div style={{ ...fieldGroupStyle, marginBottom: 20 }}>
-                <label style={labelStyle}>Initial Temporary Password *</label>
+                <label style={labelStyle}>
+                  {editingAccount ? 'Reset Password (Optional — leave blank to keep current)' : 'Initial Temporary Password *'}
+                </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Assign initial password (min 6 characters)"
+                    placeholder={editingAccount ? 'Leave blank to retain current password' : 'Assign initial password (min 6 characters)'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     style={{ ...inputStyle, paddingRight: 40 }}
-                    required
+                    required={!editingAccount}
                   />
                   <button
                     type="button"
@@ -1643,9 +1728,17 @@ export default function ProvisionAccounts() {
                           <div style={{ fontWeight: 800, color: 'var(--ink)', fontSize: 14 }}>{teamLeader.name}</div>
                           <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>{teamLeader.emailOrPhone}</div>
                         </div>
-                        <span style={{ fontSize: 11, background: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: 999, fontWeight: 800 }}>
-                          Lead
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, background: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: 999, fontWeight: 800 }}>
+                            Lead
+                          </span>
+                          <button
+                            onClick={() => openEditModal(teamLeader)}
+                            style={{ background: 'none', border: 'none', color: 'var(--manila-blue)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
@@ -2160,6 +2253,14 @@ export default function ProvisionAccounts() {
                             style={{ fontSize: 11, padding: '4px 8px', gap: 4, height: 26, color: 'var(--manila-blue)', borderColor: 'rgba(37,99,235,0.3)' }}
                           >
                             <QrCode size={12} /> View Pass
+                          </button>
+                          <button
+                            onClick={() => openEditResidentModal(res)}
+                            title="Edit Resident & Household Details"
+                            className="clay-button-ghost"
+                            style={{ fontSize: 11, padding: '4px 8px', gap: 4, height: 26, color: '#D97706', borderColor: 'rgba(217,119,6,0.35)' }}
+                          >
+                            <Edit3 size={12} /> Edit
                           </button>
                           <button
                             onClick={() => requestToggleResidentStatus(res)}

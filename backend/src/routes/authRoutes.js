@@ -636,7 +636,7 @@ router.put('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_supe
       return res.status(404).json({ message: 'User account not found.' });
     }
 
-    const { name, emailOrPhone, department, employeeId, contactNum, teamName, staffDesignation, barangayCode } = req.body;
+    const { name, emailOrPhone, password, department, employeeId, contactNum, teamName, staffDesignation, barangayCode } = req.body;
 
     // Check if new contact phone or employeeId is already taken by another user
     const checkPhone = (contactNum || (user.role === 'field_staff' ? employeeId : null));
@@ -663,6 +663,7 @@ router.put('/provisioned-users/:id', protect, requireRole('lgu_admin', 'lgu_supe
 
     if (name) user.name = name.trim();
     if (emailOrPhone) user.emailOrPhone = emailOrPhone.trim().toLowerCase();
+    if (password && password.trim().length >= 6) user.passwordHash = password.trim();
     if (department !== undefined) user.department = department;
     if (employeeId !== undefined) user.employeeId = employeeId;
     if (contactNum !== undefined) user.contactNum = contactNum;
@@ -976,6 +977,100 @@ router.delete('/resident-users/:id', protect, requireRole('lgu_admin', 'lgu_supe
     res.json({ success: true, message: `Resident account for ${userName} has been permanently deleted.` });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting resident account', error: error.message });
+  }
+});
+
+// @route   PUT /api/auth/resident-users/:id
+// @desc    SuperAdmin and LGU Admin edit resident citizen account and linked household information
+router.put('/resident-users/:id', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'resident') {
+      return res.status(404).json({ message: 'Resident account not found.' });
+    }
+
+    const {
+      name,
+      emailOrPhone,
+      password,
+      barangayCode,
+      address,
+      purok,
+      damageLevel,
+      validIdType,
+      validIdNumber,
+      members,
+    } = req.body;
+
+    const cleanContact = emailOrPhone ? emailOrPhone.trim() : user.emailOrPhone;
+    if (cleanContact && cleanContact.toLowerCase() !== user.emailOrPhone) {
+      const existing = await findExistingUserWithIdentifier(cleanContact, user._id);
+      if (existing) {
+        const roleLabel = existing.role === 'resident' ? 'Residente' : existing.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+        return res.status(400).json({
+          message: `Ang phone number o email na ito ay ginagamit na ng iba (${roleLabel}: ${existing.name}).`,
+        });
+      }
+    }
+
+    if (name) user.name = name.trim();
+    if (cleanContact) {
+      user.emailOrPhone = cleanContact.toLowerCase();
+      user.contactNum = cleanContact;
+    }
+    if (barangayCode) user.barangayCode = String(barangayCode).trim();
+    if (password && password.trim().length >= 6) {
+      user.passwordHash = password.trim();
+    }
+    await user.save();
+
+    // Find and update linked household
+    let household = await Household.findOne({ headOfHouseholdUserId: user._id });
+    if (household) {
+      if (address !== undefined) household.address = address.trim();
+      if (purok !== undefined) household.purok = purok.trim();
+      if (barangayCode !== undefined) household.barangayCode = String(barangayCode).trim();
+      if (validIdType !== undefined) household.validIdType = validIdType;
+      if (validIdNumber !== undefined) household.validIdNumber = String(validIdNumber).trim();
+      if (damageLevel !== undefined) household.damageLevel = damageLevel;
+      if (Array.isArray(members)) {
+        household.members = members.filter(m => m.name && m.name.trim());
+        household.memberCount = household.members.length > 0 ? household.members.length : 1;
+      }
+
+      // Recalculate priority
+      const { priorityScore, priorityLevel } = calculatePriorityIndex(household);
+      household.priorityScore = priorityScore;
+      household.priorityLevel = priorityLevel;
+
+      await household.save();
+    }
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'UPDATE_RESIDENT_ACCOUNT',
+      targetType: 'User',
+      targetId: user._id,
+      notes: `${req.user.role === 'lgu_superadmin' ? 'SuperAdmin' : 'LGU Admin'} ${req.user.name} updated details for resident ${user.name} (${user.emailOrPhone}) in Barangay ${user.barangayCode}.`,
+    });
+
+    res.json({
+      success: true,
+      message: `Resident account for ${user.name} updated successfully.`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        emailOrPhone: user.emailOrPhone,
+        role: user.role,
+        barangayCode: user.barangayCode,
+        contactNum: user.contactNum,
+      },
+      household,
+    });
+  } catch (error) {
+    console.error('Error updating resident account:', error);
+    res.status(500).json({ message: 'Error updating resident account', error: error.message });
   }
 });
 
