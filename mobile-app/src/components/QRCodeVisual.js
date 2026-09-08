@@ -66,21 +66,19 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
   };
 
   const matrixSize = qrMatrix.length || 21;
-  const svgSize = isCompactMode ? (size || 140) : 220;
-  // Quiet zone padding (critical for camera edge-detection algorithms)
-  const padding = isCompactMode ? 10 : 16;
+  const svgSize = isCompactMode ? (size || 160) : 240;
+  // Wide 4-module quiet zone padding essential for hardware camera edge detection
+  const padding = isCompactMode ? 12 : 18;
   const moduleSize = (svgSize - padding * 2) / matrixSize;
-  const badgeSize = isCompactMode ? 22 : 32;
-  const badgeOffset = (svgSize - badgeSize) / 2;
 
   // =========================================================================
-  // COMPACT MODE: Render only the clean crisp SVG matrix frame
+  // COMPACT MODE: Render 100% Unobstructed High-Contrast Pure Black QR Matrix
   // =========================================================================
   if (isCompactMode) {
     return (
       <View style={[styles.compactFrame, { width: svgSize + 8, height: svgSize + 8 }]}>
         <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-          <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={10} />
+          <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={8} />
           {qrMatrix.map((row, r) =>
             row.map((cell, c) => {
               if (cell === 1) {
@@ -91,23 +89,14 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                     y={padding + r * moduleSize}
                     width={moduleSize}
                     height={moduleSize}
-                    rx={0.5}
-                    fill="#0F172A"
+                    rx={0}
+                    fill="#000000"
                   />
                 );
               }
               return null;
             })
           )}
-          {/* Center Manila Shield Badge with clean white border */}
-          <G transform={`translate(${badgeOffset}, ${badgeOffset})`}>
-            <Rect width={badgeSize} height={badgeSize} rx={5} fill="#FFFFFF" stroke="#002BB8" strokeWidth="1.5" />
-            <Rect x={2} y={2} width={badgeSize - 4} height={badgeSize - 4} rx={3.5} fill="#002BB8" />
-            <Path
-              d={`M${badgeSize / 2} ${badgeSize * 0.25} L${badgeSize * 0.72} ${badgeSize * 0.38} V${badgeSize * 0.58} C${badgeSize * 0.72} ${badgeSize * 0.72} ${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize / 2} ${badgeSize * 0.82} C${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize * 0.28} ${badgeSize * 0.72} ${badgeSize * 0.28} ${badgeSize * 0.58} V${badgeSize * 0.38} Z`}
-              fill="#F59E0B"
-            />
-          </G>
         </Svg>
       </View>
     );
@@ -152,7 +141,7 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
 
         <View style={styles.qrSvgFrame}>
           <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
-            <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={14} />
+            <Rect width={svgSize} height={svgSize} fill="#FFFFFF" rx={12} />
             {qrMatrix.map((row, r) =>
               row.map((cell, c) => {
                 if (cell === 1) {
@@ -163,23 +152,14 @@ export default function QRCodeVisual({ value, size = 200, lang = 'tl', isVerifie
                       y={padding + r * moduleSize}
                       width={moduleSize}
                       height={moduleSize}
-                      rx={0.5}
-                      fill="#0B1D4E"
+                      rx={0}
+                      fill="#000000"
                     />
                   );
                 }
                 return null;
               })
             )}
-            {/* Center Manila Shield Badge (scaled to ~14% linear coverage, well within 30% ECC level H budget) */}
-            <G transform={`translate(${badgeOffset}, ${badgeOffset})`}>
-              <Rect width={badgeSize} height={badgeSize} rx={7} fill="#FFFFFF" stroke="#0B1D4E" strokeWidth="2" />
-              <Rect x={3} y={3} width={badgeSize - 6} height={badgeSize - 6} rx={5} fill="#0B1D4E" />
-              <Path
-                d={`M${badgeSize / 2} ${badgeSize * 0.25} L${badgeSize * 0.72} ${badgeSize * 0.38} V${badgeSize * 0.58} C${badgeSize * 0.72} ${badgeSize * 0.72} ${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize / 2} ${badgeSize * 0.82} C${badgeSize / 2} ${badgeSize * 0.8} ${badgeSize * 0.28} ${badgeSize * 0.72} ${badgeSize * 0.28} ${badgeSize * 0.58} V${badgeSize * 0.38} Z`}
-                fill="#F59E0B"
-              />
-            </G>
           </Svg>
         </View>
 

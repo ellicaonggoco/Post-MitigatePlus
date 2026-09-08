@@ -83,6 +83,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [cameraFacing, setCameraFacing] = useState('back');
   const [cameraMountKey, setCameraMountKey] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
+  const [cameraZoom, setCameraZoom] = useState(0);
   const lastScannedRef = useRef({ code: '', time: 0 });
 
   // Remount camera cleanly when switching to scanner tab
@@ -99,6 +100,37 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       requestPermission();
     }
   }, [permission]);
+
+  // Listen for Google Code Scanner / Modern Barcode Scanner results if launched natively
+  useEffect(() => {
+    if (Platform.OS !== 'web' && CameraView.onModernBarcodeScanned) {
+      try {
+        const sub = CameraView.onModernBarcodeScanned((event) => {
+          const raw = typeof event === 'string' ? event : (event?.data || event?.raw || '');
+          if (raw) {
+            handleBarcodeScanned(raw);
+          }
+        });
+        return () => {
+          try {
+            sub?.remove?.();
+          } catch (e) {}
+        };
+      } catch (e) {}
+    }
+  }, []);
+
+  const handleLaunchNativeScanner = async () => {
+    try {
+      if (Platform.OS !== 'web' && CameraView.launchScanner) {
+        await CameraView.launchScanner({ barcodeTypes: ['qr'] });
+      } else {
+        Alert.alert('Scanner Notice', 'Native system code scanner is available on mobile devices with Google Play Services.');
+      }
+    } catch (e) {
+      console.warn('Native scanner launch error:', e);
+    }
+  };
 
   // Unified reset function to clear scan locks and reset viewfinder
   const handleResetScanner = () => {
@@ -130,6 +162,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     }
     lastScannedRef.current = { code: cleanCode, time: now };
 
+    console.log('[STAFF SCANNER] Valid Barcode Detected:', cleanCode);
     setScanned(true);
     setManualCode(cleanCode);
     handleExecuteScan(cleanCode);
@@ -527,6 +560,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {permission?.granted && Platform.OS !== 'web' && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <TouchableOpacity
+                      onPress={() => setCameraZoom(prev => (prev === 0 ? 0.08 : prev === 0.08 ? 0.16 : 0))}
+                      style={{
+                        backgroundColor: cameraZoom > 0 ? '#FCD34D' : 'rgba(255,255,255,0.15)',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: cameraZoom > 0 ? '#0F172A' : '#FFFFFF' }}>
+                        🔍 {cameraZoom === 0 ? '1x Zoom' : cameraZoom === 0.08 ? '1.5x Zoom' : '2x Zoom'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       onPress={() => setCameraFacing(prev => prev === 'back' ? 'front' : 'back')}
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.15)',
@@ -555,7 +601,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                 )}
               </View>
-              <Text style={styles.viewfinderSub}>Position resident QR Pass inside frame to scan automatically</Text>
+              <Text style={styles.viewfinderSub}>
+                {lang === 'tl'
+                  ? 'Itapat ang QR pass sa loob ng frame (hawakan nang 15-25cm ang layo para sa malinaw na focus)'
+                  : 'Position resident QR Pass inside frame (hold 15-25cm away for clear camera focus)'}
+              </Text>
 
               <View style={styles.cameraBox}>
                 {Platform.OS === 'web' ? (
@@ -596,10 +646,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={styles.cameraPreview}
                     facing={cameraFacing}
                     enableTorch={torchOn}
+                    zoom={cameraZoom}
                     autofocus="on"
                     barcodeScannerSettings={BARCODE_SCANNER_SETTINGS}
                     onCameraReady={() => setCameraReady(true)}
-                    onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+                    onBarcodeScanned={handleBarcodeScanned}
                   />
                 )}
 
@@ -644,6 +695,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </TouchableOpacity>
                 )}
               </View>
+
+              {/* Native Google Code Scanner Direct Launch Button */}
+              {Platform.OS !== 'web' && (
+                <TouchableOpacity
+                  style={styles.googleScannerBtn}
+                  onPress={handleLaunchNativeScanner}
+                  activeOpacity={0.85}
+                >
+                  <ScanIcon size={16} color="#FFFFFF" />
+                  <Text style={styles.googleScannerBtnText}>
+                    {lang === 'tl' ? '⚡ Gamitin ang Google Lens / System Scanner' : '⚡ Open Full-Screen Google Scanner'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {/* Status footer */}
               <View style={styles.liveStatusRow}>
@@ -1240,11 +1305,11 @@ const styles = StyleSheet.create({
   },
   scanTargetFrame: {
     position: 'absolute',
-    width: 130,
-    height: 130,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    borderRadius: 16,
+    width: 200,
+    height: 200,
+    borderWidth: 2,
+    borderColor: 'rgba(252, 211, 77, 0.75)',
+    borderRadius: 20,
     zIndex: 4,
   },
   laserLine: {
@@ -1272,6 +1337,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     zIndex: 10,
+  },
+  googleScannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: '#3B82F6',
+  },
+  googleScannerBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   liveStatusRow: {
     flexDirection: 'row',

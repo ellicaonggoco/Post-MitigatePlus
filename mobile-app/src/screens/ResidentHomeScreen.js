@@ -512,7 +512,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   onPress={() => setShowQRModal(true)}
                   activeOpacity={0.92}
                 >
-                  <QRCodeVisual value={qrCodeString} size={150} lang={lang} isCompact />
+                  <QRCodeVisual value={qrCodeString} size={170} lang={lang} isCompact />
                   <View style={styles.tapToEnlargeRow}>
                     <Text style={styles.tapToEnlargeHint}>{t.tapToInspectPass}</Text>
                   </View>
@@ -920,7 +920,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
                     {/* Scannable Large QR Frame with Gold Border */}
                     <View style={styles.modalPassQRFrame}>
-                      <QRCodeVisual value={qrCodeString} size={200} lang={lang} isCompact />
+                      <QRCodeVisual value={qrCodeString} size={240} lang={lang} isCompact />
                       <View style={styles.modalPassScannablePill}>
                         <CheckIcon size={11} color="#059669" strokeWidth={2.6} />
                         <Text style={styles.modalPassScannableText}>
