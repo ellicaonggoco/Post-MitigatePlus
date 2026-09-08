@@ -63,7 +63,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       const res = await fetch(API_BASE_URL + '/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: identifier.trim() }),
+        body: JSON.stringify({ identifier: identifier.trim(), purpose: 'recovery', isRecovery: true }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {

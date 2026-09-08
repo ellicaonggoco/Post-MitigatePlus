@@ -24,12 +24,26 @@ async function findExistingUserWithIdentifier(identifier, excludeUserId = null) 
   if (!identifier) return null;
   const clean = String(identifier).trim();
   const lower = clean.toLowerCase();
+  const noSpace = clean.replace(/[\s\-\(\)]/g, '');
+
+  const variants = [clean, lower, noSpace];
+  if (/^09\d{9}$/.test(noSpace)) {
+    variants.push('+63' + noSpace.slice(1));
+    variants.push('63' + noSpace.slice(1));
+  } else if (/^\+639\d{9}$/.test(noSpace)) {
+    variants.push('0' + noSpace.slice(3));
+    variants.push(noSpace.slice(1));
+  } else if (/^639\d{9}$/.test(noSpace)) {
+    variants.push('0' + noSpace.slice(2));
+    variants.push('+' + noSpace);
+  }
+
   const query = {
     $or: [
-      { emailOrPhone: lower },
-      { emailOrPhone: clean },
-      { contactNum: clean },
-      { employeeId: clean },
+      { emailOrPhone: { $in: variants } },
+      { contactNum: { $in: variants } },
+      { employeeId: { $in: variants } },
+      { email: { $in: variants } },
     ]
   };
   if (excludeUserId) {
@@ -46,6 +60,7 @@ const { sendEmailOTP } = require('../services/emailService');
 router.post('/send-otp', async (req, res) => {
   try {
     const rawTarget = req.body.phoneOrEmail || req.body.emailOrPhone || req.body.identifier || req.body.phone || req.body.email;
+    const { purpose, isRecovery } = req.body;
     if (!rawTarget) {
       return res.status(400).json({ message: 'Phone number or email is required.' });
     }
@@ -54,6 +69,16 @@ router.post('/send-otp', async (req, res) => {
     const key = isEmail
       ? String(rawTarget).trim().toLowerCase()
       : String(rawTarget).replace(/[\s\-\(\)]/g, '').trim();
+
+    // If purpose is password recovery / forgot password, verify that the account actually exists before sending OTP!
+    if (purpose === 'recovery' || isRecovery || req.body.forPasswordReset) {
+      const existingUser = await findExistingUserWithIdentifier(key);
+      if (!existingUser) {
+        return res.status(404).json({
+          message: 'Walang account na natagpuan para sa email o mobile number na ito. Pakisuri ang inyong rehistradong credentials.'
+        });
+      }
+    }
 
     // Generate secure 6-digit random OTP code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -487,6 +512,7 @@ router.post('/login', async (req, res) => {
         { emailOrPhone: lowerInput },
         { contactNum: trimmedInput },
         { employeeId: trimmedInput },
+        { email: lowerInput },
       ]
     });
 

@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   employeeId: { type: String, default: null },
   department: { type: String, default: 'MDRRMO Field Operations' },
   contactNum: { type: String, default: null },
+  email: { type: String, default: null },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
