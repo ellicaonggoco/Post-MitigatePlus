@@ -1018,9 +1018,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.scannerPanelInner}>
                 {/* Header Row */}
                 <View style={styles.scannerPanelHeader}>
-                  <View>
-                    <Text style={styles.scannerPanelTitle}>QR Pass Scanner</Text>
-                    <Text style={styles.scannerPanelSub}>LGU Manila · MDRRMO Official</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <View style={styles.scannerHeaderIconBadge}>
+                      <ScanIcon size={20} color="#C9A84C" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.scannerPanelTitle}>QR Pass Camera Scanner</Text>
+                      <Text style={styles.scannerPanelSub}>LGU Manila · MDRRMO Operations</Text>
+                    </View>
                   </View>
                   <View style={styles.scannerReadyPill}>
                     <View style={styles.scannerReadyDot} />
@@ -1030,112 +1035,85 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                 </View>
 
-                {/* Viewfinder Frame (~210px black rect) */}
-                <View style={styles.viewfinderFrame}>
-                  {/* Gold L-bracket corners (22×22, 2.5px stroke, 14px from edges) */}
-                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketTL]} />
-                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketTR]} />
-                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketBL]} />
-                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketBR]} />
-
-                  {/* Animated Scan Line (Red-Gold Gradient) */}
-                  <Animated.View
-                    pointerEvents="none"
-                    style={[styles.laserTrack, { transform: [{ translateY: laserAnim }] }]}
-                  >
-                    <LinearGradient
-                      colors={['rgba(200,16,46,0)', '#C8102E', '#C9A84C', '#C8102E', 'rgba(200,16,46,0)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.laserBeam}
-                    />
-                  </Animated.View>
-
-                  {/* Center reticle glow */}
-                  <View pointerEvents="none" style={styles.viewfinderCenterGlow} />
-
-                  {/* Bottom Gradient Overlay with Official Instruction */}
-                  <LinearGradient
-                    colors={['transparent', 'rgba(5, 11, 24, 0.92)']}
-                    style={styles.viewfinderBottomOverlay}
-                    pointerEvents="none"
-                  >
-                    <Text style={styles.viewfinderBottomText}>
-                      Position QR Pass within the frame
-                    </Text>
-                  </LinearGradient>
+                {/* Guidance Note */}
+                <View style={styles.scannerGuidanceBox}>
+                  <Text style={styles.scannerGuidanceText}>
+                    {lang === 'tl'
+                      ? 'Pindutin ang button sa ibaba upang buksan ang totoong camera scanner para sa pag-verify ng QR Pass at pamamahagi ng relief pack.'
+                      : "Tap the button below to launch the live camera scanner to verify the resident's QR Pass and disburse relief packs."}
+                  </Text>
                 </View>
 
-                {/* Action Row: CTA Scan Button + In-Page Flash Toggle */}
-                <View style={styles.scanActionRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.scanCtaBtnWrapper,
-                      (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
-                    ]}
-                    onPress={async () => {
-                      if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
-                        await requestPermission();
-                      }
-                      handleResetScanner();
-                      setCameraMountKey(k => k + 1);
-                      setCameraReady(false);
-                      setScanModalVisible(true);
-                    }}
-                    activeOpacity={0.88}
+                {/* Primary Full-Width Launch Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.mainScanTriggerBtn,
+                    (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
+                  ]}
+                  onPress={async () => {
+                    if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
+                      await requestPermission();
+                    }
+                    handleResetScanner();
+                    setCameraMountKey(k => k + 1);
+                    setCameraReady(false);
+                    setScanModalVisible(true);
+                  }}
+                  activeOpacity={0.88}
+                >
+                  <LinearGradient
+                    colors={['#1B44B8', '#10296E']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.mainScanTriggerGradient}
                   >
-                    <LinearGradient
-                      colors={['#12296A', '#1C3F94']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.scanCtaGradient}
-                    >
-                      <ScanIcon size={19} color="#FFFFFF" />
-                      <Text style={styles.scanCtaText}>
-                        Tap to Scan QR Pass
+                    <View style={styles.scanBtnIconCircle}>
+                      <ScanIcon size={22} color="#FFFFFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.mainScanTriggerTitle}>
+                        {lang === 'tl' ? 'Buksan ang QR Camera Scanner' : 'Open QR Camera Scanner'}
                       </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
+                      <Text style={styles.mainScanTriggerSub}>
+                        {lang === 'tl' ? 'Live Camera Feed & Auto QR Scan' : 'Live Camera Feed & Auto QR Scan'}
+                      </Text>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
 
+                {/* Secondary Tools Row: Flashlight Toggle + Gallery Upload */}
+                <View style={styles.scannerSecondaryRow}>
                   {Platform.OS !== 'web' && (
                     <TouchableOpacity
-                      style={[styles.inpageFlashBtn, torchOn && styles.inpageFlashBtnActive]}
+                      style={[styles.secondaryActionBtn, torchOn && styles.secondaryActionBtnActive]}
                       onPress={() => setTorchOn(prev => !prev)}
                       activeOpacity={0.85}
                     >
-                      <ZapIcon size={17} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
-                      <Text style={[styles.inpageFlashBtnText, torchOn && styles.inpageFlashBtnTextActive]}>
-                        {torchOn ? 'Flash: ON' : 'Flash: OFF'}
+                      <ZapIcon size={16} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
+                      <Text style={[styles.secondaryActionText, torchOn && styles.secondaryActionTextActive]}>
+                        {torchOn ? 'Flashlight: ON' : 'Flashlight: OFF'}
                       </Text>
                     </TouchableOpacity>
                   )}
-                </View>
 
-                {/* Divider: OR with dashes */}
-                <View style={styles.orDividerRow}>
-                  <View style={styles.orDashLine} />
-                  <Text style={styles.orText}>OR</Text>
-                  <View style={styles.orDashLine} />
+                  <TouchableOpacity
+                    style={styles.secondaryActionBtn}
+                    onPress={showPhotoScanOptions}
+                    activeOpacity={0.8}
+                    disabled={decodingPhoto}
+                  >
+                    {decodingPhoto ? (
+                      <ActivityIndicator size="small" color="#C9A84C" />
+                    ) : (
+                      <ImageIcon size={16} color="#CBD5E1" />
+                    )}
+                    <Text style={styles.secondaryActionText}>
+                      {decodingPhoto
+                        ? (lang === 'tl' ? 'Sinusuri...' : 'Scanning...')
+                        : (lang === 'tl' ? 'Mula sa Gallery' : 'Upload Image')}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-
-                {/* Gallery Upload Ghost Button */}
-                <TouchableOpacity
-                  style={styles.galleryGhostBtn}
-                  onPress={showPhotoScanOptions}
-                  activeOpacity={0.8}
-                  disabled={decodingPhoto}
-                >
-                  {decodingPhoto ? (
-                    <ActivityIndicator size="small" color="#C9A84C" />
-                  ) : (
-                    <ImageIcon size={16} color="#CBD5E1" />
-                  )}
-                  <Text style={styles.galleryGhostBtnText}>
-                    {decodingPhoto
-                      ? (lang === 'tl' ? 'Sinusuri ang larawan...' : 'Scanning photo for QR pass...')
-                      : 'Upload QR from Gallery'}
-                  </Text>
-                </TouchableOpacity>
               </View>
             </LinearGradient>
 
@@ -2292,186 +2270,114 @@ const styles = StyleSheet.create({
     color: '#0D8A5A',
     letterSpacing: 0.4,
   },
-  viewfinderFrame: {
-    width: '100%',
-    height: 210,
-    backgroundColor: '#050B18',
-    borderRadius: 16,
+  // Header icon badge for scanner card
+  scannerHeaderIconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(201, 168, 76, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(201, 168, 76, 0.2)',
-    overflow: 'hidden',
-    position: 'relative',
+    borderColor: 'rgba(201, 168, 76, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
-  },
-  goldBracket: {
-    position: 'absolute',
-    width: 22,
-    height: 22,
-    borderColor: '#C9A84C',
-    zIndex: 5,
-  },
-  bracketTL: {
-    top: 14,
-    left: 14,
-    borderTopWidth: 2.5,
-    borderLeftWidth: 2.5,
-    borderTopLeftRadius: 6,
-  },
-  bracketTR: {
-    top: 14,
-    right: 14,
-    borderTopWidth: 2.5,
-    borderRightWidth: 2.5,
-    borderTopRightRadius: 6,
-  },
-  bracketBL: {
-    bottom: 14,
-    left: 14,
-    borderBottomWidth: 2.5,
-    borderLeftWidth: 2.5,
-    borderBottomLeftRadius: 6,
-  },
-  bracketBR: {
-    bottom: 14,
-    right: 14,
-    borderBottomWidth: 2.5,
-    borderRightWidth: 2.5,
-    borderBottomRightRadius: 6,
-  },
-  laserTrack: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    top: 24,
-    height: 2,
-    zIndex: 6,
-  },
-  laserBeam: {
-    flex: 1,
-    height: 2,
-  },
-  viewfinderCenterGlow: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(201, 168, 76, 0.22)',
-  },
-  viewfinderBottomOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingTop: 18,
-    paddingBottom: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewfinderBottomText: {
-    color: '#CBD5E1',
-    fontSize: 11.5,
-    fontWeight: '500',
-    letterSpacing: 0.1,
   },
 
-  // Action Row: CTA Button + Flash Toggle
-  scanActionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
+  // Guidance note below header
+  scannerGuidanceBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 14,
   },
-  scanCtaBtnWrapper: {
-    flex: 1,
-    borderRadius: 16,
+  scannerGuidanceText: {
+    color: '#94A3B8',
+    fontSize: 12.5,
+    fontWeight: '500',
+    lineHeight: 18,
+  },
+
+  // Primary full-width camera launch button
+  mainScanTriggerBtn: {
+    borderRadius: 18,
     overflow: 'hidden',
+    marginBottom: 12,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 18px rgba(28, 63, 148, 0.35)' }
+      ? { boxShadow: '0 6px 24px rgba(27, 68, 184, 0.45)' }
       : {
-          shadowColor: '#1C3F94',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.35,
-          shadowRadius: 18,
-          elevation: 6,
+          shadowColor: '#1B44B8',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.42,
+          shadowRadius: 20,
+          elevation: 8,
         }),
   },
-  inpageFlashBtn: {
+  mainScanTriggerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+  },
+  scanBtnIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(201, 168, 76, 0.35)',
   },
-  inpageFlashBtnActive: {
-    backgroundColor: '#C9A84C',
-    borderColor: '#E6CA65',
-  },
-  inpageFlashBtnText: {
-    color: '#CBD5E1',
-    fontSize: 12.5,
+  mainScanTriggerTitle: {
+    color: '#FFFFFF',
+    fontSize: 15.5,
     fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 2,
   },
-  inpageFlashBtnTextActive: {
-    color: '#0B1D4E',
-    fontWeight: '900',
+  mainScanTriggerSub: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 11.5,
+    fontWeight: '500',
   },
+
+  // scanCtaDisabled kept for disabled state on button
   scanCtaDisabled: {
     opacity: 0.5,
   },
-  scanCtaGradient: {
+
+  // Secondary tools row (flashlight + gallery) below main button
+  scannerSecondaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 16,
+    gap: 10,
   },
-  scanCtaText: {
-    color: '#FFFFFF',
-    fontSize: 14.5,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  orDividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-    paddingHorizontal: 10,
-  },
-  orDashLine: {
+  secondaryActionBtn: {
     flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  orText: {
-    color: '#8A9BB8',
-    fontSize: 11,
-    fontWeight: '700',
-    marginHorizontal: 12,
-  },
-  galleryGhostBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    gap: 7,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(201, 168, 76, 0.3)',
   },
-  galleryGhostBtnText: {
-    color: '#E2E8F0',
-    fontSize: 13,
-    fontWeight: '600',
+  secondaryActionBtnActive: {
+    backgroundColor: '#C9A84C',
+    borderColor: '#E6CA65',
+  },
+  secondaryActionText: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  secondaryActionTextActive: {
+    color: '#0B1D4E',
+    fontWeight: '900',
   },
 
   // Scanner Camera Modal Styles
