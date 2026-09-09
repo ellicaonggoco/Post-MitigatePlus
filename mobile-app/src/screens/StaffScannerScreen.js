@@ -97,7 +97,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     const anim = Animated.loop(
       Animated.sequence([
         Animated.timing(laserAnim, {
-          toValue: 220,
+          toValue: 150,
           duration: 1800,
           useNativeDriver: true,
         }),
@@ -111,6 +111,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     anim.start();
     return () => anim.stop();
   }, [laserAnim]);
+
+  // Pulsing beacon for live distribution drive
+  const beaconAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(beaconAnim, { toValue: 0.3, duration: 900, useNativeDriver: true }),
+        Animated.timing(beaconAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [beaconAnim]);
 
   // Camera & Permissions state
   const [permission, requestPermission] = useCameraPermissions();
@@ -906,10 +919,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
             <Text style={styles.headerOfficerName}>{officerName}</Text>
             <View style={styles.headerDutyRow}>
-              <MapPinIcon size={12} color="#FCD34D" />
+              <MapPinIcon size={12} color="#C9A84C" />
               <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} — Batch 1</Text>
             </View>
           </View>
+          {onLogout && (
+            <TouchableOpacity
+              style={styles.headerLogoutBtn}
+              onPress={onLogout}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.headerLogoutText}>Logout</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </LinearGradient>
 
@@ -940,108 +962,169 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Active Drive Card (Dark Blue) */}
-            <LinearGradient
-              colors={['#163B8C', '#0B1D4E']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroDriveCard}
-            >
-              <Text style={styles.heroDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
-              <Text style={styles.heroDriveTitle}>
-                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution')}
-              </Text>
-            </LinearGradient>
-
-            {/* ── SCAN QR PASS BUTTON CARD ── */}
-            <View style={styles.viewfinderCard}>
-              {/* Header */}
-              <View style={styles.viewfinderHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={styles.viewfinderBadgeIcon}>
-                    <ScanIcon size={16} color="#38BDF8" />
-                  </View>
-                  <View>
-                    <Text style={styles.viewfinderTitle}>
-                      {lang === 'tl' ? 'OPISYAL NA QR SCANNER' : 'OFFICIAL QR SCANNER'}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                      <View style={[styles.statusPulseDot, { backgroundColor: permission?.granted ? '#10B981' : '#F59E0B' }]} />
-                      <Text style={styles.viewfinderBadgeTag}>
-                        {permission?.granted
-                          ? (lang === 'tl' ? 'CAMERA HANDA' : 'CAMERA READY')
-                          : (lang === 'tl' ? 'KAILANGAN NG PERMISO' : 'PERMISSION REQUIRED')}
-                      </Text>
-                    </View>
-                  </View>
+            {/* ── 1. LIVE DISTRIBUTION DRIVE WIDGET (White Card + Left 4px Gold Accent Bar) ── */}
+            <View style={styles.driveWidgetCard}>
+              <View style={styles.driveWidgetHeader}>
+                <View style={styles.driveWidgetLiveTag}>
+                  <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
+                  <Text style={styles.driveWidgetLiveText}>
+                    LIVE DISTRIBUTION DRIVE
+                  </Text>
+                </View>
+                <View style={styles.driveActivePill}>
+                  <View style={styles.driveActivePillDot} />
+                  <Text style={styles.driveActivePillText}>ACTIVE</Text>
                 </View>
               </View>
 
-              {/* Scan Trigger Button */}
-              <TouchableOpacity
-                style={[
-                  styles.scanTriggerBtn,
-                  (!permission?.granted || Platform.OS === 'web') && styles.scanTriggerBtnDisabled,
-                ]}
-                onPress={async () => {
-                  if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
-                    await requestPermission();
-                  }
-                  if (permission?.granted) {
+              <Text style={styles.driveWidgetTitle}>
+                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive')}
+              </Text>
+
+              <View style={styles.driveWidgetMetaRow}>
+                <View style={styles.driveMetaItem}>
+                  <MapPinIcon size={13} color="#1C3F94" />
+                  <Text style={styles.driveMetaText} numberOfLines={1}>
+                    {selectedEvent?.venue || selectedEvent?.location || `Barangay ${dutyBrgy} Evacuation Site`}
+                  </Text>
+                </View>
+                <View style={styles.driveMetaDivider} />
+                <View style={styles.driveMetaItem}>
+                  <PackageIcon size={13} color="#1C3F94" />
+                  <Text style={styles.driveMetaText} numberOfLines={1}>
+                    {selectedEvent?.itemType || 'Family Food Pack'}
+                  </Text>
+                </View>
+                <View style={styles.driveMetaDivider} />
+                <View style={styles.driveMetaItem}>
+                  <ClockIcon size={13} color="#1C3F94" />
+                  <Text style={styles.driveMetaText} numberOfLines={1}>
+                    08:00 AM – 05:00 PM
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* ── 2. OFFICIAL QR PASS SCANNER PANEL (Dark Gradient Card + Top 3px Gold Rule) ── */}
+            <LinearGradient
+              colors={['#0B1D4E', '#12296A', '#1C3F94']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0.3, y: 1 }}
+              style={styles.scannerPanelCard}
+            >
+              {/* Top 3px Gold Rule */}
+              <View style={styles.scannerPanelGoldRule} />
+
+              <View style={styles.scannerPanelInner}>
+                {/* Header Row */}
+                <View style={styles.scannerPanelHeader}>
+                  <View>
+                    <Text style={styles.scannerPanelTitle}>QR Pass Scanner</Text>
+                    <Text style={styles.scannerPanelSub}>LGU Manila · MDRRMO Official</Text>
+                  </View>
+                  <View style={styles.scannerReadyPill}>
+                    <View style={styles.scannerReadyDot} />
+                    <Text style={styles.scannerReadyText}>
+                      {permission?.granted ? 'READY' : 'PERM REQ'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Viewfinder Frame (~210px black rect) */}
+                <View style={styles.viewfinderFrame}>
+                  {/* Gold L-bracket corners (22×22, 2.5px stroke, 14px from edges) */}
+                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketTL]} />
+                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketTR]} />
+                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketBL]} />
+                  <View pointerEvents="none" style={[styles.goldBracket, styles.bracketBR]} />
+
+                  {/* Animated Scan Line (Red-Gold Gradient) */}
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[styles.laserTrack, { transform: [{ translateY: laserAnim }] }]}
+                  >
+                    <LinearGradient
+                      colors={['rgba(200,16,46,0)', '#C8102E', '#C9A84C', '#C8102E', 'rgba(200,16,46,0)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.laserBeam}
+                    />
+                  </Animated.View>
+
+                  {/* Center reticle glow */}
+                  <View pointerEvents="none" style={styles.viewfinderCenterGlow} />
+
+                  {/* Bottom Gradient Overlay with Official Instruction */}
+                  <LinearGradient
+                    colors={['transparent', 'rgba(5, 11, 24, 0.92)']}
+                    style={styles.viewfinderBottomOverlay}
+                    pointerEvents="none"
+                  >
+                    <Text style={styles.viewfinderBottomText}>
+                      Position QR Pass within the frame
+                    </Text>
+                  </LinearGradient>
+                </View>
+
+                {/* CTA Button: OUTSIDE and BELOW Viewfinder (Full-width blue gradient pill) */}
+                <TouchableOpacity
+                  style={[
+                    styles.scanCtaBtnWrapper,
+                    (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
+                  ]}
+                  onPress={async () => {
+                    if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
+                      await requestPermission();
+                    }
                     handleResetScanner();
                     setCameraMountKey(k => k + 1);
                     setCameraReady(false);
                     setScanModalVisible(true);
-                  }
-                }}
-                activeOpacity={0.85}
-              >
-                <View style={styles.scanTriggerIconCircle}>
-                  <QrCodeIcon size={36} color="#FFFFFF" />
+                  }}
+                  activeOpacity={0.88}
+                >
+                  <LinearGradient
+                    colors={['#12296A', '#1C3F94']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.scanCtaGradient}
+                  >
+                    <ScanIcon size={19} color="#FFFFFF" />
+                    <Text style={styles.scanCtaText}>
+                      Tap to Scan QR Pass
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                {/* Divider: OR with dashes */}
+                <View style={styles.orDividerRow}>
+                  <View style={styles.orDashLine} />
+                  <Text style={styles.orText}>OR</Text>
+                  <View style={styles.orDashLine} />
                 </View>
-                <Text style={styles.scanTriggerBtnText}>
-                  {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
-                </Text>
-                <Text style={styles.scanTriggerBtnSub}>
-                  {lang === 'tl'
-                    ? 'Pindutin upang buksan ang scanner lens'
-                    : 'Tap to open the camera scanner'}
-                </Text>
-              </TouchableOpacity>
 
-              {/* Gallery Upload Button */}
-              <TouchableOpacity
-                style={styles.photoScanSecondaryBtn}
-                onPress={showPhotoScanOptions}
-                activeOpacity={0.85}
-                disabled={decodingPhoto}
-              >
-                {decodingPhoto ? (
-                  <ActivityIndicator size="small" color="#38BDF8" />
-                ) : (
-                  <ImageIcon size={16} color="#38BDF8" />
-                )}
-                <Text style={styles.photoScanSecondaryBtnText}>
-                  {decodingPhoto
-                    ? (lang === 'tl' ? 'Sinusuri ang larawan ng QR pass...' : 'Scanning photo for QR pass...')
-                    : (lang === 'tl' ? 'Pumili ng QR sa Gallery' : 'Upload QR from Gallery')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Status Pill */}
-              <View style={styles.liveStatusRow}>
-                <View style={[styles.liveDot, {
-                  backgroundColor: permission?.granted ? '#10B981' : '#EF4444',
-                }]} />
-                <Text style={styles.liveStatusText}>
-                  {permission?.granted
-                    ? (lang === 'tl' ? 'Scanner Handa — Pindutin ang button para mag-scan' : 'Scanner Ready — Tap button to begin scan')
-                    : (lang === 'tl' ? 'Pahintulutan ang camera upang mag-scan' : 'Camera permission required to scan')}
-                </Text>
+                {/* Gallery Upload Ghost Button */}
+                <TouchableOpacity
+                  style={styles.galleryGhostBtn}
+                  onPress={showPhotoScanOptions}
+                  activeOpacity={0.8}
+                  disabled={decodingPhoto}
+                >
+                  {decodingPhoto ? (
+                    <ActivityIndicator size="small" color="#C9A84C" />
+                  ) : (
+                    <ImageIcon size={16} color="#CBD5E1" />
+                  )}
+                  <Text style={styles.galleryGhostBtnText}>
+                    {decodingPhoto
+                      ? (lang === 'tl' ? 'Sinusuri ang larawan...' : 'Scanning photo for QR pass...')
+                      : 'Upload QR from Gallery'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            </View>
+            </LinearGradient>
 
-            {/* ── SCANNER MODAL ── */}
+            {/* ── SCANNER MODAL (CAMERA VIEW) ── */}
             <Modal
               visible={scanModalVisible}
               animationType="slide"
@@ -1051,29 +1134,32 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.scanModalContainer}>
                 {/* Modal Header */}
                 <LinearGradient
-                  colors={['#0B1D4E', '#1C3F94']}
+                  colors={['#0B1D4E', '#12296A', '#1C3F94']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.scanModalHeader}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                    <ScanIcon size={20} color="#38BDF8" />
-                    <View>
-                      <Text style={styles.scanModalTitle}>
-                        {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
-                      </Text>
-                      <Text style={styles.scanModalSub}>
-                        {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi' : 'General Distribution')}
-                      </Text>
+                  <View style={styles.scanModalGoldRule} />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                      <ScanIcon size={20} color="#C9A84C" />
+                      <View>
+                        <Text style={styles.scanModalTitle}>
+                          {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
+                        </Text>
+                        <Text style={styles.scanModalSub} numberOfLines={1}>
+                          {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi' : 'General Distribution')}
+                        </Text>
+                      </View>
                     </View>
+                    <TouchableOpacity
+                      onPress={() => setScanModalVisible(false)}
+                      style={styles.scanModalCloseBtn}
+                      activeOpacity={0.8}
+                    >
+                      <CloseIcon size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => setScanModalVisible(false)}
-                    style={styles.scanModalCloseBtn}
-                    activeOpacity={0.8}
-                  >
-                    <CloseIcon size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
                 </LinearGradient>
 
                 {/* Camera Viewfinder */}
@@ -1081,13 +1167,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   {Platform.OS === 'web' ? (
                     <View style={styles.webPreviewPlaceholder}>
                       <View style={styles.webLensIconCircle}>
-                        <QrCodeIcon size={38} color="#38BDF8" />
+                        <QrCodeIcon size={38} color="#C9A84C" />
                       </View>
                       <Text style={styles.webLensTitle}>Camera Scanner Standby</Text>
                       <Text style={styles.webLensSub}>
                         {lang === 'tl'
-                          ? 'Gamitin ang manual entry sa ibaba.'
-                          : 'Use the manual entry below to type the QR code.'}
+                          ? 'Gamitin ang manual code entry sa ibaba.'
+                          : 'Use manual code entry below to verify QR passes on web preview.'}
                       </Text>
                     </View>
                   ) : !permission?.granted ? (
@@ -1117,7 +1203,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     />
                   )}
 
-                  {/* Viewfinder corner marks */}
+                  {/* Viewfinder Gold corner marks */}
                   <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTL]} />
                   <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTR]} />
                   <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBL]} />
@@ -1130,7 +1216,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={[styles.laserLine, { transform: [{ translateY: laserAnim }] }]}
                   >
                     <LinearGradient
-                      colors={['rgba(56,189,248,0)', 'rgba(56,189,248,0.75)', '#FFFFFF', 'rgba(56,189,248,0.75)', 'rgba(56,189,248,0)']}
+                      colors={['rgba(200,16,46,0)', '#C8102E', '#C9A84C', '#C8102E', 'rgba(200,16,46,0)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.laserGradient}
@@ -1140,9 +1226,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   {/* Instruction overlay */}
                   <View pointerEvents="none" style={styles.scanModalOverlayHint}>
                     <Text style={styles.scanModalOverlayText}>
-                      {lang === 'tl'
-                        ? 'Itapat ang QR Pass sa loob ng kahon'
-                        : 'Align QR Pass within the frame'}
+                      Position QR Pass within the frame
                     </Text>
                   </View>
                 </View>
@@ -1154,7 +1238,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     onPress={() => setTorchOn(prev => !prev)}
                     activeOpacity={0.85}
                   >
-                    <ZapIcon size={24} color={torchOn ? '#0B1D4E' : '#FFFFFF'} />
+                    <ZapIcon size={22} color={torchOn ? '#0B1D4E' : '#FFFFFF'} />
                     <Text style={[styles.flashModalBtnText, torchOn && styles.flashModalBtnTextActive]}>
                       {torchOn
                         ? (lang === 'tl' ? 'Flash: Naka-ON' : 'Flash: ON')
@@ -1165,9 +1249,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </View>
             </Modal>
 
-            {/* Manual Code Entry Card */}
+            {/* ── 3. MANUAL CODE ENTRY CARD (White Card + Left 4px Gold Accent Rule) ── */}
             <View style={styles.manualEntryCard}>
-              <Text style={styles.manualEntryLabel}>Manual Code Entry (No Camera)</Text>
+              <View style={styles.manualHeaderRow}>
+                <View style={styles.manualGoldBar} />
+                <Text style={styles.manualEntryLabel}>Manual Code Entry</Text>
+              </View>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.codeInput}
@@ -1178,15 +1265,30 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   autoCapitalize="characters"
                 />
                 <TouchableOpacity
-                  style={styles.scanBtn}
+                  style={styles.verifyBtnWrapper}
                   onPress={() => handleExecuteScan()}
                   disabled={loading}
-                  activeOpacity={0.85}
+                  activeOpacity={0.88}
                 >
-                  {loading ? <ActivityIndicator color="#FFFFFF" size="small" /> : <Text style={styles.scanBtnText}>Scan Code</Text>}
+                  <LinearGradient
+                    colors={['#12296A', '#1C3F94']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.verifyBtnGradient}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Text style={styles.verifyBtnText}>Verify</Text>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
-
+              <Text style={styles.manualHelperNote}>
+                {lang === 'tl'
+                  ? 'I-type ang opisyal na QR Token kung hindi mabasa ng camera o kung offline ang terminal.'
+                  : 'Enter beneficiary QR token if camera is unavailable or terminal is operating offline.'}
+              </Text>
             </View>
 
             {/* In-page Scan Notice Banner */}
@@ -1534,7 +1636,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               activeOpacity={0.8}
             >
               <View style={[styles.navIconWell, isActive && styles.navIconWellActive]}>
-                {item.icon(isActive ? '#1C3F94' : '#94A3B8')}
+                {item.icon(isActive ? '#B8932A' : '#8A9BB8')}
               </View>
               <Text style={[styles.navTabLabel, isActive && styles.navTabLabelActive]}>
                 {item.label}
@@ -1972,191 +2074,395 @@ const styles = StyleSheet.create({
     color: '#FCD34D',
     fontWeight: '600',
   },
-  // Logical Sign-Out Pill with subtle red danger styling
-  glassSignOutPill: {
-    backgroundColor: 'rgba(239, 68, 68, 0.18)',
+  // Header Logout Pill Button
+  headerLogoutBtn: {
+    backgroundColor: '#C8102E', // Manila Red
     borderRadius: 20,
-    paddingHorizontal: 13,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.2,
-    borderColor: 'rgba(248, 113, 113, 0.45)',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)' }
+      : {
+          shadowColor: '#C8102E',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 10,
+          elevation: 5,
+        }),
   },
-  glassSignOutText: {
-    color: '#FCA5A5',
-    fontSize: 12,
+  headerLogoutText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
 
-
-  // QR Scanner Tab Styles
-  heroDriveCard: {
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1E3A8A',
-  },
-  heroDriveKicker: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#FCD34D',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  heroDriveTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#FFFFFF',
-  },
-  onlineToggleCard: {
+  // ── MITIGATEPLUS DESIGN SYSTEM V1.0: QR SCANNER SECTION ──
+  // 1. Live Distribution Drive Widget (White Card on #F3F6FC with LEFT 4px gold accent bar)
+  driveWidgetCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
-    padding: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: '#C9A84C', // Manila Gold
+    padding: 16,
     marginBottom: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
           shadowColor: '#1C3F94',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.10,
+          shadowRadius: 24,
           elevation: 4,
         }),
   },
-  statusIndicatorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  toggleModeTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  toggleModeSub: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  viewfinderCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: 22,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    alignItems: 'center',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 8px 24px rgba(15,23,42,0.18)' }
-      : {
-          shadowColor: '#0F172A',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 10,
-          elevation: 4,
-        }),
-  },
-  viewfinderHeader: {
+  driveWidgetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  viewfinderBadgeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewfinderTitle: {
-    color: '#F8FAFC',
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  viewfinderBadgeTag: {
-    color: '#94A3B8',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  statusPulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  camControlsRow: {
+  driveWidgetLiveTag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  camControlPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+  beaconDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#C8102E', // Manila Red beacon
   },
-  camControlPillText: {
+  driveWidgetLiveText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#E2E8F0',
-  },
-  camControlPillActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#0284C7',
-  },
-  camControlPillTextActive: {
-    color: '#0F172A',
     fontWeight: '800',
+    color: '#C8102E',
+    letterSpacing: 0.8,
   },
-  camControlPillTorchActive: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#D97706',
-  },
-  camControlPillTorchTextActive: {
-    color: '#0F172A',
-    fontWeight: '800',
-  },
-  viewfinderSub: {
-    color: '#94A3B8',
-    fontSize: 11.5,
-    lineHeight: 16,
-    marginTop: 6,
-    marginBottom: 12,
-    width: '100%',
-  },
-  cameraBox: {
-    width: '100%',
-    height: 290,
-    backgroundColor: '#020617',
-    borderRadius: 18,
+  driveActivePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#E6F6EF',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: 'rgba(13, 138, 90, 0.3)',
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+  },
+  driveActivePillDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#0D8A5A',
+  },
+  driveActivePillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0D8A5A',
+    letterSpacing: 0.3,
+  },
+  driveWidgetTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.3,
+    marginBottom: 10,
+  },
+  driveWidgetMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  driveMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  driveMetaText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3D5070',
+  },
+  driveMetaDivider: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#8A9BB8',
+  },
+
+  // 2. Official QR Pass Scanner Panel (Dark Navy Gradient Card + Top 3px Gold Rule + Lift Shadow)
+  scannerPanelCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 76, 0.25)',
+    overflow: 'hidden',
+    marginBottom: 14,
+    position: 'relative',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 6px rgba(11,21,80,0.05), 0 16px 40px rgba(28,63,148,0.22)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 14 },
+          shadowOpacity: 0.28,
+          shadowRadius: 36,
+          elevation: 8,
+        }),
+  },
+  scannerPanelGoldRule: {
+    height: 3,
+    backgroundColor: '#C9A84C', // Manila Gold
+    width: '100%',
+  },
+  scannerPanelInner: {
+    padding: 16,
+  },
+  scannerPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  scannerPanelTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  scannerPanelSub: {
+    fontSize: 11.5,
+    fontWeight: '500',
+    color: '#8A9BB8',
+    marginTop: 2,
+  },
+  scannerReadyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#E6F6EF',
+    borderWidth: 1,
+    borderColor: 'rgba(13, 138, 90, 0.3)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  scannerReadyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0D8A5A',
+  },
+  scannerReadyText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#0D8A5A',
+    letterSpacing: 0.4,
+  },
+  viewfinderFrame: {
+    width: '100%',
+    height: 210,
+    backgroundColor: '#050B18',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 76, 0.2)',
+    overflow: 'hidden',
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    marginBottom: 14,
   },
-  cameraPreview: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
+  goldBracket: {
+    position: 'absolute',
+    width: 22,
+    height: 22,
+    borderColor: '#C9A84C',
+    zIndex: 5,
+  },
+  bracketTL: {
+    top: 14,
+    left: 14,
+    borderTopWidth: 2.5,
+    borderLeftWidth: 2.5,
+    borderTopLeftRadius: 6,
+  },
+  bracketTR: {
+    top: 14,
+    right: 14,
+    borderTopWidth: 2.5,
+    borderRightWidth: 2.5,
+    borderTopRightRadius: 6,
+  },
+  bracketBL: {
+    bottom: 14,
+    left: 14,
+    borderBottomWidth: 2.5,
+    borderLeftWidth: 2.5,
+    borderBottomLeftRadius: 6,
+  },
+  bracketBR: {
+    bottom: 14,
+    right: 14,
+    borderBottomWidth: 2.5,
+    borderRightWidth: 2.5,
+    borderBottomRightRadius: 6,
+  },
+  laserTrack: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    top: 24,
+    height: 2,
+    zIndex: 6,
+  },
+  laserBeam: {
+    flex: 1,
+    height: 2,
+  },
+  viewfinderCenterGlow: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(201, 168, 76, 0.22)',
+  },
+  viewfinderBottomOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 18,
+    paddingBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewfinderBottomText: {
+    color: '#CBD5E1',
+    fontSize: 11.5,
+    fontWeight: '500',
+    letterSpacing: 0.1,
+  },
+
+  // CTA Button BELOW viewfinder
+  scanCtaBtnWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 18px rgba(28, 63, 148, 0.35)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 18,
+          elevation: 6,
+        }),
+  },
+  scanCtaDisabled: {
+    opacity: 0.5,
+  },
+  scanCtaGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  scanCtaText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  orDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+    paddingHorizontal: 10,
+  },
+  orDashLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  orText: {
+    color: '#8A9BB8',
+    fontSize: 11,
+    fontWeight: '700',
+    marginHorizontal: 12,
+  },
+  galleryGhostBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  galleryGhostBtnText: {
+    color: '#E2E8F0',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // Scanner Camera Modal Styles
+  scanModalContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scanModalHeader: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 50,
+    paddingBottom: 16,
+    paddingHorizontal: 18,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
+  },
+  scanModalGoldRule: {
+    height: 3,
+    backgroundColor: '#C9A84C',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  scanModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  scanModalSub: {
+    color: '#94A3B8',
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginTop: 2,
+    maxWidth: 240,
+  },
+  scanModalCloseBtn: {
+    width: 36,
+    height: 36,
     borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanModalCameraBox: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#020617',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   webPreviewPlaceholder: {
     alignItems: 'center',
@@ -2169,9 +2475,9 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+    backgroundColor: 'rgba(201, 168, 76, 0.08)',
     borderWidth: 1.5,
-    borderColor: 'rgba(56, 189, 248, 0.25)',
+    borderColor: 'rgba(201, 168, 76, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
@@ -2190,30 +2496,6 @@ const styles = StyleSheet.create({
     maxWidth: 240,
     lineHeight: 16,
     marginBottom: 12,
-  },
-  webTestBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderWidth: 1,
-    borderColor: '#38BDF8',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  webTestBadgeText: {
-    color: '#38BDF8',
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  camLoadingBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  camLoadingText: {
-    color: '#94A3B8',
-    fontSize: 12,
-    marginTop: 8,
-    fontWeight: '600',
   },
   camPermBox: {
     alignItems: 'center',
@@ -2236,16 +2518,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
-  camPermSub: {
-    color: '#94A3B8',
-    fontSize: 11.5,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginBottom: 12,
-    maxWidth: 240,
-  },
   camPermBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#1C3F94',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 10,
@@ -2257,9 +2531,9 @@ const styles = StyleSheet.create({
   },
   cornerMark: {
     position: 'absolute',
-    width: 28,
-    height: 28,
-    borderColor: '#FFFFFF',
+    width: 26,
+    height: 26,
+    borderColor: '#C9A84C',
     zIndex: 5,
   },
   cornerTL: {
@@ -2267,35 +2541,35 @@ const styles = StyleSheet.create({
     left: 22,
     borderTopWidth: 2.5,
     borderLeftWidth: 2.5,
-    borderTopLeftRadius: 10,
+    borderTopLeftRadius: 8,
   },
   cornerTR: {
     top: 22,
     right: 22,
     borderTopWidth: 2.5,
     borderRightWidth: 2.5,
-    borderTopRightRadius: 10,
+    borderTopRightRadius: 8,
   },
   cornerBL: {
     bottom: 22,
     left: 22,
     borderBottomWidth: 2.5,
     borderLeftWidth: 2.5,
-    borderBottomLeftRadius: 10,
+    borderBottomLeftRadius: 8,
   },
   cornerBR: {
     bottom: 22,
     right: 22,
     borderBottomWidth: 2.5,
     borderRightWidth: 2.5,
-    borderBottomRightRadius: 10,
+    borderBottomRightRadius: 8,
   },
   scanTargetReticle: {
     position: 'absolute',
     width: 205,
     height: 205,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(201, 168, 76, 0.2)',
     borderRadius: 16,
     zIndex: 4,
   },
@@ -2311,146 +2585,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 2,
   },
-  rescanOverlayBtn: {
-    position: 'absolute',
-    bottom: 16,
-    backgroundColor: 'rgba(15, 23, 42, 0.94)',
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    zIndex: 10,
-  },
-  rescanOverlayBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  actionButtonsContainer: {
-    width: '100%',
-    marginTop: 12,
-    gap: 8,
-  },
-  googleScannerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#2563EB',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: '100%',
-  },
-  googleScannerBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12.5,
-    fontWeight: '800',
-    letterSpacing: 0.1,
-  },
-  // Scan Trigger Button & Modal
-  scanTriggerBtn: {
-    width: '100%',
-    backgroundColor: '#1E293B',
-    borderRadius: 18,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 14,
-    borderWidth: 1.5,
-    borderColor: '#334155',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 20px rgba(15,23,42,0.25)' }
-      : {
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.2,
-          shadowRadius: 8,
-          elevation: 4,
-        }),
-  },
-  scanTriggerBtnDisabled: {
-    opacity: 0.6,
-  },
-  scanTriggerIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#1C3F94',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#38BDF8',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 0 16px rgba(56,189,248,0.3)' }
-      : {
-          shadowColor: '#38BDF8',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.35,
-          shadowRadius: 8,
-          elevation: 6,
-        }),
-  },
-  scanTriggerBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  scanTriggerBtnSub: {
-    color: '#94A3B8',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  scanModalContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  scanModalHeader: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 50,
-    paddingBottom: 16,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  scanModalTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  scanModalSub: {
-    color: '#94A3B8',
-    fontSize: 11.5,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  scanModalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scanModalCameraBox: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#020617',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scanModalOverlayHint: {
     position: 'absolute',
     top: 24,
@@ -2459,7 +2593,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(201, 168, 76, 0.3)',
     zIndex: 10,
   },
   scanModalOverlayText: {
@@ -2482,8 +2616,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   flashModalBtnActive: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#F59E0B',
+    backgroundColor: '#C9A84C',
+    borderColor: '#C9A84C',
   },
   flashModalBtnText: {
     color: '#FFFFFF',
@@ -2540,105 +2674,90 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
 
-  photoScanSecondaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  photoScanSecondaryBtnText: {
-    color: '#E2E8F0',
-    fontSize: 12.5,
-    fontWeight: '700',
-    letterSpacing: 0.1,
-  },
-  liveStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    marginTop: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  },
-  liveStatusText: {
-    color: '#94A3B8',
-    fontSize: 11,
-    fontWeight: '600',
-  },
+  // 3. Manual Code Entry Card (White Card with left gold bar and monospace input)
   manualEntryCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    padding: 16,
+    marginBottom: 14,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
           shadowColor: '#1C3F94',
-          shadowOffset: { width: 0, height: 4 },
+          shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.08,
-          shadowRadius: 14,
+          shadowRadius: 24,
           elevation: 4,
         }),
   },
+  manualHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  manualGoldBar: {
+    width: 3.5,
+    height: 16,
+    backgroundColor: '#C9A84C',
+    borderRadius: 2,
+    marginRight: 8,
+  },
   manualEntryLabel: {
-    fontSize: 12.5,
+    fontSize: 14.5,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 8,
+    color: '#0B1525',
+    letterSpacing: -0.2,
   },
   inputRow: {
     flexDirection: 'row',
     gap: 10,
+    alignItems: 'center',
   },
   codeInput: {
     flex: 1,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderColor: '#DDE4F0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 13,
-    color: '#0F172A',
+    color: '#0B1525',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontWeight: '600',
   },
-  scanBtn: {
-    backgroundColor: '#1C3F94',
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  verifyBtnWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
+      ? { boxShadow: '0 4px 14px rgba(28, 63, 148, 0.32)' }
       : {
           shadowColor: '#1C3F94',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.32,
-          shadowRadius: 10,
-          elevation: 6,
+          shadowRadius: 12,
+          elevation: 5,
         }),
   },
-  scanBtnText: {
+  verifyBtnGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifyBtnText: {
     color: '#FFFFFF',
     fontWeight: '800',
-    fontSize: 13,
+    fontSize: 14,
+    letterSpacing: -0.2,
+  },
+  manualHelperNote: {
+    fontSize: 11,
+    color: '#8A9BB8',
+    marginTop: 8,
+    lineHeight: 15,
   },
   scanNoticeBox: {
     padding: 12,
@@ -3425,19 +3544,19 @@ const styles = StyleSheet.create({
   // Completion List Styles
   completionListCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 16,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 10px 28px rgba(28,63,148,0.10)' }
       : {
-          shadowColor: '#0F172A',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 6,
-          elevation: 2,
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.08,
+          shadowRadius: 24,
+          elevation: 4,
         }),
   },
   completionHeader: {
@@ -3452,32 +3571,33 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#059669',
+    backgroundColor: '#1C3F94',
     alignItems: 'center',
     justifyContent: 'center',
   },
   completionTitle: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.2,
   },
   completionSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#8A9BB8',
     marginTop: 1,
   },
   completionCountPill: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#E6F6EF',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   completionCountText: {
     fontSize: 11,
-    fontWeight: '900',
-    color: '#15803D',
+    fontWeight: '800',
+    color: '#0D8A5A',
   },
   emptyCompletionBox: {
     paddingVertical: 24,
