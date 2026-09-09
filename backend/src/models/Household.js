@@ -71,4 +71,7 @@ const householdSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Enforce strictly 1 Household per User account
+householdSchema.index({ headOfHouseholdUserId: 1 }, { unique: true, sparse: true });
+
 module.exports = mongoose.model('Household', householdSchema);

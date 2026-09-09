@@ -294,16 +294,26 @@ export default function RecoveryProgressTracker() {
       });
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
-        const formatted = data.map(h => ({
-          id: h.id || h.householdId || h._id,
-          householdId: h.householdId || h.id || h._id,
-          recoveryId: h.recoveryId || h._id,
-          head: h.head || h.householdId?.headOfHouseholdUserId?.name || 'Resident Household',
-          address: h.address || (h.householdId?.address ? `${h.householdId.address}, Purok ${h.householdId.purok || 1} (Brgy ${h.householdId.barangayCode})` : `Purok 1, Barangay ${brgy}, Manila`),
-          members: Number(h.members || h.householdId?.memberCount || 1),
-          stage: normalizeStage(h.stage || h.status || 'waiting'),
-          barangayCode: h.barangayCode || h.householdId?.barangayCode || brgy,
-        }));
+        const seen = new Set();
+        const formatted = [];
+        for (const h of data) {
+          const hhId = String(h.householdId || h.id || h._id);
+          const headKey = `${h.barangayCode || brgy}_${h.head || h.householdId?.headOfHouseholdUserId?.name || ''}`.trim().toLowerCase();
+          if (!seen.has(hhId) && !seen.has(headKey)) {
+            seen.add(hhId);
+            if (headKey && headKey !== `${h.barangayCode || brgy}_`) seen.add(headKey);
+            formatted.push({
+              id: h.id || h.householdId || h._id,
+              householdId: h.householdId || h.id || h._id,
+              recoveryId: h.recoveryId || h._id,
+              head: h.head || h.householdId?.headOfHouseholdUserId?.name || 'Resident Household',
+              address: h.address || (h.householdId?.address ? `${h.householdId.address}, Purok ${h.householdId.purok || 1} (Brgy ${h.householdId.barangayCode})` : `Purok 1, Barangay ${brgy}, Manila`),
+              members: Number(h.members || h.householdId?.memberCount || 1),
+              stage: normalizeStage(h.stage || h.status || 'waiting'),
+              barangayCode: h.barangayCode || h.householdId?.barangayCode || brgy,
+            });
+          }
+        }
         setHouseholds(formatted);
       } else {
         if (!silent) setHouseholds([]);

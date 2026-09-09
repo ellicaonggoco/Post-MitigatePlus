@@ -246,7 +246,12 @@ const bootstrapSystem = async () => {
         });
       }
 
-      let hh = await Household.findOne({ qrCode: r.qr });
+      let hh = await Household.findOne({
+        $or: [
+          { headOfHouseholdUserId: u._id },
+          { qrCode: r.qr },
+        ],
+      });
       if (!hh) {
         hh = new Household({
           headOfHouseholdUserId: u._id,
