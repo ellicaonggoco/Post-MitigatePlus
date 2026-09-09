@@ -2,19 +2,17 @@ package com.mitigateplus.app
 
 import android.app.Application
 import android.content.res.Configuration
+import android.util.Log
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.ReactHost
-import com.facebook.react.common.ReleaseLevel
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import com.facebook.react.defaults.DefaultReactNativeHost
+import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ExpoReactHostFactory
 
 class MainApplication : Application(), ReactApplication {
 
@@ -30,29 +28,31 @@ class MainApplication : Application(), ReactApplication {
 
           override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
 
-          override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+          override val isNewArchEnabled: Boolean = false
       }
 
-  override val reactHost: ReactHost by lazy {
-    ExpoReactHostFactory.getDefaultReactHost(
-      this,
-      PackageList(this).packages
-    )
-  }
+  override val reactHost: ReactHost? = null
 
   override fun onCreate() {
     super.onCreate()
-    DefaultNewArchitectureEntryPoint.releaseLevel = try {
-      ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.uppercase())
-    } catch (e: IllegalArgumentException) {
-      ReleaseLevel.STABLE
+    try {
+      loadReactNative(this)
+    } catch (e: Throwable) {
+      Log.w("MitigatePlus", "loadReactNative notice: ${e.message}")
     }
-    loadReactNative(this)
-    ApplicationLifecycleDispatcher.onApplicationCreate(this)
+    try {
+      ApplicationLifecycleDispatcher.onApplicationCreate(this)
+    } catch (e: Throwable) {
+      Log.w("MitigatePlus", "ApplicationLifecycleDispatcher notice: ${e.message}")
+    }
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
-    ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+    try {
+      ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+    } catch (e: Throwable) {
+      Log.w("MitigatePlus", "onConfigurationChanged notice: ${e.message}")
+    }
   }
 }
