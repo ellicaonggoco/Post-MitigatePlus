@@ -765,6 +765,53 @@ export default function LivelihoodAssistance() {
             </div>
 
             <form onSubmit={handleCreateProject}>
+              {/* Quick Work Scope Presets */}
+              <div style={{ marginBottom: 16, background: 'var(--card-subtle, #F8FAFC)', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+                    Fixed Job Scope Presets (Pumili ng Uri ng Trabaho)
+                  </label>
+                  <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+                    Click to auto-align Title, Description, & Required Role
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {[
+                    { label: '🌊 Drainage & Canal Declogging', title: 'Drainage and Canal Declogging Drive', cat: 'Drainage & Canal Declogging', desc: 'Clearing culverts, storm drains, and canal waterways to ensure rapid flood water recession.' },
+                    { label: '🚧 Debris & Mud Clearing', title: 'Debris and Mud Clearing Operation', cat: 'Debris & Mud Clearing', desc: 'Road clearing, mud shoveling, and storm debris removal across community streets.' },
+                    { label: '🏥 Evacuation Center Sanitation', title: 'Evacuation Center Disinfection & Sanitation', cat: 'Evacuation Center Sanitation', desc: 'Deep cleaning, disinfection, and facility maintenance in designated shelters.' },
+                    { label: '📦 Relief Goods Logistics', title: 'Emergency Relief Logistics and Assembly', cat: 'Relief Goods Logistics & Packing', desc: 'Assembling food packs, organizing warehouse supplies, and staging distribution lines.' },
+                    { label: '🔨 Carpentry & Facility Repair', title: 'Emergency Carpentry and Facility Repair', cat: 'Carpentry & Facility Repair', desc: 'Restoring damaged roofs, partitions, handrails, and emergency community barriers.' },
+                  ].map(preset => {
+                    const isPresetActive = selectedCategories.length === 1 && selectedCategories[0] === preset.cat;
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => {
+                          setNewTitle(preset.title);
+                          setNewDesc(preset.desc);
+                          setSelectedCategories([preset.cat]);
+                        }}
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: isPresetActive ? 700 : 500,
+                          padding: '6px 12px',
+                          borderRadius: 7,
+                          background: isPresetActive ? '#EFF6FF' : 'var(--card)',
+                          border: isPresetActive ? '1.5px solid #2563EB' : '1px solid var(--border)',
+                          color: isPresetActive ? '#1D4ED8' : 'var(--ink)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Project Title */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
@@ -877,9 +924,31 @@ export default function LivelihoodAssistance() {
 
               {/* Available Categories */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>
-                  Job Categories to Offer
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+                    Job Categories to Offer *
+                  </label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategories(DEFAULT_CATEGORIES)}
+                      style={{ fontSize: 11, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                    >
+                      Select All
+                    </button>
+                    <span style={{ fontSize: 11, color: '#94A3B8' }}>|</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategories([])}
+                      style={{ fontSize: 11, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginBottom: 8, marginTop: 0 }}>
+                  Piliin kung anong specific na trabaho ang kailangan. Tanging ang mga naka-check dito ang lalabas sa mobile app ng mga residente (iwas mismatch sa trabaho).
+                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {DEFAULT_CATEGORIES.map(cat => {
                     const isChecked = selectedCategories.includes(cat);

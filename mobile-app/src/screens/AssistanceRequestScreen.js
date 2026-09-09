@@ -88,6 +88,78 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
   const [experienceNotes, setExperienceNotes] = useState('');
   const [isCommitted, setIsCommitted] = useState(false);
 
+  // Filter available job categories based on the active project's designated scope
+  const availableJobCategories = React.useMemo(() => {
+    if (!activeProject) return JOB_CATEGORIES;
+
+    // 1. If project defines availableCategories, match against standard categories
+    if (Array.isArray(activeProject.availableCategories) && activeProject.availableCategories.length > 0) {
+      const matched = JOB_CATEGORIES.filter(cat =>
+        activeProject.availableCategories.some(ac => {
+          const a = (ac || '').toLowerCase().trim();
+          const b = (cat.id || '').toLowerCase().trim();
+          const c = (cat.title || '').toLowerCase().trim();
+          return a === b || a === c || a.includes(b) || b.includes(a) || a.includes(c) || c.includes(a);
+        })
+      );
+
+      // Check project title/desc for strict alignment if project was created with specific scope
+      const titleScope = `${activeProject.title || ''} ${activeProject.description || ''}`.toLowerCase();
+      if (titleScope.includes('drainage') || titleScope.includes('canal') || titleScope.includes('declog')) {
+        const drainageMatches = matched.filter(m => m.id.includes('Drainage') || m.id.includes('Debris'));
+        if (drainageMatches.length > 0) return drainageMatches;
+      }
+      if (titleScope.includes('debris') || titleScope.includes('mud') || titleScope.includes('clearing')) {
+        const debrisMatches = matched.filter(m => m.id.includes('Debris'));
+        if (debrisMatches.length > 0) return debrisMatches;
+      }
+      if (titleScope.includes('sanitation') || titleScope.includes('evacuation') || titleScope.includes('disinfect') || titleScope.includes('shelter')) {
+        const sanitationMatches = matched.filter(m => m.id.includes('Sanitation'));
+        if (sanitationMatches.length > 0) return sanitationMatches;
+      }
+      if (titleScope.includes('logistics') || titleScope.includes('packing') || titleScope.includes('relief pack') || titleScope.includes('warehouse')) {
+        const logisticsMatches = matched.filter(m => m.id.includes('Logistics'));
+        if (logisticsMatches.length > 0) return logisticsMatches;
+      }
+      if (titleScope.includes('carpentry') || titleScope.includes('repair') || titleScope.includes('infrastructure') || titleScope.includes('roof')) {
+        const carpentryMatches = matched.filter(m => m.id.includes('Carpentry'));
+        if (carpentryMatches.length > 0) return carpentryMatches;
+      }
+
+      if (matched.length > 0) return matched;
+    }
+
+    // 2. Fallback smart match by project title / description if availableCategories is generic
+    const titleScope = `${activeProject.title || ''} ${activeProject.description || ''}`.toLowerCase();
+    if (titleScope.includes('drainage') || titleScope.includes('canal') || titleScope.includes('declog')) {
+      return JOB_CATEGORIES.filter(c => c.id.includes('Drainage') || c.id.includes('Debris'));
+    }
+    if (titleScope.includes('debris') || titleScope.includes('mud') || titleScope.includes('clearing')) {
+      return JOB_CATEGORIES.filter(c => c.id.includes('Debris'));
+    }
+    if (titleScope.includes('sanitation') || titleScope.includes('evacuation') || titleScope.includes('disinfect') || titleScope.includes('shelter')) {
+      return JOB_CATEGORIES.filter(c => c.id.includes('Sanitation'));
+    }
+    if (titleScope.includes('logistics') || titleScope.includes('packing') || titleScope.includes('relief pack') || titleScope.includes('warehouse')) {
+      return JOB_CATEGORIES.filter(c => c.id.includes('Logistics'));
+    }
+    if (titleScope.includes('carpentry') || titleScope.includes('repair') || titleScope.includes('infrastructure') || titleScope.includes('roof')) {
+      return JOB_CATEGORIES.filter(c => c.id.includes('Carpentry'));
+    }
+
+    return JOB_CATEGORIES;
+  }, [activeProject]);
+
+  // Keep selectedCategory synchronized with filtered categories
+  useEffect(() => {
+    if (availableJobCategories && availableJobCategories.length > 0) {
+      const exists = availableJobCategories.some(c => c.id === selectedCategory);
+      if (!exists) {
+        setSelectedCategory(availableJobCategories[0].id);
+      }
+    }
+  }, [availableJobCategories, selectedCategory]);
+
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const scrollRef = React.useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -401,17 +473,30 @@ export default function AssistanceRequestScreen({ token, lang = 'tl', onBack }) 
             </View>
 
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {lang === 'tl' ? 'Pumili ng Uri ng Trabaho' : 'Select Preferred Work Category'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <Text style={styles.sectionTitle}>
+                  {lang === 'tl' ? 'Pumili ng Uri ng Trabaho' : 'Select Preferred Work Category'}
+                </Text>
+                {availableJobCategories.length < JOB_CATEGORIES.length && (
+                  <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: '#BFDBFE' }}>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1D4ED8' }}>
+                      {lang === 'tl' ? 'Tugma sa Proyekto' : 'Project-Matched Scope'}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.sectionSub}>
                 {lang === 'tl'
-                  ? 'Piliin ang gawaing angkop sa inyong kakayahan at kalusugan.'
-                  : 'Choose the rehabilitation scope matching your physical capability.'}
+                  ? (availableJobCategories.length < JOB_CATEGORIES.length
+                      ? `Tanging mga gawaing may kaugnayan sa "${activeProject?.title || 'rehabilitasyon'}" ang maaaring piliin.`
+                      : 'Piliin ang gawaing angkop sa inyong kakayahan at kalusugan.')
+                  : (availableJobCategories.length < JOB_CATEGORIES.length
+                      ? `Only work categories aligned with "${activeProject?.title || 'this project'}" are available for selection.`
+                      : 'Choose the rehabilitation scope matching your physical capability.')}
               </Text>
             </View>
 
-            {JOB_CATEGORIES.map((cat) => {
+            {availableJobCategories.map((cat) => {
               const isSelected = selectedCategory === cat.id;
               const Icon = cat.IconComponent;
               return (
