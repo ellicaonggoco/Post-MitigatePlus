@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { fetchDistributionEvents } from '../services/api';
 import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
+import { initSocket, onDistributionEventCreated, onDistributionEventUpdated, onStaffAssignmentDispatched } from '../services/socketService';
 
-export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateDeliveries, lang = 'en' }) {
+export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNavigateDeliveries, lang = 'en' }) {
   const [filterTab, setFilterTab] = useState('scheduled'); // 'scheduled' | 'ongoing' | 'completed'
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,8 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
             totalTarget: e.targetHouseholds || e.targetCount || 150,
             scheduledDate: e.scheduledDate || 'Today',
             scheduledTime: e.scheduledTime || '08:00 AM',
+            assignedTeam: e.assignedTeam || e.staffAssigned || 'Field Team Alpha',
+            barangayCode: e.barangayCode || '291',
             startTime: new Date(e.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             completedTime: e.completedAt ? new Date(e.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
             allocatedItems: e.itemType || 'All-in-One Family Food Pack',
@@ -47,6 +50,23 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
 
   useEffect(() => {
     loadEvents();
+    try {
+      initSocket();
+      const unsubCreate = onDistributionEventCreated(() => {
+        loadEvents();
+      });
+      const unsubUpdate = onDistributionEventUpdated(() => {
+        loadEvents();
+      });
+      const unsubDispatch = onStaffAssignmentDispatched(() => {
+        loadEvents();
+      });
+      return () => {
+        unsubCreate();
+        unsubUpdate();
+        unsubDispatch();
+      };
+    } catch (e) {}
   }, [token]);
 
   const handleStartDistribution = async (item) => {
@@ -218,6 +238,35 @@ export default function StaffTasksScreen({ token, onSelectScanEvent, onNavigateD
                     </Text>
                   </View>
                 </View>
+
+                {/* Team Assignment Banner */}
+                {(() => {
+                  const isMyTeam = (user?.teamName && item.assignedTeam && item.assignedTeam.toLowerCase().includes(user.teamName.toLowerCase())) ||
+                    (user?.name && item.assignedTeam && item.assignedTeam.toLowerCase().includes(user.name.toLowerCase()));
+                  return (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <View style={[
+                        styles.teamPillBadge,
+                        isMyTeam ? styles.myTeamPillActive : styles.otherTeamPill
+                      ]}>
+                        <TruckIcon size={12} color={isMyTeam ? '#047857' : '#1E40AF'} />
+                        <Text style={[
+                          styles.teamPillText,
+                          isMyTeam ? styles.myTeamPillTextActive : styles.otherTeamPillText
+                        ]}>
+                          {isMyTeam
+                            ? (lang === 'tl' ? `🎯 Naka-assign sa Team Mo: ${item.assignedTeam}` : `🎯 Assigned to Your Team: ${item.assignedTeam}`)
+                            : `Team: ${item.assignedTeam}`}
+                        </Text>
+                      </View>
+                      {item.scheduledDate && (
+                        <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
+                          📅 {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })()}
 
                 {/* Location Row */}
                 <View style={styles.metaRow}>
@@ -569,5 +618,33 @@ const styles = StyleSheet.create({
   },
   operationsToggleTextActive: {
     color: '#FFFFFF',
+  },
+  teamPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  myTeamPillActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  otherTeamPill: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  teamPillText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  myTeamPillTextActive: {
+    color: '#065F46',
+    fontWeight: '800',
+  },
+  otherTeamPillText: {
+    color: '#1E40AF',
   },
 });

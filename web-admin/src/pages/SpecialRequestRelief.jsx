@@ -77,6 +77,18 @@ export default function SpecialRequestRelief() {
     }
   };
 
+  const getStaffActiveDeliveriesCount = (staffId, staffName) => {
+    return assistanceRequests.filter(r => {
+      const isAssigned = r.status === 'approved' || r.status === 'under_review';
+      if (!isAssigned) return false;
+      const sId = r.assignedStaff?._id || r.assignedStaff?.id || r.assignedStaff;
+      const sName = r.assignedStaffName || r.assignedStaff?.name;
+      if (staffId && sId && String(sId) === String(staffId)) return true;
+      if (staffName && sName && (sName.toLowerCase().includes(staffName.toLowerCase()) || staffName.toLowerCase().includes(sName.toLowerCase()))) return true;
+      return false;
+    }).length;
+  };
+
   useEffect(() => {
     fetchAssistanceRequests();
     if (token) {
@@ -89,14 +101,19 @@ export default function SpecialRequestRelief() {
             const fieldStaff = data.filter(u => u.role === 'field_staff');
             setStaffList(fieldStaff);
             if (fieldStaff.length > 0) {
-              setSelectedStaffId(fieldStaff[0]._id || fieldStaff[0].id);
-              setAssignStaffName(`${fieldStaff[0].name} (${fieldStaff[0].teamName || 'Field Operations'})`);
+              const sorted = [...fieldStaff].sort((a, b) => {
+                const countA = getStaffActiveDeliveriesCount(a._id || a.id, a.name);
+                const countB = getStaffActiveDeliveriesCount(b._id || b.id, b.name);
+                return countA - countB;
+              });
+              setSelectedStaffId(sorted[0]._id || sorted[0].id);
+              setAssignStaffName(`${sorted[0].name} (${sorted[0].teamName || 'Field Operations'})`);
             }
           }
         })
         .catch(() => {});
     }
-  }, [token]);
+  }, [token, assistanceRequests.length]);
 
   const handleAssignDelivery = async () => {
     if (!assignModal.request) return;
@@ -658,9 +675,14 @@ export default function SpecialRequestRelief() {
             )}
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
-                Assign Field Officer / Team *
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Assign Field Officer / Team *
+                </label>
+                <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700 }}>
+                  ⚖️ Workload Balancer Active
+                </span>
+              </div>
               <select
                 value={selectedStaffId || assignStaffName}
                 onChange={e => {
@@ -677,20 +699,122 @@ export default function SpecialRequestRelief() {
                 style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', outline: 'none', cursor: 'pointer', fontWeight: 700 }}
               >
                 {staffList.length > 0 ? (
-                  staffList.map(s => (
-                    <option key={s._id || s.id} value={s._id || s.id}>
-                      {s.name} ({s.teamName || 'Field Operations'}) - {s.status === 'active' ? 'Standby' : s.status}
-                    </option>
-                  ))
+                  staffList.map(s => {
+                    const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
+                    const workloadLabel = count === 0
+                      ? '— 🟢 0 Active Deliveries (Recommended)'
+                      : `— 🟡 ${count} Active Deliveries`;
+                    return (
+                      <option key={s._id || s.id} value={s._id || s.id}>
+                        {s.name} ({s.teamName || 'Field Operations'}) {workloadLabel}
+                      </option>
+                    );
+                  })
                 ) : (
                   <>
-                    <option value="Field Officer Juan Santos (Team Alpha)">Field Officer Juan Santos (Team Alpha) - Standby</option>
-                    <option value="Field Officer Maria Clara (Team Bravo)">Field Officer Maria Clara (Team Bravo) - Standby</option>
-                    <option value="Quick Response Team 1">Quick Response Team 1 - Standby</option>
-                    <option value="Barangay Health Worker On-Duty">Barangay Health Worker On-Duty - Standby</option>
+                    <option value="Field Officer Juan Santos (Team Alpha)">
+                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
+                    </option>
+                    <option value="Field Officer Maria Clara (Team Bravo)">
+                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
+                    </option>
+                    <option value="Quick Response Team 1">
+                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
+                    </option>
+                    <option value="Barangay Health Worker On-Duty">
+                      Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
+                    </option>
                   </>
                 )}
               </select>
+
+              {/* Interactive Visual Workload Balancer Widget */}
+              <div style={{ marginTop: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-inner)', padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    ⚖️ Door-to-Door Delivery Workload Balancer
+                  </span>
+                  <span style={{ fontSize: 11, color: '#64748B' }}>Pumili ng opisyal na may pinakamababang karga</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {(staffList.length > 0 ? staffList : [
+                    { id: '1', name: 'Juan Santos', teamName: 'Team Alpha' },
+                    { id: '2', name: 'Maria Clara', teamName: 'Team Bravo' },
+                    { id: '3', name: 'QR Team 1', teamName: 'QR Unit' },
+                  ])
+                    .slice()
+                    .sort((a, b) => getStaffActiveDeliveriesCount(a._id || a.id, a.name) - getStaffActiveDeliveriesCount(b._id || b.id, b.name))
+                    .map(s => {
+                      const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
+                      const isSelected = selectedStaffId === (s._id || s.id) || assignStaffName.includes(s.name);
+                      const isFree = count === 0;
+                      return (
+                        <button
+                          key={s._id || s.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStaffId(s._id || s.id);
+                            setAssignStaffName(`${s.name} (${s.teamName || 'Field Operations'})`);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: isSelected ? '1.5px solid #1C3F94' : '1px solid #CBD5E1',
+                            background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                            fontSize: '11.5px',
+                            fontWeight: isSelected ? 800 : 600,
+                            color: isSelected ? '#1C3F94' : '#334155',
+                            cursor: 'pointer',
+                            transition: 'all 0.12s ease',
+                          }}
+                        >
+                          <span style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: isFree ? '#10B981' : '#F59E0B',
+                            display: 'inline-block',
+                          }} />
+                          <span>{s.name}</span>
+                          <span style={{
+                            fontSize: 10,
+                            padding: '1px 6px',
+                            borderRadius: 999,
+                            backgroundColor: isFree ? '#DCFCE7' : '#FEF3C7',
+                            color: isFree ? '#15803D' : '#B45309',
+                            fontWeight: 800,
+                          }}>
+                            {count} active
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+
+                {(() => {
+                  const currentCount = getStaffActiveDeliveriesCount(selectedStaffId, assignStaffName);
+                  if (currentCount > 0) {
+                    return (
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: '#B45309', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span>⚠️</span>
+                        <span>
+                          <strong>Paalala sa Pagiging Patas:</strong> May <strong>{currentCount}</strong> aktibong delivery assignments na si <strong>{assignStaffName}</strong>. Mainam na pumili ng staff na may 0 active deliveries upang hindi maipon ang trabaho.
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div style={{ marginTop: 8, fontSize: 11.5, color: '#15803D', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span>✓</span>
+                      <span><strong>Inirerekomenda:</strong> Libre si <strong>{assignStaffName}</strong> (0 active deliveries). Patas ang distribusyon ng delivery.</span>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>

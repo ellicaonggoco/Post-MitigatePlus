@@ -210,13 +210,33 @@ export default function DistributionEvents() {
     setShowAnnBrgySuggestions(false);
   };
 
-  const getFirstAvailableTeam = (currentEvents = events) => {
-    const available = FIELD_TEAMS.find(t => !currentEvents.some(ev => {
+  const getTeamWorkload = (teamName, currentEvents = events) => {
+    const teamEvents = currentEvents.filter(ev => {
+      return ev.assignedTeam === teamName || ev.staff === teamName || ev.staffAssigned === teamName;
+    });
+    const ongoing = teamEvents.filter(ev => {
       const s = String(ev.status || '').toLowerCase();
-      const isOngoing = s === 'ongoing' || ev.isActive === true;
-      return isOngoing && (ev.assignedTeam === t || ev.staff === t || ev.staffAssigned === t);
-    }));
-    return available || FIELD_TEAMS[0];
+      return s === 'ongoing' || ev.isActive === true;
+    }).length;
+    const scheduled = teamEvents.filter(ev => {
+      const s = String(ev.status || '').toLowerCase();
+      return s === 'scheduled' && !ev.isActive;
+    }).length;
+    const total = ongoing + scheduled;
+    return { ongoing, scheduled, total };
+  };
+
+  const getFirstAvailableTeam = (currentEvents = events) => {
+    let lowestCount = Infinity;
+    let bestTeam = FIELD_TEAMS[0];
+    for (const t of FIELD_TEAMS) {
+      const count = getTeamWorkload(t, currentEvents).total;
+      if (count < lowestCount) {
+        lowestCount = count;
+        bestTeam = t;
+      }
+    }
+    return bestTeam;
   };
 
   // Fetch Warehouse Inventory for Real-time Stock Pre-Check
@@ -881,26 +901,110 @@ export default function DistributionEvents() {
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>Assigned Field Team *</label>
+              <div style={{ gridColumn: 'span 2' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Assigned Field Team *
+                  </label>
+                  <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700 }}>
+                    ⚖️ Workload Balancer Active
+                  </span>
+                </div>
                 <select
                   value={form.staff}
                   onChange={e => setForm(p => ({ ...p, staff: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', cursor: 'pointer' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-sans)', background: 'var(--card)', color: 'var(--ink)', boxSizing: 'border-box', cursor: 'pointer', fontWeight: 700 }}
                 >
                   {FIELD_TEAMS.map(t => {
-                    const activeInEvent = events.find(ev => {
-                      const status = getEventStatus(ev);
-                      const isOngoing = status === 'Ongoing' || ev.isActive;
-                      return isOngoing && (ev.assignedTeam === t || ev.staff === t || ev.staffAssigned === t);
-                    });
+                    const wl = getTeamWorkload(t);
+                    const label = wl.total === 0
+                      ? `${t} — 🟢 0 Active Drives (Available / Recommended)`
+                      : `${t} — 🟡 ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
                     return (
-                      <option key={t} value={t} disabled={!!activeInEvent} style={{ color: activeInEvent ? '#94A3B8' : 'inherit', background: activeInEvent ? '#F1F5F9' : 'inherit' }}>
-                        {t} {activeInEvent ? `(Deployed at ${activeInEvent.location || activeInEvent.barangay || activeInEvent.barangayCode})` : '(Available / Standby)'}
+                      <option key={t} value={t}>
+                        {label}
                       </option>
                     );
                   })}
                 </select>
+
+                {/* Interactive Visual Workload Balancer Chips */}
+                <div style={{ marginTop: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-inner)', padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      ⚖️ Field Team Workload Distribution
+                    </span>
+                    <span style={{ fontSize: 11, color: '#64748B' }}>Piliin ang team na may pinakamababang karga</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {FIELD_TEAMS.map(t => {
+                      const wl = getTeamWorkload(t);
+                      const isSelected = form.staff === t;
+                      const isFree = wl.total === 0;
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setForm(p => ({ ...p, staff: t }))}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: isSelected ? '1.5px solid #1C3F94' : '1px solid #CBD5E1',
+                            background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                            fontSize: '11.5px',
+                            fontWeight: isSelected ? 800 : 600,
+                            color: isSelected ? '#1C3F94' : '#334155',
+                            cursor: 'pointer',
+                            transition: 'all 0.12s ease',
+                          }}
+                        >
+                          <span style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: isFree ? '#10B981' : wl.ongoing > 0 ? '#EF4444' : '#F59E0B',
+                            display: 'inline-block',
+                          }} />
+                          <span>{t}</span>
+                          <span style={{
+                            fontSize: 10,
+                            padding: '1px 6px',
+                            borderRadius: 999,
+                            backgroundColor: isFree ? '#DCFCE7' : '#FEF3C7',
+                            color: isFree ? '#15803D' : '#B45309',
+                            fontWeight: 800,
+                          }}>
+                            {wl.total} active
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {(() => {
+                    const selectedWl = getTeamWorkload(form.staff);
+                    if (selectedWl.total > 0) {
+                      return (
+                        <div style={{ marginTop: 8, fontSize: 11.5, color: '#B45309', display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <span>⚠️</span>
+                          <span>
+                            <strong>Paalala sa Pagiging Patas:</strong> May <strong>{selectedWl.total}</strong> aktibong distribution drive na ang <strong>{form.staff}</strong> ({selectedWl.ongoing} ongoing, {selectedWl.scheduled} scheduled). Maaari mo itong ituloy o pumili ng available na team na may 0 active drives.
+                          </span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: '#15803D', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span>✓</span>
+                        <span><strong>Inirerekomenda:</strong> Libre ang <strong>{form.staff}</strong> (0 active drives). Patas ang distribusyon ng trabaho.</span>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
 
               <div>

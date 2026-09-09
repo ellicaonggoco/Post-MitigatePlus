@@ -275,7 +275,16 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: data.status } : prev));
           }
         });
+        socket.on('distribution_event_created', () => {
+          refreshData(true);
+        });
         socket.on('distribution_event_updated', () => {
+          refreshData(true);
+        });
+        socket.on('new_announcement', () => {
+          refreshData(true);
+        });
+        socket.on('announcement_updated', () => {
           refreshData(true);
         });
         socket.on('assistance_released', () => {
@@ -312,10 +321,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const hasActiveEvent = !!householdData?.hasActiveEvent && !!activeEvent;
   const statusLower = (householdData?.recoveryStatus || 'waiting').toLowerCase();
   const isClaimed = !!householdData?.isClaimedInActiveEvent ||
-    statusLower.includes('claim') ||
-    statusLower.includes('recover') ||
-    statusLower.includes('received') ||
-    statusLower.includes('ongoing');
+    statusLower === 'claimed' ||
+    statusLower === 'assistance_received' ||
+    statusLower.includes('claimed') ||
+    statusLower.includes('received');
 
   const membersList = Array.isArray(householdData?.members) ? householdData.members : [];
   const seniorCount = membersList.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;

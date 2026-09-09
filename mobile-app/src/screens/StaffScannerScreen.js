@@ -919,6 +919,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         {activeTab === 'tasks' ? (
           <StaffTasksScreen
             token={token}
+            user={user}
             onSelectScanEvent={(evt) => {
               setSelectedEvent(evt);
               setActiveTab('scanner');
@@ -928,6 +929,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           />
         ) : activeTab === 'deliveries' ? (
           <SpecialRequestAssignmentScreen
+            user={user}
             lang={lang}
             onBack={() => setActiveTab('tasks')}
           />

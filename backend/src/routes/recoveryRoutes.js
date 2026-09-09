@@ -35,8 +35,13 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       }
     }
 
-    // Find active events and past claims to accurately compute real-time stage
-    const activeEvents = await DistributionEvent.find({ isActive: true });
+    // Find active/scheduled events and past claims to accurately compute real-time stage
+    const activeEvents = await DistributionEvent.find({
+      $or: [
+        { isActive: true },
+        { status: { $in: ['Ongoing', 'Scheduled'] } },
+      ],
+    });
     const activeBrgySet = new Set(activeEvents.map(e => String(e.barangayCode || '')));
 
     const claims = await Distribution.find({}).select('householdId');

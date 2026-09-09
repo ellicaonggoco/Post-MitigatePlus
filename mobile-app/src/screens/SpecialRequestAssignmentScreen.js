@@ -25,8 +25,9 @@ import {
 } from '../components/AppIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
+import { initSocket } from '../services/socketService';
 
-export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) {
+export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'en' }) {
   const [filterTab, setFilterTab] = useState('assigned'); // 'assigned' | 'delivered'
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +59,8 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
             members: item.householdId?.memberCount || 1,
             barangay: item.householdId?.barangayCode || item.barangayCode || '291',
             requestedBy: item.householdId?.headOfHouseholdUserId?.name || 'Resident',
-            assignedStaff: item.assignedStaff?.name || 'Officer Santos',
+            assignedStaff: item.assignedStaffName || item.assignedStaff?.name || 'Officer Santos',
+            assignedStaffId: item.assignedStaff?._id || item.assignedStaff?.id || item.assignedStaff || null,
             assignedAt: new Date(item.requestedAt || Date.now()).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }),
             status: item.status === 'received' || item.status === 'released' ? 'delivered' : 'assigned',
             proofOfDeliveryPhoto: item.proofOfDeliveryPhoto || null,
@@ -81,6 +83,14 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
 
   useEffect(() => {
     fetchTasks();
+    try {
+      const s = initSocket();
+      if (s) {
+        s.on('assistance_request_assigned', () => fetchTasks());
+        s.on('assistance_request_updated', () => fetchTasks());
+        s.on('new_assistance_request', () => fetchTasks());
+      }
+    } catch (e) {}
   }, []);
 
   const handlePickCamera = async () => {
@@ -316,6 +326,35 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                     </Text>
                   </View>
                 </View>
+
+                {/* Assignment Staff Tag */}
+                {(() => {
+                  const isMyTask = (user?.name && item.assignedStaff && item.assignedStaff.toLowerCase().includes(user.name.toLowerCase())) ||
+                    (user?._id && item.assignedStaffId && String(user._id) === String(item.assignedStaffId));
+                  return (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <View style={[
+                        styles.staffPillBadge,
+                        isMyTask ? styles.myStaffPillActive : styles.otherStaffPill
+                      ]}>
+                        <TruckIcon size={12} color={isMyTask ? '#047857' : '#1E40AF'} />
+                        <Text style={[
+                          styles.staffPillText,
+                          isMyTask ? styles.myStaffPillTextActive : styles.otherStaffPillText
+                        ]}>
+                          {isMyTask
+                            ? (lang === 'tl' ? `🎯 Naka-assign sa Iyo (${item.assignedStaff})` : `🎯 Assigned to You (${item.assignedStaff})`)
+                            : `Officer: ${item.assignedStaff}`}
+                        </Text>
+                      </View>
+                      {item.assignedAt && (
+                        <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
+                          📅 {item.assignedAt}
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })()}
 
                 {/* Location / Address Row */}
                 <View style={styles.metaRow}>
@@ -939,5 +978,33 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '800',
     color: '#FFFFFF',
+  },
+  staffPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  myStaffPillActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  otherStaffPill: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  staffPillText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  myStaffPillTextActive: {
+    color: '#065F46',
+    fontWeight: '800',
+  },
+  otherStaffPillText: {
+    color: '#1E40AF',
   },
 });

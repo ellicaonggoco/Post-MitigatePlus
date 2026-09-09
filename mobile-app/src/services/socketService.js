@@ -95,6 +95,33 @@ export function onDuplicateClaimAlert(callback) {
 }
 
 /**
+ * Listen for real-time distribution event creation
+ */
+export function onDistributionEventCreated(callback) {
+  if (!socket) return () => {};
+  socket.on('distribution_event_created', callback);
+  return () => socket.off('distribution_event_created', callback);
+}
+
+/**
+ * Listen for real-time distribution event updates
+ */
+export function onDistributionEventUpdated(callback) {
+  if (!socket) return () => {};
+  socket.on('distribution_event_updated', callback);
+  return () => socket.off('distribution_event_updated', callback);
+}
+
+/**
+ * Listen for real-time staff assignment dispatch
+ */
+export function onStaffAssignmentDispatched(callback) {
+  if (!socket) return () => {};
+  socket.on('staff_assignment_dispatched', callback);
+  return () => socket.off('staff_assignment_dispatched', callback);
+}
+
+/**
  * Disconnect socket
  */
 export function disconnectSocket() {

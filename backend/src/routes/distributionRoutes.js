@@ -20,10 +20,21 @@ router.get('/events', protect, async (req, res) => {
     if (req.user.role === 'barangay_official') {
       query.barangayCode = req.user.barangayCode;
     } else if (req.user.role === 'field_staff') {
-      // Field staff see all active drives or drives in their assigned barangay
-      if (req.user.barangayCode) {
-        query.$or = [{ barangayCode: req.user.barangayCode }, { isActive: true }];
+      // Field staff see drives assigned to their team, their barangay, or any active/scheduled drive
+      const staffConditions = [
+        { isActive: true },
+        { status: { $in: ['Ongoing', 'Scheduled'] } },
+      ];
+      if (req.user.teamName) {
+        staffConditions.push({ assignedTeam: req.user.teamName });
       }
+      if (req.user.name) {
+        staffConditions.push({ assignedTeam: { $regex: new RegExp(req.user.name, 'i') } });
+      }
+      if (req.user.barangayCode) {
+        staffConditions.push({ barangayCode: req.user.barangayCode });
+      }
+      query.$or = staffConditions;
     }
     // Admins/superadmins see all events (active + closed)
     const events = await DistributionEvent.find(query).populate('openedBy', 'name emailOrPhone').sort({ openedAt: -1, createdAt: -1 });
@@ -251,6 +262,20 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
       } catch (stockErr) {
         console.error('Warehouse auto-dispatch error:', stockErr);
       }
+    }
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('distribution_event_created', event);
+      io.emit('distribution_event_updated', event);
+      io.to(`barangay:${cleanCode}`).emit('distribution_event_updated', event);
+      io.to(`brgy:${cleanCode}`).emit('distribution_event_updated', event);
+      io.emit('staff_assignment_dispatched', {
+        event,
+        team: event.assignedTeam,
+        barangayCode: cleanCode,
+      });
+      io.emit('recovery_updated');
     }
 
     res.status(201).json(event);
