@@ -724,4 +724,30 @@ export function TruckIcon({ size = 20, color = '#1C3F94' }) {
   );
 }
 
+export function ZapIcon({ size = 18, color = '#F59E0B' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </Svg>
+  );
+}
+
+export function CheckCircleIcon({ size = 14, color = '#059669' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <Polyline points="22 4 12 14.01 9 11.01" />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon({ size = 18, color = '#64748B' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="9 18 15 12 9 6" />
+    </Svg>
+  );
+}
+
+
 

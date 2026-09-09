@@ -33,6 +33,11 @@ import {
   QrCodeIcon,
   TruckIcon,
   ImageIcon,
+  ZapIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
 import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
@@ -111,10 +116,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  const [cameraFacing, setCameraFacing] = useState('back');
   const [cameraMountKey, setCameraMountKey] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
-  const [cameraZoom, setCameraZoom] = useState(0);
+  // Scanner is now button-triggered — modal controls visibility
+  const [scanModalVisible, setScanModalVisible] = useState(false);
   const lastScannedRef = useRef({ code: '', time: 0 });
 
   // Remount camera cleanly when switching to scanner tab
@@ -131,37 +136,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       requestPermission();
     }
   }, [permission]);
-
-  // Listen for Google Code Scanner / Modern Barcode Scanner results if launched natively
-  useEffect(() => {
-    if (Platform.OS !== 'web' && CameraView.onModernBarcodeScanned) {
-      try {
-        const sub = CameraView.onModernBarcodeScanned((event) => {
-          const raw = typeof event === 'string' ? event : (event?.data || event?.raw || '');
-          if (raw) {
-            handleBarcodeScanned(raw);
-          }
-        });
-        return () => {
-          try {
-            sub?.remove?.();
-          } catch (e) {}
-        };
-      } catch (e) {}
-    }
-  }, []);
-
-  const handleLaunchNativeScanner = async () => {
-    try {
-      if (Platform.OS !== 'web' && CameraView.launchScanner) {
-        await CameraView.launchScanner({ barcodeTypes: ['qr'] });
-      } else {
-        Alert.alert('Scanner Notice', 'Native system code scanner is available on mobile devices with Google Play Services.');
-      }
-    } catch (e) {
-      console.warn('Native scanner launch error:', e);
-    }
-  };
 
   const [decodingPhoto, setDecodingPhoto] = useState(false);
 
@@ -300,6 +274,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     console.log('[STAFF SCANNER] Valid Barcode Detected:', cleanCode);
     setScanned(true);
     setManualCode(cleanCode);
+    // Close the scan modal once QR is detected
+    setScanModalVisible(false);
     handleExecuteScan(cleanCode);
   };
 
@@ -315,6 +291,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [duplicateMessage, setDuplicateMessage] = useState('');
   const [duplicateData, setDuplicateData] = useState(null);
   const [scanNotice, setScanNotice] = useState(null);
+  const [rosterPage, setRosterPage] = useState(1);
+  const ROSTER_PER_PAGE = 10;
   const scannerScrollRef = useRef(null);
 
   // Cross-platform notification helper (works on React Native Web and Native Mobile)
@@ -826,6 +804,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           setReceiptModalData(receipt);
           setScanResult(null);
           setScanned(false);
+          setRosterPage(1); // Show first page so new entry is visible
         } catch (apiErr) {
           const isNetErr = !apiErr.status || apiErr.message?.toLowerCase().includes('network') || apiErr.message?.toLowerCase().includes('fetch');
           if (isNetErr) {
@@ -977,9 +956,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </Text>
             </LinearGradient>
 
-            {/* Real Hardware Camera Viewfinder */}
+            {/* ── SCAN QR PASS BUTTON CARD ── */}
             <View style={styles.viewfinderCard}>
-              {/* Header: Official Optical Lens Console */}
+              {/* Header */}
               <View style={styles.viewfinderHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View style={styles.viewfinderBadgeIcon}>
@@ -990,220 +969,204 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       {lang === 'tl' ? 'OPISYAL NA QR SCANNER' : 'OFFICIAL QR SCANNER'}
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                      <View style={[styles.statusPulseDot, { backgroundColor: isOfflineMode ? '#F59E0B' : '#10B981' }]} />
+                      <View style={[styles.statusPulseDot, { backgroundColor: permission?.granted ? '#10B981' : '#F59E0B' }]} />
                       <Text style={styles.viewfinderBadgeTag}>
-                        {isOfflineMode
-                          ? (lang === 'tl' ? 'OFFLINE CACHE (AUTO)' : 'OFFLINE CACHE (AUTO)')
-                          : (lang === 'tl' ? 'MDRRMO LGU CLOUD LIVE' : 'MDRRMO LGU CLOUD LIVE')}
+                        {permission?.granted
+                          ? (lang === 'tl' ? 'CAMERA HANDA' : 'CAMERA READY')
+                          : (lang === 'tl' ? 'KAILANGAN NG PERMISO' : 'PERMISSION REQUIRED')}
                       </Text>
                     </View>
                   </View>
                 </View>
-
-                {permission?.granted && Platform.OS !== 'web' && (
-                  <View style={styles.camControlsRow}>
-                    <TouchableOpacity
-                      onPress={() => setCameraZoom(prev => (prev === 0 ? 0.08 : prev === 0.08 ? 0.16 : 0))}
-                      style={[styles.camControlPill, cameraZoom > 0 && styles.camControlPillActive]}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.camControlPillText, cameraZoom > 0 && styles.camControlPillTextActive]}>
-                        {cameraZoom === 0 ? '1x' : cameraZoom === 0.08 ? '1.5x' : '2x'}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setCameraFacing(prev => prev === 'back' ? 'front' : 'back')}
-                      style={styles.camControlPill}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.camControlPillText}>
-                        {cameraFacing === 'back' ? 'Rear' : 'Front'}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setTorchOn(prev => !prev)}
-                      style={[styles.camControlPill, torchOn && styles.camControlPillTorchActive]}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.camControlPillText, torchOn && styles.camControlPillTorchTextActive]}>
-                        {torchOn ? '🔦 ON' : 'Flash'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
               </View>
 
-              <Text style={styles.viewfinderSub}>
-                {lang === 'tl'
-                  ? 'I-sentro ang QR Pass ng benepisyaryo sa loob ng viewfinder lens upang awtomatikong mabasa.'
-                  : 'Position beneficiary QR Pass within the target reticle for automatic optical scan.'}
-              </Text>
+              {/* Scan Trigger Button */}
+              <TouchableOpacity
+                style={[
+                  styles.scanTriggerBtn,
+                  (!permission?.granted || Platform.OS === 'web') && styles.scanTriggerBtnDisabled,
+                ]}
+                onPress={async () => {
+                  if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
+                    await requestPermission();
+                  }
+                  if (permission?.granted) {
+                    handleResetScanner();
+                    setCameraMountKey(k => k + 1);
+                    setCameraReady(false);
+                    setScanModalVisible(true);
+                  }
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.scanTriggerIconCircle}>
+                  <QrCodeIcon size={36} color="#FFFFFF" />
+                </View>
+                <Text style={styles.scanTriggerBtnText}>
+                  {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
+                </Text>
+                <Text style={styles.scanTriggerBtnSub}>
+                  {lang === 'tl'
+                    ? 'Pindutin upang buksan ang scanner lens'
+                    : 'Tap to open the camera scanner'}
+                </Text>
+              </TouchableOpacity>
 
-              <View style={styles.cameraBox}>
-                {Platform.OS === 'web' ? (
-                  <View style={styles.webPreviewPlaceholder}>
-                    <View style={styles.webLensIconCircle}>
-                      <QrCodeIcon size={38} color="#38BDF8" />
-                    </View>
-                    <Text style={styles.webLensTitle}>
-                      {lang === 'tl' ? 'Camera Scanner Standby' : 'Camera Scanner Standby'}
-                    </Text>
-                    <Text style={styles.webLensSub}>
-                      {lang === 'tl'
-                        ? 'Gamitin ang manual entry sa ibaba upang i-type ang QR Pass code ng benepisyaryo.'
-                        : 'Use the manual entry below to type the beneficiary QR Pass code.'}
-                    </Text>
-                  </View>
-                ) : !permission ? (
-                  <View style={styles.camLoadingBox}>
-                    <ActivityIndicator size="large" color="#38BDF8" />
-                    <Text style={styles.camLoadingText}>
-                      {lang === 'tl' ? 'Inihahanda ang Optical Scanner...' : 'Initializing Optical Scanner...'}
-                    </Text>
-                  </View>
-                ) : !permission.granted ? (
-                  <View style={styles.camPermBox}>
-                    <View style={styles.camPermIconCircle}>
-                      <CameraIcon size={28} color="#94A3B8" />
-                    </View>
-                    <Text style={styles.camPermTitle}>
-                      {lang === 'tl' ? 'Kailangan ng Camera Access' : 'Camera Permission Required'}
-                    </Text>
-                    <Text style={styles.camPermSub}>
-                      {lang === 'tl'
-                        ? 'Kailangan ng pahintulot sa camera upang ma-scan ang opisyal na QR Pass ng residente.'
-                        : 'Camera access is required to scan and verify beneficiary QR passes.'}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.camPermBtn}
-                      onPress={requestPermission}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.camPermBtnText}>
-                        {lang === 'tl' ? 'Pahintulutan ang Camera' : 'Allow Camera Access'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+              {/* Gallery Upload Button */}
+              <TouchableOpacity
+                style={styles.photoScanSecondaryBtn}
+                onPress={showPhotoScanOptions}
+                activeOpacity={0.85}
+                disabled={decodingPhoto}
+              >
+                {decodingPhoto ? (
+                  <ActivityIndicator size="small" color="#38BDF8" />
                 ) : (
-                  <CameraView
-                    key={`active-cam-${cameraMountKey}-${cameraFacing}`}
-                    style={styles.cameraPreview}
-                    facing={cameraFacing}
-                    enableTorch={torchOn}
-                    zoom={cameraZoom}
-                    autofocus="on"
-                    barcodeScannerSettings={BARCODE_SCANNER_SETTINGS}
-                    onCameraReady={() => setCameraReady(true)}
-                    onBarcodeScanned={handleBarcodeScanned}
-                  />
+                  <ImageIcon size={16} color="#38BDF8" />
                 )}
+                <Text style={styles.photoScanSecondaryBtnText}>
+                  {decodingPhoto
+                    ? (lang === 'tl' ? 'Sinusuri ang larawan ng QR pass...' : 'Scanning photo for QR pass...')
+                    : (lang === 'tl' ? 'Pumili ng QR sa Gallery' : 'Upload QR from Gallery')}
+                </Text>
+              </TouchableOpacity>
 
-                {/* Elegant Viewfinder Reticle Corners (4 Corner Marks) */}
-                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTL]} />
-                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTR]} />
-                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBL]} />
-                <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBR]} />
-
-                {/* Subtle High-Tech Guide Reticle */}
-                <View pointerEvents="none" style={styles.scanTargetReticle} />
-
-                {/* Animated Optical Laser Sweep Line */}
-                <Animated.View
-                  pointerEvents="none"
-                  style={[
-                    styles.laserLine,
-                    {
-                      transform: [{ translateY: laserAnim }],
-                    },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={['rgba(56, 189, 248, 0)', 'rgba(56, 189, 248, 0.75)', '#FFFFFF', 'rgba(56, 189, 248, 0.75)', 'rgba(56, 189, 248, 0)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.laserGradient}
-                  />
-                </Animated.View>
-
-                {/* Rescan Button Overlay if already scanned */}
-                {scanned && !loading && (
-                  <TouchableOpacity
-                    style={styles.rescanOverlayBtn}
-                    onPress={handleResetScanner}
-                    activeOpacity={0.85}
-                  >
-                    <CheckIcon size={14} color="#10B981" />
-                    <Text style={styles.rescanOverlayBtnText}>
-                      {lang === 'tl' ? 'I-scan ang Susunod na QR Pass' : 'Scan Next Beneficiary Pass'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Action Buttons Row: Google System Lens + Gallery QR Upload */}
-              <View style={styles.actionButtonsContainer}>
-                {Platform.OS !== 'web' && (
-                  <TouchableOpacity
-                    style={styles.googleScannerBtn}
-                    onPress={handleLaunchNativeScanner}
-                    activeOpacity={0.85}
-                  >
-                    <ScanIcon size={16} color="#FFFFFF" />
-                    <Text style={styles.googleScannerBtnText}>
-                      {lang === 'tl' ? 'Gamitin ang Google System Scanner' : 'Use System Scanner'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  style={styles.photoScanSecondaryBtn}
-                  onPress={showPhotoScanOptions}
-                  activeOpacity={0.85}
-                  disabled={decodingPhoto}
-                >
-                  {decodingPhoto ? (
-                    <ActivityIndicator size="small" color="#38BDF8" />
-                  ) : (
-                    <ImageIcon size={16} color="#38BDF8" />
-                  )}
-                  <Text style={styles.photoScanSecondaryBtnText}>
-                    {decodingPhoto
-                      ? (lang === 'tl' ? 'Sinusuri ang larawan ng QR pass...' : 'Scanning photo for QR pass...')
-                      : (lang === 'tl' ? 'Pumili ng QR sa Gallery' : 'Upload QR from Gallery')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Status Footer Pill */}
+              {/* Status Pill */}
               <View style={styles.liveStatusRow}>
-                <View
-                  style={[
-                    styles.liveDot,
-                    {
-                      backgroundColor:
-                        Platform.OS === 'web'
-                          ? '#10B981'
-                          : permission?.granted
-                          ? cameraReady
-                            ? '#10B981'
-                            : '#F59E0B'
-                          : '#EF4444',
-                    },
-                  ]}
-                />
+                <View style={[styles.liveDot, {
+                  backgroundColor: permission?.granted ? '#10B981' : '#EF4444',
+                }]} />
                 <Text style={styles.liveStatusText}>
-                  {Platform.OS === 'web'
-                    ? (lang === 'tl' ? 'Optical Scanner Standby • Handa sa pagsusuri' : 'Optical Scanner Standby • Ready to verify')
-                    : permission?.granted
-                    ? (scanned
-                        ? (lang === 'tl' ? 'Na-scan ang QR Pass! Pinoproseso...' : 'QR Pass Detected! Verifying...')
-                        : (cameraReady
-                            ? (lang === 'tl' ? 'Aktibo ang Camera Lens • Itapat sa QR Pass' : 'Optical Camera Active • Align with QR Pass')
-                            : (lang === 'tl' ? 'Inihahanda ang camera preview...' : 'Initializing lens preview...')))
-                    : (lang === 'tl' ? 'Pahintulutan ang camera upang mag-scan' : 'Camera access required')}
+                  {permission?.granted
+                    ? (lang === 'tl' ? 'Scanner Handa — Pindutin ang button para mag-scan' : 'Scanner Ready — Tap button to begin scan')
+                    : (lang === 'tl' ? 'Pahintulutan ang camera upang mag-scan' : 'Camera permission required to scan')}
                 </Text>
               </View>
             </View>
+
+            {/* ── SCANNER MODAL ── */}
+            <Modal
+              visible={scanModalVisible}
+              animationType="slide"
+              transparent={false}
+              onRequestClose={() => setScanModalVisible(false)}
+            >
+              <View style={styles.scanModalContainer}>
+                {/* Modal Header */}
+                <LinearGradient
+                  colors={['#0B1D4E', '#1C3F94']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.scanModalHeader}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <ScanIcon size={20} color="#38BDF8" />
+                    <View>
+                      <Text style={styles.scanModalTitle}>
+                        {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
+                      </Text>
+                      <Text style={styles.scanModalSub}>
+                        {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi' : 'General Distribution')}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setScanModalVisible(false)}
+                    style={styles.scanModalCloseBtn}
+                    activeOpacity={0.8}
+                  >
+                    <CloseIcon size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </LinearGradient>
+
+                {/* Camera Viewfinder */}
+                <View style={styles.scanModalCameraBox}>
+                  {Platform.OS === 'web' ? (
+                    <View style={styles.webPreviewPlaceholder}>
+                      <View style={styles.webLensIconCircle}>
+                        <QrCodeIcon size={38} color="#38BDF8" />
+                      </View>
+                      <Text style={styles.webLensTitle}>Camera Scanner Standby</Text>
+                      <Text style={styles.webLensSub}>
+                        {lang === 'tl'
+                          ? 'Gamitin ang manual entry sa ibaba.'
+                          : 'Use the manual entry below to type the QR code.'}
+                      </Text>
+                    </View>
+                  ) : !permission?.granted ? (
+                    <View style={styles.camPermBox}>
+                      <View style={styles.camPermIconCircle}>
+                        <CameraIcon size={28} color="#94A3B8" />
+                      </View>
+                      <Text style={styles.camPermTitle}>
+                        {lang === 'tl' ? 'Kailangan ng Camera Access' : 'Camera Permission Required'}
+                      </Text>
+                      <TouchableOpacity style={styles.camPermBtn} onPress={requestPermission} activeOpacity={0.85}>
+                        <Text style={styles.camPermBtnText}>
+                          {lang === 'tl' ? 'Pahintulutan ang Camera' : 'Allow Camera Access'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <CameraView
+                      key={`modal-cam-${cameraMountKey}`}
+                      style={StyleSheet.absoluteFill}
+                      facing="back"
+                      enableTorch={torchOn}
+                      autofocus="on"
+                      barcodeScannerSettings={BARCODE_SCANNER_SETTINGS}
+                      onCameraReady={() => setCameraReady(true)}
+                      onBarcodeScanned={handleBarcodeScanned}
+                    />
+                  )}
+
+                  {/* Viewfinder corner marks */}
+                  <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTL]} />
+                  <View pointerEvents="none" style={[styles.cornerMark, styles.cornerTR]} />
+                  <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBL]} />
+                  <View pointerEvents="none" style={[styles.cornerMark, styles.cornerBR]} />
+                  <View pointerEvents="none" style={styles.scanTargetReticle} />
+
+                  {/* Laser sweep */}
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[styles.laserLine, { transform: [{ translateY: laserAnim }] }]}
+                  >
+                    <LinearGradient
+                      colors={['rgba(56,189,248,0)', 'rgba(56,189,248,0.75)', '#FFFFFF', 'rgba(56,189,248,0.75)', 'rgba(56,189,248,0)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.laserGradient}
+                    />
+                  </Animated.View>
+
+                  {/* Instruction overlay */}
+                  <View pointerEvents="none" style={styles.scanModalOverlayHint}>
+                    <Text style={styles.scanModalOverlayText}>
+                      {lang === 'tl'
+                        ? 'Itapat ang QR Pass sa loob ng kahon'
+                        : 'Align QR Pass within the frame'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Flash Button (large, at bottom) */}
+                {Platform.OS !== 'web' && permission?.granted && (
+                  <TouchableOpacity
+                    style={[styles.flashModalBtn, torchOn && styles.flashModalBtnActive]}
+                    onPress={() => setTorchOn(prev => !prev)}
+                    activeOpacity={0.85}
+                  >
+                    <ZapIcon size={24} color={torchOn ? '#0B1D4E' : '#FFFFFF'} />
+                    <Text style={[styles.flashModalBtnText, torchOn && styles.flashModalBtnTextActive]}>
+                      {torchOn
+                        ? (lang === 'tl' ? 'Flash: Naka-ON' : 'Flash: ON')
+                        : (lang === 'tl' ? 'Flash: Naka-OFF' : 'Flash: OFF')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </Modal>
 
             {/* Manual Code Entry Card */}
             <View style={styles.manualEntryCard}>
@@ -1288,50 +1251,91 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       : 'No relief distributions logged yet for this shift. Scan a resident QR pass to begin.'}
                   </Text>
                 </View>
-              ) : (
-                <View style={{ gap: 10, marginTop: 14 }}>
-                  {completedScans.slice(0, 20).map((item, idx) => (
-                    <View key={item.receiptNumber || item.id || idx} style={styles.completionItem}>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <Text style={styles.completionItemName} numberOfLines={1}>
-                            {item.householdName || item.headOfHousehold || 'Verified Beneficiary'}
-                          </Text>
-                          <View style={styles.claimedPill}>
-                            <Text style={styles.claimedPillText}>✓ CLAIMED</Text>
+              ) : (() => {
+                const totalPages = Math.ceil(completedScans.length / ROSTER_PER_PAGE);
+                const pageItems = completedScans.slice((rosterPage - 1) * ROSTER_PER_PAGE, rosterPage * ROSTER_PER_PAGE);
+                return (
+                  <View style={{ gap: 10, marginTop: 14 }}>
+                    {pageItems.map((item, idx) => (
+                      <View key={item.receiptNumber || item.id || idx} style={styles.completionItem}>
+                        <View style={{ flex: 1, paddingRight: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <Text style={styles.completionItemName} numberOfLines={1}>
+                              {item.householdName || item.headOfHousehold || 'Verified Beneficiary'}
+                            </Text>
+                            <View style={styles.claimedPill}>
+                              <CheckCircleIcon size={11} color="#059669" />
+                              <Text style={styles.claimedPillText}>CLAIMED</Text>
+                            </View>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                            <MapPinIcon size={11} color="#64748B" />
+                            <Text style={styles.completionItemAddr} numberOfLines={1}>
+                              {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
+                            </Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                            <Text style={styles.completionReceiptCode}>
+                              {item.receiptNumber}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                              <ClockIcon size={11} color="#94A3B8" />
+                              <Text style={styles.completionTime}>
+                                {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </Text>
+                            </View>
                           </View>
                         </View>
-                        <Text style={styles.completionItemAddr} numberOfLines={1}>
-                          📍 {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                          <Text style={styles.completionReceiptCode}>
-                            {item.receiptNumber}
+
+                        <TouchableOpacity
+                          style={styles.viewReceiptBtn}
+                          onPress={() => setReceiptModalData(item)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.viewReceiptBtnText}>
+                            {lang === 'tl' ? 'Resibo' : 'Receipt'}
                           </Text>
-                          <Text style={styles.completionTime}>
-                            🕒 {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <View style={styles.paginationRow}>
+                        <TouchableOpacity
+                          style={[styles.paginationBtn, rosterPage === 1 && styles.paginationBtnDisabled]}
+                          onPress={() => setRosterPage(p => Math.max(1, p - 1))}
+                          disabled={rosterPage === 1}
+                          activeOpacity={0.8}
+                        >
+                          <ChevronLeftIcon size={16} color={rosterPage === 1 ? '#CBD5E1' : '#1C3F94'} />
+                          <Text style={[styles.paginationBtnText, rosterPage === 1 && styles.paginationBtnTextDisabled]}>
+                            {lang === 'tl' ? 'Nakaraan' : 'Prev'}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.paginationPageIndicator}>
+                          <Text style={styles.paginationPageText}>
+                            {lang === 'tl' ? `Pahina ${rosterPage} ng ${totalPages}` : `Page ${rosterPage} of ${totalPages}`}
                           </Text>
                         </View>
-                      </View>
 
-                      <TouchableOpacity
-                        style={styles.viewReceiptBtn}
-                        onPress={() => setReceiptModalData(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.viewReceiptBtnText}>
-                          {lang === 'tl' ? 'Resibo' : 'Receipt'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  {completedScans.length > 20 && (
-                    <Text style={{ textAlign: 'center', fontSize: 11, color: '#64748B', marginTop: 4, fontWeight: '600' }}>
-                      {lang === 'tl' ? `+ ${completedScans.length - 20} pang naitala sa database` : `+ ${completedScans.length - 20} more records in central database`}
-                    </Text>
-                  )}
-                </View>
-              )}
+                        <TouchableOpacity
+                          style={[styles.paginationBtn, rosterPage === totalPages && styles.paginationBtnDisabled]}
+                          onPress={() => setRosterPage(p => Math.min(totalPages, p + 1))}
+                          disabled={rosterPage === totalPages}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.paginationBtnText, rosterPage === totalPages && styles.paginationBtnTextDisabled]}>
+                            {lang === 'tl' ? 'Susunod' : 'Next'}
+                          </Text>
+                          <ChevronRightIcon size={16} color={rosterPage === totalPages ? '#CBD5E1' : '#1C3F94'} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })()}
             </View>
           </ScrollView>
         ) : activeTab === 'incident' ? (
@@ -1943,8 +1947,8 @@ const styles = StyleSheet.create({
   headerContentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     gap: 12,
   },
   headerKicker: {
@@ -1954,38 +1958,39 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   headerOfficerName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.3,
-    marginTop: 2,
+    marginTop: 1,
   },
   headerDutyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 3,
+    marginTop: 2,
   },
   headerDutyText: {
-    fontSize: 11.5,
+    fontSize: 11,
     color: '#FCD34D',
     fontWeight: '600',
   },
-  // Glassmorphic Sign-Out Pill (replaces jarring red logout rectangle)
+  // Logical Sign-Out Pill with subtle red danger styling
   glassSignOutPill: {
-    backgroundColor: 'rgba(255,255,255,0.13)',
+    backgroundColor: 'rgba(239, 68, 68, 0.18)',
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1.2,
+    borderColor: 'rgba(248, 113, 113, 0.45)',
   },
   glassSignOutText: {
-    color: '#FFFFFF',
-    fontSize: 12.5,
-    fontWeight: '700',
+    color: '#FCA5A5',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 
 
@@ -2350,6 +2355,194 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.1,
   },
+  // Scan Trigger Button & Modal
+  scanTriggerBtn: {
+    width: '100%',
+    backgroundColor: '#1E293B',
+    borderRadius: 18,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 14,
+    borderWidth: 1.5,
+    borderColor: '#334155',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 20px rgba(15,23,42,0.25)' }
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+          elevation: 4,
+        }),
+  },
+  scanTriggerBtnDisabled: {
+    opacity: 0.6,
+  },
+  scanTriggerIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#1C3F94',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#38BDF8',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 0 16px rgba(56,189,248,0.3)' }
+      : {
+          shadowColor: '#38BDF8',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.35,
+          shadowRadius: 8,
+          elevation: 6,
+        }),
+  },
+  scanTriggerBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  scanTriggerBtnSub: {
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  scanModalContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scanModalHeader: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 50,
+    paddingBottom: 16,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  scanModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  scanModalSub: {
+    color: '#94A3B8',
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  scanModalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanModalCameraBox: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#020617',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanModalOverlayHint: {
+    position: 'absolute',
+    top: 24,
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    zIndex: 10,
+  },
+  scanModalOverlayText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  flashModalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    marginHorizontal: 20,
+    marginVertical: 18,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  flashModalBtnActive: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+  },
+  flashModalBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  flashModalBtnTextActive: {
+    color: '#0B1D4E',
+  },
+
+  // Pagination Controls Styles
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  paginationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  paginationBtnDisabled: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
+  },
+  paginationBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1C3F94',
+  },
+  paginationBtnTextDisabled: {
+    color: '#94A3B8',
+  },
+  paginationPageIndicator: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+  },
+  paginationPageText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+
   photoScanSecondaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',

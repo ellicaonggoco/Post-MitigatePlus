@@ -83,7 +83,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
         {item.renderIcon(isActive)}
       </Animated.View>
       <Text style={[
-        { fontSize: 10, fontWeight: isActive ? '700' : '400', color: isActive ? '#C8102E' : '#8A9BB8' },
+        { fontSize: 10, fontWeight: isActive ? '800' : '500', color: isActive ? '#1C3F94' : '#8A9BB8' },
       ]}>
         {item.label}
       </Text>
@@ -381,7 +381,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* 1. App Header (Avatar + Location + Notifications Bell) - Only on Dashboard */}
       {activeTab === 'home' && (
   <LinearGradient
-    colors={['#5A0515', '#8B0A20', '#C8102E']}
+    colors={['#0B1D4E', '#163B8C', '#1C3F94']}
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 0 }}
     style={styles.topHeader}
@@ -883,11 +883,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* Tab Bar - frosted glass */}
 <View style={styles.tabBarContainer}>
   {[
-    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
-    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} strokeWidth={2.2} /> },
-    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
-    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
-    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#C8102E' : '#8A9BB8'} filled={false} /> },
+    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
+    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} strokeWidth={isActive ? 2.5 : 2.0} filled={isActive} /> },
+    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
+    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
+    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
   ].map((item) => (
     <AnimatedNavItem
       key={item.key}
@@ -1362,17 +1362,17 @@ headerGoldRule: {
 profileRow: {
   flexDirection: 'row',
   alignItems: 'center',
-  paddingHorizontal: 18,
-  paddingVertical: 14,
-  gap: 12,
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+  gap: 10,
 },
 avatarGoldRing: {
-  width: 46,
-  height: 46,
-  borderRadius: 23,
+  width: 42,
+  height: 42,
+  borderRadius: 21,
   borderWidth: 2,
   borderColor: '#C9A84C',
-  backgroundColor: '#5B1624',
+  backgroundColor: '#1E3A8A',
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
@@ -2088,21 +2088,19 @@ navInactiveBtn: {
 },
 navActiveLabel: {
   fontSize: 10,
-  fontWeight: '700',
-  color: '#C8102E',
+  fontWeight: '800',
+  color: '#1C3F94',
 },
 navIconPillActive: {
   width: 38,
   height: 34,
-  borderRadius: 10,
-  backgroundColor: '#FEF0F2',
+  backgroundColor: 'transparent',
   alignItems: 'center',
   justifyContent: 'center',
 },
 navIconPillInactive: {
   width: 38,
   height: 34,
-  borderRadius: 10,
   backgroundColor: 'transparent',
   alignItems: 'center',
   justifyContent: 'center',
