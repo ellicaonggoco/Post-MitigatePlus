@@ -6,11 +6,12 @@ const Distribution = require('../models/Distribution');
 const AuditLog = require('../models/AuditLog');
 const { protect, requireRole } = require('../middleware/auth');
 
+const DistributionEvent = require('../models/DistributionEvent');
+
 // GET /api/recovery - List all recovery statuses with household info
 router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official', 'field_staff'), async (req, res) => {
   try {
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
     let targetBrgy = req.query.barangayCode;
     if (req.user.role === 'barangay_official' && req.user.barangayCode) {
       targetBrgy = req.user.barangayCode;
@@ -20,19 +21,26 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       filter.householdId = { $in: householdIds.map(h => h._id) };
     }
 
-    // Ensure all VERIFIED households have an initial recovery status record if missing
-    const verifiedHouseholdsQuery = targetBrgy ? { barangayCode: targetBrgy, verificationStatus: 'verified' } : { verificationStatus: 'verified' };
-    const allVerifiedHouseholds = await Household.find(verifiedHouseholdsQuery).select('_id');
-    for (const vh of allVerifiedHouseholds) {
+    // Ensure all households have an initial recovery status record if missing
+    const householdsQuery = targetBrgy ? { barangayCode: targetBrgy } : {};
+    const allHouseholds = await Household.find(householdsQuery).select('_id verificationStatus');
+    for (const vh of allHouseholds) {
       const existing = await RecoveryStatus.findOne({ householdId: vh._id });
       if (!existing) {
         await RecoveryStatus.create({
           householdId: vh._id,
-          status: 'waiting',
+          status: vh.verificationStatus === 'verified' ? 'allocated' : 'verification',
           updatedBy: req.user._id,
         });
       }
     }
+
+    // Find active events and past claims to accurately compute real-time stage
+    const activeEvents = await DistributionEvent.find({ isActive: true });
+    const activeBrgySet = new Set(activeEvents.map(e => String(e.barangayCode || '')));
+
+    const claims = await Distribution.find({}).select('householdId');
+    const claimedHhSet = new Set(claims.map(c => String(c.householdId)));
 
     const statuses = await RecoveryStatus.find(filter)
       .sort({ updatedAt: -1 })
@@ -53,6 +61,23 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       const hh = s.householdId;
       const headName = hh?.headOfHouseholdUserId?.name || hh?.headName || 'Resident Household';
       const address = hh?.address ? `${hh.address}, Purok ${hh.purok || 1} (Brgy ${hh.barangayCode || '291'})` : `Purok 1, Barangay ${hh?.barangayCode || '291'}, Manila`;
+      const isVerified = hh?.verificationStatus === 'verified';
+      const isClaimed = claimedHhSet.has(String(hh?._id)) || s.status === 'claimed' || s.status === 'assistance_received' || s.status === 'received';
+      const isReady = !isClaimed && (activeBrgySet.has(String(hh?.barangayCode || '291')) || s.status === 'ready');
+
+      let computedStage = 'allocated';
+      if (!isVerified) {
+        computedStage = 'verification';
+      } else if (isClaimed) {
+        computedStage = 'claimed';
+      } else if (isReady) {
+        computedStage = 'ready';
+      } else if (s.status === 'assessed') {
+        computedStage = 'assessed';
+      } else {
+        computedStage = 'allocated';
+      }
+
       return {
         id: hh?._id ? String(hh._id) : String(s._id),
         _id: s._id,
@@ -61,8 +86,9 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
         address: address,
         barangayCode: hh?.barangayCode || '291',
         members: hh?.memberCount || 1,
-        stage: s.status || 'waiting',
-        status: s.status || 'waiting',
+        stage: computedStage,
+        status: computedStage,
+        rawStatus: s.status,
         updatedAt: s.updatedAt,
       };
     });
@@ -80,14 +106,19 @@ router.put('/:householdId', protect, requireRole('lgu_admin', 'lgu_superadmin', 
     const rawId = req.params.householdId;
 
     const normalizeMap = {
-      waiting: 'waiting',
-      received: 'assistance_received',
-      assistance_received: 'assistance_received',
-      ongoing: 'ongoing',
-      partial: 'partially_recovered',
-      partially_recovered: 'partially_recovered',
-      full: 'fully_recovered',
-      fully_recovered: 'fully_recovered',
+      verification: 'verification',
+      assessed: 'assessed',
+      allocated: 'allocated',
+      ready: 'ready',
+      claimed: 'claimed',
+      waiting: 'allocated',
+      received: 'claimed',
+      assistance_received: 'claimed',
+      ongoing: 'claimed',
+      partial: 'claimed',
+      partially_recovered: 'claimed',
+      full: 'claimed',
+      fully_recovered: 'claimed',
     };
     const validStatus = normalizeMap[status] || status || 'waiting';
 

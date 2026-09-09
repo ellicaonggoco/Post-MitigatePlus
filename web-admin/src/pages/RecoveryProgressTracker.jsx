@@ -8,19 +8,23 @@ import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionNumberCounter } from '../components/motion';
 
 const normalizeStage = (st) => {
-  if (st === 'received' || st === 'assistance_received' || st === 'claimed' || st === 'claim') return 'assistance_received';
-  if (st === 'partial' || st === 'partially_recovered') return 'partially_recovered';
-  if (st === 'full' || st === 'fully_recovered') return 'fully_recovered';
-  if (st === 'ongoing') return 'ongoing';
-  return 'waiting';
+  if (!st) return 'allocated';
+  const s = String(st).toLowerCase();
+  if (s.includes('claim') || s.includes('received') || s.includes('recover') || s === 'ongoing' || s.includes('partial') || s.includes('full')) return 'claimed';
+  if (s.includes('ready') || s.includes('transit')) return 'ready';
+  if (s.includes('aloka') || s.includes('allocated')) return 'allocated';
+  if (s.includes('assess')) return 'assessed';
+  if (s.includes('verif') || s === 'pending') return 'verification';
+  if (s === 'waiting') return 'allocated';
+  return 'allocated';
 };
 
 const STAGES = [
-  { key: 'waiting', aliases: ['waiting'], label: 'Waiting for Ayuda', color: '#DC2626', bg: '#FEF2F2', icon: Clock, type: 'auto', desc: 'Auto-Managed: On Registration' },
-  { key: 'assistance_received', aliases: ['received', 'assistance_received', 'claimed', 'claim'], label: 'Relief Claimed', color: '#D97706', bg: '#FFFBEB', icon: CheckCircle, type: 'auto', desc: 'Auto-Updated: Via Staff QR Scanner' },
-  { key: 'ongoing', aliases: ['ongoing'], label: 'Ongoing Pagbangon', color: '#2563EB', bg: '#EFF6FF', icon: TrendingUp, type: 'manual', desc: 'Barangay Action: Rebuilding Phase' },
-  { key: 'partially_recovered', aliases: ['partial', 'partially_recovered'], label: 'Partially Recovered', color: '#7C3AED', bg: '#F5F3FF', icon: ArrowUpCircle, type: 'manual', desc: 'Barangay Action: Stabilized' },
-  { key: 'fully_recovered', aliases: ['full', 'fully_recovered'], label: 'Fully Recovered', color: '#158A64', bg: 'rgba(21,138,100,0.1)', icon: CheckCircle, type: 'manual', desc: 'Barangay Action: Fully Recovered & Resilient' },
+  { key: 'verification', aliases: ['verification', 'pending'], label: '1. Verification', shortLabel: 'Verification', color: '#DC2626', bg: '#FEF2F2', icon: Clock, type: 'auto', desc: 'Auto: Barangay Queue Review' },
+  { key: 'assessed', aliases: ['assessed'], label: '2. Assessed', shortLabel: 'Assessed', color: '#2563EB', bg: '#EFF6FF', icon: TrendingUp, type: 'auto', desc: 'Auto: Priority Score Computed' },
+  { key: 'allocated', aliases: ['allocated', 'aloka', 'waiting'], label: '3. Allocated', shortLabel: 'Allocated', color: '#D97706', bg: '#FFFBEB', icon: Layers, type: 'auto', desc: 'Auto: Quota Prepared (Standby)' },
+  { key: 'ready', aliases: ['ready'], label: '4. Ready for Claim', shortLabel: 'Ready', color: '#059669', bg: '#ECFDF5', icon: ArrowUpCircle, type: 'event', desc: 'Active: Open at Covered Court' },
+  { key: 'claimed', aliases: ['claimed', 'assistance_received', 'received'], label: '5. Claimed', shortLabel: 'Claimed', color: '#0D9488', bg: '#F0FDFA', icon: CheckCircle, type: 'scanned', desc: 'Complete: Scanned via QR Pass' },
 ];
 
 const ITEMS_PER_PAGE = 6;
@@ -559,7 +563,7 @@ export default function RecoveryProgressTracker() {
       <ConfirmModal
         isOpen={showBulkResetModal}
         title="Declare New Calamity & Reset Barangay?"
-        message={`Sigurado ba kayo na nais ninyong i-reset ang recovery progress ng lahat ng pamilya sa Barangay ${brgy} pabalik sa "Waiting for Ayuda"? Ito ay isinasagawa kapag may bagong bagyo o kalamidad upang ihanda ang lahat ng residente para sa panibagong relief distribution drive.`}
+        message={`Sigurado ba kayo na nais ninyong i-reset ang recovery progress ng lahat ng pamilya sa Barangay ${brgy} pabalik sa "3. Allocated (Standby)"? Ito ay isinasagawa kapag may bagong bagyo o kalamidad upang ihanda ang lahat ng residente para sa panibagong relief distribution drive.`}
         type="warning"
         confirmText={bulkResetting ? 'Nire-reset...' : 'Oo, I-reset ang Buong Barangay'}
         onConfirm={handleConfirmBulkReset}

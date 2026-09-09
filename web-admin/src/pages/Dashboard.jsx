@@ -239,11 +239,11 @@ function BarangayDashboard({ token, user }) {
   ];
 
   const recoveryStageData = [
-    { name: 'Waiting for Ayuda', value: summary?.waitingAyuda ?? 0, color: '#B91C1C' },
-    { name: 'Relief Claimed', value: summary?.assistanceReceived ?? 0, color: '#B45309' },
-    { name: 'Ongoing Pagbangon', value: summary?.ongoingRecovery ?? 0, color: '#1D4ED8' },
-    { name: 'Partially Recovered', value: summary?.partiallyRecovered ?? 0, color: '#6D28D9' },
-    { name: 'Fully Recovered', value: summary?.fullyRecovered ?? 0, color: '#0F6B4E' },
+    { name: '1. Verification', value: summary?.stageVerification ?? summary?.pendingVerifications ?? 0, color: '#DC2626' },
+    { name: '2. Assessed', value: summary?.stageAssessed ?? 0, color: '#2563EB' },
+    { name: '3. Allocated', value: summary?.stageAllocated ?? (summary?.verifiedHouseholds ? Math.max(0, summary.verifiedHouseholds - (summary?.totalDistributions || 0)) : (summary?.waitingAyuda ?? 0)), color: '#D97706' },
+    { name: '4. Ready for Claim', value: summary?.stageReady ?? (summary?.activeEvents > 0 ? (summary?.verifiedHouseholds || 0) : 0), color: '#059669' },
+    { name: '5. Claimed', value: summary?.stageClaimed ?? summary?.totalDistributions ?? summary?.assistanceReceived ?? 0, color: '#0D9488' },
   ];
 
   return (
