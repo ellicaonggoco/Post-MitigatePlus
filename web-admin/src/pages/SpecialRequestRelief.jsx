@@ -530,6 +530,12 @@ export default function SpecialRequestRelief() {
                         <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.3, maxWidth: 220 }}>
                           {displayNotes}
                         </div>
+                        {r.eventTitle ? (
+                          <div style={{ fontSize: 10.5, color: '#1557B0', fontWeight: 700, marginTop: 4 }}>
+                            <Truck size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+                            Drive: {r.eventTitle}
+                          </div>
+                        ) : null}
                       </td>
 
                       <td style={{ padding: '14px 16px' }}>

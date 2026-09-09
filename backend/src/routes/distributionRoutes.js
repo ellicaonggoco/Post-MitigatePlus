@@ -13,12 +13,18 @@ const { protect, requireRole } = require('../middleware/auth');
 const { calculateReliefAllocation } = require('../utils/reliefAllocation');
 
 // @route   GET /api/distribution-events
-// @desc    Get distribution events (admins see all, barangay officials see their barangay, field staff see active drives)
+// @desc    Get distribution events (admins see all, barangay officials/residents see their barangay, field staff see active drives)
 router.get('/events', protect, async (req, res) => {
   try {
     let query = {};
+
+    // 1. Role-based scoping
     if (req.user.role === 'barangay_official') {
       query.barangayCode = req.user.barangayCode;
+    } else if (req.user.role === 'resident') {
+      const hh = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+      const residentBrgy = hh?.barangayCode || req.user.barangayCode || '291';
+      query.barangayCode = residentBrgy;
     } else if (req.user.role === 'field_staff') {
       // Field staff see drives assigned to their team, their barangay, or any active/scheduled drive
       const staffConditions = [
@@ -36,6 +42,26 @@ router.get('/events', protect, async (req, res) => {
       }
       query.$or = staffConditions;
     }
+
+    // 2. Query parameter filters
+    if (req.query.barangayCode && req.user.role !== 'barangay_official' && req.user.role !== 'resident') {
+      query.barangayCode = req.query.barangayCode;
+    }
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === 'true' || req.query.isActive === true;
+    }
+    if (req.query.activeOnly === 'true' || req.query.activeOnly === true) {
+      const activeFilter = { $or: [{ isActive: true }, { status: { $in: ['Ongoing', 'Scheduled'] } }] };
+      if (query.$or) {
+        query = { $and: [{ $or: query.$or }, activeFilter] };
+      } else {
+        Object.assign(query, activeFilter);
+      }
+    }
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
     // Admins/superadmins see all events (active + closed)
     const events = await DistributionEvent.find(query).populate('openedBy', 'name emailOrPhone').sort({ openedAt: -1, createdAt: -1 });
     res.json(events);

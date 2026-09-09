@@ -4,6 +4,7 @@ const router = express.Router();
 const AssistanceRequest = require('../models/AssistanceRequest');
 const Household = require('../models/Household');
 const User = require('../models/User');
+const DistributionEvent = require('../models/DistributionEvent');
 const { protect, requireRole } = require('../middleware/auth');
 
 // @route   POST /api/assistance-requests
@@ -11,6 +12,8 @@ const { protect, requireRole } = require('../middleware/auth');
 router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const {
+      eventId,
+      eventTitle,
       itemType,
       items,
       packages,
@@ -27,26 +30,53 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
       memberCount,
     } = req.body;
 
-    let formattedPackages = [];
-    if (Array.isArray(packages) && packages.length > 0) {
-      formattedPackages = packages.map(p => typeof p === 'string' ? { id: p, name: p, quantity: 1 } : p);
-    }
-
-    let requestedItem = itemType || items;
-    if (!requestedItem && formattedPackages.length > 0) {
-      requestedItem = formattedPackages.map(p => p.name || p.id).join(', ');
-    }
-    if (!requestedItem) {
-      requestedItem = 'Emergency Family Relief Package';
-    }
-
-    const requestNotes = reason || notes || '';
-
     let targetHousehold = null;
+    let activeEvent = null;
+    let finalEventId = eventId || null;
+    let finalEventTitle = eventTitle || '';
+
     if (req.user.role === 'resident') {
       targetHousehold = await Household.findOne({ headOfHouseholdUserId: req.user._id });
       if (!targetHousehold) {
         return res.status(404).json({ message: 'Household record not found.' });
+      }
+
+      const residentBrgy = targetHousehold.barangayCode || req.user.barangayCode || '291';
+
+      // Verify that there is an active distribution event for the resident's barangay
+      if (eventId) {
+        activeEvent = await DistributionEvent.findOne({
+          _id: eventId,
+          barangayCode: residentBrgy,
+          $or: [{ isActive: true }, { status: { $in: ['Ongoing', 'Scheduled'] } }],
+        });
+      } else {
+        activeEvent = await DistributionEvent.findOne({
+          barangayCode: residentBrgy,
+          $or: [{ isActive: true }, { status: { $in: ['Ongoing', 'Scheduled'] } }],
+        }).sort({ openedAt: -1, createdAt: -1 });
+      }
+
+      if (!activeEvent) {
+        return res.status(400).json({
+          message: `Walang aktibong relief distribution event sa Barangay ${residentBrgy}. Ang Door-to-Door Special Relief ay bukas lamang kapag may opisyal na pamamahagi sa inyong barangay.`,
+        });
+      }
+
+      finalEventId = activeEvent._id;
+      finalEventTitle = activeEvent.title;
+
+      // Check for duplicate pending/approved request for this same event
+      const existingReq = await AssistanceRequest.findOne({
+        householdId: targetHousehold._id,
+        eventId: activeEvent._id,
+        status: { $in: ['pending', 'under_review', 'approved', 'released'] },
+      });
+
+      if (existingReq) {
+        return res.status(400).json({
+          message: `Kayo ay mayroon nang aktibong Door-to-Door Special Relief request para sa pamamahaging "${activeEvent.title}".`,
+        });
       }
     } else {
       // Official / Admin submitted on behalf of household
@@ -56,11 +86,37 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
         const brgyCode = barangay || req.user.barangayCode || '291';
         targetHousehold = await Household.findOne({ barangayCode: brgyCode });
       }
+      if (eventId) {
+        const ev = await DistributionEvent.findById(eventId);
+        if (ev) {
+          finalEventId = ev._id;
+          finalEventTitle = ev.title;
+        }
+      }
     }
+
+    let formattedPackages = [];
+    if (Array.isArray(packages) && packages.length > 0) {
+      formattedPackages = packages.map(p => typeof p === 'string' ? { id: p, name: p, quantity: 1 } : p);
+    } else if (activeEvent?.itemType) {
+      formattedPackages = [{ id: 'unified_relief', name: activeEvent.itemType, quantity: 1 }];
+    }
+
+    let requestedItem = itemType || items || activeEvent?.itemType;
+    if (!requestedItem && formattedPackages.length > 0) {
+      requestedItem = formattedPackages.map(p => p.name || p.id).join(', ');
+    }
+    if (!requestedItem) {
+      requestedItem = 'Pangunahing Family Food & Disaster Relief Pack';
+    }
+
+    const requestNotes = reason || notes || '';
 
     const request = await AssistanceRequest.create({
       householdId: targetHousehold ? targetHousehold._id : null,
-      recipientName: recipientName || (targetHousehold?.headOfHouseholdUserId?.name || resident || ''),
+      eventId: finalEventId,
+      eventTitle: finalEventTitle,
+      recipientName: recipientName || (targetHousehold?.headOfHouseholdUserId?.name || resident || req.user.name || ''),
       recipientPhone: recipientPhone || '',
       recipientAddress: recipientAddress || (targetHousehold?.address || ''),
       barangayCode: barangay || targetHousehold?.barangayCode || req.user.barangayCode || '291',

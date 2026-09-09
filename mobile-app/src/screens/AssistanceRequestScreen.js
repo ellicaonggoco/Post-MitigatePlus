@@ -115,6 +115,7 @@ const VULNERABILITY_OPTIONS = [
   { id: 'Infant Care', label: 'May Sanggol (0-2 taon)', IconComponent: BabyIcon },
   { id: 'Solo Parent', label: 'Solo Parent', IconComponent: UsersIcon },
   { id: 'Severe / Bedridden', label: 'May Karamdaman / Bedridden', IconComponent: HeartPulseIcon },
+  { id: 'Flood Isolated', label: 'Lubog sa Baha / Di Makalabas', IconComponent: AlertTriangleIcon },
 ];
 
 // ── SEVERITY / PRIORITY LEVELS ──────────────────────────────────────
@@ -186,7 +187,8 @@ export default function AssistanceRequestScreen({
 
   // ── SPECIAL RELIEF FORM & HISTORY STATE ──────────────────────────
   const [reliefViewMode, setReliefViewMode] = useState('form'); // 'form' | 'history'
-  const [selectedPackages, setSelectedPackages] = useState(['food']);
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [loadingEvent, setLoadingEvent] = useState(true);
   const [selectedVulnerabilities, setSelectedVulnerabilities] = useState([]);
   const [selectedSeverity, setSelectedSeverity] = useState('Standard Assistance');
   const [reasonNotes, setReasonNotes] = useState('');
@@ -250,7 +252,33 @@ export default function AssistanceRequestScreen({
   useEffect(() => {
     fetchCFWData();
     fetchMyRequests();
-  }, [token]);
+    fetchActiveEvent();
+  }, [token, householdData?.barangayCode, user?.barangayCode]);
+
+  // ── FETCH ACTIVE DISTRIBUTION EVENT FOR BARANGAY ─────────────────
+  const fetchActiveEvent = async () => {
+    if (!token) return;
+    try {
+      setLoadingEvent(true);
+      const bCode = householdData?.barangayCode || user?.barangayCode || '291';
+      const res = await fetch(`${API_BASE_URL}/distributions/events?barangayCode=${bCode}&activeOnly=true`, {
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const events = Array.isArray(data) ? data : [];
+        const active = events.find(e => e.isActive || e.status === 'Ongoing' || e.status === 'Scheduled');
+        setActiveEvent(active || null);
+      } else {
+        setActiveEvent(null);
+      }
+    } catch (err) {
+      console.warn('Fetch active event warning:', err);
+      setActiveEvent(null);
+    } finally {
+      setLoadingEvent(false);
+    }
+  };
 
   // ── FETCH SPECIAL RELIEF REQUESTS ─────────────────────────────────
   const fetchMyRequests = async () => {
@@ -306,24 +334,6 @@ export default function AssistanceRequestScreen({
     }
   };
 
-  // ── TOGGLE RELIEF PACKAGE ─────────────────────────────────────────
-  const togglePackage = (pkgId) => {
-    if (selectedPackages.includes(pkgId)) {
-      if (selectedPackages.length === 1) {
-        Alert.alert(
-          lang === 'tl' ? 'Pumili ng Ayuda' : 'Selection Required',
-          lang === 'tl'
-            ? 'Dapat may kahit isang package na mapili.'
-            : 'At least one package must be selected.'
-        );
-        return;
-      }
-      setSelectedPackages(selectedPackages.filter(p => p !== pkgId));
-    } else {
-      setSelectedPackages([...selectedPackages, pkgId]);
-    }
-  };
-
   // ── TOGGLE VULNERABILITY CHIP ─────────────────────────────────────
   const toggleVulnerability = (vId) => {
     if (selectedVulnerabilities.includes(vId)) {
@@ -335,12 +345,22 @@ export default function AssistanceRequestScreen({
 
   // ── SUBMIT SPECIAL RELIEF REQUEST ─────────────────────────────────
   const handleSpecialReliefSubmit = async () => {
-    if (selectedPackages.length === 0) {
+    if (!activeEvent) {
       Alert.alert(
-        lang === 'tl' ? 'Pumili ng Ayuda' : 'Selection Required',
+        lang === 'tl' ? 'Walang Aktibong Pamamahagi' : 'No Active Event',
         lang === 'tl'
-          ? 'Pakipili ang kahit isang uri ng ayuda o relief package na kailangan ng inyong tahanan.'
-          : 'Please select at least one relief package required by your household.'
+          ? 'Hindi maaaring magsumite ng Door-to-Door Special Relief dahil walang aktibong relief distribution event sa inyong barangay.'
+          : 'Cannot submit request because there is no active distribution event in your barangay.'
+      );
+      return;
+    }
+
+    if (selectedVulnerabilities.length === 0) {
+      Alert.alert(
+        lang === 'tl' ? 'Kailangan ng Kategorya' : 'Category Required',
+        lang === 'tl'
+          ? 'Pakipili kung sino ang nangangailangan sa inyong tahanan (hal. Senior, PWD, Sanggol, o Bedridden).'
+          : 'Please select at least one vulnerable member category in your household (e.g. Senior, PWD, Infant, Bedridden).'
       );
       return;
     }
@@ -355,15 +375,7 @@ export default function AssistanceRequestScreen({
       return;
     }
 
-    const pkgs = selectedPackages.map(pkgId => {
-      const found = RELIEF_PACKAGES.find(p => p.id === pkgId);
-      return {
-        id: pkgId,
-        name: found ? (lang === 'tl' ? found.nameTl : found.name) : pkgId,
-        category: found?.badge || 'Relief',
-        quantity: 1,
-      };
-    });
+    const unifiedItemName = activeEvent.itemType || 'Pangunahing Family Food & Disaster Relief Pack';
 
     setSubmittingRelief(true);
     try {
@@ -374,8 +386,10 @@ export default function AssistanceRequestScreen({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          packages: pkgs,
-          itemType: pkgs.map(p => p.name).join(', '),
+          eventId: activeEvent._id,
+          eventTitle: activeEvent.title,
+          packages: [{ id: 'unified_relief', name: unifiedItemName, quantity: 1 }],
+          itemType: unifiedItemName,
           reason: reasonNotes.trim(),
           notes: reasonNotes.trim(),
           vulnerabilityTypes: selectedVulnerabilities,
@@ -393,10 +407,9 @@ export default function AssistanceRequestScreen({
         Alert.alert(
           lang === 'tl' ? 'Matagumpay na Naisumite' : 'Request Submitted',
           lang === 'tl'
-            ? 'Naitala ang inyong kahilingan para sa Door-to-Door Delivery. Itatalaga ito ng LGU Command Center sa nakatalagang Field Staff.'
-            : 'Your doorstep assistance request has been submitted. The LGU Command Center will dispatch an assigned field staff.'
+            ? `Naitala ang inyong kahilingan para sa Door-to-Door Delivery sa ilalim ng "${activeEvent.title}". Itatalaga ito ng Command Center sa Field Staff.`
+            : `Your doorstep assistance request has been submitted for "${activeEvent.title}". Field staff will be dispatched.`
         );
-        setSelectedPackages(['food']);
         setSelectedVulnerabilities([]);
         setReasonNotes('');
         setSelectedSeverity('Standard Assistance');
@@ -715,247 +728,338 @@ export default function AssistanceRequestScreen({
             {/* SUB-TAB 1: REQUEST FORM */}
             {reliefViewMode === 'form' && (
               <>
-                {/* INFO BANNER */}
-                <View style={styles.reliefInfoCard}>
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                    <View style={styles.reliefInfoIconWell}>
-                      <HeartPulseIcon size={20} color="#1C3F94" />
+                {loadingEvent ? (
+                  <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                    <ActivityIndicator size="large" color="#1C3F94" />
+                    <Text style={{ marginTop: 14, fontSize: 13, color: '#64748B', fontWeight: '600' }}>
+                      {lang === 'tl'
+                        ? 'Sinusuri ang aktibong pamamahagi sa inyong barangay...'
+                        : 'Checking active distribution events in your barangay...'}
+                    </Text>
+                  </View>
+                ) : !activeEvent ? (
+                  /* ── NO ACTIVE EVENT IN BARANGAY NOTICE ────────────────── */
+                  <View style={styles.noActiveEventCard}>
+                    <View style={styles.noEventIconWell}>
+                      <BoxPackageIcon size={32} color="#D97706" strokeWidth={2.0} />
                     </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.reliefInfoTitle}>
-                        {lang === 'tl' ? 'Direktang Hatid sa Inyong Pintuan' : 'Direct Doorstep Delivery'}
+                    <View style={styles.noEventBadge}>
+                      <Text style={styles.noEventBadgeText}>
+                        {lang === 'tl' ? 'WALANG AKTIBONG PAMAMAHAGI' : 'NO ACTIVE DISTRIBUTION'}
                       </Text>
-                      <Text style={styles.reliefInfoDesc}>
+                    </View>
+                    <Text style={styles.noEventTitle}>
+                      {lang === 'tl'
+                        ? `Walang Aktibong Relief Distribution sa Barangay ${householdData?.barangayCode || user?.barangayCode || '291'}`
+                        : `No Active Relief Distribution in Barangay ${householdData?.barangayCode || user?.barangayCode || '291'}`}
+                    </Text>
+                    <Text style={styles.noEventDesc}>
+                      {lang === 'tl'
+                        ? 'Ang Door-to-Door Special Relief ay magbubukas lamang kapag may opisyal na relief distribution event ang LGU o Barangay sa inyong lugar. Mangyaring abangan ang anunsyo ng susunod na relief distribution schedule sa Home screen o makipag-ugnayan sa inyong Barangay Hall.'
+                        : 'Door-to-Door Special Relief is only open when there is an active relief distribution drive scheduled for your barangay. Please check announcements on the Home screen for the next relief schedule.'}
+                    </Text>
+
+                    <View style={styles.noEventDivider} />
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                      <AlertTriangleIcon size={16} color="#B45309" />
+                      <Text style={{ flex: 1, fontSize: 12, color: '#92400E', fontWeight: '500' }}>
                         {lang === 'tl'
-                          ? 'Ang serbisyong ito ay nakalaan para sa mga kababayang may matinding pangangailangan, may sakit, o hindi makapila sa distribution center. May LGU Field Staff na magdadala ng ayuda sa inyong tirahan.'
-                          : 'This service is prioritized for vulnerable residents unable to visit public relief centers due to disability, medical conditions, or disaster isolation.'}
+                          ? 'Para sa agarang medikal o emerhensya, tumawag sa mga emergency hotline sa Home screen.'
+                          : 'For medical emergencies, please use the emergency hotlines on the Home screen.'}
                       </Text>
                     </View>
-                  </View>
-                </View>
 
-                {/* STEP 1: SELECT RELIEF PACKAGES */}
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>
-                      {lang === 'tl' ? '1. Pumili ng Ayuda na Kailangan' : '1. Select Needed Relief Packages'}
-                    </Text>
-                    <View style={styles.countBadge}>
-                      <Text style={styles.countBadgeText}>
-                        {`${selectedPackages.length} napili`}
-                      </Text>
+                    <View style={styles.noEventActionRow}>
+                      <TouchableOpacity
+                        style={styles.noEventBtnSecondary}
+                        onPress={() => {
+                          setReliefViewMode('history');
+                          fetchMyRequests();
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <ClockIcon size={16} color="#1C3F94" />
+                        <Text style={styles.noEventBtnSecondaryText}>
+                          {lang === 'tl' ? `Aking Mga Request (${myRequests.length})` : `My Requests (${myRequests.length})`}
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.noEventBtnPrimary}
+                        onPress={() => onBack && onBack()}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.noEventBtnPrimaryText}>
+                          {lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
-                  <Text style={styles.sectionSub}>
-                    {lang === 'tl'
-                      ? 'Maaaring pumili ng higit sa isa depende sa pangangailangan ng pamilya.'
-                      : 'You may select multiple packages based on your household requirements.'}
-                  </Text>
-                </View>
-
-                <View style={styles.packagesGrid}>
-                  {RELIEF_PACKAGES.map((pkg) => {
-                    const isSelected = selectedPackages.includes(pkg.id);
-                    const Icon = pkg.IconComponent;
-                    return (
-                      <TouchableOpacity
-                        key={pkg.id}
-                        style={[styles.packageCard, isSelected && styles.packageCardSelected]}
-                        onPress={() => togglePackage(pkg.id)}
-                        activeOpacity={0.8}
-                      >
-                        <View style={styles.packageCardTop}>
-                          <View style={[styles.packageIconWell, { backgroundColor: isSelected ? '#EFF6FF' : pkg.bg }]}>
-                            <Icon size={22} color={pkg.color} />
-                          </View>
-                          <View style={[styles.packageCheckbox, isSelected && styles.packageCheckboxSelected]}>
-                            {isSelected && <CheckIcon size={12} color="#FFFFFF" />}
-                          </View>
+                ) : (
+                  <>
+                    {/* ACTIVE EVENT BANNER */}
+                    <View style={styles.activeEventCard}>
+                      <View style={styles.activeEventHeader}>
+                        <View style={styles.livePulseDot} />
+                        <Text style={styles.activeEventHeaderTag}>
+                          {lang === 'tl' ? 'KASALUKUYANG PAMAMAHAGI' : 'ACTIVE DISTRIBUTION EVENT'}
+                        </Text>
+                        <View style={{ flex: 1 }} />
+                        <View style={styles.activeEventStatusPill}>
+                          <Text style={styles.activeEventStatusPillText}>
+                            {activeEvent.status || 'Ongoing'}
+                          </Text>
                         </View>
+                      </View>
 
-                        <Text style={[styles.packageTitle, isSelected && styles.packageTitleSelected]}>
-                          {lang === 'tl' ? pkg.nameTl : pkg.name}
-                        </Text>
-                        <Text style={styles.packageDesc} numberOfLines={2}>
-                          {pkg.desc}
-                        </Text>
+                      <Text style={styles.activeEventTitle}>{activeEvent.title}</Text>
 
-                        <View style={styles.packageBadgeRow}>
-                          <View style={[styles.packageBadge, { backgroundColor: pkg.bg }]}>
-                            <Text style={[styles.packageBadgeText, { color: pkg.color }]}>{pkg.badge}</Text>
-                          </View>
+                      <View style={styles.activeEventMetaRow}>
+                        <View style={styles.activeEventMetaItem}>
+                          <MapPinIcon size={14} color="#1C3F94" />
+                          <Text style={styles.activeEventMetaText} numberOfLines={1}>
+                            {activeEvent.location || `Barangay ${activeEvent.barangayCode}`}
+                          </Text>
                         </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                        <View style={styles.activeEventMetaItem}>
+                          <ClockIcon size={14} color="#1C3F94" />
+                          <Text style={styles.activeEventMetaText}>
+                            {activeEvent.scheduledDate
+                              ? `${activeEvent.scheduledDate} ${activeEvent.scheduledTime || ''}`
+                              : (lang === 'tl' ? 'Ngayong Araw' : 'Today')}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
 
-                {/* STEP 2: VULNERABILITY AUDIENCE */}
-                <View style={[styles.sectionHeader, { marginTop: 18 }]}>
-                  <Text style={styles.sectionTitle}>
-                    {lang === 'tl' ? '2. Sino ang Nangangailangan sa Tahanan?' : '2. Vulnerable Household Members'}
-                  </Text>
-                  <Text style={styles.sectionSub}>
-                    {lang === 'tl'
-                      ? 'Pindutin ang lahat ng naaangkop para sa mas mabilis na prioritasyon:'
-                      : 'Select all that apply to help prioritize your delivery:'}
-                  </Text>
-                </View>
+                    {/* INFO BANNER */}
+                    <View style={styles.reliefInfoCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                        <View style={styles.reliefInfoIconWell}>
+                          <HeartPulseIcon size={20} color="#1C3F94" />
+                        </View>
+                        <View style={{ flex: 1, marginLeft: 12 }}>
+                          <Text style={styles.reliefInfoTitle}>
+                            {lang === 'tl' ? 'Direktang Hatid sa Inyong Pintuan' : 'Direct Doorstep Delivery'}
+                          </Text>
+                          <Text style={styles.reliefInfoDesc}>
+                            {lang === 'tl'
+                              ? 'Ang serbisyong ito ay nakalaan para sa mga kababayang may matinding pangangailangan, may sakit, o hindi makapila sa distribution center. May LGU Field Staff na magdadala ng ayuda sa inyong tirahan.'
+                              : 'This service is prioritized for vulnerable residents unable to visit public relief centers due to disability, medical conditions, or disaster isolation.'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
 
-                <View style={styles.vulnerabilitiesWrap}>
-                  {VULNERABILITY_OPTIONS.map((vuln) => {
-                    const isSelected = selectedVulnerabilities.includes(vuln.id);
-                    const Icon = vuln.IconComponent;
-                    return (
-                      <TouchableOpacity
-                        key={vuln.id}
-                        style={[styles.vulnChip, isSelected && styles.vulnChipSelected]}
-                        onPress={() => toggleVulnerability(vuln.id)}
-                        activeOpacity={0.8}
-                      >
-                        <Icon size={15} color={isSelected ? '#FFFFFF' : '#1C3F94'} />
-                        <Text style={[styles.vulnChipText, isSelected && styles.vulnChipTextSelected]}>
-                          {vuln.label}
-                        </Text>
-                        {isSelected && (
-                          <View style={styles.chipCheckDot}>
-                            <CheckIcon size={10} color="#FFFFFF" />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                {/* STEP 3: URGENCY / SEVERITY LEVEL */}
-                <View style={[styles.sectionHeader, { marginTop: 18 }]}>
-                  <Text style={styles.sectionTitle}>
-                    {lang === 'tl' ? '3. Antas ng Pangangailangan (Urgency)' : '3. Urgency Level'}
-                  </Text>
-                </View>
-
-                <View style={styles.severityRow}>
-                  {SEVERITY_LEVELS.map((sev) => {
-                    const isSelected = selectedSeverity === sev.id;
-                    return (
-                      <TouchableOpacity
-                        key={sev.id}
-                        style={[
-                          styles.severityPill,
-                          isSelected && { borderColor: sev.color, backgroundColor: sev.bg, borderWidth: 1.5 },
-                        ]}
-                        onPress={() => setSelectedSeverity(sev.id)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.severityPillText, isSelected && { color: sev.color, fontWeight: '800' }]}>
-                          {lang === 'tl' ? sev.labelTl.split(' ')[0] : sev.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                {/* STEP 4: REASON & NOTES */}
-                <View style={[styles.sectionHeader, { marginTop: 18 }]}>
-                  <Text style={styles.sectionTitle}>
-                    {lang === 'tl' ? '4. Dahilan o Karagdagang Detalye' : '4. Reason & Specific Instructions'}
-                  </Text>
-                  <Text style={styles.sectionSub}>
-                    {lang === 'tl'
-                      ? 'Ilarawan ang sitwasyon sa bahay (hal. lubog sa baha, hindi makalakad ang magulang):'
-                      : 'Briefly explain why door-to-door delivery is needed:'}
-                  </Text>
-                </View>
-
-                <View style={styles.textInputCard}>
-                  <TextInput
-                    style={styles.multilineInput}
-                    placeholder={
-                      lang === 'tl'
-                        ? 'Halimbawa: May 80-anyos na lola na bedridden at 6-buwang sanggol. Hindi po makatawid sa kanto dahil lampas-tuhod pa ang baha...'
-                        : 'e.g. Bedridden grandmother and 6-month-old infant in the house. Cannot cross street due to high floodwaters...'
-                    }
-                    placeholderTextColor="#94A3B8"
-                    value={reasonNotes}
-                    onChangeText={setReasonNotes}
-                    multiline
-                    numberOfLines={4}
-                    onFocus={() => {
-                      setTimeout(() => {
-                        scrollRef.current?.scrollToEnd({ animated: true });
-                      }, 120);
-                    }}
-                  />
-                </View>
-
-                {/* STEP 5: DELIVERY ADDRESS & CONTACT */}
-                <View style={[styles.sectionHeader, { marginTop: 18 }]}>
-                  <Text style={styles.sectionTitle}>
-                    {lang === 'tl' ? '5. Lokasyon at Numero para sa Paghahatid' : '5. Delivery Location & Contact'}
-                  </Text>
-                  <Text style={styles.sectionSub}>
-                    {lang === 'tl'
-                      ? 'Tiyaking tama ang tirahan upang mahanap ng LGU Field Staff ang inyong tahanan:'
-                      : 'Ensure your address is complete for easy navigation by field staff:'}
-                  </Text>
-                </View>
-
-                <View style={styles.locationCard}>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputGroupLabel}>
-                      {lang === 'tl' ? 'Tirahan (House No., Street, Purok):' : 'Complete Address:'}
-                    </Text>
-                    <TextInput
-                      style={styles.singleLineInput}
-                      placeholder="Street, House No., Purok"
-                      placeholderTextColor="#94A3B8"
-                      value={customAddress}
-                      onChangeText={setCustomAddress}
-                    />
-                  </View>
-
-                  <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                    <Text style={styles.inputGroupLabel}>
-                      {lang === 'tl' ? 'Telepono o Mobile Number:' : 'Contact Phone Number:'}
-                    </Text>
-                    <TextInput
-                      style={styles.singleLineInput}
-                      placeholder="09XX XXX XXXX"
-                      placeholderTextColor="#94A3B8"
-                      keyboardType="phone-pad"
-                      value={customPhone}
-                      onChangeText={setCustomPhone}
-                    />
-                  </View>
-
-                  <View style={styles.barangayPillRow}>
-                    <MapPinIcon size={14} color="#1C3F94" />
-                    <Text style={styles.barangayPillText}>
-                      {`Barangay ${householdData?.barangayCode || user?.barangayCode || '291'}, City of Manila`}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* SUBMIT BUTTON */}
-                <TouchableOpacity
-                  style={[styles.submitReliefBtn, submittingRelief && styles.submitBtnDisabled]}
-                  onPress={handleSpecialReliefSubmit}
-                  disabled={submittingRelief}
-                  activeOpacity={0.85}
-                >
-                  {submittingRelief ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <BoxPackageIcon size={18} color="#FFFFFF" strokeWidth={2.2} />
-                      <Text style={styles.submitReliefBtnText}>
+                    {/* STEP 1: UNIFIED RELIEF PACKAGE (NO PICK-AND-CHOOSE) */}
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>
+                        {lang === 'tl' ? '1. Opisyal na Relief Package na Ipagkakaloob' : '1. Official Allocated Relief Package'}
+                      </Text>
+                      <Text style={styles.sectionSub}>
                         {lang === 'tl'
-                          ? 'I-submit ang Kahilingan para sa Door-to-Door Delivery'
-                          : 'Submit Door-to-Door Delivery Request'}
+                          ? 'Lahat ng kwalipikadong tahanan para sa Door-to-Door delivery ay makatatanggap ng buong unified package mula sa LGU at DSWD:'
+                          : 'Eligible households for doorstep delivery will receive the complete unified package provided for this event:'}
                       </Text>
                     </View>
-                  )}
-                </TouchableOpacity>
+
+                    <View style={styles.unifiedPackageCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={styles.unifiedPackageIconWell}>
+                          <BoxPackageIcon size={24} color="#1C3F94" />
+                        </View>
+                        <View style={{ flex: 1, marginLeft: 12 }}>
+                          <View style={styles.unifiedBadgeRow}>
+                            <View style={styles.unifiedBadge}>
+                              <CheckIcon size={11} color="#166534" />
+                              <Text style={styles.unifiedBadgeText}>
+                                {lang === 'tl' ? 'Kumpletong Ayuda (Unified Pack)' : 'Unified Complete Pack'}
+                              </Text>
+                            </View>
+                          </View>
+                          <Text style={styles.unifiedPackageTitle}>
+                            {activeEvent.itemType || (lang === 'tl' ? 'Pangunahing Family Food & Disaster Relief Pack' : 'Standard Family Disaster Relief Pack')}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.unifiedPackageDetailsBox}>
+                        <Text style={styles.unifiedPackageDetailsText}>
+                          {lang === 'tl'
+                            ? 'Kasama sa relief pack na ito ang 5kg Bigas, De-lata (Sardinas, Corned Beef, Meat Loaf), Instant Noodles, Kape, Asukal, Selyadong Inuming Tubig, at Essential Hygiene Kit. Awtomatiko itong ihahatid nang buo sa inyong pintuan.'
+                            : 'This relief pack contains 5kg Rice, Assorted Canned Goods, Instant Noodles, Coffee, Sugar, Potable Drinking Water, and Disaster Hygiene Essentials. It will be delivered in its entirety to your doorstep.'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* STEP 2: VULNERABILITY AUDIENCE */}
+                    <View style={[styles.sectionHeader, { marginTop: 18 }]}>
+                      <Text style={styles.sectionTitle}>
+                        {lang === 'tl' ? '2. Sino ang Nangangailangan sa Tahanan?' : '2. Vulnerable Household Members'}
+                      </Text>
+                      <Text style={styles.sectionSub}>
+                        {lang === 'tl'
+                          ? 'Pindutin ang lahat ng naaangkop para sa mas mabilis na prioritasyon:'
+                          : 'Select all that apply to help prioritize your delivery:'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.vulnerabilitiesWrap}>
+                      {VULNERABILITY_OPTIONS.map((vuln) => {
+                        const isSelected = selectedVulnerabilities.includes(vuln.id);
+                        const Icon = vuln.IconComponent;
+                        return (
+                          <TouchableOpacity
+                            key={vuln.id}
+                            style={[styles.vulnChip, isSelected && styles.vulnChipSelected]}
+                            onPress={() => toggleVulnerability(vuln.id)}
+                            activeOpacity={0.8}
+                          >
+                            <Icon size={15} color={isSelected ? '#FFFFFF' : '#1C3F94'} />
+                            <Text style={[styles.vulnChipText, isSelected && styles.vulnChipTextSelected]}>
+                              {vuln.label}
+                            </Text>
+                            {isSelected && (
+                              <View style={styles.chipCheckDot}>
+                                <CheckIcon size={10} color="#FFFFFF" />
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+
+                    {/* STEP 3: URGENCY / SEVERITY LEVEL */}
+                    <View style={[styles.sectionHeader, { marginTop: 18 }]}>
+                      <Text style={styles.sectionTitle}>
+                        {lang === 'tl' ? '3. Antas ng Pangangailangan (Urgency)' : '3. Urgency Level'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.severityRow}>
+                      {SEVERITY_LEVELS.map((sev) => {
+                        const isSelected = selectedSeverity === sev.id;
+                        return (
+                          <TouchableOpacity
+                            key={sev.id}
+                            style={[
+                              styles.severityPill,
+                              isSelected && { borderColor: sev.color, backgroundColor: sev.bg, borderWidth: 1.5 },
+                            ]}
+                            onPress={() => setSelectedSeverity(sev.id)}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={[styles.severityPillText, isSelected && { color: sev.color, fontWeight: '800' }]}>
+                              {lang === 'tl' ? sev.labelTl.split(' ')[0] : sev.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+
+                    {/* STEP 4: REASON & NOTES */}
+                    <View style={[styles.sectionHeader, { marginTop: 18 }]}>
+                      <Text style={styles.sectionTitle}>
+                        {lang === 'tl' ? '4. Dahilan o Karagdagang Detalye' : '4. Reason & Specific Instructions'}
+                      </Text>
+                      <Text style={styles.sectionSub}>
+                        {lang === 'tl'
+                          ? 'Ilarawan ang sitwasyon sa bahay (hal. lubog sa baha, hindi makalakad ang magulang):'
+                          : 'Briefly explain why door-to-door delivery is needed:'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.textInputCard}>
+                      <TextInput
+                        style={styles.multilineInput}
+                        placeholder={
+                          lang === 'tl'
+                            ? 'Halimbawa: May 80-anyos na lola na bedridden at 6-buwang sanggol. Hindi po makatawid sa kanto dahil lampas-tuhod pa ang baha...'
+                            : 'e.g. Bedridden grandmother and 6-month-old infant in the house. Cannot cross street due to high floodwaters...'
+                        }
+                        placeholderTextColor="#94A3B8"
+                        value={reasonNotes}
+                        onChangeText={setReasonNotes}
+                        multiline
+                        numberOfLines={4}
+                        onFocus={() => {
+                          setTimeout(() => {
+                            scrollRef.current?.scrollToEnd({ animated: true });
+                          }, 120);
+                        }}
+                      />
+                    </View>
+
+                    {/* STEP 5: DELIVERY ADDRESS & CONTACT */}
+                    <View style={[styles.sectionHeader, { marginTop: 18 }]}>
+                      <Text style={styles.sectionTitle}>
+                        {lang === 'tl' ? '5. Lokasyon at Numero para sa Paghahatid' : '5. Delivery Location & Contact'}
+                      </Text>
+                      <Text style={styles.sectionSub}>
+                        {lang === 'tl'
+                          ? 'Tiyaking tama ang tirahan upang mahanap ng LGU Field Staff ang inyong tahanan:'
+                          : 'Ensure your address is complete for easy navigation by field staff:'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.locationCard}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputGroupLabel}>
+                          {lang === 'tl' ? 'Tirahan (House No., Street, Purok):' : 'Complete Address:'}
+                        </Text>
+                        <TextInput
+                          style={styles.singleLineInput}
+                          placeholder="Street, House No., Purok"
+                          placeholderTextColor="#94A3B8"
+                          value={customAddress}
+                          onChangeText={setCustomAddress}
+                        />
+                      </View>
+
+                      <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                        <Text style={styles.inputGroupLabel}>
+                          {lang === 'tl' ? 'Telepono o Mobile Number:' : 'Contact Phone Number:'}
+                        </Text>
+                        <TextInput
+                          style={styles.singleLineInput}
+                          placeholder="09XX XXX XXXX"
+                          placeholderTextColor="#94A3B8"
+                          keyboardType="phone-pad"
+                          value={customPhone}
+                          onChangeText={setCustomPhone}
+                        />
+                      </View>
+
+                      <View style={styles.barangayPillRow}>
+                        <MapPinIcon size={14} color="#1C3F94" />
+                        <Text style={styles.barangayPillText}>
+                          {`Barangay ${householdData?.barangayCode || user?.barangayCode || '291'}, City of Manila`}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* SUBMIT BUTTON */}
+                    <TouchableOpacity
+                      style={[styles.submitReliefBtn, submittingRelief && styles.submitBtnDisabled]}
+                      onPress={handleSpecialReliefSubmit}
+                      disabled={submittingRelief}
+                      activeOpacity={0.85}
+                    >
+                      {submittingRelief ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                      ) : (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                          <BoxPackageIcon size={18} color="#FFFFFF" strokeWidth={2.2} />
+                          <Text style={styles.submitReliefBtnText}>
+                            {lang === 'tl'
+                              ? 'I-submit ang Kahilingan para sa Door-to-Door Delivery'
+                              : 'Submit Door-to-Door Delivery Request'}
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
               </>
             )}
 
@@ -1036,7 +1140,7 @@ export default function AssistanceRequestScreen({
                         <View style={styles.requestItemDivider} />
 
                         <Text style={styles.requestItemTitle}>
-                          {item.itemType || 'Emergency Relief Assistance'}
+                          {item.eventTitle ? `${item.eventTitle} • ` : ''}{item.itemType || 'Emergency Relief Assistance'}
                         </Text>
 
                         {item.notes ? (
@@ -1590,6 +1694,218 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#3B82F6',
     lineHeight: 17,
+  },
+
+  // ── NO ACTIVE EVENT NOTICE ───────────────────────────────────────
+  noActiveEventCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    marginBottom: 16,
+    ...SHADOWS.card,
+  },
+  noEventIconWell: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FEF3C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  noEventBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    marginBottom: 10,
+  },
+  noEventBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#B45309',
+    letterSpacing: 0.5,
+  },
+  noEventTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noEventDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 19,
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  noEventDivider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    width: '100%',
+    marginVertical: 10,
+  },
+  noEventActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+    marginTop: 4,
+  },
+  noEventBtnPrimary: {
+    flex: 1,
+    backgroundColor: '#1C3F94',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noEventBtnPrimaryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  noEventBtnSecondary: {
+    flex: 1,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingVertical: 12,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  noEventBtnSecondaryText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#1C3F94',
+  },
+
+  // ── ACTIVE EVENT BANNER ──────────────────────────────────────────
+  activeEventCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 15,
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    marginBottom: 14,
+    ...SHADOWS.card,
+  },
+  activeEventHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  livePulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    marginRight: 6,
+  },
+  activeEventHeaderTag: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#1C3F94',
+    letterSpacing: 0.5,
+  },
+  activeEventStatusPill: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  activeEventStatusPillText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  activeEventTitle: {
+    fontSize: 15.5,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  activeEventMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  activeEventMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  activeEventMetaText: {
+    fontSize: 12,
+    color: '#475569',
+    fontWeight: '500',
+  },
+
+  // ── UNIFIED RELIEF PACKAGE CARD ──────────────────────────────────
+  unifiedPackageCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 15,
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    marginBottom: 16,
+    ...SHADOWS.card,
+  },
+  unifiedPackageIconWell: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unifiedBadgeRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  unifiedBadge: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  unifiedBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  unifiedPackageTitle: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  unifiedPackageDetailsBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  unifiedPackageDetailsText: {
+    fontSize: 12,
+    color: '#334155',
+    lineHeight: 18,
   },
   sectionHeader: {
     marginBottom: 10,

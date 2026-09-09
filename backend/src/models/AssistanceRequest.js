@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const assistanceRequestSchema = new mongoose.Schema({
   householdId: { type: mongoose.Schema.Types.ObjectId, ref: 'Household', default: null },
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'DistributionEvent', default: null },
+  eventTitle: { type: String, default: '' },
   recipientName: { type: String, default: '' },
   recipientPhone: { type: String, default: '' },
   recipientAddress: { type: String, default: '' },
