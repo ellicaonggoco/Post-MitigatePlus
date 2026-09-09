@@ -71,6 +71,15 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
   const infantCount = members.filter(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions?.includes('child') && m.age <= 2)).length;
   const pwdCount = members.filter(m => m.specialConditions?.includes('pwd')).length;
 
+  // Multipliers from customPolicy (PolicyConfig in MongoDB)
+  const seniorMultiplier = (customPolicy && customPolicy.seniorTopUp !== undefined) ? Number(customPolicy.seniorTopUp) : 1;
+  const pwdMultiplier = (customPolicy && customPolicy.pwdTopUp !== undefined) ? Number(customPolicy.pwdTopUp) : 1;
+  const extraMultiplier = (customPolicy && customPolicy.extraMemberTopUp !== undefined) ? Number(customPolicy.extraMemberTopUp) : 1;
+
+  const finalExtraUnits = Math.max(1, Math.round(extraMemberTopUps * (extraMultiplier || 1)));
+  const finalSeniorUnits = Math.max(1, Math.round(seniorCount * (seniorMultiplier || 1)));
+  const finalPwdUnits = Math.max(1, Math.round(pwdCount * (pwdMultiplier || 1)));
+
   const items = [];
   // 1. Base All-in-One Package
   items.push({
@@ -86,14 +95,14 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
     isBase: true,
   });
 
-  // 2. Extra Member Top-Up (if headcount > 5)
+  // 2. Extra Member Top-Up (if headcount > baseCoverage)
   if (extraMemberTopUps > 0) {
     items.push({
       id: 'extra_headcount_topup',
-      name: `Extra Member Nutrition Top-Up (+${extraMemberTopUps})`,
-      nameTl: `Dagdag Pagkain para sa Sumobrang Miyembro (+${extraMemberTopUps})`,
-      description: `Karagdagang pagkain para sa ${extraMemberTopUps} miyembrong lampas sa 5-pax base capacity`,
-      quantity: extraMemberTopUps,
+      name: `Extra Member Nutrition Top-Up (+${finalExtraUnits})`,
+      nameTl: `Dagdag Pagkain para sa Sumobrang Miyembro (+${finalExtraUnits})`,
+      description: `Karagdagang pagkain para sa ${extraMemberTopUps} miyembrong lampas sa ${baseCoverage}-pax base capacity`,
+      quantity: finalExtraUnits,
       unit: 'units',
       badge: `+${extraMemberTopUps} pax`,
       icon: '🍚',
@@ -106,11 +115,11 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
   if (seniorCount > 0) {
     items.push({
       id: 'senior_maintenance_topup',
-      name: `Senior Maintenance & Nutrition Pack (+${seniorCount})`,
-      nameTl: `Senior Maintenance Meds & Nutrition Pack (+${seniorCount})`,
+      name: `Senior Maintenance & Nutrition Pack (+${finalSeniorUnits})`,
+      nameTl: `Senior Maintenance Meds & Nutrition Pack (+${finalSeniorUnits})`,
       description: 'Masustansyang pagkain at Maintenance Medicines (BP, diabetes, vitamins) para sa Senior Citizen',
-      quantity: seniorCount,
-      unit: seniorCount > 1 ? 'packs' : 'pack',
+      quantity: finalSeniorUnits,
+      unit: finalSeniorUnits > 1 ? 'packs' : 'pack',
       badge: `${seniorCount} Senior Citizen`,
       icon: '🧓',
       color: '#D97706',
@@ -138,11 +147,11 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
   if (pwdCount > 0) {
     items.push({
       id: 'pwd_support_topup',
-      name: `PWD Health & Mobility Support Pack (+${pwdCount})`,
-      nameTl: `Tulong Pangkalusugan para sa PWD (+${pwdCount})`,
+      name: `PWD Health & Mobility Support Pack (+${finalPwdUnits})`,
+      nameTl: `Tulong Pangkalusugan para sa PWD (+${finalPwdUnits})`,
       description: 'Pangunahing medikal at health support para sa miyembrong may kapansanan',
-      quantity: pwdCount,
-      unit: pwdCount > 1 ? 'packs' : 'pack',
+      quantity: finalPwdUnits,
+      unit: finalPwdUnits > 1 ? 'packs' : 'pack',
       badge: `${pwdCount} PWD Member`,
       icon: '♿',
       color: '#7C3AED',
