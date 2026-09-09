@@ -881,11 +881,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* Tab Bar - frosted glass */}
 <View style={styles.tabBarContainer}>
   {[
-    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
-    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} strokeWidth={isActive ? 2.5 : 2.0} filled={isActive} /> },
-    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
-    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
-    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={isActive} /> },
+    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
+    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} strokeWidth={isActive ? 2.4 : 2.0} filled={false} /> },
+    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
+    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
+    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
   ].map((item) => (
     <AnimatedNavItem
       key={item.key}
