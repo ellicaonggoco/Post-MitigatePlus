@@ -36,7 +36,7 @@ function PhilippineJeepneyIcon({ color = '#F59E0B' }) {
 }
 
 export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkMode = false }) {
-  const normalizedStage = (currentStage === 'recovered' || currentStage === 'received' || currentStage === 'assistance_received') ? 'claimed' : currentStage;
+  const normalizedStage = (currentStage === 'recovered' || currentStage === 'received' || currentStage === 'assistance_received' || currentStage === 'ongoing') ? 'claimed' : currentStage;
   const currentIndex = STOPS.findIndex(s => s.id === normalizedStage);
   const activeIdx = currentIndex >= 0 ? currentIndex : 2;
   const fillWidthPercent = `${(activeIdx / (STOPS.length - 1)) * 100}%`;

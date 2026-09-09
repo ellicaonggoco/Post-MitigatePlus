@@ -40,7 +40,7 @@ export default function RecoveryPhaseStepper({
     calculatedPercent = 0;
   } else {
     const statusLower = (currentStatus || 'waiting').toLowerCase();
-    if (statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received')) {
+    if (statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing')) {
       // Stage 5 completed (All 5 stages completed)
       activeIndex = 4;
       completedCount = 5;
