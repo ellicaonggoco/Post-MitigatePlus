@@ -191,7 +191,10 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
     >
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[styles.content, { paddingBottom: 100 + keyboardHeight }]}
+        contentContainerStyle={[
+          styles.content,
+          keyboardHeight > 0 && { justifyContent: 'flex-start', paddingBottom: keyboardHeight + 20 }
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -453,9 +456,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 6,
-    paddingBottom: 90,
+    paddingTop: Math.max(RESPONSIVE.topSafe + 12, 28),
+    paddingBottom: Math.max(RESPONSIVE.botSafe + 12, 28),
     alignItems: 'center',
   },
   backBtn: {

@@ -137,7 +137,10 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
     >
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]}
+        contentContainerStyle={[
+          styles.content,
+          keyboardHeight > 0 && { justifyContent: 'flex-start', paddingBottom: keyboardHeight + 20 }
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -248,7 +251,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
                 } catch { /* silently fail */ }
               }}
             >
-              <FingerprintIcon size={18} color="#1C3F94" />
+              <FingerprintIcon size={18} color="#C8102E" />
               <Text style={styles.biometricBtnText}>
                 {lang === 'tl' ? 'Mag-login gamit ang Fingerprint / Face ID' : 'Sign in with Fingerprint / Face ID'}
               </Text>
@@ -289,24 +292,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F6FC',
   },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 8,
-    paddingBottom: hp(6),
+    paddingTop: Math.max(RESPONSIVE.topSafe + 12, 28),
+    paddingBottom: Math.max(RESPONSIVE.botSafe + 12, 28),
     alignItems: 'center',
   },
   brandHeader: {
     alignItems: 'center',
-    marginBottom: hp(2),
+    marginBottom: 20,
     width: '100%',
     maxWidth: RESPONSIVE.maxCardWidth,
   },
   brandLogoImg: {
     width: Math.min(280, wp(72)),
-    height: 60,
+    height: 62,
     marginBottom: 8,
   },
   brandCityTitle: {
-    fontSize: 14.5,
+    fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
     color: '#0B1525',
     letterSpacing: -0.2,
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   brandSub: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: '#64748B',
     fontWeight: '500',
     textAlign: 'center',
@@ -326,6 +331,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 3.5,
     padding: RESPONSIVE.cardPadding,
     marginBottom: 16,
     ...(Platform.OS === 'web' ? {
@@ -364,20 +371,20 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 12,
-    color: '#1C3F94',
+    color: '#C8102E',
     fontWeight: '700',
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#1C3F94',
+    backgroundColor: '#C8102E',
     borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
+      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,
@@ -402,9 +409,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    borderTopColor: '#C9A84C',
+    borderTopWidth: 2.5,
     padding: 18,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 6px 20px rgba(11, 29, 78, 0.06)',
     } : {
@@ -427,16 +436,16 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#1C3F94',
+    borderColor: '#C8102E',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.12)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
+      shadowOpacity: 0.10,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -444,7 +453,7 @@ const styles = StyleSheet.create({
   registerActionBtnText: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
   footerNote: {
     fontSize: 10,
@@ -458,18 +467,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D6DEFA',
-    backgroundColor: '#EDF1FB',
+    borderColor: '#FECDD3',
+    backgroundColor: '#FEF0F2',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.06)',
+      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
-      shadowColor: '#1C3F94',
+      shadowColor: '#C8102E',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -477,6 +486,6 @@ const styles = StyleSheet.create({
   biometricBtnText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#1C3F94',
+    color: '#C8102E',
   },
 });

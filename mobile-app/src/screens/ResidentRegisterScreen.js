@@ -1460,7 +1460,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 6,
+    paddingTop: Math.max(RESPONSIVE.topSafe + 8, 20),
     paddingBottom: 95,
     alignItems: 'center',
   },
