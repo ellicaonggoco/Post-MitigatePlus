@@ -1066,35 +1066,50 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </LinearGradient>
                 </View>
 
-                {/* CTA Button: OUTSIDE and BELOW Viewfinder (Full-width blue gradient pill) */}
-                <TouchableOpacity
-                  style={[
-                    styles.scanCtaBtnWrapper,
-                    (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
-                  ]}
-                  onPress={async () => {
-                    if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
-                      await requestPermission();
-                    }
-                    handleResetScanner();
-                    setCameraMountKey(k => k + 1);
-                    setCameraReady(false);
-                    setScanModalVisible(true);
-                  }}
-                  activeOpacity={0.88}
-                >
-                  <LinearGradient
-                    colors={['#12296A', '#1C3F94']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.scanCtaGradient}
+                {/* Action Row: CTA Scan Button + In-Page Flash Toggle */}
+                <View style={styles.scanActionRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.scanCtaBtnWrapper,
+                      (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
+                    ]}
+                    onPress={async () => {
+                      if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
+                        await requestPermission();
+                      }
+                      handleResetScanner();
+                      setCameraMountKey(k => k + 1);
+                      setCameraReady(false);
+                      setScanModalVisible(true);
+                    }}
+                    activeOpacity={0.88}
                   >
-                    <ScanIcon size={19} color="#FFFFFF" />
-                    <Text style={styles.scanCtaText}>
-                      Tap to Scan QR Pass
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <LinearGradient
+                      colors={['#12296A', '#1C3F94']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.scanCtaGradient}
+                    >
+                      <ScanIcon size={19} color="#FFFFFF" />
+                      <Text style={styles.scanCtaText}>
+                        Tap to Scan QR Pass
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  {Platform.OS !== 'web' && (
+                    <TouchableOpacity
+                      style={[styles.inpageFlashBtn, torchOn && styles.inpageFlashBtnActive]}
+                      onPress={() => setTorchOn(prev => !prev)}
+                      activeOpacity={0.85}
+                    >
+                      <ZapIcon size={17} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
+                      <Text style={[styles.inpageFlashBtnText, torchOn && styles.inpageFlashBtnTextActive]}>
+                        {torchOn ? 'Flash: ON' : 'Flash: OFF'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
 
                 {/* Divider: OR with dashes */}
                 <View style={styles.orDividerRow}>
@@ -1143,7 +1158,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
                       <ScanIcon size={20} color="#C9A84C" />
-                      <View>
+                      <View style={{ flex: 1 }}>
                         <Text style={styles.scanModalTitle}>
                           {lang === 'tl' ? 'I-SCAN ANG QR PASS' : 'SCAN QR PASS'}
                         </Text>
@@ -1152,13 +1167,25 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => setScanModalVisible(false)}
-                      style={styles.scanModalCloseBtn}
-                      activeOpacity={0.8}
-                    >
-                      <CloseIcon size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      {Platform.OS !== 'web' && (
+                        <TouchableOpacity
+                          onPress={() => setTorchOn(prev => !prev)}
+                          style={[styles.headerFlashBtn, torchOn && styles.headerFlashBtnActive]}
+                          activeOpacity={0.8}
+                          accessibilityLabel="Toggle Flash"
+                        >
+                          <ZapIcon size={17} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        onPress={() => setScanModalVisible(false)}
+                        style={styles.scanModalCloseBtn}
+                        activeOpacity={0.8}
+                      >
+                        <CloseIcon size={18} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </LinearGradient>
 
@@ -1231,20 +1258,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                 </View>
 
-                {/* Flash Button (large, at bottom) */}
-                {Platform.OS !== 'web' && permission?.granted && (
-                  <TouchableOpacity
-                    style={[styles.flashModalBtn, torchOn && styles.flashModalBtnActive]}
-                    onPress={() => setTorchOn(prev => !prev)}
-                    activeOpacity={0.85}
-                  >
-                    <ZapIcon size={22} color={torchOn ? '#0B1D4E' : '#FFFFFF'} />
-                    <Text style={[styles.flashModalBtnText, torchOn && styles.flashModalBtnTextActive]}>
-                      {torchOn
-                        ? (lang === 'tl' ? 'Flash: Naka-ON' : 'Flash: ON')
-                        : (lang === 'tl' ? 'Flash: Naka-OFF' : 'Flash: OFF')}
-                    </Text>
-                  </TouchableOpacity>
+                {/* Dedicated Pinned Footer Bar with Flash Toggle */}
+                {Platform.OS !== 'web' && (
+                  <View style={styles.scanModalFooter}>
+                    <TouchableOpacity
+                      style={[styles.flashModalBtn, torchOn && styles.flashModalBtnActive]}
+                      onPress={() => setTorchOn(prev => !prev)}
+                      activeOpacity={0.85}
+                    >
+                      <ZapIcon size={20} color={torchOn ? '#0B1D4E' : '#FFFFFF'} />
+                      <Text style={[styles.flashModalBtnText, torchOn && styles.flashModalBtnTextActive]}>
+                        {torchOn
+                          ? (lang === 'tl' ? 'Flashlight: NAKA-ON' : 'Flashlight: ON')
+                          : (lang === 'tl' ? 'Flashlight: NAKA-OFF' : 'Flashlight: OFF')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </Modal>
@@ -2346,11 +2375,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
 
-  // CTA Button BELOW viewfinder
+  // Action Row: CTA Button + Flash Toggle
+  scanActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
   scanCtaBtnWrapper: {
+    flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 12,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 4px 18px rgba(28, 63, 148, 0.35)' }
       : {
@@ -2361,6 +2396,31 @@ const styles = StyleSheet.create({
           elevation: 6,
         }),
   },
+  inpageFlashBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(201, 168, 76, 0.35)',
+  },
+  inpageFlashBtnActive: {
+    backgroundColor: '#C9A84C',
+    borderColor: '#E6CA65',
+  },
+  inpageFlashBtnText: {
+    color: '#CBD5E1',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  inpageFlashBtnTextActive: {
+    color: '#0B1D4E',
+    fontWeight: '900',
+  },
   scanCtaDisabled: {
     opacity: 0.5,
   },
@@ -2370,11 +2430,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   scanCtaText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
@@ -2420,9 +2480,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   scanModalHeader: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 50,
-    paddingBottom: 16,
-    paddingHorizontal: 18,
+    paddingTop: Platform.OS === 'ios' ? 44 : 12,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     position: 'relative',
@@ -2434,6 +2494,20 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
+  },
+  headerFlashBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 76, 0.4)',
+  },
+  headerFlashBtnActive: {
+    backgroundColor: '#C9A84C',
+    borderColor: '#C9A84C',
   },
   scanModalTitle: {
     color: '#FFFFFF',
@@ -2602,31 +2676,41 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
+  scanModalFooter: {
+    backgroundColor: '#050B18',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'android' ? 14 : 26,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   flashModalBtn: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginHorizontal: 20,
-    marginVertical: 18,
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 13,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   flashModalBtnActive: {
     backgroundColor: '#C9A84C',
-    borderColor: '#C9A84C',
+    borderColor: '#E6CA65',
   },
   flashModalBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   flashModalBtnTextActive: {
     color: '#0B1D4E',
+    fontWeight: '900',
   },
 
   // Pagination Controls Styles
