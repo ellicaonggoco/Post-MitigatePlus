@@ -715,25 +715,54 @@ router.get('/my-releases', protect, requireRole('field_staff', 'barangay_officia
 router.get('/all-claims', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     let query = {};
-    if (req.user.role === 'barangay_official') {
-      query.barangayCode = req.user.barangayCode;
-    } else if (req.query.barangayCode && req.query.barangayCode !== 'all') {
-      query.barangayCode = req.query.barangayCode;
+    const Household = require('../models/Household');
+    const DistributionEvent = require('../models/DistributionEvent');
+
+    const targetBrgy = req.user.role === 'barangay_official' ? req.user.barangayCode : req.query.barangayCode;
+    if (targetBrgy && targetBrgy !== 'all') {
+      const cleanBrgy = String(targetBrgy).replace(/[^0-9]/g, '');
+      const [matchingHHs, matchingEvents] = await Promise.all([
+        Household.find({
+          $or: [
+            { barangayCode: cleanBrgy },
+            { barangayCode: targetBrgy },
+            { address: new RegExp(`Barangay\\s*${cleanBrgy}`, 'i') }
+          ]
+        }).select('_id').lean(),
+        DistributionEvent.find({
+          $or: [
+            { barangayCode: cleanBrgy },
+            { barangayCode: targetBrgy },
+            { barangay: new RegExp(`Barangay\\s*${cleanBrgy}`, 'i') }
+          ]
+        }).select('_id').lean(),
+      ]);
+
+      const hhIds = matchingHHs.map(h => h._id);
+      const evIds = matchingEvents.map(e => e._id);
+
+      query.$or = [
+        { householdId: { $in: hhIds } },
+        { distributionEventId: { $in: evIds } },
+        { barangayCode: cleanBrgy },
+        { barangayCode: targetBrgy },
+      ];
     }
     if (req.query.eventId) {
       query.distributionEventId = req.query.eventId;
     }
 
+    const limit = Number(req.query.limit) || 500;
     const claims = await Distribution.find(query)
       .populate('householdId', 'headOfHouseholdUserId address purok barangayCode memberCount qrCode')
       .populate({
         path: 'householdId',
         populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' }
       })
-      .populate('distributionEventId', 'title itemType location')
+      .populate('distributionEventId', 'title itemType location barangay barangayCode')
       .populate('releasedBy', 'name role teamName')
       .sort({ releasedAt: -1 })
-      .limit(100)
+      .limit(limit)
       .lean();
 
     res.json(claims.map(c => ({
@@ -742,7 +771,7 @@ router.get('/all-claims', protect, requireRole('barangay_official', 'lgu_admin',
       receiptNumber: `RCPT-${new Date(c.releasedAt || c.createdAt).getFullYear()}-${c._id.toString().slice(-6).toUpperCase()}`,
       householdName: c.householdId?.headOfHouseholdUserId?.name || 'Verified Beneficiary',
       householdAddress: c.householdId?.address || 'Manila City',
-      barangayCode: c.householdId?.barangayCode || c.barangayCode || '291',
+      barangayCode: c.householdId?.barangayCode || c.distributionEventId?.barangayCode || c.barangayCode || '291',
       qrCode: c.qrCode || c.householdId?.qrCode,
       eventTitle: c.distributionEventId?.title || 'Relief Distribution',
       itemType: c.distributionEventId?.itemType || 'Family Food Pack',

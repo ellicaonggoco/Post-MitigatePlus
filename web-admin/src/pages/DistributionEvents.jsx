@@ -24,9 +24,11 @@ import {
   Receipt,
   Search,
   FileText,
+  Filter,
 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
+import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 import io from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
@@ -60,6 +62,9 @@ export default function DistributionEvents() {
   const [claimsPage, setClaimsPage] = useState(1);
   const [claimsItemsPerPage, setClaimsItemsPerPage] = useState(8);
   const [claimsSearch, setClaimsSearch] = useState('');
+  const [selectedBrgy, setSelectedBrgy] = useState(
+    user?.role === 'barangay_official' ? (user?.barangayCode || '291') : 'all'
+  );
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = async () => {
@@ -92,9 +97,12 @@ export default function DistributionEvents() {
     }
   };
 
-  const fetchClaims = async () => {
+  const fetchClaims = async (targetBrgy = selectedBrgy) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/distributions/all-claims`, {
+      const url = targetBrgy && targetBrgy !== 'all'
+        ? `${API_BASE_URL}/distributions/all-claims?barangayCode=${encodeURIComponent(targetBrgy)}`
+        : `${API_BASE_URL}/distributions/all-claims`;
+      const res = await fetch(url, {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       });
       if (res.ok) {
@@ -108,7 +116,7 @@ export default function DistributionEvents() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchEvents(), fetchAnnouncements(), fetchClaims()]).finally(() => {
+    Promise.all([fetchEvents(), fetchAnnouncements(), fetchClaims(selectedBrgy)]).finally(() => {
       setLoading(false);
     });
 
@@ -570,13 +578,35 @@ export default function DistributionEvents() {
     return 'Scheduled';
   };
 
+  // Extract unique barangays that currently have claims in the roster
+  const availableBarangaysWithClaims = React.useMemo(() => {
+    const map = new Map();
+    claimsRoster.forEach(c => {
+      const rawCode = c.barangayCode || '';
+      const numCode = String(rawCode).replace(/[^0-9]/g, '');
+      if (numCode) {
+        map.set(numCode, (map.get(numCode) || 0) + 1);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => Number(a[0]) - Number(b[0]));
+  }, [claimsRoster]);
+
+  // Filter events by selected barangay
+  const eventsForBrgy = events.filter(e => {
+    if (!selectedBrgy || selectedBrgy === 'all') return true;
+    const target = String(selectedBrgy).replace(/[^0-9]/g, '');
+    const evBrgyCode = String(e.barangayCode || '').replace(/[^0-9]/g, '');
+    const evBrgyName = String(e.barangay || e.location || '').toLowerCase();
+    return evBrgyCode === target || evBrgyName.includes(`barangay ${target}`) || evBrgyName.includes(`brgy ${target}`) || evBrgyName.includes(`brgy. ${target}`);
+  });
+
   // Filter events by tab
   const filtered =
     filter === 'ALL'
-      ? events
+      ? eventsForBrgy
       : (filter === 'ANNOUNCED' || filter === 'CLAIMS')
       ? []
-      : events.filter(e => getEventStatus(e) === filter);
+      : eventsForBrgy.filter(e => getEventStatus(e) === filter);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -585,12 +615,23 @@ export default function DistributionEvents() {
   useEffect(() => {
     setCurrentPage(1);
     setClaimsPage(1);
-  }, [filter]);
+  }, [filter, selectedBrgy]);
 
   const paginatedEvents = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  // Filter claims roster
+  // Filter claims roster per barangay and search query
   const filteredClaims = claimsRoster.filter(c => {
+    // 1. Barangay filter
+    if (selectedBrgy && selectedBrgy !== 'all') {
+      const targetClean = String(selectedBrgy).replace(/[^0-9]/g, '');
+      const cBrgyClean = String(c.barangayCode || '').replace(/[^0-9]/g, '');
+      const cAddr = String(c.householdAddress || '').toLowerCase();
+      const matchCode = cBrgyClean === targetClean;
+      const matchAddr = cAddr.includes(`barangay ${targetClean}`) || cAddr.includes(`brgy ${targetClean}`) || cAddr.includes(`brgy. ${targetClean}`);
+      if (!matchCode && !matchAddr) return false;
+    }
+
+    // 2. Search query filter
     if (!claimsSearch.trim()) return true;
     const q = claimsSearch.toLowerCase();
     return (
@@ -1548,15 +1589,131 @@ export default function DistributionEvents() {
         document.body
       )}
 
-      {/* Filter Tabs: ALL, Scheduled, Ongoing, Completed, Announcement Sent */}
+      {/* ── City-Wide vs Barangay Scope Selector (List-down Dropbox & Search) ── */}
+      <div className="clay-card" style={{
+        padding: '14px 20px',
+        marginBottom: 18,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+        background: 'var(--card)',
+        border: '1.5px solid var(--border)',
+        borderRadius: '12px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: 'rgba(21, 87, 176, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#1557B0'
+          }}>
+            <MapPin size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Piliin ang Barangay (List-down Dropbox & Search)
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>
+                {selectedBrgy === 'all'
+                  ? '🌐 Lahat ng Barangay (Entire Manila City)'
+                  : `📍 Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}`}
+              </span>
+              {selectedBrgy !== 'all' && (
+                <span style={{
+                  fontSize: 11,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  background: '#EFF6FF',
+                  color: '#2563EB',
+                  fontWeight: 700
+                }}>
+                  {filteredClaims.length} Claims
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {/* Searchable Barangay Selector (Typing search + popover list down) */}
+          <SearchableBarangaySelect
+            value={selectedBrgy}
+            onChange={(val) => {
+              setSelectedBrgy(val);
+              setClaimsPage(1);
+              setCurrentPage(1);
+            }}
+            style={{ minWidth: '240px', maxWidth: '300px' }}
+          />
+
+          {/* Standard HTML Native List-down Dropbox for fast dropdown selection */}
+          <select
+            value={selectedBrgy}
+            aria-label="Pumili ng Barangay Dropbox"
+            onChange={(e) => {
+              setSelectedBrgy(e.target.value);
+              setClaimsPage(1);
+              setCurrentPage(1);
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1.5px solid var(--border)',
+              background: 'var(--card)',
+              color: 'var(--ink)',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value="all">🌐 Lahat ng Barangay (All)</option>
+            {availableBarangaysWithClaims.map(([bCode, count]) => (
+              <option key={`opt-avail-${bCode}`} value={bCode}>
+                📍 Barangay {bCode} ({count} {count === 1 ? 'Resibo' : 'Resibo'})
+              </option>
+            ))}
+            <option disabled>──────────</option>
+            {Array.from({ length: 30 }, (_, i) => String(i + 280)).map(bCode => (
+              <option key={`opt-num-${bCode}`} value={bCode}>
+                Barangay {bCode}
+              </option>
+            ))}
+          </select>
+
+          {selectedBrgy !== 'all' && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedBrgy('all');
+                setClaimsPage(1);
+                setCurrentPage(1);
+              }}
+              className="clay-button-ghost"
+              style={{ fontSize: 12, padding: '7px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              <X size={14} /> Ipakita Lahat
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Tabs: ALL, Scheduled, Ongoing, Completed, Announcement Sent, Relief Claims */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
-          { key: 'ALL', label: `ALL Events (${events.length})` },
-          { key: 'Scheduled', label: `Scheduled (${events.filter(e => getEventStatus(e) === 'Scheduled').length})` },
-          { key: 'Ongoing', label: `Ongoing (${events.filter(e => getEventStatus(e) === 'Ongoing').length})` },
-          { key: 'Completed', label: `Completed (${events.filter(e => getEventStatus(e) === 'Completed').length})` },
+          { key: 'ALL', label: `ALL Events (${eventsForBrgy.length})` },
+          { key: 'Scheduled', label: `Scheduled (${eventsForBrgy.filter(e => getEventStatus(e) === 'Scheduled').length})` },
+          { key: 'Ongoing', label: `Ongoing (${eventsForBrgy.filter(e => getEventStatus(e) === 'Ongoing').length})` },
+          { key: 'Completed', label: `Completed (${eventsForBrgy.filter(e => getEventStatus(e) === 'Completed').length})` },
           { key: 'ANNOUNCED', label: `Announcement Sent (${totalAnnouncementsCount})` },
-          { key: 'CLAIMS', label: `Relief Claims Roster / Resibo (${claimsRoster.length})` },
+          { key: 'CLAIMS', label: `Relief Claims Roster / Resibo (${selectedBrgy !== 'all' ? filteredClaims.length : claimsRoster.length})` },
         ].map(tab => (
           <button
             key={tab.key}
@@ -1583,10 +1740,27 @@ export default function DistributionEvents() {
       {filter === 'CLAIMS' ? (
         /* ── Live Relief Claims Roster View (All distributions saved from staff scanners) ── */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Top Controls: Search & Page Selector */}
+          {/* Top Controls: Barangay Dropbox, Search & Page Selector */}
           <div className="clay-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
-              <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 280, flexWrap: 'wrap' }}>
+              
+              {/* Barangay Filter Label & Dropdown */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                  Barangay:
+                </span>
+                <SearchableBarangaySelect
+                  value={selectedBrgy}
+                  onChange={(val) => {
+                    setSelectedBrgy(val);
+                    setClaimsPage(1);
+                  }}
+                  style={{ minWidth: '210px', maxWidth: '270px' }}
+                />
+              </div>
+
+              {/* Beneficiary, Receipt, Address, Officer Search Input */}
+              <div style={{ position: 'relative', flex: 1, minWidth: 240, maxWidth: 380 }}>
                 <Search size={16} color="var(--ink-soft)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="text"
@@ -1619,7 +1793,7 @@ export default function DistributionEvents() {
                   className="clay-button-ghost"
                   style={{ fontSize: 12, padding: '6px 12px', cursor: 'pointer' }}
                 >
-                  Clear
+                  Clear Search
                 </button>
               )}
             </div>
@@ -1661,6 +1835,87 @@ export default function DistributionEvents() {
               </div>
             </div>
           </div>
+
+          {/* Active Barangay Scope Banner */}
+          {selectedBrgy !== 'all' ? (
+            <div style={{
+              background: 'rgba(21, 87, 176, 0.08)',
+              border: '1.5px solid #1557B0',
+              borderRadius: '10px',
+              padding: '12px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 10
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <MapPin size={20} color="#1557B0" />
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#1557B0' }}>
+                    Naka-filter sa: Barangay {String(selectedBrgy).replace(/[^0-9]/g, '')}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    Ipinapakita ang {filteredClaims.length} relief distribution claims / opisyal na resibo para sa Barangay {String(selectedBrgy).replace(/[^0-9]/g, '')}.
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedBrgy('all'); setClaimsPage(1); }}
+                  className="clay-button-ghost"
+                  style={{ fontSize: 12, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, background: '#FFFFFF' }}
+                >
+                  Ipakita Lahat ng Barangay ({claimsRoster.length})
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '10px 16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 8,
+              fontSize: 12.5,
+              color: '#475569',
+              fontWeight: 600
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Globe size={15} color="#64748B" />
+                <span>Ipinapakita ang lahat ng claims sa buong Maynila ({filteredClaims.length} Resibo). Gamitin ang <strong>Barangay Dropbox</strong> sa itaas para mag-filter kada barangay.</span>
+              </div>
+              {availableBarangaysWithClaims.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>Quick select:</span>
+                  {availableBarangaysWithClaims.slice(0, 4).map(([bCode, cnt]) => (
+                    <button
+                      key={`btn-brgy-${bCode}`}
+                      type="button"
+                      onClick={() => { setSelectedBrgy(bCode); setClaimsPage(1); }}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFFFFF',
+                        color: '#1557B0',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Brgy {bCode} ({cnt})
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Claims Table / List */}
           {filteredClaims.length === 0 ? (
