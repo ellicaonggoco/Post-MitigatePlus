@@ -901,8 +901,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       >
         {/* Gold rule top */}
         <View style={styles.headerGoldRule} />
-        {/* Status bar safe area */}
-        <View style={{ height: Platform.OS === 'web' ? 0 : STATUSBAR_INSET }} />
         <View style={styles.headerContentRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
@@ -912,9 +910,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} — Batch 1</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.glassSignOutPill} onPress={onLogout} activeOpacity={0.82}>
-            <Text style={styles.glassSignOutText}>Sign Out</Text>
-          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -3090,7 +3085,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navIconWellActive: {
-    backgroundColor: '#EDF1FB',
+    backgroundColor: 'transparent',
   },
   navTabLabel: {
     fontSize: 10.5,

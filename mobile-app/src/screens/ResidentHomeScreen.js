@@ -388,8 +388,6 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   >
     {/* Gold rule top */}
     <View style={styles.headerGoldRule} />
-    {/* Status bar safe area */}
-    <View style={{ height: Platform.OS === 'web' ? 0 : STATUSBAR_INSET }} />
     {/* Profile Row */}
     <View style={styles.profileRow}>
       {/* Avatar */}
