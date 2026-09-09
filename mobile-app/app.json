@@ -30,7 +30,9 @@
         "WRITE_EXTERNAL_STORAGE",
         "INTERNET",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -46,8 +48,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "ca1506c5-36f2-4961-a9b1-9b321ce9b813"
+        "projectId": "a27f3d5a-0dc3-43c9-9b66-fc72e3031133"
       }
-    }
+    },
+    "owner": "ellica19"
   }
 }
