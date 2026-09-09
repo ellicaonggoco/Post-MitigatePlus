@@ -78,6 +78,15 @@ router.post('/send-otp', async (req, res) => {
           message: 'Walang account na natagpuan para sa email o mobile number na ito. Pakisuri ang inyong rehistradong credentials.'
         });
       }
+    } else {
+      // Registration flow: strictly check that the phone number or email is NOT already registered to any account
+      const existingUser = await findExistingUserWithIdentifier(key);
+      if (existingUser) {
+        const roleLabel = existingUser.role === 'resident' ? 'Residente' : existingUser.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
+        return res.status(400).json({
+          message: `Ang numero na ito ay rehistrado na bilang ${roleLabel} (${existingUser.name}). Isang account lamang ang pinapayagan kada mobile number.`
+        });
+      }
     }
 
     // Generate secure 6-digit random OTP code
