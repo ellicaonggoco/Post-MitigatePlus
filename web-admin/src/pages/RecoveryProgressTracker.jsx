@@ -289,7 +289,7 @@ export default function RecoveryProgressTracker() {
   const fetchRecovery = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/recovery`, {
+      const res = await fetch(`${API_BASE_URL}/recovery?barangayCode=${encodeURIComponent(brgy)}`, {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
       });
       const data = await res.json();
@@ -507,6 +507,7 @@ export default function RecoveryProgressTracker() {
         setCurrentPage(1);
         setBulkResetSuccess(data.message || 'Matagumpay na na-reset ang recovery progress ng buong barangay para sa bagong relief cycle!');
         setTimeout(() => setBulkResetSuccess(''), 6000);
+        await fetchRecovery(true);
       } else {
         alert(data.message || 'Error resetting barangay recovery');
       }

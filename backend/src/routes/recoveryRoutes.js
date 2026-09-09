@@ -11,35 +11,25 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    if (req.query.barangayCode) {
-      const householdIds = await Household.find({ barangayCode: req.query.barangayCode }).select('_id');
+    let targetBrgy = req.query.barangayCode;
+    if (req.user.role === 'barangay_official' && req.user.barangayCode) {
+      targetBrgy = req.user.barangayCode;
+    }
+    if (targetBrgy) {
+      const householdIds = await Household.find({ barangayCode: targetBrgy }).select('_id');
       filter.householdId = { $in: householdIds.map(h => h._id) };
     }
 
-    // Auto-create recovery status and sync with Distribution claims
-    const allVerifiedHouseholds = await Household.find().populate('headOfHouseholdUserId', 'name emailOrPhone');
-    const allClaimedHhIds = await Distribution.distinct('householdId');
-    const allClaimedQrs = await Distribution.distinct('qrCode');
-    const claimedHhSet = new Set(allClaimedHhIds.map(id => String(id)));
-    const claimedQrSet = new Set(allClaimedQrs.filter(Boolean));
-
+    // Ensure all verified households have an initial recovery status record if missing
+    const allVerifiedHouseholds = await Household.find(targetBrgy ? { barangayCode: targetBrgy } : {}).select('_id');
     for (const vh of allVerifiedHouseholds) {
-      const vhIdStr = String(vh._id);
-      const hasClaimed = claimedHhSet.has(vhIdStr) ||
-                         (vh.qrCode && claimedQrSet.has(vh.qrCode)) ||
-                         (vh.previousQrCodes && vh.previousQrCodes.some(p => claimedQrSet.has(p.code)));
-
       const existing = await RecoveryStatus.findOne({ householdId: vh._id });
       if (!existing) {
         await RecoveryStatus.create({
           householdId: vh._id,
-          status: hasClaimed ? 'assistance_received' : 'waiting',
+          status: 'waiting',
           updatedBy: req.user._id,
         });
-      } else if (existing.status === 'waiting' && hasClaimed) {
-        existing.status = 'assistance_received';
-        existing.updatedAt = new Date();
-        await existing.save();
       }
     }
 
@@ -167,7 +157,7 @@ router.post('/reset-barangay', protect, requireRole('lgu_admin', 'lgu_superadmin
       return res.status(404).json({ message: `Walang natagpuang households sa Barangay ${targetBrgy}.` });
     }
 
-    // Ensure all households have a RecoveryStatus record, then set all to 'waiting'
+    // 1. Reset all households in this barangay to 'waiting'
     for (const hid of hhIds) {
       await RecoveryStatus.findOneAndUpdate(
         { householdId: hid },
@@ -182,20 +172,31 @@ router.post('/reset-barangay', protect, requireRole('lgu_admin', 'lgu_superadmin
       );
     }
 
+    // 2. Clear past distribution claim records for this barangay so households can claim relief again in the new calamity
+    const deletedDistributions = await Distribution.deleteMany({ householdId: { $in: hhIds } });
+
+    // 3. Close any currently active distribution events for this barangay
+    const DistributionEvent = require('../models/DistributionEvent');
+    await DistributionEvent.updateMany(
+      { barangayCode: targetBrgy, isActive: true },
+      { $set: { isActive: false, status: 'Completed' } }
+    );
+
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: req.user.role,
       action: 'BULK_RECOVERY_RESET',
       targetType: 'Barangay',
       targetId: String(targetBrgy),
-      notes: `Bulk reset recovery stage to 'waiting' for ${hhIds.length} households in Barangay ${targetBrgy}. Reason: ${reason || 'New typhoon / calamity relief cycle declaration'}`,
+      notes: `Declared new calamity for Barangay ${targetBrgy}. Reset ${hhIds.length} households to 'waiting' and cleared ${deletedDistributions.deletedCount || 0} relief distribution claims for the new calamity cycle. Reason: ${reason || 'New typhoon / calamity relief cycle declaration'}`,
     });
 
-    // Broadcast via WebSockets to mobile apps and web admin
+    // 4. Broadcast via WebSockets to mobile apps and web admin
     const io = req.app.get('io');
     if (io) {
       hhIds.forEach(hid => {
         io.to(`household:${hid}`).emit('recovery_status_updated', 'waiting');
+        io.to(`household:${hid}`).emit('calamity_declared_reset', { barangayCode: targetBrgy });
       });
       io.to(`brgy:${targetBrgy}`).emit('recovery_status_updated', 'waiting');
       io.emit('barangay_recovery_reset', { barangayCode: targetBrgy, count: hhIds.length });
@@ -203,8 +204,9 @@ router.post('/reset-barangay', protect, requireRole('lgu_admin', 'lgu_superadmin
 
     res.json({
       success: true,
-      message: `Matagumpay na na-reset ang recovery progress ng ${hhIds.length} pamilya sa Barangay ${targetBrgy} pabalik sa Stage 2 (Waiting / Assessed) para sa bagong relief operation!`,
+      message: `Matagumpay na na-reset ang buong Barangay ${targetBrgy}! Lahat ng ${hhIds.length} pamilya ay naibalik sa "Waiting for Ayuda" at na-clear ang mga lumang claim records para sa bagong relief operation!`,
       count: hhIds.length,
+      clearedClaimsCount: deletedDistributions.deletedCount || 0,
       barangayCode: targetBrgy,
     });
   } catch (err) {
