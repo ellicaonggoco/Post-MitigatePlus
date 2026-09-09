@@ -281,10 +281,19 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         socket.on('distribution_event_updated', () => {
           refreshData(true);
         });
-        socket.on('new_announcement', () => {
+        socket.on('new_announcement', (newAnn) => {
+          if (newAnn && (newAnn._id || newAnn.id)) {
+            setAnnouncements(prev => [newAnn, ...prev.filter(a => (a._id || a.id) !== (newAnn._id || newAnn.id))]);
+          }
           refreshData(true);
         });
-        socket.on('announcement_updated', () => {
+        socket.on('announcement_updated', (updatedAnn) => {
+          if (updatedAnn && (updatedAnn._id || updatedAnn.id)) {
+            const uId = String(updatedAnn._id || updatedAnn.id);
+            setAnnouncements(prev =>
+              prev.map(a => (String(a._id || a.id) === uId ? { ...a, ...updatedAnn, edited: true } : a))
+            );
+          }
           refreshData(true);
         });
         socket.on('assistance_released', () => {
@@ -884,10 +893,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           <View style={styles.annTagBadge}>
                             <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
                           </View>
-                          {ann.edited ? (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+                          {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
+                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
+                              <Text style={{ fontSize: 9 }}>✏️</Text>
                               <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
-                                {lang === 'tl' ? '(Nai-edit)' : '(Edited)'}
+                                {lang === 'tl' ? 'Nai-edit' : 'Edited'}
                               </Text>
                             </View>
                           ) : null}
@@ -1300,10 +1310,20 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           />
           <View style={styles.announcementDetailCard}>
             <View style={styles.annDetailTopRow}>
-              <View style={styles.annTagBadge}>
-                <Text style={styles.annTagText}>
-                  {selectedAnnouncement?.tag || (lang === 'tl' ? 'Opisyal na Anunsyo' : 'Official Advisory')}
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <View style={styles.annTagBadge}>
+                  <Text style={styles.annTagText}>
+                    {selectedAnnouncement?.tag || (lang === 'tl' ? 'Opisyal na Anunsyo' : 'Official Advisory')}
+                  </Text>
+                </View>
+                {(selectedAnnouncement?.edited || selectedAnnouncement?.editedAt || selectedAnnouncement?.tag === 'UPDATED' || (selectedAnnouncement?.title && selectedAnnouncement.title.includes('Na-update'))) && (
+                  <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                    <Text style={{ fontSize: 10 }}>✏️</Text>
+                    <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
+                      {lang === 'tl' ? 'Nai-edit ng Opisyal' : 'Edited by Official'}
+                    </Text>
+                  </View>
+                )}
               </View>
               <TouchableOpacity
                 style={styles.annDetailCloseBtn}

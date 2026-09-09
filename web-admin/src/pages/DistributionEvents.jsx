@@ -171,9 +171,10 @@ export default function DistributionEvents() {
 
   const [toastMsg, setToastMsg] = useState('');
 
-  // State for Editing Event Announcement Pop-up Card
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [editingAnnouncementText, setEditingAnnouncementText] = useState('');
+  // State for Editing Announcement (Works for both Standalone and Event announcements)
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [editingBody, setEditingBody] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
 
   const MANILA_BARANGAYS = Array.from({ length: 905 }, (_, i) => ({
@@ -475,41 +476,109 @@ export default function DistributionEvents() {
     }
   };
 
-  const handleOpenEditAnnouncement = (ev, e) => {
+  const handleOpenEditStandaloneAnnouncement = (ann, e) => {
     if (e) e.stopPropagation();
-    const currentMsg =
-      ev.announcementMessage ||
-      `Good day to all residents of ${ev.barangay || (ev.barangayCode ? `Barangay ${ev.barangayCode}` : ev.location)}! A relief distribution of ${ev.items || ev.itemType || 'Family Food Pack'} is scheduled on ${ev.date || ev.scheduledDate || 'the scheduled date'} at ${ev.time || ev.scheduledTime || '08:00 AM'} led by ${ev.assignedTeam || ev.staff || 'Field Team'}. Please prepare your Digital QR Relief Pass for scanning.`;
-    setEditingEvent(ev);
-    setEditingAnnouncementText(currentMsg);
+    const brgyName = ann.barangayCode ? `Barangay ${ann.barangayCode}` : 'Entire Manila City (City-Wide)';
+    setEditingAnnouncement({
+      isEvent: false,
+      id: ann._id || ann.id,
+      title: ann.title || '',
+      body: ann.body || '',
+      barangay: brgyName,
+      scope: ann.scope || (ann.barangayCode ? 'barangay' : 'city-wide'),
+      isUrgent: ann.isUrgent,
+      tag: ann.tag,
+    });
+    setEditingTitle(ann.title || '');
+    setEditingBody(ann.body || '');
   };
 
-  const handleUpdateAnnouncement = async () => {
-    if (!editingEvent || !editingAnnouncementText.trim()) return;
+  const handleOpenEditEventAnnouncement = (ev, e) => {
+    if (e) e.stopPropagation();
+    const evBrgy = ev.barangay || (ev.barangayCode ? `Barangay ${ev.barangayCode}` : ev.location || 'Barangay 291');
+    const evDate = ev.date || ev.scheduledDate || 'Scheduled';
+    const evTime = ev.time || ev.scheduledTime || '08:00 AM';
+    const currentMsg =
+      ev.announcementMessage ||
+      `Good day to all residents of ${evBrgy}! A relief distribution of ${ev.items || ev.itemType || 'Family Food Pack'} is scheduled on ${evDate} at ${evTime} led by ${ev.assignedTeam || ev.staff || 'Field Team'}. Please prepare your Digital QR Relief Pass for quick verification and release.`;
+    const defaultTitle = `Relief Distribution Broadcast - ${evBrgy}`;
+    setEditingAnnouncement({
+      isEvent: true,
+      id: ev._id || ev.id,
+      title: ev.title || defaultTitle,
+      body: currentMsg,
+      barangay: evBrgy,
+      date: evDate,
+      time: evTime,
+      households: ev.households || ev.targetHouseholds || 150,
+      items: ev.items || ev.itemType || 'Family Food Pack',
+    });
+    setEditingTitle(ev.title || defaultTitle);
+    setEditingBody(currentMsg);
+  };
+
+  const handleOpenEditAnnouncement = (ev, e) => {
+    handleOpenEditEventAnnouncement(ev, e);
+  };
+
+  const handleSaveAnnouncement = async () => {
+    if (!editingAnnouncement || !editingBody.trim()) return;
     setUpdateLoading(true);
     try {
-      const evId = editingEvent._id || editingEvent.id;
-      const res = await fetch(`${API_BASE_URL}/distributions/events/${evId}/announcement`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: 'Bearer ' + token,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ announcementMessage: editingAnnouncementText }),
-      });
-      if (res.ok) {
-        setEvents(prev =>
-          prev.map(e =>
-            (e._id || e.id) === evId ? { ...e, announcementMessage: editingAnnouncementText } : e
-          )
-        );
-        fetchAnnouncements();
-        setEditingEvent(null);
-        setToastMsg(`Announcement updated and broadcast alert dispatched to citizen mobile apps!`);
+      if (!editingAnnouncement.isEvent) {
+        // 1. Standalone Announcement Update
+        const annId = editingAnnouncement.id;
+        const res = await fetch(`${API_BASE_URL}/announcements/${annId}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: editingTitle.trim() || editingAnnouncement.title,
+            body: editingBody.trim(),
+            tag: 'UPDATED',
+          }),
+        });
+        if (res.ok) {
+          const updatedAnn = await res.json();
+          setAnnouncements(prev =>
+            prev.map(a => ((a._id || a.id) === annId ? { ...a, ...updatedAnn, edited: true, editedAt: new Date() } : a))
+          );
+          setEditingAnnouncement(null);
+          setToastMsg('Anunsyo matagumpay na na-edit! May "(Nai-edit)" indicator na ito sa mobile app.');
+        } else {
+          alert('Could not update announcement.');
+        }
       } else {
-        alert('Could not update announcement.');
+        // 2. Event-Linked Announcement Update
+        const evId = editingAnnouncement.id;
+        const res = await fetch(`${API_BASE_URL}/distributions/events/${evId}/announcement`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            announcementMessage: editingBody.trim(),
+            title: editingTitle.trim(),
+          }),
+        });
+        if (res.ok) {
+          setEvents(prev =>
+            prev.map(e =>
+              (e._id || e.id) === evId ? { ...e, announcementMessage: editingBody.trim() } : e
+            )
+          );
+          await fetchAnnouncements();
+          setEditingAnnouncement(null);
+          setToastMsg('Distribution announcement updated and broadcast alert sent to mobile apps with "(Nai-edit)" indicator!');
+        } else {
+          alert('Could not update event announcement.');
+        }
       }
     } catch (err) {
+      console.error('Error updating announcement:', err);
       alert('Error updating announcement.');
     } finally {
       setUpdateLoading(false);
@@ -1474,8 +1543,8 @@ export default function DistributionEvents() {
         document.body
       )}
 
-      {/* Modal 3: Edit Event Announcement Pop-up Card */}
-      {editingEvent && ReactDOM.createPortal(
+      {/* Modal 3: Edit Announcement Modal (Supports both Standalone & Event Announcements) */}
+      {editingAnnouncement && ReactDOM.createPortal(
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -1507,42 +1576,81 @@ export default function DistributionEvents() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg, #1557B0, #0F172A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Megaphone size={20} color="#FFFFFF" />
+                  <Edit3 size={20} color="#FFFFFF" />
                 </div>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 900, margin: 0, color: 'var(--ink)' }}>
-                    Edit Official Announcement - {editingEvent.barangay || (editingEvent.barangayCode ? `Barangay ${editingEvent.barangayCode}` : editingEvent.location || 'Barangay 291')}
+                    Edit Broadcast Announcement
                   </h3>
                   <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '2px 0 0' }}>
-                    Update relief distribution details and broadcast the updated advisory to citizen mobile apps.
+                    I-update ang anunsyo. Awtomatikong magkakaroon ng <strong>"(Nai-edit)"</strong> indicator sa mobile app ng mga residente.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setEditingEvent(null)}
+                onClick={() => setEditingAnnouncement(null)}
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'var(--ink-soft)' }}
               >
                 <X size={20} />
               </button>
             </div>
 
+            {/* Scope / Location metadata banner */}
             <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: 16 }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 12.5, color: '#334155' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MapPin size={13} color="#1557B0" /> <strong>Location:</strong> {editingEvent.barangay || (editingEvent.barangayCode ? `Barangay ${editingEvent.barangayCode}` : editingEvent.location || 'Barangay')}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color="#1557B0" /> <strong>Date:</strong> {editingEvent.date || editingEvent.scheduledDate || 'Scheduled Date'}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={13} color="#1557B0" /> <strong>Time:</strong> {editingEvent.time || editingEvent.scheduledTime || '08:00 AM'}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Users size={13} color="#1557B0" /> <strong>Target:</strong> {editingEvent.households || editingEvent.targetHouseholds || 150} Households</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <MapPin size={13} color="#1557B0" /> <strong>Sakop / Barangay:</strong> {editingAnnouncement.barangay}
+                </span>
+                {editingAnnouncement.isEvent && (
+                  <>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Calendar size={13} color="#1557B0" /> <strong>Petsa:</strong> {editingAnnouncement.date}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Clock size={13} color="#1557B0" /> <strong>Oras:</strong> {editingAnnouncement.time}
+                    </span>
+                  </>
+                )}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#B45309', fontWeight: 700 }}>
+                  <Edit3 size={13} color="#B45309" /> <span>Marka sa Mobile: <strong>✏️ "(Nai-edit)"</strong></span>
+                </span>
               </div>
             </div>
 
+            {/* Title Input */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                Pamagat ng Anunsyo (Title) *
+              </label>
+              <input
+                type="text"
+                value={editingTitle}
+                onChange={e => setEditingTitle(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #CBD5E1',
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  outline: 'none',
+                  background: '#FFFFFF',
+                  color: 'var(--ink)',
+                  boxSizing: 'border-box',
+                }}
+                required
+              />
+            </div>
+
+            {/* Body / Message Textarea */}
             <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
-                Official Broadcast Announcement (Displays in Mobile App with "Updated" badge):
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                Nilalaman / Mensahe ng Anunsyo (Body) *
               </label>
               <textarea
-                value={editingAnnouncementText}
-                onChange={e => setEditingAnnouncementText(e.target.value)}
+                value={editingBody}
+                onChange={e => setEditingBody(e.target.value)}
                 rows={5}
                 style={{
                   width: '100%',
@@ -1561,27 +1669,27 @@ export default function DistributionEvents() {
                 required
               />
               <p style={{ margin: '6px 0 0', fontSize: 11.5, color: '#64748B' }}>
-                When saved, this advisory will be updated in the citizen mobile app with an "Updated" status tag.
+                💡 Pagka-save, magpapadala ito ng real-time broadcast at magkakaroon ng <strong>✏️ Nai-edit</strong> status badge sa mobile app.
               </p>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 type="button"
-                onClick={() => setEditingEvent(null)}
+                onClick={() => setEditingAnnouncement(null)}
                 className="clay-button-ghost"
                 style={{ fontSize: 13, padding: '10px 18px', cursor: 'pointer' }}
               >
-                Cancel
+                Kanselahin
               </button>
               <button
                 type="button"
-                onClick={handleUpdateAnnouncement}
+                onClick={handleSaveAnnouncement}
                 disabled={updateLoading}
                 className="clay-button-approve"
                 style={{ fontSize: 13, padding: '10px 22px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 800 }}
               >
-                <Edit3 size={15} /> {updateLoading ? 'Saving...' : 'Save & Broadcast Updated Announcement'}
+                <Edit3 size={15} /> {updateLoading ? 'Sinesave...' : 'I-save at I-broadcast ang Na-edit na Anunsyo'}
               </button>
             </div>
           </div>
@@ -2133,9 +2241,9 @@ export default function DistributionEvents() {
                         {ann.isUrgent ? 'URGENT ALERT' : (ann.tag || ann.category || 'ADVISORY')}
                       </span>
 
-                      {ann.edited && (
-                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <Edit3 size={11} color="#B45309" /> UPDATED
+                      {(ann.edited || ann.editedAt || ann.tag === 'UPDATED') && (
+                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#B45309', background: '#FEF3C7', border: '1px solid #FCD34D', padding: '2px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Edit3 size={11} color="#B45309" /> NAI-EDIT / UPDATED
                         </span>
                       )}
                     </div>
@@ -2153,6 +2261,29 @@ export default function DistributionEvents() {
                       <span><Users size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />Posted by: <strong>{ann.postedBy?.name || 'LGU MDRRMO Administrator'}</strong></span>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => handleOpenEditStandaloneAnnouncement(ann, e)}
+                    style={{
+                      fontSize: 12,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '7px 14px',
+                      background: '#F1F5F9',
+                      color: '#1557B0',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 800,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
+                  >
+                    <Edit3 size={13} /> Edit Announcement
+                  </button>
                 </div>
               </MotionCard>
             );
