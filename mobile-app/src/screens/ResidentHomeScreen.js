@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
@@ -115,6 +115,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const lastBackPressRef = useRef(0);
 
   // Hardware Back Press Navigation for Resident App
@@ -207,34 +208,37 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
-  useEffect(() => {
-    async function loadData() {
-      if (!token) return;
-      try {
-        setLoadingProfile(true);
-        const profile = await fetchHouseholdProfile(token);
-        if (profile?.household) {
-          setHouseholdData(profile.household);
-          if (profile.household.inAppNotifications) {
-            setInAppNotifs(profile.household.inAppNotifications);
-          }
-          initSocket(profile.household._id, profile.household.barangayCode || '291');
-        } else {
-          initSocket(null, user?.barangayCode || '291');
-        }
-        const currentBrgy = profile?.household?.barangayCode || user?.barangayCode || '291';
-        const liveAnnouncements = await fetchAnnouncements(currentBrgy);
-        if (Array.isArray(liveAnnouncements) && liveAnnouncements.length > 0) {
-          setAnnouncements(liveAnnouncements);
-        }
-      } catch (err) {
-        console.warn('Profile sync fallback:', err);
-      } finally {
-        setLoadingProfile(false);
-      }
-    }
+  const refreshData = async (isManual = false) => {
+    if (!token) return;
+    try {
+      if (isManual) setLoadingProfile(false);
+      else setLoadingProfile(true);
 
-    loadData();
+      const profile = await fetchHouseholdProfile(token);
+      if (profile?.household) {
+        setHouseholdData(profile.household);
+        if (profile.household.inAppNotifications) {
+          setInAppNotifs(profile.household.inAppNotifications);
+        }
+        initSocket(profile.household._id, profile.household.barangayCode || '291');
+      } else {
+        initSocket(null, user?.barangayCode || '291');
+      }
+      const currentBrgy = profile?.household?.barangayCode || user?.barangayCode || '291';
+      const liveAnnouncements = await fetchAnnouncements(currentBrgy);
+      if (Array.isArray(liveAnnouncements) && liveAnnouncements.length > 0) {
+        setAnnouncements(liveAnnouncements);
+      }
+    } catch (err) {
+      console.warn('Profile sync fallback:', err);
+    } finally {
+      setRefreshing(false);
+      setLoadingProfile(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshData(false);
 
     try {
       const socket = initSocket(household?._id, household?.barangayCode || user?.barangayCode || '291');
@@ -266,11 +270,23 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         onRecoveryStatusUpdated((status) => {
           setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: status } : prev));
         });
+        socket.on('recovery_updated', (data) => {
+          if (data && (String(data.householdId) === String(householdData?._id) || (data.relatedHouseholdIds && data.relatedHouseholdIds.includes(String(householdData?._id))))) {
+            setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: data.status } : prev));
+          }
+        });
       }
     } catch (e) {
       console.warn('Socket connection note:', e);
     }
   }, [token]);
+
+  // Silently re-sync fresh household and recovery state whenever resident returns to 'home' tab
+  useEffect(() => {
+    if (activeTab === 'home' && token) {
+      refreshData(true);
+    }
+  }, [activeTab]);
 
   const rawName = householdData?.name || user?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
   const householdName = formatCapitalizeWords(rawName);
@@ -430,7 +446,18 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* 2. Main Tab Screen Content */}
       <View style={styles.body}>
         {activeTab === 'home' ? (
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => refreshData(true)}
+                colors={['#C8102E']}
+                tintColor="#C8102E"
+              />
+            }
+          >
             {/* 5-Phase Linear Disaster Recovery Status Stepper (Compact Top Position) */}
             <RecoveryPhaseStepper
               currentStatus={isVerified ? (householdData?.recoveryStatus || 'waiting') : 'pending'}
