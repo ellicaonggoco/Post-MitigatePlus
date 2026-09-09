@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar, LogBox } from 'react-native';
+import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar, LogBox, BackHandler, ToastAndroid } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -138,6 +138,43 @@ export default function App() {
     } catch (e) {}
   };
 
+  const lastBackPressRef = useRef(0);
+
+  useEffect(() => {
+    const onHardwareBackPress = () => {
+      // If user is currently on 'register' or 'forgot' screen, return to login
+      if (!userSession && currentScreen !== 'login') {
+        setCurrentScreen('login');
+        return true; // consumed
+      }
+
+      // If user is on 'login' root screen, prevent accidental immediate exit
+      if (!userSession && currentScreen === 'login') {
+        const now = Date.now();
+        if (now - lastBackPressRef.current < 2000) {
+          return false; // let Android exit gracefully
+        }
+        lastBackPressRef.current = now;
+        if (Platform.OS === 'android') {
+          ToastAndroid.show(
+            lang === 'tl' ? 'Pindutin muli ang Back upang lumabas' : 'Press Back again to exit',
+            ToastAndroid.SHORT
+          );
+        }
+        return true; // consumed
+      }
+
+      return false;
+    };
+
+    const backHandlerSub = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onHardwareBackPress
+    );
+
+    return () => backHandlerSub.remove();
+  }, [userSession, currentScreen, lang]);
+
   const isStaff = userSession?.role === 'staff' || userSession?.role === 'field_staff';
   const activeKey = userSession ? (isStaff ? 'staff' : 'resident') : currentScreen;
 
@@ -146,58 +183,58 @@ export default function App() {
       <StatusBar style="dark" />
 
       {/* 1. Minimal Pure White Splash Screen with Cross-Fade Transition */}
-      {showSplash && (
+      {showSplash ? (
         <SplashScreen onFinish={() => setShowSplash(false)} />
-      )}
-
-      {/* 2. Adaptive Responsive Shell for All Screen Sizes */}
-      <View style={styles.adaptiveWrapper}>
-        <ScreenTransition transitionKey={activeKey}>
-          {userSession ? (
-            // Role-Based Operations Portal
-            isStaff ? (
-              <StaffScannerScreen
-                token={userSession.token}
-                user={userSession}
+      ) : (
+        /* 2. Adaptive Responsive Shell for All Screen Sizes */
+        <View style={styles.adaptiveWrapper}>
+          <ScreenTransition transitionKey={activeKey}>
+            {userSession ? (
+              // Role-Based Operations Portal
+              isStaff ? (
+                <StaffScannerScreen
+                  token={userSession.token}
+                  user={userSession}
+                  lang={lang}
+                  onSelectLang={handleSelectLang}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <ResidentHomeScreen
+                  user={userSession}
+                  household={userSession.household}
+                  token={userSession.token}
+                  lang={lang}
+                  onSelectLang={handleSelectLang}
+                  onLogout={handleLogout}
+                />
+              )
+            ) : currentScreen === 'login' ? (
+              <ResidentLoginScreen
                 lang={lang}
                 onSelectLang={handleSelectLang}
-                onLogout={handleLogout}
+                onLoginSuccess={handleAuthSuccess}
+                onNavigateRegister={() => setCurrentScreen('register')}
+                onNavigateForgot={() => setCurrentScreen('forgot')}
+              />
+            ) : currentScreen === 'register' ? (
+              <ResidentRegisterScreen
+                lang={lang}
+                onSelectLang={handleSelectLang}
+                onRegisterSuccess={handleAuthSuccess}
+                onBack={() => setCurrentScreen('login')}
               />
             ) : (
-              <ResidentHomeScreen
-                user={userSession}
-                household={userSession.household}
-                token={userSession.token}
+              <ForgotPasswordScreen
                 lang={lang}
                 onSelectLang={handleSelectLang}
-                onLogout={handleLogout}
+                onBack={() => setCurrentScreen('login')}
+                onResetComplete={() => setCurrentScreen('login')}
               />
-            )
-          ) : currentScreen === 'login' ? (
-            <ResidentLoginScreen
-              lang={lang}
-              onSelectLang={handleSelectLang}
-              onLoginSuccess={handleAuthSuccess}
-              onNavigateRegister={() => setCurrentScreen('register')}
-              onNavigateForgot={() => setCurrentScreen('forgot')}
-            />
-          ) : currentScreen === 'register' ? (
-            <ResidentRegisterScreen
-              lang={lang}
-              onSelectLang={handleSelectLang}
-              onRegisterSuccess={handleAuthSuccess}
-              onBack={() => setCurrentScreen('login')}
-            />
-          ) : (
-            <ForgotPasswordScreen
-              lang={lang}
-              onSelectLang={handleSelectLang}
-              onBack={() => setCurrentScreen('login')}
-              onResetComplete={() => setCurrentScreen('login')}
-            />
-          )}
-        </ScreenTransition>
-      </View>
+            )}
+          </ScreenTransition>
+        </View>
+      )}
     </View>
   );
 }

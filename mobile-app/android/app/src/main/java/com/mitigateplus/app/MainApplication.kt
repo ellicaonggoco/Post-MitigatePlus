@@ -33,11 +33,12 @@ class MainApplication : Application(), ReactApplication {
           override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
       }
 
-  override val reactHost: ReactHost
-    get() = ExpoReactHostFactory.getDefaultReactHost(
+  override val reactHost: ReactHost by lazy {
+    ExpoReactHostFactory.getDefaultReactHost(
       this,
       PackageList(this).packages
     )
+  }
 
   override fun onCreate() {
     super.onCreate()

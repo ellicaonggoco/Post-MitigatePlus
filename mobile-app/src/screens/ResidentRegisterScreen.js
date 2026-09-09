@@ -13,6 +13,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import NeumorphicInput from '../components/NeumorphicInput';
@@ -181,6 +182,52 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     }
     return () => clearInterval(timer);
   }, [showOtpModal, otpTimer]);
+
+  React.useEffect(() => {
+    const onHardwareBackPress = () => {
+      // 1. Close open modals first
+      if (showOtpModal) {
+        setShowOtpModal(false);
+        return true;
+      }
+      if (showAddMemberModal) {
+        setShowAddMemberModal(false);
+        return true;
+      }
+      if (showBrgyList) {
+        setShowBrgyList(false);
+        return true;
+      }
+      if (showIdTypeModal) {
+        setShowIdTypeModal(false);
+        return true;
+      }
+      if (showTermsModal) {
+        setShowTermsModal(false);
+        return true;
+      }
+
+      // 2. Step 2 -> Step 1
+      if (step === 2) {
+        setStep(1);
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({ y: 0, animated: true });
+        }
+        return true;
+      }
+
+      // 3. Step 1 -> onBack() to Login
+      if (onBack) {
+        onBack();
+        return true;
+      }
+
+      return false;
+    };
+
+    const backSub = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+    return () => backSub.remove();
+  }, [showOtpModal, showAddMemberModal, showBrgyList, showIdTypeModal, showTermsModal, step, onBack]);
 
   const filteredBarangays = useMemo(() => {
     const q = brgySearch.trim().toLowerCase();

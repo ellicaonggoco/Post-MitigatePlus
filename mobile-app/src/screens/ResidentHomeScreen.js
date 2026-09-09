@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
@@ -115,6 +115,53 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const lastBackPressRef = useRef(0);
+
+  // Hardware Back Press Navigation for Resident App
+  useEffect(() => {
+    const onHardwareBackPress = () => {
+      // 1. Close any open modal or viewer first
+      if (selectedAnnouncement) {
+        setSelectedAnnouncement(null);
+        return true;
+      }
+      if (showQRModal) {
+        setShowQRModal(false);
+        return true;
+      }
+      if (showVerifInfoModal) {
+        setShowVerifInfoModal(false);
+        return true;
+      }
+      if (showNotifModal) {
+        setShowNotifModal(false);
+        return true;
+      }
+
+      // 2. If activeTab !== 'home', return to 'home' tab
+      if (activeTab !== 'home') {
+        setActiveTab('home');
+        return true;
+      }
+
+      // 3. If already on 'home' tab, require double-back press to exit
+      const now = Date.now();
+      if (now - lastBackPressRef.current < 2000) {
+        return false; // allow Android to exit to home
+      }
+      lastBackPressRef.current = now;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(
+          lang === 'tl' ? 'Pindutin muli ang Back upang lumabas sa app' : 'Press Back again to exit app',
+          ToastAndroid.SHORT
+        );
+      }
+      return true; // consumed
+    };
+
+    const backSub = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+    return () => backSub.remove();
+  }, [selectedAnnouncement, showQRModal, showVerifInfoModal, showNotifModal, activeTab, lang]);
 
   // Load read announcement IDs from AsyncStorage on mount
   useEffect(() => {

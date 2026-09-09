@@ -17,7 +17,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   const scrollRef = useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  // Check biometric availability and attempt auto-login on mount
+  // Check biometric availability on mount without auto-prompting dialog over splash
   useEffect(() => {
     (async () => {
       try {
@@ -26,16 +26,6 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
         const savedSession = await AsyncStorage.getItem('mitigateplus_session');
         if (compatible && enrolled && savedSession) {
           setBiometricAvailable(true);
-          const result = await LocalAuthentication.authenticateAsync({
-            promptMessage: lang === 'tl' ? 'I-verify ang inyong pagkakakilanlan' : 'Verify your identity to continue',
-            cancelLabel: lang === 'tl' ? 'Gumamit ng Password' : 'Use Password',
-            fallbackLabel: lang === 'tl' ? 'Gumamit ng Password' : 'Use Password',
-            disableDeviceFallback: false,
-          });
-          if (result.success && savedSession) {
-            const session = JSON.parse(savedSession);
-            if (session?.token) onLoginSuccess(session);
-          }
         }
       } catch {
         // Biometric unavailable - fall through to password login

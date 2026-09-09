@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, TextInput, Keyboard, BackHandler } from 'react-native';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { ShieldCheckIcon, CheckIcon, ArrowRightIcon, ArrowLeftIcon, AlertTriangleIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, NEUMORPHIC, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
@@ -172,6 +172,16 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       onBack();
     }
   };
+
+  useEffect(() => {
+    const onHardwareBackPress = () => {
+      handleBack();
+      return true; // consumed
+    };
+
+    const backSub = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+    return () => backSub.remove();
+  }, [stage]);
 
   return (
     <KeyboardAvoidingView

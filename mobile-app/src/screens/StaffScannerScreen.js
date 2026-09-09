@@ -14,6 +14,8 @@ import {
   Modal,
   Image,
   StatusBar,
+  BackHandler,
+  ToastAndroid,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -55,6 +57,34 @@ const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const lastBackPressRef = useRef(0);
+
+  useEffect(() => {
+    const onHardwareBackPress = () => {
+      // If not on the main 'tasks' tab, return to 'tasks'
+      if (activeTab !== 'tasks') {
+        setActiveTab('tasks');
+        return true;
+      }
+
+      // If on main tab, require double-back press to exit
+      const now = Date.now();
+      if (now - lastBackPressRef.current < 2000) {
+        return false; // let Android exit to home
+      }
+      lastBackPressRef.current = now;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(
+          lang === 'tl' ? 'Pindutin muli ang Back upang lumabas sa app' : 'Press Back again to exit app',
+          ToastAndroid.SHORT
+        );
+      }
+      return true; // consumed
+    };
+
+    const backSub = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+    return () => backSub.remove();
+  }, [activeTab, lang]);
 
   // Laser scanner animation
   const laserAnim = useRef(new Animated.Value(0)).current;
