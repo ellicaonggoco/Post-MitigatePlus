@@ -294,27 +294,37 @@ export default function RecoveryProgressTracker() {
       });
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
-        const seen = new Set();
-        const formatted = [];
+        // ✅ STRICT DEDUP: Use a Map keyed on householdId only — prevents any duplicate
+        // household cards regardless of whether name/headKey differs between entries.
+        const seenMap = new Map();
         for (const h of data) {
-          const hhId = String(h.householdId || h.id || h._id);
-          const headKey = `${h.barangayCode || brgy}_${h.head || h.householdId?.headOfHouseholdUserId?.name || ''}`.trim().toLowerCase();
-          if (!seen.has(hhId) && !seen.has(headKey)) {
-            seen.add(hhId);
-            if (headKey && headKey !== `${h.barangayCode || brgy}_`) seen.add(headKey);
-            formatted.push({
-              id: h.id || h.householdId || h._id,
-              householdId: h.householdId || h.id || h._id,
-              recoveryId: h.recoveryId || h._id,
-              head: h.head || h.householdId?.headOfHouseholdUserId?.name || 'Resident Household',
-              address: h.address || (h.householdId?.address ? `${h.householdId.address}, Purok ${h.householdId.purok || 1} (Brgy ${h.householdId.barangayCode})` : `Purok 1, Barangay ${brgy}, Manila`),
-              members: Number(h.members || h.householdId?.memberCount || 1),
-              stage: normalizeStage(h.stage || h.status || 'waiting'),
-              barangayCode: h.barangayCode || h.householdId?.barangayCode || brgy,
-            });
+          const hhId = String(h.householdId || h.id || h._id || '');
+          if (!hhId) continue;
+
+          const entry = {
+            id: h.householdId || h.id || h._id,
+            householdId: h.householdId || h.id || h._id,
+            recoveryId: h.recoveryId || h._id,
+            head: h.head || h.householdId?.headOfHouseholdUserId?.name || 'Resident Household',
+            address: h.address || (h.householdId?.address ? `${h.householdId.address}, Purok ${h.householdId.purok || 1} (Brgy ${h.householdId.barangayCode})` : `Purok 1, Barangay ${brgy}, Manila`),
+            members: Number(h.members || h.householdId?.memberCount || 1),
+            stage: normalizeStage(h.stage || h.status || 'waiting'),
+            barangayCode: h.barangayCode || h.householdId?.barangayCode || brgy,
+          };
+
+          // Keep the entry with a real name over one with a placeholder
+          if (!seenMap.has(hhId)) {
+            seenMap.set(hhId, entry);
+          } else {
+            const existing = seenMap.get(hhId);
+            const existingIsPlaceholder = existing.head === 'Resident Household';
+            const newHasRealName = entry.head && entry.head !== 'Resident Household';
+            if (existingIsPlaceholder && newHasRealName) {
+              seenMap.set(hhId, entry);
+            }
           }
         }
-        setHouseholds(formatted);
+        setHouseholds(Array.from(seenMap.values()));
       } else {
         if (!silent) setHouseholds([]);
       }

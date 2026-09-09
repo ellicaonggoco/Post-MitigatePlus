@@ -20,8 +20,9 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       filter.householdId = { $in: householdIds.map(h => h._id) };
     }
 
-    // Ensure all verified households have an initial recovery status record if missing
-    const allVerifiedHouseholds = await Household.find(targetBrgy ? { barangayCode: targetBrgy } : {}).select('_id');
+    // Ensure all VERIFIED households have an initial recovery status record if missing
+    const verifiedHouseholdsQuery = targetBrgy ? { barangayCode: targetBrgy, verificationStatus: 'verified' } : { verificationStatus: 'verified' };
+    const allVerifiedHouseholds = await Household.find(verifiedHouseholdsQuery).select('_id');
     for (const vh of allVerifiedHouseholds) {
       const existing = await RecoveryStatus.findOne({ householdId: vh._id });
       if (!existing) {
@@ -38,7 +39,17 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       .populate({ path: 'householdId', populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' } })
       .populate('updatedBy', 'name role');
 
-    const formatted = statuses.map(s => {
+    // ✅ Backend-level dedup: keep only one record per householdId (latest updatedAt wins)
+    const seenHhIds = new Map();
+    for (const s of statuses) {
+      const hh = s.householdId;
+      const hhKey = hh?._id ? String(hh._id) : String(s._id);
+      if (!seenHhIds.has(hhKey)) {
+        seenHhIds.set(hhKey, s);
+      }
+    }
+
+    const formatted = Array.from(seenHhIds.values()).map(s => {
       const hh = s.householdId;
       const headName = hh?.headOfHouseholdUserId?.name || hh?.headName || 'Resident Household';
       const address = hh?.address ? `${hh.address}, Purok ${hh.purok || 1} (Brgy ${hh.barangayCode || '291'})` : `Purok 1, Barangay ${hh?.barangayCode || '291'}, Manila`;
