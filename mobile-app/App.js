@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar, LogBox, BackHandler, ToastAndroid } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Animated, Platform, StatusBar as RNStatusBar, LogBox, BackHandler, ToastAndroid } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -53,7 +53,7 @@ function ScreenTransition({ children, transitionKey }) {
   );
 }
 
-export default function App() {
+function MainApp() {
   const [showSplash, setShowSplash] = useState(true);
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login' | 'register' | 'forgot'
   const [userSession, setUserSession] = useState(null);
@@ -265,3 +265,138 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.warn('[MitigatePlus ErrorBoundary] Uncaught runtime error:', error, errorInfo);
+  }
+
+  handleRestart = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  handleResetAndRestart = async () => {
+    try {
+      await AsyncStorage.removeItem('mitigateplus_token');
+      await AsyncStorage.removeItem('mitigateplus_user_session');
+    } catch (e) {}
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={errorStyles.container}>
+          <View style={errorStyles.card}>
+            <View style={errorStyles.badge}>
+              <Text style={errorStyles.badgeText}>MITIGATE+ RESCUE MODE</Text>
+            </View>
+            <Text style={errorStyles.title}>Pansamantalang Aberya sa App</Text>
+            <Text style={errorStyles.subtitle}>
+              {this.state.error?.message || 'Nagkaroon ng hindi inaasahang error habang binubuksan ang application.'}
+            </Text>
+            <TouchableOpacity style={errorStyles.btnPrimary} onPress={this.handleRestart} activeOpacity={0.8}>
+              <Text style={errorStyles.btnTextPrimary}>Buksan Muli / Restart App</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={errorStyles.btnSecondary} onPress={this.handleResetAndRestart} activeOpacity={0.8}>
+              <Text style={errorStyles.btnTextSecondary}>I-clear ang Session Cache at Mag-restart</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const errorStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F6FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  badge: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 9999,
+    marginBottom: 16,
+  },
+  badgeText: {
+    color: '#DC2626',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 24,
+  },
+  btnPrimary: {
+    width: '100%',
+    backgroundColor: '#1E3A8A',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  btnTextPrimary: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  btnSecondary: {
+    width: '100%',
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 13,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  btnTextSecondary: {
+    color: '#475569',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+});
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <MainApp />
+    </ErrorBoundary>
+  );
+}
+

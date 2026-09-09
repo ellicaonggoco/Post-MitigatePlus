@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, Animated, Easing, Dimensions, Platform, Pressable } from 'react-native';
 import { FONT_WEIGHT } from '../theme';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const win = Dimensions.get('window') || {};
+const SCREEN_WIDTH = win.width && win.width > 0 ? win.width : 375;
+const SCREEN_HEIGHT = win.height && win.height > 0 ? win.height : 812;
 
 /**
  * Bulletproof, Clean & Responsive Civic Splash Screen
@@ -236,8 +238,6 @@ export default function SplashScreen({ onFinish }) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
     backgroundColor: '#FFFFFF',
     zIndex: 99999,
     elevation: 99999,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   massiveLogo1: {
-    width: Math.min(SCREEN_WIDTH - 32, 360),
+    width: Math.max(200, Math.min(SCREEN_WIDTH - 32, 360)),
     height: 76,
   },
   slantedLogoImg: {
