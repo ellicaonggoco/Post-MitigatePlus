@@ -723,13 +723,31 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      showNotify('Scan Failed', err.message || 'Error processing QR pass.', true);
-      setFlaggedTodayCount(prev => prev + 1);
-      setTimeout(() => setScanned(false), 2500);
+      // ✅ BARANGAY MISMATCH: Cross-barangay QR scan rejected
+      if (err.status === 403 && err.data?.barangayMismatch) {
+        const hhBrgy = err.data?.householdBarangay;
+        const evBrgy = err.data?.eventBarangay;
+        setScanNotice({
+          type: 'error',
+          text: `⛔ HINDI PWEDE: QR ng Brgy ${hhBrgy} — Event para sa Brgy ${evBrgy} lamang`,
+        });
+        Alert.alert(
+          '⛔ Maling Barangay',
+          err.message || `Ang QR Code na ito ay para sa Barangay ${hhBrgy} lamang. Ang kasalukuyang event ay para sa Barangay ${evBrgy} lamang.`,
+          [{ text: 'Naiintindihan', style: 'cancel' }]
+        );
+        setFlaggedTodayCount(prev => prev + 1);
+        setTimeout(() => setScanned(false), 3000);
+      } else {
+        showNotify('Scan Failed', err.message || 'Error processing QR pass.', true);
+        setFlaggedTodayCount(prev => prev + 1);
+        setTimeout(() => setScanned(false), 2500);
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleConfirmRelease = async () => {
     if (!scanResult) return;
@@ -819,31 +837,46 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
-      if (isDup) {
-        setDuplicateAlert(true);
-        setDuplicateMessage(
-          err.message ||
-          (lang === 'tl'
-            ? 'DUPLICATE CLAIM BLOCKED: Ang residenteng ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
-            : 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.')
+      // ✅ BARANGAY MISMATCH: Cross-barangay release rejected
+      if (err.status === 403 && err.data?.barangayMismatch) {
+        const hhBrgy = err.data?.householdBarangay;
+        const evBrgy = err.data?.eventBarangay;
+        Alert.alert(
+          '⛔ Hindi Pwede — Maling Barangay',
+          err.message || `Ang pamilyang ito ay mula sa Barangay ${hhBrgy}. Ang distribution event ay para sa Barangay ${evBrgy} lamang. Hindi maaaring ibigay ang relief dito.`,
+          [{ text: 'OK', style: 'cancel' }]
         );
-        setDuplicateData({
-          name: currentHh?.name || 'Verified Beneficiary',
-          address: currentHh?.address || `Barangay ${currentHh?.barangayCode || dutyBrgy}, Manila`,
-          barangayCode: currentHh?.barangayCode || dutyBrgy,
-          qrCode: currentHh?.qrCode || manualCode,
-        });
         setFlaggedTodayCount(prev => prev + 1);
         setScanResult(null);
+        setScanned(false);
       } else {
-        showNotify('Release Notice', err.message || 'Distribution confirmed.');
-        handleResetScanner();
+        const isDup = err.status === 409 || err.message?.toLowerCase().includes('duplicate') || err.data?.isDuplicate;
+        if (isDup) {
+          setDuplicateAlert(true);
+          setDuplicateMessage(
+            err.message ||
+            (lang === 'tl'
+              ? 'DUPLICATE CLAIM BLOCKED: Ang residenteng ito ay nakapagtala na ng claim sa distribution drive na ito ngayong araw.'
+              : 'DUPLICATE CLAIM BLOCKED: Household has already claimed relief in this event today.')
+          );
+          setDuplicateData({
+            name: currentHh?.name || 'Verified Beneficiary',
+            address: currentHh?.address || `Barangay ${currentHh?.barangayCode || dutyBrgy}, Manila`,
+            barangayCode: currentHh?.barangayCode || dutyBrgy,
+            qrCode: currentHh?.qrCode || manualCode,
+          });
+          setFlaggedTodayCount(prev => prev + 1);
+          setScanResult(null);
+        } else {
+          showNotify('Release Notice', err.message || 'Distribution confirmed.');
+          handleResetScanner();
+        }
       }
     } finally {
       setReleasing(false);
     }
   };
+
 
   const handleSubmitIncident = async () => {
     if (!incidentNotes.trim()) {

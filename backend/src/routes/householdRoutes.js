@@ -428,9 +428,31 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     // Resolve target event to check anti-duplicate claims
     let queryEvId = null;
     let eventName = 'Relief Distribution';
-    if (req.query.eventId && req.query.eventId !== 'undefined' && req.query.eventId !== 'null') {
-      if (mongoose.Types.ObjectId.isValid(req.query.eventId)) {
-        queryEvId = req.query.eventId;
+    let resolvedEvent = null;
+    const explicitEventId = req.query.eventId && req.query.eventId !== 'undefined' && req.query.eventId !== 'null'
+      ? req.query.eventId : null;
+
+    if (explicitEventId && mongoose.Types.ObjectId.isValid(explicitEventId)) {
+      queryEvId = explicitEventId;
+      resolvedEvent = await DistributionEvent.findById(queryEvId);
+      if (resolvedEvent) {
+        eventName = resolvedEvent.title;
+      }
+    }
+
+    // ✅ BARANGAY-EVENT GATING: If a specific event was passed by the scanner,
+    // reject the scan if the household's barangay does NOT match the event's barangay.
+    if (resolvedEvent && resolvedEvent.barangayCode && household.barangayCode) {
+      const hhBrgy = String(household.barangayCode).trim();
+      const evBrgy = String(resolvedEvent.barangayCode).trim();
+      if (hhBrgy !== evBrgy) {
+        return res.status(403).json({
+          barangayMismatch: true,
+          message: `Hindi pwede. Ang QR Code na ito ay para sa Barangay ${hhBrgy} lamang, ngunit ang kasalukuyang distribution event ay para sa Barangay ${evBrgy}. Tanging ang mga residente ng Barangay ${evBrgy} lamang ang maaaring tumanggap ng relief dito.`,
+          householdBarangay: hhBrgy,
+          eventBarangay: evBrgy,
+          eventTitle: resolvedEvent.title,
+        });
       }
     }
 

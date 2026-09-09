@@ -313,6 +313,50 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
     }
     distributionEventId = event._id;
 
+    // ✅ BARANGAY-EVENT GATING: Reject if household's barangay does NOT match the event's barangay.
+    if (event.barangayCode && household.barangayCode) {
+      const hhBrgy = String(household.barangayCode).trim();
+      const evBrgy = String(event.barangayCode).trim();
+      if (hhBrgy !== evBrgy) {
+        // Log the cross-barangay attempt
+        await AuditLog.create({
+          actorUserId: req.user._id,
+          actorRole: req.user.role,
+          action: 'CROSS_BARANGAY_CLAIM_BLOCKED',
+          targetType: 'Household',
+          targetId: household._id.toString(),
+          notes: `BLOCKED: Cross-barangay claim attempt. Household is from Barangay ${hhBrgy} but event "${event.title}" is for Barangay ${evBrgy}. Attempted by staff ${req.user.name || req.user.emailOrPhone}.`,
+        });
+
+        // Emit real-time alert to admin dashboard
+        const io = req.app.get('io');
+        if (io) {
+          io.to('admin_room').emit('duplicate_claim_alert', {
+            id: Date.now(),
+            _id: Date.now(),
+            name: household.headOfHouseholdUserId?.name || `Beneficiary (${household.address})`,
+            householdAddress: household.address,
+            barangay: hhBrgy,
+            barangayCode: hhBrgy,
+            qr: household.qrCode,
+            reason: `BLOCKED: Cross-barangay claim — Household from Brgy ${hhBrgy} tried to claim from Brgy ${evBrgy} event "${event.title}"`,
+            severity: 'High',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            itemType: event.itemType,
+            attemptedByStaff: req.user.name || req.user.emailOrPhone,
+            attemptedAt: new Date(),
+          });
+        }
+
+        return res.status(403).json({
+          barangayMismatch: true,
+          message: `Hindi pwede. Ang pamilyang ito ay mula sa Barangay ${hhBrgy}, ngunit ang distribution event na ito ay para sa Barangay ${evBrgy} lamang. Tanging ang mga residente ng Barangay ${evBrgy} ang maaaring makatanggap dito.`,
+          householdBarangay: hhBrgy,
+          eventBarangay: evBrgy,
+        });
+      }
+    }
+
     if (household.verificationStatus !== 'verified') {
       return res.status(400).json({ message: 'Cannot release relief to unverified household.' });
     }
