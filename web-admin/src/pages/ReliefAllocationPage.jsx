@@ -74,29 +74,8 @@ export default function ReliefAllocationPage() {
   const [secPin, setSecPin] = useState('');
   const [pendingPolicy, setPendingPolicy] = useState(null);
 
-  if (!isSuperAdmin) {
-    return (
-      <div className="page-container page-animate" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <div className="clay-card" style={{ borderLeft: '4px solid var(--manila-blue)', maxWidth: '520px', width: '100%', padding: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--manila-blue)', marginBottom: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-inner)', background: 'var(--sampaguita)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShieldAlert size={22} color="var(--manila-blue)" />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--ink)' }}>Restricted Executive Engine Config</h3>
-              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>LGU SuperAdmin Protected Module</span>
-            </div>
-          </div>
-          <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 20 }}>
-            Ang <strong>Right-Sized Relief Allocation Math Engine</strong> ay protektado at binabago lamang ng <strong>LGU SuperAdmin</strong> upang hindi magalaw ang opisyal na kalkulasyon ng ayuda.
-          </p>
-          <button onClick={() => window.location.href = '/distribution-events'} className="clay-button-primary" style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}>
-            Pumunta sa Distribution Events
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Non-superadmin users can view the formula and run simulations, but only SuperAdmin can save changes
+
 
   const fetchEvents = async () => {
     try {
@@ -349,7 +328,7 @@ export default function ReliefAllocationPage() {
 
 
       {/* ── Page Header ── */}
-      <div className="workflow-header" style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+      <div className="workflow-header" style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
         <div style={{
           width: 48, height: 48, borderRadius: 'var(--radius-inner)',
           background: 'linear-gradient(135deg, var(--bay-teal), #0d6b4e)',
@@ -367,7 +346,35 @@ export default function ReliefAllocationPage() {
         </div>
       </div>
 
-
+      {!isSuperAdmin && (
+        <div style={{
+          background: '#EFF6FF',
+          border: '1.5px solid #93C5FD',
+          borderLeft: '5px solid #2563EB',
+          borderRadius: 'var(--radius-inner)',
+          padding: '14px 18px',
+          marginBottom: '22px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '14px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Info size={22} color="#2563EB" style={{ flexShrink: 0 }} />
+            <div style={{ fontSize: '13px', color: '#1E40AF', lineHeight: 1.5 }}>
+              <strong>LGU Admin Simulation Mode:</strong> Naka-enable ang <em>Live Formula Simulation</em> sa ibaba upang makita kung ilang relief packs ang matatanggap ng bawat pamilya base sa kanilang miyembro, seniors, at PWDs. Ang pagbago at pag-save ng opisyal na City-Wide Policy Formula ay nakalaan sa <strong>LGU SuperAdmin</strong>.
+            </div>
+          </div>
+          <button
+            onClick={() => window.location.href = '/distribution-events'}
+            className="clay-button-primary"
+            style={{ fontSize: '12px', padding: '8px 14px', whiteSpace: 'nowrap' }}
+          >
+            Pumunta sa Distribution Events →
+          </button>
+        </div>
+      )}
 
       {/* ── Main Executive Relief Allocation Policy & Math Engine (Full-Width with Detailed Field Descriptions) ── */}
       <div className="clay-card" style={{ marginBottom: '28px' }}>
@@ -388,9 +395,10 @@ export default function ReliefAllocationPage() {
               type="number"
               min="1"
               max="12"
+              disabled={!isSuperAdmin}
               value={policy.baseCoverage}
               onChange={(e) => setPolicy({ ...policy, baseCoverage: Math.max(1, parseInt(e.target.value) || 5) })}
-              style={{ ...inputStyle, border: '2px solid var(--manila-blue)', fontWeight: 800, marginTop: 6 }}
+              style={{ ...inputStyle, border: '2px solid var(--manila-blue)', fontWeight: 800, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
               <strong>Clarification:</strong> The standard family size threshold covered by 1 Base Relief Pack. Any household exceeding this count will receive proportional Top-Up packs.
@@ -405,9 +413,10 @@ export default function ReliefAllocationPage() {
               type="number"
               step="0.25"
               min="0.1"
+              disabled={!isSuperAdmin}
               value={policy.extraMemberTopUp}
               onChange={(e) => setPolicy({ ...policy, extraMemberTopUp: parseFloat(e.target.value) || 0.5 })}
-              style={{ ...inputStyle, marginTop: 6 }}
+              style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
               <strong>Klaripikasyon:</strong> Rasyo ng karagdagang relief pack bawat sobrang tao sa base limit (hal. +0.5x ratio = 1 karagdagang top-up pack bawat 2 sobrang tao).
@@ -421,9 +430,10 @@ export default function ReliefAllocationPage() {
             <input
               type="number"
               step="0.25"
+              disabled={!isSuperAdmin}
               value={policy.seniorTopUp}
               onChange={(e) => setPolicy({ ...policy, seniorTopUp: parseFloat(e.target.value) || 0.5 })}
-              style={{ ...inputStyle, marginTop: 6 }}
+              style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
               <strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Senior Citizen (60+ years old).
@@ -437,9 +447,10 @@ export default function ReliefAllocationPage() {
             <input
               type="number"
               step="0.25"
+              disabled={!isSuperAdmin}
               value={policy.pwdTopUp}
               onChange={(e) => setPolicy({ ...policy, pwdTopUp: parseFloat(e.target.value) || 0.5 })}
-              style={{ ...inputStyle, marginTop: 6 }}
+              style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
               <strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Person with Disability (PWD).
@@ -517,9 +528,36 @@ export default function ReliefAllocationPage() {
           </div>
         </div>
 
-        <button onClick={handleSavePolicyRequest} className="clay-button-approve" style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 14, gap: 6, fontWeight: 800 }}>
-          Save & Authorize City-Wide Policy Changes
-        </button>
+        {isSuperAdmin ? (
+          <button onClick={handleSavePolicyRequest} className="clay-button-approve" style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 14, gap: 6, fontWeight: 800 }}>
+            Save & Authorize City-Wide Policy Changes
+          </button>
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 18px',
+            background: 'var(--sampaguita)',
+            borderRadius: 'var(--radius-inner)',
+            border: '1px dashed var(--border)',
+            flexWrap: 'wrap',
+            gap: 12
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ink-soft)' }}>
+              <Shield size={18} color="var(--manila-blue)" />
+              <span>Naka-lock ang opisyal na formula. <strong>LGU SuperAdmin</strong> lamang ang maaaring mag-save ng pagbabago.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => window.location.href = '/distribution-events'}
+              className="clay-button-primary"
+              style={{ fontSize: 12, padding: '7px 14px' }}
+            >
+              Pumunta sa Distribution Events
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Real-time Duplicate Alert Stream ── */}

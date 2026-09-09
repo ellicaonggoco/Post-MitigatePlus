@@ -146,7 +146,7 @@ function LguAdminDashboard({ token, user }) {
     { label: 'Active Distribution Events', value: summary?.activeEvents ?? 0, icon: Truck, color: '#173F56', bg: 'var(--manila-blue-light)', link: '/distribution-events' },
     { label: 'Pending Verifications (City)', value: summary?.pendingVerifications ?? 0, icon: UserCheck, color: '#B45309', bg: '#FFFBEB', link: '/verification-queue' },
     { label: 'Fraud Interceptions Today', value: summary?.duplicateAttemptsCount ?? 0, icon: Shield, color: '#B91C1C', bg: '#FEF2F2', link: '/fraud-interception' },
-    { label: 'Total Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/relief-allocation' },
+    { label: 'Total Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/distribution-events' },
   ];
 
   // Derive relief chart from real API summary with dynamic proportional targets
