@@ -178,12 +178,12 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </View>
           ) : null}
 
-          {/* Unified Phone Number / Email / Staff ID Input */}
+          {/* Standard Phone Number Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Phone Number o Email / Staff ID' : 'Phone Number or Email / Staff ID'}
+            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder={lang === 'tl' ? '09XXXXXXXXX o staff@manila.gov.ph' : '09XXXXXXXXX or staff@manila.gov.ph'}
+            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number (09XXXXXXXXX)' : 'Enter Phone Number (09XXXXXXXXX)'}
             errorText={errors.emailOrPhone}
             required
             keyboardType="default"
@@ -257,7 +257,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
 
         </View>
 
-        {/* Register Household Secondary Button Card with Staff Notice */}
+        {/* Register Household Secondary Button Card */}
         <View style={styles.registerCard}>
           <Text style={styles.registerCardTitle}>
             {lang === 'tl' ? 'Wala ka pang rehistradong account?' : 'No registered household account yet?'}
@@ -271,11 +271,6 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
               {lang === 'tl' ? 'Mag-rehistro ng Bagong Pamilya' : 'Register New Household'}
             </Text>
           </TouchableOpacity>
-          <Text style={styles.staffNotice}>
-            {lang === 'tl'
-              ? 'Paunawa: Ang mga Field Staff account ay direktang nililikha ng LGU Admin.'
-              : 'Notice: Field Staff accounts are provisioned directly by LGU Admin.'}
-          </Text>
         </View>
 
         <Text style={styles.footerNote}>
@@ -450,13 +445,6 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     fontWeight: '800',
     color: '#1C3F94',
-  },
-  staffNotice: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 10,
-    textAlign: 'center',
-    lineHeight: 15,
   },
   footerNote: {
     fontSize: 10,
