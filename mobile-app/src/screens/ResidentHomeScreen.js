@@ -50,7 +50,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
       toValue: 0.88,
       friction: 5,
       tension: 150,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   };
 
@@ -59,7 +59,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
       toValue: 1,
       friction: 6,
       tension: 120,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   };
 

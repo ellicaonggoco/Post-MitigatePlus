@@ -99,12 +99,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         Animated.timing(laserAnim, {
           toValue: 150,
           duration: 1800,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(laserAnim, {
           toValue: 0,
           duration: 1800,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     );
@@ -117,8 +117,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(beaconAnim, { toValue: 0.3, duration: 900, useNativeDriver: true }),
-        Animated.timing(beaconAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(beaconAnim, { toValue: 0.3, duration: 900, useNativeDriver: Platform.OS !== 'web' }),
+        Animated.timing(beaconAnim, { toValue: 1, duration: 900, useNativeDriver: Platform.OS !== 'web' }),
       ])
     );
     pulse.start();
