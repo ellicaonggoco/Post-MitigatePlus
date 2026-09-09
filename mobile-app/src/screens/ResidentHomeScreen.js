@@ -837,6 +837,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           <AssistanceRequestScreen
             token={token}
             lang={lang}
+            user={user}
+            householdData={householdData}
             onBack={() => setActiveTab('home')}
             onSubmitSuccess={() => setActiveTab('home')}
           />

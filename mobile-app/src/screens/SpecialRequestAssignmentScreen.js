@@ -69,63 +69,11 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
           return;
         }
       }
-
-      // Default realistic door-to-door assignments for Manila Field Staff demonstration
-      setTasks([
-        {
-          id: 'sr_291_01',
-          resident: 'Aling Remedios Santos (Bedridden Senior)',
-          address: '142 Callejon 3, Purok 2',
-          purok: 'Purok 2',
-          reason: 'Bedridden Senior Citizen (82 y/o) living with disabled grandchild. Unable to walk to the covered court.',
-          items: 'Special Nutrition & Family Food Pack',
-          members: 2,
-          barangay: '291',
-          requestedBy: 'Remedios Santos',
-          assignedStaff: 'Officer Santos',
-          assignedAt: 'Today, 08:30 AM',
-          status: 'assigned',
-          proofOfDeliveryPhoto: null,
-          recipientSignatureOrNotes: '',
-          deliveredAt: null,
-        },
-        {
-          id: 'sr_291_02',
-          resident: 'Eduardo Manalo (PWD Household)',
-          address: '88 Del Pan Street, Purok 4',
-          purok: 'Purok 4',
-          reason: 'Wheelchair-bound head of household with 4 dependents. Ground floor flooded during typhoon.',
-          items: 'All-in-One Family Food Pack + Hygiene Kit',
-          members: 5,
-          barangay: '291',
-          requestedBy: 'Eduardo Manalo',
-          assignedStaff: 'Officer Santos',
-          assignedAt: 'Today, 09:15 AM',
-          status: 'assigned',
-          proofOfDeliveryPhoto: null,
-          recipientSignatureOrNotes: '',
-          deliveredAt: null,
-        },
-        {
-          id: 'sr_344_01',
-          resident: 'Nanay Corazon Reyes (Postpartum Mother)',
-          address: '512 Moriones Extension, Purok 1',
-          purok: 'Purok 1',
-          reason: 'Single mother with 3-week-old newborn infant. Strict medical bed rest post-cesarean delivery.',
-          items: 'Infant Care Pack + Essential Grocery Kit',
-          members: 3,
-          barangay: '344',
-          requestedBy: 'Corazon Reyes',
-          assignedStaff: 'Officer Santos',
-          assignedAt: 'Yesterday, 04:00 PM',
-          status: 'delivered',
-          proofOfDeliveryPhoto: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80',
-          recipientSignatureOrNotes: 'Received by aunt Maria Reyes at doorstep. Verified recipient signature and ID.',
-          deliveredAt: 'Yesterday, 05:20 PM',
-        },
-      ]);
+      // No tasks assigned or found in database
+      setTasks([]);
     } catch (e) {
       console.warn('Assistance tasks fetch error:', e);
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -194,8 +142,9 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
       });
 
       // Attempt live backend update
+      let res;
       try {
-        await fetch(`${API_BASE_URL}/assistance-requests/${deliveringTask.id}/deliver`, {
+        res = await fetch(`${API_BASE_URL}/assistance-requests/${deliveringTask.id}/deliver`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -208,10 +157,26 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
           }),
         });
       } catch (e) {
-        console.warn('Backend sync note (running offline fallback):', e);
+        console.warn('Backend sync network error:', e);
+        Alert.alert(
+          lang === 'tl' ? 'Koneksyon sa Server' : 'Connection Error',
+          lang === 'tl'
+            ? 'Hindi makakonekta sa server. Pakisuri ang inyong internet koneksyon at subukan muli.'
+            : 'Could not reach the server. Please check your internet connection and try again.'
+        );
+        return;
       }
 
-      // Optimistic local state update
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        Alert.alert(
+          lang === 'tl' ? 'Hindi Maitala ang Delivery' : 'Delivery Update Failed',
+          errData.message || (lang === 'tl' ? 'Nagkaroon ng aberya sa pag-record ng delivery sa server.' : 'Server was unable to record delivery completion.')
+        );
+        return;
+      }
+
+      // Successful live server update
       setTasks(prev =>
         prev.map(t =>
           t.id === deliveringTask.id
@@ -219,7 +184,7 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                 ...t,
                 status: 'delivered',
                 deliveredAt: formattedDate,
-                proofOfDeliveryPhoto: photoUri || 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80',
+                proofOfDeliveryPhoto: photoUri || null,
                 recipientSignatureOrNotes: recipientNotes || 'Delivered directly to beneficiary.',
               }
             : t
@@ -320,6 +285,15 @@ export default function SpecialRequestAssignmentScreen({ onBack, lang = 'en' }) 
                   ? 'Kapag natapos ang delivery at na-upload ang proof photo, lalabas ito rito.'
                   : 'Delivered relief goods with uploaded proof photos will appear here.'}
             </Text>
+            <TouchableOpacity
+              style={[styles.royalBlueBtn, { marginTop: 14, paddingHorizontal: 20, alignSelf: 'center' }]}
+              onPress={fetchTasks}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.royalBlueBtnText}>
+                {lang === 'tl' ? 'I-refresh ang Listahan' : 'Refresh Task List'}
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           filteredTasks.map(item => {

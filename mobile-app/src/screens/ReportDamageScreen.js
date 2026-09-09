@@ -132,8 +132,33 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
     handleGetGPSLocation();
   }, []);
 
+  const getBarangayCentroid = (bCode) => {
+    const num = parseInt(bCode, 10) || 291;
+    if (num >= 268 && num <= 394) {
+      if (num === 291) return { lat: 14.6048, lng: 120.9815 };
+      if (num === 344) return { lat: 14.6110, lng: 120.9850 };
+      return { lat: Number((14.6050 + ((num % 10) * 0.001)).toFixed(6)), lng: Number((120.9820 + ((num % 7) * 0.001)).toFixed(6)) };
+    }
+    if (num <= 146) {
+      return { lat: Number((14.6150 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((120.9700 + ((num % 10) * 0.001)).toFixed(6)) };
+    }
+    if (num <= 267) {
+      return { lat: Number((14.6250 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((120.9800 + ((num % 10) * 0.001)).toFixed(6)) };
+    }
+    if (num <= 586) {
+      return { lat: Number((14.6050 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((120.9980 + ((num % 10) * 0.001)).toFixed(6)) };
+    }
+    if (num <= 828) {
+      return { lat: Number((14.5750 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((120.9850 + ((num % 10) * 0.001)).toFixed(6)) };
+    }
+    return { lat: Number((14.5850 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((121.0050 + ((num % 10) * 0.001)).toFixed(6)) };
+  };
+
   const handleGetGPSLocation = () => {
     setIsLocating(true);
+    const brgyCode = householdData?.barangayCode || user?.barangayCode || '291';
+    const fallback = getBarangayCentroid(brgyCode);
+
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -143,13 +168,13 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           setIsLocating(false);
         },
         () => {
-          setGeoCoords({ lat: 14.599512, lng: 120.984215, accuracy: 3 });
+          setGeoCoords({ lat: fallback.lat, lng: fallback.lng, accuracy: 5 });
           setIsLocating(false);
         },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 10000 }
       );
     } else {
-      setGeoCoords({ lat: 14.599512, lng: 120.984215, accuracy: 3 });
+      setGeoCoords({ lat: fallback.lat, lng: fallback.lng, accuracy: 5 });
       setIsLocating(false);
     }
   };

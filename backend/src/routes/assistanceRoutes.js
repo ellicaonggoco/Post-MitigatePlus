@@ -80,6 +80,35 @@ router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admi
   }
 });
 
+// @route   GET /api/assistance-requests/my-requests
+// @desc    Get all assistance requests submitted by the logged-in resident
+router.get('/my-requests', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
+  try {
+    let household = null;
+    if (req.user.role === 'resident') {
+      household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    } else {
+      household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+      if (!household && req.user.barangayCode) {
+        household = await Household.findOne({ barangayCode: req.user.barangayCode });
+      }
+    }
+
+    if (!household) {
+      return res.json([]);
+    }
+
+    const myRequests = await AssistanceRequest.find({ householdId: household._id })
+      .populate('assignedStaff', 'name emailOrPhone teamName')
+      .populate('deliveredBy', 'name emailOrPhone')
+      .sort({ requestedAt: -1 });
+
+    res.json(myRequests);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching personal assistance requests', error: error.message });
+  }
+});
+
 // @route   GET /api/assistance-requests/demand-summary
 // @desc    Get aggregated package demand totals for batch warehouse packaging & staff logistics
 router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
