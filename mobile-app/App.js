@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, View, Animated, Platform, StatusBar as RNStatusBar, LogBox, BackHandler, ToastAndroid } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,12 +29,12 @@ function ScreenTransition({ children, transitionKey }) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 240,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(translateYAnim, {
         toValue: 0,
         duration: 240,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ]).start();
   }, [transitionKey]);
@@ -58,6 +58,18 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login' | 'register' | 'forgot'
   const [userSession, setUserSession] = useState(null);
   const [lang, setLang] = useState('en');
+
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
+  // Master failsafe: Guarantee splash never stalls past 3.5s under any condition
+  useEffect(() => {
+    const splashFailsafeTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3500);
+    return () => clearTimeout(splashFailsafeTimer);
+  }, []);
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -184,7 +196,7 @@ export default function App() {
 
       {/* 1. Minimal Pure White Splash Screen with Cross-Fade Transition */}
       {showSplash ? (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
+        <SplashScreen onFinish={handleSplashFinish} />
       ) : (
         /* 2. Adaptive Responsive Shell for All Screen Sizes */
         <View style={styles.adaptiveWrapper}>
@@ -243,7 +255,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     width: '100%',
-    height: '100%',
     backgroundColor: '#F3F6FC',
   },
   adaptiveWrapper: {

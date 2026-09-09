@@ -1,207 +1,234 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { View, Text, Image, StyleSheet, Animated, Easing, Dimensions, Platform, Pressable } from 'react-native';
 import { FONT_WEIGHT } from '../theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /**
- * Clean, Proportionate & Frame-Free Splash Screen
+ * Bulletproof, Clean & Responsive Civic Splash Screen
  * -------------------------------------------------------------
- * 1. Logo 1: Tight, trimmed, massive "MITIGATE+" banner with commanding presence.
- * 2. Frame-Free: Zero glass/card/box background around Logo 2 - raw pure artwork.
- * 3. Zero-Ghosting Transition: Logo 1 cleanly dissolves before Logo 2 blooms.
- * 4. Logo 2: Proportionate Slanted 'M' Clock Tower with calm sinusoidal breathing pulse.
- * 5. Tight Lockup: Persistent civic typography tightly seated under the logo stage.
+ * 1. Rapid, Snappy Lifecycle (~2.2s total) to avoid stalling the user.
+ * 2. Multi-Tiered Fail-Safe:
+ *    - Strict component-level timeout (2.8s ceiling) guarantees dismiss even if animations stall.
+ *    - Tap-to-skip allows immediate exit at any moment.
+ *    - All timers tracked and cleaned up on unmount or re-render.
+ * 3. Full-Screen Non-Collapsing Canvas:
+ *    - Full screen dimensions prevent Android Flexbox percentage height collapse.
+ *    - Proper vertical lockup keeps the bottom civic anchor cleanly anchored.
+ * 4. Refined Civic Aesthetics:
+ *    - Logo 1: Crisp primary horizontal wordmark banner.
+ *    - Logo 2: Authentic Manila Clock Tower emblem.
  */
 export default function SplashScreen({ onFinish }) {
-  // Logo 1 Animations
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
+
+  const hasFinishedRef = useRef(false);
+  const timersRef = useRef([]);
+
+  // Logo 1 Animation values
   const logo1Opacity = useRef(new Animated.Value(0)).current;
   const logo1Scale = useRef(new Animated.Value(0.92)).current;
 
-  // Logo 2 Animations (Direct Emblem, No Card Box)
+  // Logo 2 Animation values
   const logo2Opacity = useRef(new Animated.Value(0)).current;
-  const logo2Scale = useRef(new Animated.Value(0.88)).current;
-  const slowPumpScale = useRef(new Animated.Value(1)).current;
+  const logo2Scale = useRef(new Animated.Value(0.92)).current;
 
   // Persistent Civic Typography Fade-in
   const textOpacity = useRef(new Animated.Value(0)).current;
 
-  // Overall Exit Screen Opacity
+  // Screen Exit Transition
   const screenExitOpacity = useRef(new Animated.Value(1)).current;
+
+  const useNative = Platform.OS !== 'web';
+
+  const finishSplash = useCallback(() => {
+    if (hasFinishedRef.current) return;
+    hasFinishedRef.current = true;
+    // Clear all pending timeouts
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    if (onFinishRef.current) {
+      onFinishRef.current();
+    }
+  }, []);
+
+  const triggerExitAnimation = useCallback(() => {
+    Animated.timing(screenExitOpacity, {
+      toValue: 0,
+      duration: 250,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: useNative,
+    }).start(() => {
+      finishSplash();
+    });
+  }, [screenExitOpacity, useNative, finishSplash]);
+
+  // Tap-to-skip handler: immediate clean handoff
+  const handleTapToSkip = useCallback(() => {
+    finishSplash();
+  }, [finishSplash]);
 
   useEffect(() => {
     const smoothEaseOut = Easing.bezier(0.16, 1, 0.3, 1);
     const smoothEaseIn = Easing.bezier(0.7, 0, 0.84, 0);
 
-    // =========================================================================
-    // 1. BOOT SEQUENCE: Massive Logo 1 Entrance + Persistent Text (600ms)
-    // =========================================================================
+    // ── Hard Safety Timeout (2.8s Ceiling) ──────────────────────
+    // If animations fail to fire callbacks due to dropped frames or Expo Go delays,
+    // this unconditionally finishes the splash.
+    const hardSafetyTimer = setTimeout(() => {
+      finishSplash();
+    }, 2800);
+    timersRef.current.push(hardSafetyTimer);
+
+    // ============================================================
+    // STAGE 1: Logo 1 Entrance + Civic Typography (400ms)
+    // ============================================================
     Animated.parallel([
       Animated.timing(logo1Opacity, {
         toValue: 1,
-        duration: 600,
+        duration: 400,
         easing: smoothEaseOut,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.timing(logo1Scale, {
         toValue: 1,
-        duration: 600,
+        duration: 400,
         easing: smoothEaseOut,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.timing(textOpacity, {
         toValue: 1,
-        duration: 600,
+        duration: 400,
         easing: smoothEaseOut,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
-    ]).start(() => {
-      // Hold Logo 1 on screen for 1.3 seconds
-      const timer1 = setTimeout(() => {
-        // =====================================================================
-        // 2. CLEAN GHOSTING-FREE TRANSITION: Logo 1 dissolves -> Logo 2 blooms
-        // =====================================================================
-        // Step A: Logo 1 dissolves completely
-        Animated.parallel([
-          Animated.timing(logo1Opacity, {
-            toValue: 0,
-            duration: 350,
-            easing: smoothEaseIn,
-            useNativeDriver: true,
-          }),
-          Animated.timing(logo1Scale, {
-            toValue: 1.04,
-            duration: 350,
-            easing: smoothEaseIn,
-            useNativeDriver: true,
-          }),
-        ]).start(() => {
-          // Step B: Logo 2 blooms in directly (No card frame)
-          Animated.parallel([
-            Animated.timing(logo2Opacity, {
-              toValue: 1,
-              duration: 450,
-              easing: smoothEaseOut,
-              useNativeDriver: true,
-            }),
-            Animated.timing(logo2Scale, {
-              toValue: 1,
-              duration: 450,
-              easing: smoothEaseOut,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            // ===================================================================
-            // 3. SLOW, CALM & ORGANIC SINUSOIDAL BREATHING PUMP PULSE
-            // ===================================================================
-            const slowPumpLoop = Animated.loop(
-              Animated.sequence([
-                Animated.timing(slowPumpScale, {
-                  toValue: 1.06,
-                  duration: 950,
-                  easing: Easing.inOut(Easing.sin),
-                  useNativeDriver: true,
-                }),
-                Animated.timing(slowPumpScale, {
-                  toValue: 0.96,
-                  duration: 900,
-                  easing: Easing.inOut(Easing.sin),
-                  useNativeDriver: true,
-                }),
-                Animated.timing(slowPumpScale, {
-                  toValue: 1.0,
-                  duration: 750,
-                  easing: Easing.inOut(Easing.sin),
-                  useNativeDriver: true,
-                }),
-                Animated.delay(100),
-              ])
-            );
-            slowPumpLoop.start();
+    ]).start();
 
-            // ===================================================================
-            // 4. STAGE 3 EXIT: Hold pulse for 2.0s, then smooth handoff to Auth
-            // ===================================================================
-            const timer2 = setTimeout(() => {
-              Animated.timing(screenExitOpacity, {
-                toValue: 0,
-                duration: 500,
-                easing: smoothEaseIn,
-                useNativeDriver: true,
-              }).start(() => {
-                slowPumpLoop.stop();
-                if (onFinish) onFinish();
-              });
-            }, 2000);
+    // ============================================================
+    // STAGE 2: Cross-Fade to Logo 2 (at 850ms)
+    // ============================================================
+    const tStage2 = setTimeout(() => {
+      // Dissolve Logo 1
+      Animated.parallel([
+        Animated.timing(logo1Opacity, {
+          toValue: 0,
+          duration: 250,
+          easing: smoothEaseIn,
+          useNativeDriver: useNative,
+        }),
+        Animated.timing(logo1Scale, {
+          toValue: 1.04,
+          duration: 250,
+          easing: smoothEaseIn,
+          useNativeDriver: useNative,
+        }),
+      ]).start();
 
-            return () => clearTimeout(timer2);
-          });
-        });
-      }, 1300);
+      // Bloom Logo 2
+      Animated.parallel([
+        Animated.timing(logo2Opacity, {
+          toValue: 1,
+          duration: 350,
+          easing: smoothEaseOut,
+          useNativeDriver: useNative,
+        }),
+        Animated.timing(logo2Scale, {
+          toValue: 1,
+          duration: 350,
+          easing: smoothEaseOut,
+          useNativeDriver: useNative,
+        }),
+      ]).start();
+    }, 850);
+    timersRef.current.push(tStage2);
 
-      return () => clearTimeout(timer1);
-    });
-  }, [logo1Opacity, logo1Scale, logo2Opacity, logo2Scale, slowPumpScale, textOpacity, screenExitOpacity, onFinish]);
+    // ============================================================
+    // STAGE 3: Exit Transition into Login / App (at 1950ms)
+    // ============================================================
+    const tStage3 = setTimeout(() => {
+      triggerExitAnimation();
+    }, 1950);
+    timersRef.current.push(tStage3);
+
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+    };
+  }, [
+    logo1Opacity,
+    logo1Scale,
+    logo2Opacity,
+    logo2Scale,
+    textOpacity,
+    useNative,
+    finishSplash,
+    triggerExitAnimation,
+  ]);
 
   return (
     <Animated.View style={[styles.container, { opacity: screenExitOpacity }]}>
-      <View style={styles.centerContent}>
-        {/* =================================================================== */}
-        {/* IN-PLACE LOGO STAGE (Proportionally Balanced & Frame-Free)           */}
-        {/* =================================================================== */}
-        <View style={styles.logoStage}>
-          {/* LOGO 1: MASSIVE PROPORTIONATE 'MITIGATE+' BANNER */}
-          <Animated.View
-            style={[
-              styles.logoAbsolute,
-              {
-                opacity: logo1Opacity,
-                transform: [{ scale: logo1Scale }],
-              },
-            ]}
-          >
-            <Image
-              source={require('../../assets/logo_primary.png')}
-              style={styles.massiveLogo1}
-              resizeMode="contain"
-            />
-          </Animated.View>
-
-          {/* LOGO 2: SLANTED 'M' CLOCK TOWER (Pure Emblem, No Glass / Card Box) */}
-          <Animated.View
-            style={[
-              styles.logoAbsolute,
-              {
-                opacity: logo2Opacity,
-                transform: [
-                  { scale: logo2Scale },
-                ],
-              },
-            ]}
-          >
-            <View style={{ transform: [{ rotate: '-4deg' }] }}>
+      <Pressable
+        style={styles.touchSurface}
+        onPress={handleTapToSkip}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Skip splash screen"
+      >
+        <View style={styles.centerContent}>
+          {/* LOGO STAGE */}
+          <View style={styles.logoStage}>
+            {/* LOGO 1: MITIGATE+ BANNER */}
+            <Animated.View
+              style={[
+                styles.logoAbsolute,
+                {
+                  opacity: logo1Opacity,
+                  transform: [{ scale: logo1Scale }],
+                },
+              ]}
+              pointerEvents="none"
+            >
               <Image
-                source={require('../../assets/logo_secondary.png')}
-                style={styles.slantedLogoImg}
+                source={require('../../assets/logo_primary.png')}
+                style={styles.massiveLogo1}
                 resizeMode="contain"
               />
-            </View>
+            </Animated.View>
+
+            {/* LOGO 2: SLANTED 'M' CLOCK TOWER */}
+            <Animated.View
+              style={[
+                styles.logoAbsolute,
+                {
+                  opacity: logo2Opacity,
+                  transform: [{ scale: logo2Scale }],
+                },
+              ]}
+              pointerEvents="none"
+            >
+              <View style={{ transform: [{ rotate: '-4deg' }] }}>
+                <Image
+                  source={require('../../assets/logo_secondary.png')}
+                  style={styles.slantedLogoImg}
+                  resizeMode="contain"
+                />
+              </View>
+            </Animated.View>
+          </View>
+
+          {/* PERSISTENT CIVIC TYPOGRAPHY */}
+          <Animated.View style={[styles.textGroup, { opacity: textOpacity }]} pointerEvents="none">
+            <Text style={styles.civicTitle}>Pamahalaang Lungsod ng Maynila</Text>
+            <Text style={styles.platformSub}>Disaster Mitigation & Recovery Platform</Text>
           </Animated.View>
         </View>
 
-        {/* =================================================================== */}
-        {/* PERSISTENT CIVIC TYPOGRAPHY (Snugly Positioned Right Under Logo)    */}
-        {/* =================================================================== */}
-        <Animated.View style={[styles.textGroup, { opacity: textOpacity }]}>
-          <Text style={styles.civicTitle}>Pamahalaang Lungsod ng Maynila</Text>
-          <Text style={styles.platformSub}>Disaster Mitigation & Recovery Platform</Text>
-        </Animated.View>
-      </View>
-
-      {/* Persistent Bottom Civic Anchor */}
-      <View style={styles.footerAnchor}>
-        <Text style={styles.footerAnchorText}>CITY OF MANILA • MDRRMO OPERATIONS</Text>
-      </View>
+        {/* BOTTOM CIVIC ANCHOR */}
+        <View style={styles.footerAnchor} pointerEvents="none">
+          <Text style={styles.footerAnchorText}>CITY OF MANILA • MDRRMO OPERATIONS</Text>
+        </View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -209,25 +236,32 @@ export default function SplashScreen({ onFinish }) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFFFF', // Solid Pure White Canvas
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    backgroundColor: '#FFFFFF',
+    zIndex: 99999,
+    elevation: 99999,
+  },
+  touchSurface: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 9999,
   },
   centerContent: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
-  // In-Place Logo Viewport
   logoStage: {
     width: '100%',
-    height: 170, // Balanced height for both logos
+    height: 160,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   logoAbsolute: {
     position: 'absolute',
@@ -236,44 +270,42 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  // Massive & Proportionate Logo 1 (Trimmed bounds fill width)
   massiveLogo1: {
-    width: Math.min(SCREEN_WIDTH - 24, 380),
-    height: 80,
+    width: Math.min(SCREEN_WIDTH - 32, 360),
+    height: 76,
   },
-  // Slanted Logo 2 (Pure raw image, no card/glass frame)
   slantedLogoImg: {
-    width: 155,
-    height: 155,
+    width: 145,
+    height: 145,
   },
-  // Tightly Positioned Text Lockup
   textGroup: {
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
   },
   civicTitle: {
-    fontSize: 14.5,
+    fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
     color: '#172B4D',
     letterSpacing: -0.2,
-    marginBottom: 2,
+    marginBottom: 4,
     textAlign: 'center',
   },
   platformSub: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 11.5,
+    fontWeight: '600',
     color: '#64748B',
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   footerAnchor: {
     position: 'absolute',
-    bottom: 28,
+    bottom: Platform.OS === 'android' ? 26 : 40,
     alignItems: 'center',
   },
   footerAnchorText: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: '700',
-    color: '#CBD5E1',
+    color: '#94A3B8',
     letterSpacing: 1.2,
   },
 });
