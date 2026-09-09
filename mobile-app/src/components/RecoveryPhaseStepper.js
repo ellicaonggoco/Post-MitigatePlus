@@ -24,6 +24,9 @@ const STAGES_TL = [
 export default function RecoveryPhaseStepper({
   currentStatus,
   isVerified = true,
+  hasActiveEvent = false,
+  isClaimed = false,
+  activeEvent = null,
   percentage: customPercentage,
   lang = 'en',
 }) {
@@ -34,42 +37,70 @@ export default function RecoveryPhaseStepper({
   let completedCount = 0;
   let calculatedPercent = 0;
 
+  const statusLower = (currentStatus || 'waiting').toLowerCase();
+  const isClaimCompleted = isClaimed || statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing');
+
   if (!isVerified) {
+    // Stage 1 pending verification in queue
     activeIndex = 0;
     completedCount = 0;
     calculatedPercent = 0;
+  } else if (isClaimCompleted) {
+    // Stage 5 completed (All 5 stages completed)
+    activeIndex = 4;
+    completedCount = 5;
+    calculatedPercent = 100;
+  } else if (hasActiveEvent) {
+    // Active distribution event open in resident's barangay!
+    // Stages 1, 2, 3 completed; Stage 4 Ready is active!
+    activeIndex = 3;
+    completedCount = 3;
+    calculatedPercent = 80;
   } else {
-    const statusLower = (currentStatus || 'waiting').toLowerCase();
-    if (statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing')) {
-      // Stage 5 completed (All 5 stages completed)
-      activeIndex = 4;
-      completedCount = 5;
-      calculatedPercent = 100;
-    } else if (statusLower.includes('transit') || statusLower.includes('ready') || statusLower.includes('claiming')) {
-      // Stage 4 completed (Ready), Stage 5 Claimed is active
-      activeIndex = 4;
-      completedCount = 4;
-      calculatedPercent = 80;
-    } else if (statusLower.includes('aloka') || statusLower.includes('allocated')) {
-      // Stage 3 completed (Allocated), Stage 4 Ready is active
-      activeIndex = 3;
-      completedCount = 3;
-      calculatedPercent = 60;
-    } else if (statusLower.includes('assess') || statusLower.includes('damage')) {
-      // Stage 2 completed (Assessed), Stage 3 Allocated is active
-      activeIndex = 2;
-      completedCount = 2;
-      calculatedPercent = 40;
-    } else {
-      // Default verified state: Stage 1 (Verification) completed, Stage 2 Assessed is active
-      activeIndex = 1;
-      completedCount = 1;
-      calculatedPercent = 20;
-    }
+    // Verified, Assessed, and Allocated, but awaiting LGU distribution event
+    // Stages 1, 2, 3 completed; Waiting for event to enter Stage 4
+    activeIndex = 2;
+    completedCount = 3;
+    calculatedPercent = 60;
   }
 
   const percentage = customPercentage !== undefined ? customPercentage : calculatedPercent;
   const currentStage = stages[activeIndex] || stages[0];
+
+  // Dynamic Callout Copy & Styling based on Phase
+  let calloutTitle = '';
+  let calloutDesc = '';
+  let calloutTheme = 'standby'; // 'pending' | 'standby' | 'ready' | 'claimed'
+
+  if (!isVerified) {
+    calloutTheme = 'pending';
+    calloutTitle = lang === 'tl' ? '1. Beripikasyon (Nakabinbin sa Queue)' : '1. Verification (Pending Review)';
+    calloutDesc = lang === 'tl'
+      ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay Admin. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
+      : 'Your registration is currently in the Barangay Verification Queue. Progress will advance once approved by the Barangay Administrator.';
+  } else if (isClaimCompleted) {
+    calloutTheme = 'claimed';
+    calloutTitle = lang === 'tl' ? '5. Na-Claim (Kumpleto)' : '5. Claimed (Distribution Complete)';
+    calloutDesc = lang === 'tl'
+      ? 'Matagumpay na natanggap ang ayuda gamit ang QR pass sa relief distribution center. Naitala na sa database ang inyong relief claim.'
+      : 'Relief pack successfully claimed via QR scan. Your relief distribution has been securely recorded in the official disaster registry.';
+  } else if (hasActiveEvent) {
+    calloutTheme = 'ready';
+    calloutTitle = lang === 'tl' ? '4. Handa na (Bukas ang Claiming)' : '4. Ready (Distribution Open)';
+    calloutDesc = activeEvent
+      ? (lang === 'tl'
+          ? `Bukas ang pamamahagi ng ${activeEvent.itemType || 'Relief Pack'} sa ${activeEvent.location || 'Covered Court'}. Ipakita ang inyong opisyal na QR Pass sa field staff sa venue upang matanggap ang ayuda.`
+          : `Active distribution for ${activeEvent.itemType || 'Relief Pack'} is now open at ${activeEvent.location || 'Covered Court'}. Present your official QR Pass to field staff at the venue to claim.`)
+      : (lang === 'tl'
+          ? 'May bukas na relief distribution sa inyong barangay. Handa na at aktibo ang inyong scannable QR Pass para ma-claim sa venue.'
+          : 'Active relief distribution is open in your barangay. Your QR Pass is ready and scannable for claiming at the venue.');
+  } else {
+    calloutTheme = 'standby';
+    calloutTitle = lang === 'tl' ? '3. Naka-Aloka (Naka-Standby ang QR Pass)' : '3. Allocated (Pass on Standby)';
+    calloutDesc = lang === 'tl'
+      ? 'Na-verify na ang inyong pamilya, nakalkula na ang Priority Score, at handa na ang relief allocation quota. Naka-standby ang inyong QR Pass at magiging aktibo sa oras na buksan ng LGU ang distribution event sa inyong barangay.'
+      : 'Household verified, vulnerability priority index assessed, and relief pack quota allocated. Your QR Pass is on standby and will activate once an active distribution event is opened by the LGU in your barangay.';
+  }
 
   return (
     <View style={styles.container}>
@@ -80,8 +111,16 @@ export default function RecoveryPhaseStepper({
           <Text style={styles.subTitle}>{t.stepperKicker}</Text>
         </View>
 
-        <View style={styles.percentBadge}>
-          <Text style={styles.percentText}>
+        <View style={[
+          styles.percentBadge,
+          calloutTheme === 'ready' && { backgroundColor: '#ECFDF5', borderColor: '#6EE7B7' },
+          calloutTheme === 'claimed' && { backgroundColor: '#E0F2FE', borderColor: '#7DD3FC' },
+        ]}>
+          <Text style={[
+            styles.percentText,
+            calloutTheme === 'ready' && { color: '#047857' },
+            calloutTheme === 'claimed' && { color: '#0369A1' },
+          ]}>
             {percentage}% {lang === 'tl' ? 'Natapos' : 'Done'}
           </Text>
         </View>
@@ -148,32 +187,32 @@ export default function RecoveryPhaseStepper({
       </View>
 
       {/* Current Active Stage Description Callout */}
-      <View style={styles.activeCallout}>
+      <View style={[
+        styles.activeCallout,
+        calloutTheme === 'ready' && styles.activeCalloutReady,
+        calloutTheme === 'claimed' && styles.activeCalloutClaimed,
+      ]}>
         <View style={styles.activeCalloutHeader}>
-          <View style={styles.activePhaseDot} />
-          <Text style={styles.activeCalloutTitle}>
+          <View style={[
+            styles.activePhaseDot,
+            calloutTheme === 'ready' && { backgroundColor: '#10B981' },
+            calloutTheme === 'claimed' && { backgroundColor: '#0284C7' },
+          ]} />
+          <Text style={[
+            styles.activeCalloutTitle,
+            calloutTheme === 'ready' && { color: '#065F46' },
+            calloutTheme === 'claimed' && { color: '#0369A1' },
+          ]}>
             {lang === 'tl' ? 'KASALUKUYANG YUGTO:' : 'ACTIVE PHASE:'}{' '}
-            {!isVerified
-              ? lang === 'tl'
-                ? '1. Beripikasyon (Nakabinbin)'
-                : '1. Verification (Pending)'
-              : completedCount === 5
-              ? lang === 'tl'
-                ? '5. Na-Claim (Kumpleto)'
-                : '5. Claimed (Complete)'
-              : currentStage.label}
+            {calloutTitle}
           </Text>
         </View>
-        <Text style={styles.activeCalloutDesc}>
-          {!isVerified
-            ? lang === 'tl'
-              ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Awtomatikong uusad ang progreso kapag naaprubahan na ng Barangay Official.'
-              : 'Your registration is currently in the Barangay 291 Verification Queue. Progress will advance once approved by the Barangay Official.'
-            : completedCount === 5
-            ? lang === 'tl'
-              ? 'Matagumpay na natanggap ang ayuda gamit ang QR pass sa covered court. Naitaya na sa database ang inyong relief claim.'
-              : 'Relief pack successfully claimed via QR scan. Your relief distribution has been securely recorded in the database.'
-            : currentStage.desc}
+        <Text style={[
+          styles.activeCalloutDesc,
+          calloutTheme === 'ready' && { color: '#047857' },
+          calloutTheme === 'claimed' && { color: '#075985' },
+        ]}>
+          {calloutDesc}
         </Text>
       </View>
     </View>
@@ -331,5 +370,13 @@ const styles = StyleSheet.create({
     color: '#997A20',
     lineHeight: 16,
     paddingLeft: 16,
+  },
+  activeCalloutReady: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  activeCalloutClaimed: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
   },
 });

@@ -336,12 +336,44 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const householdObj = household.toObject();
     householdObj.recoveryStatus = recovery ? recovery.status : 'waiting';
 
+    // Check for active distribution event in this household's barangay
+    const activeEvent = await DistributionEvent.findOne({
+      barangayCode: household.barangayCode || '291',
+      isActive: true,
+    }).sort({ openedAt: -1, createdAt: -1 });
+
+    // Check if this household has claimed in the currently active event
+    let isClaimedInActiveEvent = false;
+    let activeClaimDetails = null;
+    if (activeEvent) {
+      const claim = await Distribution.findOne({
+        distributionEventId: activeEvent._id,
+        householdId: household._id,
+      });
+      if (claim) {
+        isClaimedInActiveEvent = true;
+        activeClaimDetails = claim;
+      }
+    }
+
+    const hasPastClaims = Array.isArray(pastDistributions) && pastDistributions.length > 0;
+
+    householdObj.hasActiveEvent = !!activeEvent;
+    householdObj.activeEvent = activeEvent || null;
+    householdObj.isClaimedInActiveEvent = isClaimedInActiveEvent;
+    householdObj.activeClaimDetails = activeClaimDetails;
+    householdObj.hasPastClaims = hasPastClaims;
+
     res.json({
       household: householdObj,
       entitlement,
       gapAnalysis,
       pastRequests,
       pastDistributions,
+      activeEvent: activeEvent || null,
+      isClaimedInActiveEvent,
+      activeClaimDetails,
+      hasPastClaims,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching household details', error: error.message });

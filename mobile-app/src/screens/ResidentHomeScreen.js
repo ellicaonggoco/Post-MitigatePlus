@@ -275,6 +275,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: data.status } : prev));
           }
         });
+        socket.on('distribution_event_updated', () => {
+          refreshData(true);
+        });
+        socket.on('assistance_released', () => {
+          refreshData(true);
+        });
       }
     } catch (e) {
       console.warn('Socket connection note:', e);
@@ -300,6 +306,16 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
   const topUpUnits = headcount > baseCoverage ? (headcount - (basePacks * baseCoverage)) : 0;
+
+  // 5-Stage Disaster Recovery Event & Claim Evaluation
+  const activeEvent = householdData?.activeEvent || null;
+  const hasActiveEvent = !!householdData?.hasActiveEvent && !!activeEvent;
+  const statusLower = (householdData?.recoveryStatus || 'waiting').toLowerCase();
+  const isClaimed = !!householdData?.isClaimedInActiveEvent ||
+    statusLower.includes('claim') ||
+    statusLower.includes('recover') ||
+    statusLower.includes('received') ||
+    statusLower.includes('ongoing');
 
   const membersList = Array.isArray(householdData?.members) ? householdData.members : [];
   const seniorCount = membersList.filter(m => (m.age !== undefined && m.age >= 60) || m.specialConditions?.includes('senior')).length;
@@ -457,15 +473,27 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             }
           >
             {/* 5-Phase Linear Disaster Recovery Status Stepper (Compact Top Position) */}
+            {/* 5-Phase Linear Disaster Recovery Status Stepper (Compact Top Position) */}
             <RecoveryPhaseStepper
               currentStatus={isVerified ? (householdData?.recoveryStatus || 'waiting') : 'pending'}
               isVerified={isVerified}
+              hasActiveEvent={hasActiveEvent}
+              isClaimed={isClaimed}
+              activeEvent={activeEvent}
               lang={lang}
             />
 
             {/* Familiar Digital ID / Relief QR Pass Hero Card with Modern SingPass-Style Gradient */}
             <LinearGradient
-              colors={isVerified ? ['#0B1D4E', '#1C3F94', '#234AAA'] : ['#1E293B', '#0F172A']}
+              colors={
+                !isVerified
+                  ? ['#1E293B', '#0F172A']
+                  : isClaimed
+                  ? ['#064E3B', '#065F46', '#047857']
+                  : hasActiveEvent
+                  ? ['#0B1D4E', '#1C3F94', '#234AAA']
+                  : ['#0B1D4E', '#1E293B', '#1E3A5F']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.qrHeroCardGradient}
@@ -478,19 +506,33 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   <Text style={styles.qrTitleWhite}>{t.reliefPassTitle}</Text>
                   <Text style={styles.qrSubTextWhite}>{householdName} • Barangay {brgyCode}</Text>
                 </View>
-                {isVerified ? (
-                  <MotionPressable
-                    style={styles.expandQRBtnGlass}
-                    onPress={() => setShowQRModal(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.expandQRTextWhite}>{t.enlargeBtn}</Text>
-                  </MotionPressable>
-                ) : (
+                {!isVerified ? (
                   <View style={styles.pendingTagHeaderPill}>
                     <ClockIcon size={11} color="#B45309" />
                     <Text style={styles.pendingTagHeaderText}>
                       {lang === 'tl' ? 'HINDI PA APPRUBADO' : 'PENDING APPROVAL'}
+                    </Text>
+                  </View>
+                ) : isClaimed ? (
+                  <View style={[styles.pendingTagHeaderPill, { backgroundColor: '#ECFDF5', borderColor: '#6EE7B7' }]}>
+                    <CheckIcon size={11} color="#047857" strokeWidth={2.8} />
+                    <Text style={[styles.pendingTagHeaderText, { color: '#047857' }]}>
+                      {lang === 'tl' ? 'NA-CLAIM NA' : 'CLAIMED'}
+                    </Text>
+                  </View>
+                ) : hasActiveEvent ? (
+                  <MotionPressable
+                    style={[styles.expandQRBtnGlass, { backgroundColor: 'rgba(16, 185, 129, 0.25)', borderColor: '#34D399' }]}
+                    onPress={() => setShowQRModal(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.expandQRTextWhite, { color: '#A7F3D0' }]}>{t.enlargeBtn}</Text>
+                  </MotionPressable>
+                ) : (
+                  <View style={[styles.pendingTagHeaderPill, { backgroundColor: 'rgba(254, 243, 199, 0.2)', borderColor: 'rgba(252, 211, 77, 0.4)' }]}>
+                    <ClockIcon size={11} color="#FCD34D" />
+                    <Text style={[styles.pendingTagHeaderText, { color: '#FDE68A' }]}>
+                      {lang === 'tl' ? 'NAKA-STANDBY' : 'ON STANDBY'}
                     </Text>
                   </View>
                 )}
@@ -515,7 +557,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               </View>
 
-              {/* High-Contrast Interactive QR Block or Pending Approval Banner */}
+              {/* High-Contrast Interactive QR Block or Standby / Pending Banner */}
               {!isVerified ? (
                 <View style={styles.pendingVerificationFrame}>
                   <View style={styles.pendingIconWell}>
@@ -551,14 +593,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                             Alert.alert(
                               lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
                               lang === 'tl'
-                                ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong QR Relief Pass ay aktibo na.'
-                                : 'Your account has been verified by the Barangay Admin! Your Relief QR Pass is now active.'
+                                ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong relief allocation ay nakahanda na.'
+                                : 'Your account has been verified by the Barangay Admin! Your relief allocation is prepared.'
                             );
                           } else {
                             Alert.alert(
                               lang === 'tl' ? 'Kasalukuyang Nakabinbin' : 'Still Pending Approval',
                               lang === 'tl'
-                                ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay 291. Pakihintay ang pag-apruba ng Barangay Official sa Web Admin.'
+                                ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay. Pakihintay ang pag-apruba ng Barangay Official sa Web Admin.'
                                 : 'Your registration is still pending review in the Barangay Verification Queue.'
                             );
                           }
@@ -578,17 +620,95 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     </Text>
                   </TouchableOpacity>
                 </View>
-              ) : (
+              ) : isClaimed ? (
+                /* Stage 5: Claim Completed State */
+                <View style={styles.claimedSuccessFrame}>
+                  <View style={styles.claimedSuccessIconWell}>
+                    <CheckIcon size={34} color="#059669" strokeWidth={3} />
+                  </View>
+                  <Text style={styles.claimedSuccessTitle}>
+                    {lang === 'tl' ? 'MATAGUMPAY NA NATANGGAP ANG AYUDA' : 'RELIEF AID SUCCESSFULLY CLAIMED'}
+                  </Text>
+                  <Text style={styles.claimedSuccessSub}>
+                    {lang === 'tl'
+                      ? 'Naitala na sa MitigatePlus LGU Registry ang opisyal na claim ng inyong sambahayan. Maraming salamat sa inyong pakikipagtulungan!'
+                      : 'Your relief claim has been securely confirmed and recorded in the MitigatePlus LGU Registry.'}
+                  </Text>
+
+                  <View style={styles.claimedEventDetailsBox}>
+                    <Text style={styles.claimedEventLabel}>
+                      {lang === 'tl' ? 'ALOKASYONG NATANGGAP:' : 'RECEIVED ALLOCATION:'}
+                    </Text>
+                    <Text style={styles.claimedEventValue}>
+                      {basePacks}x Base Pack {topUpUnits > 0 ? `+ ${topUpUnits} Top-Up Units` : ''}
+                    </Text>
+                    {activeEvent && (
+                      <Text style={styles.claimedEventLocation}>
+                        📍 {activeEvent.location || `Barangay ${brgyCode} Covered Court`}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={styles.claimedStatusBadgeRow}>
+                    <CheckIcon size={13} color="#047857" strokeWidth={2.5} />
+                    <Text style={styles.claimedStatusBadgeText}>
+                      {lang === 'tl' ? 'KATAYUAN: TAPOS NA ANG PAMAMAHAGI (STAGE 5/5)' : 'STATUS: FULFILLED (STAGE 5 OF 5)'}
+                    </Text>
+                  </View>
+                </View>
+              ) : hasActiveEvent ? (
+                /* Stage 4: Ready State (Active Event Open -> QR Code Unlocked & Scannable) */
                 <MotionPressable
                   style={styles.qrInteractiveFrameWhite}
                   onPress={() => setShowQRModal(true)}
                   activeOpacity={0.92}
                 >
+                  <View style={styles.activeEventBannerPill}>
+                    <View style={styles.liveGreenDot} />
+                    <Text style={styles.activeEventBannerText} numberOfLines={1}>
+                      {lang === 'tl' ? 'BUKAS ANG CLAIM SA: ' : 'OPEN FOR CLAIM: '}
+                      {activeEvent?.location || `Barangay ${brgyCode} Covered Court`}
+                    </Text>
+                  </View>
                   <QRCodeVisual value={qrCodeString} size={230} lang={lang} isCompact />
                   <View style={styles.tapToEnlargeRow}>
                     <Text style={styles.tapToEnlargeHint}>{t.tapToInspectPass}</Text>
                   </View>
                 </MotionPressable>
+              ) : (
+                /* Stage 3: Allocated State (No active distribution event yet -> QR on Standby) */
+                <View style={styles.standbyReliefFrame}>
+                  <View style={styles.standbyIconWell}>
+                    <ClockIcon size={32} color="#1E40AF" />
+                  </View>
+                  <Text style={styles.standbyTitle}>
+                    {lang === 'tl' ? 'NAKA-STANDBY ANG QR RELIEF PASS' : 'RELIEF QR PASS ON STANDBY'}
+                  </Text>
+                  <Text style={styles.standbySub}>
+                    {lang === 'tl'
+                      ? `Ligtas na na-verify ang inyong sambahayan (Stage 1), na-assess ang Priority Score (${priorityScore} pts), at inihanda ang inyong alokasyon (${basePacks}x Base Pack).\n\nAwtomatikong lalabas at magiging aktibo ang inyong scannable QR Pass sa oras na buksan ng LGU ang opisyal na pamamahagi ng relief sa Barangay ${brgyCode} para sa Stage 4 (Handa na).`
+                      : `Household verified (Stage 1), priority score assessed (${priorityScore} pts), and relief quota prepared (${basePacks}x Base Pack).\n\nYour scannable QR Pass will automatically unlock once the LGU officially opens the relief distribution event in Barangay ${brgyCode} for Stage 4 (Ready).`}
+                  </Text>
+
+                  <View style={styles.standbyBadgeRow}>
+                    <ClockIcon size={13} color="#92400E" />
+                    <Text style={styles.standbyBadgeText}>
+                      {lang === 'tl' ? 'KATAYUAN: NAKAHANDA ANG ALOKASYON (STAGE 3/5)' : 'STATUS: ALLOCATION STAGED (STAGE 3 OF 5)'}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.standbyRefreshBtn}
+                    onPress={() => refreshData(true)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.standbyRefreshBtnText}>
+                      {loadingProfile
+                        ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
+                        : (lang === 'tl' ? '🔄 I-check kung may Binuksang Event' : '🔄 Check for Active Event')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </LinearGradient>
 
@@ -2601,5 +2721,179 @@ navIconPillInactive: {
     backgroundColor: '#EDE9FE',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // 5-Stage Lifecycle Support Styles
+  claimedSuccessFrame: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 22,
+    alignItems: 'center',
+    width: '100%',
+    marginVertical: 8,
+    borderWidth: 1.5,
+    borderColor: '#A7F3D0',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 16px rgba(5, 150, 105, 0.12)' } : {}),
+  },
+  claimedSuccessIconWell: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#ECFDF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#6EE7B7',
+  },
+  claimedSuccessTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#064E3B',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    marginBottom: 6,
+  },
+  claimedSuccessSub: {
+    fontSize: 12,
+    color: '#047857',
+    textAlign: 'center',
+    lineHeight: 17,
+    marginBottom: 16,
+  },
+  claimedEventDetailsBox: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  claimedEventLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  claimedEventValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#064E3B',
+    textAlign: 'center',
+  },
+  claimedEventLocation: {
+    fontSize: 11,
+    color: '#047857',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  claimedStatusBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  claimedStatusBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  activeEventBannerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#6EE7B7',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    marginBottom: 12,
+    width: '100%',
+    gap: 6,
+  },
+  liveGreenDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+  },
+  activeEventBannerText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#047857',
+  },
+  standbyReliefFrame: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 22,
+    alignItems: 'center',
+    width: '100%',
+    marginVertical: 8,
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 4px 16px rgba(30, 64, 175, 0.08)' } : {}),
+  },
+  standbyIconWell: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#93C5FD',
+  },
+  standbyTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#1E3A8A',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    marginBottom: 6,
+  },
+  standbySub: {
+    fontSize: 12,
+    color: '#334155',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  standbyBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 16,
+  },
+  standbyBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#92400E',
+  },
+  standbyRefreshBtn: {
+    backgroundColor: '#1C3F94',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  standbyRefreshBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '800',
   },
 });

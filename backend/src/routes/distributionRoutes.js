@@ -63,6 +63,13 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
       notes: `Event "${event.title}" status updated. isActive: ${event.isActive}`,
     });
 
+    // Broadcast event status change to Web Admin and Residents in the Barangay
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('distribution_event_updated', event);
+      io.to(`barangay:${event.barangayCode || '291'}`).emit('distribution_event_updated', event);
+    }
+
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: 'Error updating event status', error: error.message });
