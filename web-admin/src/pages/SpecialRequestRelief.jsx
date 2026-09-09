@@ -29,6 +29,8 @@ import { MotionCard } from '../components/motion';
 
 export default function SpecialRequestRelief() {
   const { token, user } = useContext(AuthContext);
+  const isLguAdmin = user?.role === 'lgu_admin' || user?.role === 'lgu_superadmin';
+  const isBarangay = user?.role === 'barangay_official';
 
   const [assistanceRequests, setAssistanceRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,17 +42,23 @@ export default function SpecialRequestRelief() {
   const [staffList, setStaffList] = useState([]);
   const [assignLoading, setAssignLoading] = useState(false);
 
+  // Registered Households and Active Events for Quick Selection
+  const [households, setHouseholds] = useState([]);
+  const [activeEvents, setActiveEvents] = useState([]);
+
   // State for Create Special Request Modal (For Barangay & LGU Admin)
   const [createModal, setCreateModal] = useState({
     isOpen: false,
+    selectedHouseholdId: '',
     recipientName: '',
     recipientPhone: '',
     recipientAddress: '',
     barangayCode: user?.barangayCode || '291',
+    eventId: '',
+    eventTitle: '',
     memberCount: '4',
     vulnerabilityTypes: ['Senior Citizen'],
     severityLevel: 'Severe / Bedridden',
-    itemType: 'Emergency Family Food Pack',
     notes: '',
   });
   const [createLoading, setCreateLoading] = useState(false);
@@ -114,8 +122,30 @@ export default function SpecialRequestRelief() {
           }
         })
         .catch(() => {});
+
+      const bCode = user?.barangayCode || '291';
+      fetch(`${API_BASE_URL}/households?barangayCode=${bCode}`, {
+        headers: { Authorization: 'Bearer ' + token },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setHouseholds(data);
+        })
+        .catch(() => {});
+
+      fetch(`${API_BASE_URL}/distributions/events?barangayCode=${bCode}&activeOnly=true`, {
+        headers: { Authorization: 'Bearer ' + token },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const active = data.filter(e => e.isActive || e.status === 'Ongoing' || e.status === 'Scheduled');
+            setActiveEvents(active);
+          }
+        })
+        .catch(() => {});
     }
-  }, [token, assistanceRequests.length]);
+  }, [token, assistanceRequests.length, user?.barangayCode]);
 
   const handleAssignDelivery = async () => {
     if (!assignModal.request) return;
@@ -173,6 +203,7 @@ export default function SpecialRequestRelief() {
 
     setCreateLoading(true);
     try {
+      const bCode = isBarangay ? (user?.barangayCode || '291') : (createModal.barangayCode || user?.barangayCode || '291');
       const res = await fetch(API_BASE_URL + '/assistance-requests', {
         method: 'POST',
         headers: {
@@ -180,14 +211,17 @@ export default function SpecialRequestRelief() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          eventId: createModal.eventId || (activeEvents[0]?._id || null),
+          eventTitle: createModal.eventTitle || (activeEvents[0]?.title || ''),
+          householdId: createModal.selectedHouseholdId || null,
           recipientName: createModal.recipientName.trim(),
           recipientPhone: createModal.recipientPhone.trim(),
           recipientAddress: createModal.recipientAddress.trim(),
-          barangay: createModal.barangayCode || user?.barangayCode || '291',
+          barangay: bCode,
           memberCount: parseInt(createModal.memberCount, 10) || 1,
           vulnerabilityTypes: createModal.vulnerabilityTypes,
           severityLevel: createModal.severityLevel,
-          itemType: createModal.itemType,
+          itemType: 'Pangunahing Family Food & Disaster Relief Pack',
           notes: createModal.notes.trim() || 'Door-to-door emergency relief assistance requested by Barangay Official.',
         }),
       });
@@ -195,20 +229,23 @@ export default function SpecialRequestRelief() {
       if (res.ok) {
         setCreateModal({
           isOpen: false,
+          selectedHouseholdId: '',
           recipientName: '',
           recipientPhone: '',
           recipientAddress: '',
           barangayCode: user?.barangayCode || '291',
+          eventId: '',
+          eventTitle: '',
           memberCount: '4',
           vulnerabilityTypes: ['Senior Citizen'],
           severityLevel: 'Severe / Bedridden',
-          itemType: 'Emergency Family Food Pack',
           notes: '',
         });
         fetchAssistanceRequests();
-        alert('Special Relief Request successfully recorded and queued for dispatch!');
+        alert('Special Relief Request successfully recorded and submitted to LGU Command Center for approval and staff dispatch!');
       } else {
-        alert('Failed to submit special relief request.');
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.message || 'Failed to submit special relief request.');
       }
     } catch (err) {
       alert('Error submitting special relief request.');
@@ -264,7 +301,9 @@ export default function SpecialRequestRelief() {
               Special Relief Requests
             </h1>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              Review priority assistance requests from vulnerable households (Senior Citizens, PWDs, Infants, Severe Conditions) and monitor door-to-door field staff dispatch.
+              {isBarangay
+                ? 'Barangay Portal: Magsumite ng Special Door-to-Door Relief Requests para sa mga vulnerable constituents (bedridden, seniors, PWDs). Ang mga kahilingan ay susuriin at aaprubahan ng LGU Admin bago italaga sa Field Staff.'
+                : 'LGU Executive Command: Suriin at aprubahan ang mga Special Relief Request mula sa mga Barangay Officials at italaga ang mga Field Staff officers para sa door-to-door delivery.'}
             </p>
           </div>
         </div>
@@ -276,7 +315,7 @@ export default function SpecialRequestRelief() {
             className="clay-button-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '9px 18px', fontWeight: 800 }}
           >
-            <Plus size={15} /> Create Special Request
+            <Plus size={15} /> {isBarangay ? 'Magsumite ng Special Request' : 'Create Special Request'}
           </button>
           <button
             type="button"
@@ -564,14 +603,25 @@ export default function SpecialRequestRelief() {
                             <Check size={13} /> {inlineFeedback[r._id]}
                           </span>
                         ) : isPending ? (
-                          <button
-                            type="button"
-                            onClick={() => setAssignModal({ isOpen: true, request: r })}
-                            className="clay-button-primary"
-                            style={{ fontSize: 12, padding: '6px 14px', gap: 5 }}
-                          >
-                            <Truck size={13} /> Dispatch Staff
-                          </button>
+                          isLguAdmin ? (
+                            <button
+                              type="button"
+                              onClick={() => setAssignModal({ isOpen: true, request: r })}
+                              className="clay-button-primary"
+                              style={{ fontSize: 12, padding: '6px 14px', gap: 5 }}
+                            >
+                              <Truck size={13} /> Approve & Dispatch Staff
+                            </button>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                              <span style={{ fontSize: 12, color: '#D97706', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Clock size={12} /> Awaiting LGU Approval
+                              </span>
+                              <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+                                Queued for Staff Assignment
+                              </span>
+                            </div>
+                          )
                         ) : isApproved ? (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
                             <span style={{ fontSize: 11.5, color: '#2563EB', fontWeight: 800 }}>
@@ -980,6 +1030,72 @@ export default function SpecialRequestRelief() {
             </div>
 
             <form onSubmit={handleCreateSpecialRequest}>
+              {/* Optional Quick Autofill from Registered Barangay Households */}
+              {households.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 11, fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
+                    Quick Autofill from Barangay Household Directory (Optional)
+                  </label>
+                  <select
+                    value={createModal.selectedHouseholdId}
+                    onChange={e => {
+                      const hId = e.target.value;
+                      if (!hId) {
+                        setCreateModal(prev => ({ ...prev, selectedHouseholdId: '' }));
+                        return;
+                      }
+                      const found = households.find(h => String(h._id) === String(hId));
+                      if (found) {
+                        const hHead = found.headOfHouseholdUserId || {};
+                        const mList = Array.isArray(found.members) ? found.members : [];
+                        const vTypes = [];
+                        if (mList.some(m => (m.age !== undefined && m.age >= 60) || (m.specialConditions || []).includes('senior'))) vTypes.push('Senior Citizen');
+                        if (mList.some(m => (m.specialConditions || []).includes('pwd'))) vTypes.push('Person with Disability (PWD)');
+                        if (mList.some(m => (m.age !== undefined && m.age <= 2) || (m.specialConditions || []).includes('infant'))) vTypes.push('Infant Care');
+                        if (vTypes.length === 0) vTypes.push('Senior Citizen');
+
+                        setCreateModal(prev => ({
+                          ...prev,
+                          selectedHouseholdId: found._id,
+                          recipientName: hHead.name || '',
+                          recipientPhone: hHead.contactNum || hHead.emailOrPhone || '',
+                          recipientAddress: found.address ? `${found.address}, Purok ${found.purok || '1'}` : '',
+                          memberCount: String(found.memberCount || found.members?.length || 4),
+                          vulnerabilityTypes: vTypes,
+                        }));
+                      }
+                    }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #BFDBFE', fontSize: 13, background: '#F8FAFF', color: '#1E40AF', fontWeight: 700, boxSizing: 'border-box' }}
+                  >
+                    <option value="">-- Pumili mula sa rehistradong sambahayan (o mag-type nang manu-mano) --</option>
+                    {households.map(h => {
+                      const hName = h.headOfHouseholdUserId?.name || 'Household';
+                      const hAddr = h.address ? `${h.address}` : `Purok ${h.purok || '1'}`;
+                      return (
+                        <option key={h._id} value={h._id}>
+                          {hName} • {hAddr} ({h.memberCount || 1} members)
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+
+              {/* Active Distribution Event Link (If Available) */}
+              {activeEvents.length > 0 && (
+                <div style={{ marginBottom: 14, padding: '10px 14px', background: '#F0FDF4', borderRadius: 10, border: '1px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <CheckCircle2 size={16} color="#15803D" />
+                    <span style={{ fontSize: 12.5, color: '#166534', fontWeight: 700 }}>
+                      Konektado sa Aktibong Pamamahagi: <strong>{activeEvents[0].title}</strong>
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11, background: '#DCFCE7', color: '#15803D', fontWeight: 800, padding: '3px 8px', borderRadius: 6 }}>
+                    Aktibong Event
+                  </span>
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
@@ -1089,37 +1205,37 @@ export default function SpecialRequestRelief() {
                 </div>
               </div>
 
-              {/* Severity & Package Selection */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
-                    Condition & Severity *
-                  </label>
-                  <select
-                    value={createModal.severityLevel}
-                    onChange={e => setCreateModal(prev => ({ ...prev, severityLevel: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', fontWeight: 700, boxSizing: 'border-box' }}
-                  >
-                    <option value="Severe / Bedridden">Severe / Bedridden (Urgent Priority)</option>
-                    <option value="Moderate Priority">Moderate Priority (Elderly / PWD Care)</option>
-                    <option value="Standard Assistance">Standard Assistance (Family Relief)</option>
-                  </select>
-                </div>
+              {/* Condition & Severity */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
+                  Condition & Severity Level *
+                </label>
+                <select
+                  value={createModal.severityLevel}
+                  onChange={e => setCreateModal(prev => ({ ...prev, severityLevel: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', fontWeight: 700, boxSizing: 'border-box' }}
+                >
+                  <option value="Severe / Bedridden">Severe / Bedridden (Urgent Priority)</option>
+                  <option value="Moderate Priority">Moderate Priority (Elderly / PWD Care)</option>
+                  <option value="Standard Assistance">Standard Assistance (Family Relief)</option>
+                </select>
+              </div>
 
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
-                    Relief Package Item *
-                  </label>
-                  <select
-                    value={createModal.itemType}
-                    onChange={e => setCreateModal(prev => ({ ...prev, itemType: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', fontWeight: 700, boxSizing: 'border-box' }}
-                  >
-                    <option value="Emergency Family Food Pack">Emergency Family Food Pack</option>
-                    <option value="Infant Care & Nutrition Kit">Infant Care & Nutrition Kit</option>
-                    <option value="Senior Citizen Care & Medicine Pack">Senior Citizen Care & Medicine Pack</option>
-                    <option value="Clean Water & Hygiene Kit">Clean Water & Hygiene Kit</option>
-                  </select>
+              {/* Standardized Unified Relief Package (No Choices Dropdown) */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
+                  Opisyal na Alokasyon ng Ayuda (Kumpletong Standard Pack)
+                </label>
+                <div style={{ padding: '12px 14px', borderRadius: 8, border: '1.5px solid #BFDBFE', background: '#EFF6FF', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <CheckCircle2 size={18} color="#1D4ED8" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#1E40AF' }}>
+                      Pangunahing Family Food & Disaster Relief Pack (Standard Unified Allocation)
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#3B82F6', marginTop: 3, lineHeight: 1.4 }}>
+                      Lahat ng Door-to-Door Relief ay naglalaman ng 5kg Bigas, De-latang Ulam, Instant Noodles, Malinis na Inuming Tubig, at Essential Care Supplies. Lahat ng kailangan ay kasama na sa isang kumpletong relief package.
+                    </div>
+                  </div>
                 </div>
               </div>
 

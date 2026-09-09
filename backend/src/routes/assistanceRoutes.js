@@ -8,8 +8,8 @@ const DistributionEvent = require('../models/DistributionEvent');
 const { protect, requireRole } = require('../middleware/auth');
 
 // @route   POST /api/assistance-requests
-// @desc    Submit a new assistance request (Resident or Official on behalf of household)
-router.post('/', protect, requireRole('resident', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+// @desc    Submit a new special relief request (Barangay Official or LGU Admin on behalf of vulnerable household)
+router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const {
       eventId,
@@ -271,7 +271,7 @@ router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_st
 
 // @route   PATCH /api/assistance-requests/:id/assign
 // @desc    LGU Admin assigns field staff officer/team for door-to-door delivery
-router.patch('/:id/assign', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
+router.patch('/:id/assign', protect, requireRole('lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { assignedStaffId, assignedStaffName } = req.body;
     const request = await AssistanceRequest.findById(req.params.id);
