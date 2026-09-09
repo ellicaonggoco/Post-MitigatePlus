@@ -90,7 +90,10 @@ export default function SpecialRequestRelief() {
           Authorization: 'Bearer ' + token,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ assignedStaffId: user?._id || 'staff_alpha' }),
+        body: JSON.stringify({
+          assignedStaffId: user?._id || 'staff_alpha',
+          assignedStaffName: assignStaffName,
+        }),
       });
       if (res.ok) {
         setAssignModal({ isOpen: false, request: null });
@@ -430,7 +433,7 @@ export default function SpecialRequestRelief() {
                   const isApproved = r.status === 'approved' || r.status === 'under_review';
                   const isDelivered = r.status === 'received' || r.status === 'released';
 
-                  const staffName = r.assignedStaff?.name || (isApproved ? 'Field Officer Juan Santos' : '');
+                  const staffName = r.assignedStaffName || r.assignedStaff?.name || (isApproved ? 'Field Officer Juan Santos' : '');
                   const deliveredDate = r.deliveredAt ? new Date(r.deliveredAt).toLocaleDateString('en-PH') : 'Recently';
 
                   return (
@@ -734,7 +737,7 @@ export default function SpecialRequestRelief() {
             {photoModal.request && (
               <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.4 }}>
                 <div><strong>Beneficiary:</strong> {photoModal.request.householdId?.headOfHouseholdUserId?.name || 'Citizen'}</div>
-                <div><strong>Delivered By:</strong> {photoModal.request.deliveredBy?.name || photoModal.request.assignedStaff?.name || 'Barangay Field Staff'}</div>
+                <div><strong>Delivered By:</strong> {photoModal.request.deliveredBy?.name || photoModal.request.assignedStaffName || photoModal.request.assignedStaff?.name || 'Barangay Field Staff'}</div>
                 <div><strong>Timestamp:</strong> {photoModal.request.deliveredAt ? new Date(photoModal.request.deliveredAt).toLocaleString('en-PH') : 'Verified'}</div>
               </div>
             )}

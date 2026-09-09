@@ -542,21 +542,24 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       }
     });
 
-    // Compute standard relief quantity recommendation based on ReliefItemType configs
+    // Compute standard relief quantity recommendation based on ReliefItemType configs and PolicyConfig
     const ReliefItemType = require('../models/ReliefItemType');
+    const PolicyConfig = require('../models/PolicyConfig');
+    const policy = await PolicyConfig.findOne({ key: 'relief_allocation' });
+    const activeBase = (policy && policy.baseCoverage) ? policy.baseCoverage : 5;
     const itemConfigs = await ReliefItemType.find({});
     const recommendations = {};
 
     if (itemConfigs && itemConfigs.length > 0) {
       itemConfigs.forEach((cfg) => {
-        recommendations[cfg.name] = calculateReliefAllocation(household.memberCount, cfg.baseCoverage, cfg.category);
+        recommendations[cfg.name] = calculateReliefAllocation(household.memberCount, policy?.baseCoverage || cfg.baseCoverage, cfg.category);
       });
     } else {
-      recommendations['Family Food Pack'] = calculateReliefAllocation(household.memberCount, 5, 'headcount_scaled');
-      recommendations['Hygiene Kit'] = calculateReliefAllocation(household.memberCount, 5, 'headcount_scaled');
+      recommendations['Family Food Pack'] = calculateReliefAllocation(household.memberCount, activeBase, 'headcount_scaled');
+      recommendations['Hygiene Kit'] = calculateReliefAllocation(household.memberCount, activeBase, 'headcount_scaled');
     }
     
-    const entitlement = calculateHouseholdEntitlement(household);
+    const entitlement = calculateHouseholdEntitlement(household, policy);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
     const enrichedHousehold = {

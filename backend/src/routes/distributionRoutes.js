@@ -6,6 +6,7 @@ const Household = require('../models/Household');
 const RecoveryStatus = require('../models/RecoveryStatus');
 const AuditLog = require('../models/AuditLog');
 const ReliefItemType = require('../models/ReliefItemType');
+const PolicyConfig = require('../models/PolicyConfig');
 const WarehouseItem = require('../models/WarehouseItem');
 const WarehouseLog = require('../models/WarehouseLog');
 const { protect, requireRole } = require('../middleware/auth');
@@ -345,9 +346,17 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       const io = req.app.get('io');
       if (io) {
         io.to('admin_room').emit('duplicate_claim_alert', {
+          id: Date.now(),
+          _id: Date.now(),
+          name: household.headOfHouseholdUserId?.name || `Beneficiary (${household.address})`,
           householdAddress: household.address,
           householdPurok: household.purok,
+          barangay: household.barangayCode || '291',
           barangayCode: household.barangayCode,
+          qr: household.qrCode || `HH-${household.barangayCode}-${household._id.toString().slice(-6).toUpperCase()}`,
+          reason: `BLOCKED: Duplicate claim attempt for ${event.itemType} (Already claimed at ${existingClaim.releasedAt ? new Date(existingClaim.releasedAt).toLocaleTimeString() : 'earlier'})`,
+          severity: 'High',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           itemType: event.itemType,
           attemptedByStaff: req.user.name,
           attemptedAt: new Date(),
@@ -364,7 +373,8 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
 
     // 2. COMPUTE RIGHT-SIZED RELIEF ALLOCATION
     const itemConfig = await ReliefItemType.findOne({ name: event.itemType });
-    const baseCoverage = itemConfig ? itemConfig.baseCoverage : 5;
+    const policy = await PolicyConfig.findOne({ key: 'relief_allocation' });
+    const baseCoverage = (policy && policy.baseCoverage) ? policy.baseCoverage : (itemConfig ? itemConfig.baseCoverage : 5);
     const category = itemConfig ? itemConfig.category : 'headcount_scaled';
 
     const calculated = calculateReliefAllocation(household.memberCount, baseCoverage, category);

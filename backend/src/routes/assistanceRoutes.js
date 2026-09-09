@@ -1,7 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const AssistanceRequest = require('../models/AssistanceRequest');
 const Household = require('../models/Household');
+const User = require('../models/User');
 const { protect, requireRole } = require('../middleware/auth');
 
 // @route   POST /api/assistance-requests
@@ -186,21 +188,55 @@ router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_st
 // @desc    LGU Admin assigns field staff officer/team for door-to-door delivery
 router.patch('/:id/assign', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
   try {
-    const { assignedStaffId } = req.body;
+    const { assignedStaffId, assignedStaffName } = req.body;
     const request = await AssistanceRequest.findById(req.params.id);
     if (!request) return res.status(404).json({ message: 'Request not found.' });
 
-    request.assignedStaff = assignedStaffId || null;
+    let finalStaffId = null;
+    let finalStaffName = assignedStaffName || '';
+
+    // Check if a valid User ObjectId was provided
+    if (assignedStaffId && mongoose.Types.ObjectId.isValid(assignedStaffId)) {
+      const foundUser = await User.findById(assignedStaffId);
+      if (foundUser) {
+        finalStaffId = foundUser._id;
+        if (!finalStaffName) finalStaffName = foundUser.name;
+      }
+    }
+
+    // If no User matched by ID, try matching field_staff by name
+    if (!finalStaffId && finalStaffName) {
+      const clean = finalStaffName.replace(/Field Officer|Team Alpha|Team Bravo|Standby|\(|\)|\-/gi, '').trim();
+      if (clean) {
+        const matched = await User.findOne({
+          role: 'field_staff',
+          name: { $regex: clean, $options: 'i' },
+        });
+        if (matched) {
+          finalStaffId = matched._id;
+        }
+      }
+    }
+
+    // Fallback: If still no field_staff user ID, grab any field_staff so socket room works
+    if (!finalStaffId) {
+      const anyStaff = await User.findOne({ role: 'field_staff' });
+      if (anyStaff) finalStaffId = anyStaff._id;
+    }
+
+    request.assignedStaff = finalStaffId;
+    request.assignedStaffName = finalStaffName || 'Field Officer Juan Santos (Team Alpha)';
     request.status = 'approved';
     request.decidedBy = req.user._id;
     request.decidedAt = new Date();
     await request.save();
 
     const io = req.app.get('io');
-    if (io && assignedStaffId) {
-      io.to(`staff:${assignedStaffId}`).emit('new_delivery_task', {
+    if (io && finalStaffId) {
+      io.to(`staff:${finalStaffId}`).emit('new_delivery_task', {
         requestId: request._id,
         itemType: request.itemType,
+        assignedStaffName: request.assignedStaffName,
       });
     }
 

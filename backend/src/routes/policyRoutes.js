@@ -25,13 +25,26 @@ router.put('/', protect, requireRole('lgu_superadmin', 'lgu_super_admin'), async
     if (!policy) {
       policy = new PolicyConfig({ key: 'relief_allocation' });
     }
-    if (baseCoverage !== undefined) policy.baseCoverage = Number(baseCoverage);
+    if (baseCoverage !== undefined) {
+      policy.baseCoverage = Number(baseCoverage);
+      const ReliefItemType = require('../models/ReliefItemType');
+      await ReliefItemType.updateMany(
+        { category: 'headcount_scaled' },
+        { $set: { baseCoverage: Number(baseCoverage) } }
+      );
+    }
     if (extraMemberTopUp !== undefined) policy.extraMemberTopUp = Number(extraMemberTopUp);
     if (seniorTopUp !== undefined) policy.seniorTopUp = Number(seniorTopUp);
     if (pwdTopUp !== undefined) policy.pwdTopUp = Number(pwdTopUp);
     policy.updatedBy = req.user._id;
     policy.updatedAt = new Date();
     await policy.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to('admin_room').emit('policy_updated', policy);
+    }
+
     await AuditLog.create({ actorUserId: req.user._id, actorRole: req.user.role, action: 'UPDATE_POLICY', targetType: 'PolicyConfig', targetId: policy._id, notes: `Policy updated: base=${baseCoverage}` });
     res.json(policy);
   } catch (err) {

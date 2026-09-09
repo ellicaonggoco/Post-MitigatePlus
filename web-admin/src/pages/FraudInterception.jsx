@@ -57,21 +57,24 @@ export default function FraudInterception() {
   }, [filter, searchQuery]);
 
   const filtered = attempts.filter(a => {
-    const matchesSev = filter === 'ALL' || a.severity === filter;
+    const sev = a.severity || 'Medium';
+    const matchesSev = filter === 'ALL' || sev === filter;
     const q = searchQuery.toLowerCase().trim();
-    const matchesQuery = !q ||
-      a.name.toLowerCase().includes(q) ||
-      a.barangay.toLowerCase().includes(q) ||
-      a.qr.toLowerCase().includes(q) ||
-      a.reason.toLowerCase().includes(q);
+    if (!q) return matchesSev;
 
+    const name = String(a.name || a.actorName || '').toLowerCase();
+    const barangay = String(a.barangay || a.barangayCode || '').toLowerCase();
+    const qr = String(a.qr || a.targetId || '').toLowerCase();
+    const reason = String(a.reason || a.notes || '').toLowerCase();
+
+    const matchesQuery = name.includes(q) || barangay.includes(q) || qr.includes(q) || reason.includes(q);
     return matchesSev && matchesQuery;
   });
 
   const counts = {
-    High: attempts.filter(a => a.severity === 'High').length,
-    Medium: attempts.filter(a => a.severity === 'Medium').length,
-    Low: attempts.filter(a => a.severity === 'Low').length,
+    High: attempts.filter(a => (a.severity || 'Medium') === 'High').length,
+    Medium: attempts.filter(a => (a.severity || 'Medium') === 'Medium').length,
+    Low: attempts.filter(a => (a.severity || 'Medium') === 'Low').length,
   };
 
   // Pagination Math
@@ -160,26 +163,33 @@ export default function FraudInterception() {
           </div>
         )}
         {currentItems.map((a, idx) => {
-          const cfg = SEV_CONFIG[a.severity] || SEV_CONFIG.Low;
+          const sev = a.severity || 'Medium';
+          const cfg = SEV_CONFIG[sev] || SEV_CONFIG.Low;
+          const name = a.name || 'Verified Beneficiary';
+          const barangay = a.barangay || a.barangayCode || '291';
+          const qr = a.qr || (a.targetId ? `HH-${barangay}-${String(a.targetId).slice(-6).toUpperCase()}` : 'QR Pass');
+          const reason = a.reason || a.notes || 'DUPLICATE CLAIM BLOCKED: Household already claimed relief for this cycle.';
+          const time = a.timestamp || (a.createdAt ? new Date(a.createdAt).toLocaleTimeString() : 'Recently');
+
           return (
             <MotionCard key={a.id || a._id || idx} delay={idx * 0.06} className="clay-card" style={{ borderLeft: `4px solid ${cfg.color}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <XCircle size={16} color={cfg.color} />
-                    <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{a.name}</span>
-                    <MotionBadge color={cfg.color} pulse={a.severity === 'High'}>
-                      <span style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>{a.severity} Risk</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{name}</span>
+                    <MotionBadge color={cfg.color} pulse={sev === 'High'}>
+                      <span style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 999 }}>{sev} Risk</span>
                     </MotionBadge>
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 4 }}>
-                    <strong style={{ color: 'var(--ink)' }}>Barangay {a.barangay}</strong> &nbsp;·&nbsp; QR: <code style={{ fontSize: 11, background: 'var(--sampaguita)', padding: '2px 6px', borderRadius: 4, color: 'var(--manila-blue)' }}>{a.qr}</code>
+                    <strong style={{ color: 'var(--ink)' }}>Barangay {barangay}</strong> &nbsp;·&nbsp; QR: <code style={{ fontSize: 11, background: 'var(--sampaguita)', padding: '2px 6px', borderRadius: 4, color: 'var(--manila-blue)' }}>{qr}</code>
                   </div>
                   <div style={{ fontSize: 13, color: '#DC2626', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <AlertTriangle size={13} /> {a.reason}
+                    <AlertTriangle size={13} /> {reason}
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>{a.timestamp}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>{time}</div>
               </div>
             </MotionCard>
           );

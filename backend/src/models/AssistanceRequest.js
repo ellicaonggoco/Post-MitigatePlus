@@ -29,6 +29,7 @@ const assistanceRequestSchema = new mongoose.Schema({
   decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   decidedAt: { type: Date, default: null },
   assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  assignedStaffName: { type: String, default: '' },
   deliveredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   deliveredAt: { type: Date, default: null },
   proofOfDeliveryPhoto: { type: String, default: null },

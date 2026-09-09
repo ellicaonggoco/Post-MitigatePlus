@@ -10,11 +10,11 @@ import { MotionCard, MotionButton } from '../components/motion';
 
 export default function ReliefAllocationPage() {
   const { token, user } = useContext(AuthContext);
-  const isSuperAdmin = user?.role === 'lgu_superadmin';
+  const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
 
   const [events, setEvents] = useState([]);
   const [duplicateAlerts, setDuplicateAlerts] = useState([]);
-  // ── Executive Policy State (Persisted in localStorage) ──
+  // ── Executive Policy State (Persisted in DB & localStorage) ──
   const [policy, setPolicy] = useState(() => {
     try {
       const saved = localStorage.getItem('mitigateplus_allocation_policy');
@@ -23,6 +23,39 @@ export default function ReliefAllocationPage() {
       return { baseCoverage: 5, extraMemberTopUp: 0.5, seniorTopUp: 0.5, pwdTopUp: 0.5 };
     }
   });
+
+  // Load server-side PolicyConfig from MongoDB on mount
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/policy`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.baseCoverage !== undefined) {
+            setPolicy({
+              baseCoverage: data.baseCoverage,
+              extraMemberTopUp: data.extraMemberTopUp ?? 0.5,
+              seniorTopUp: data.seniorTopUp ?? 0.5,
+              pwdTopUp: data.pwdTopUp ?? 0.5,
+            });
+            try {
+              localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify({
+                baseCoverage: data.baseCoverage,
+                extraMemberTopUp: data.extraMemberTopUp ?? 0.5,
+                seniorTopUp: data.seniorTopUp ?? 0.5,
+                pwdTopUp: data.pwdTopUp ?? 0.5,
+              }));
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load server policy:', err);
+      }
+    };
+    if (token) fetchPolicy();
+  }, [token]);
 
   const [testHeadcount, setTestHeadcount] = useState(7);
   const [testSeniors, setTestSeniors] = useState(1);
@@ -147,12 +180,8 @@ export default function ReliefAllocationPage() {
   };
 
   // ── Triple Confirmation Final Execution ──
-  const handleExecutePolicySave = () => {
+  const handleExecutePolicySave = async () => {
     if (secPin.trim().toUpperCase() !== 'CONFIRM' && secPin.trim() !== '2026') {
-      setConfirmModal({
-        isOpen: true,
-        eventData: null,
-      });
       setConfirmModal({
         isOpen: true,
         title: 'Security Error',
@@ -166,12 +195,33 @@ export default function ReliefAllocationPage() {
     }
 
     try {
-      // In a real application, POST to a policy endpoint
-      localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify(policy));
-      window.dispatchEvent(new Event('mitigateplus_policy_updated'));
-      setMsg(' Na-update at na-apply na ang opisyal na Relief Allocation Policy sa buong lungsod!');
+      const res = await fetch(`${API_BASE_URL}/policy`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          baseCoverage: policy.baseCoverage,
+          extraMemberTopUp: policy.extraMemberTopUp,
+          seniorTopUp: policy.seniorTopUp,
+          pwdTopUp: policy.pwdTopUp,
+        }),
+      });
+
+      if (res.ok) {
+        localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify(policy));
+        window.dispatchEvent(new Event('mitigateplus_policy_updated'));
+        setMsg('Na-update at na-apply na ang opisyal na Relief Allocation Policy sa database at sa buong lungsod!');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setMsg(`Failed to save policy: ${errData.message || 'Server error'}`);
+      }
     } catch (e) {
       console.error(e);
+      localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify(policy));
+      window.dispatchEvent(new Event('mitigateplus_policy_updated'));
+      setMsg('Na-update locally ang Relief Allocation Policy (offline mode).');
     }
 
     setPolicyModalStep(0);
@@ -471,91 +521,6 @@ export default function ReliefAllocationPage() {
           Save & Authorize City-Wide Policy Changes
         </button>
       </div>
-
-      {!isSuperAdmin && (
-        <div className="clay-card" style={{ marginBottom: 28 }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--manila-blue)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}>
-              <Plus size={18} /> Open Distribution Event
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--ink-soft)', marginBottom: '20px' }}>
-              Create an active relief distribution cycle for field staff scanning.
-            </p>
-
-            {msg && (
-              <div style={{
-                padding: '10px 14px', borderRadius: 'var(--radius-inner)', marginBottom: '16px',
-                fontSize: '13px', fontWeight: 600,
-                background: msg.startsWith('Error') ? 'rgba(198,86,75,0.08)' : 'rgba(21,138,100,0.08)',
-                color: msg.startsWith('Error') ? 'var(--danger)' : 'var(--bay-teal)',
-                border: msg.startsWith('Error') ? '1px solid rgba(198,86,75,0.25)' : '1px solid rgba(21,138,100,0.25)',
-                borderLeft: msg.startsWith('Error') ? '4px solid var(--danger)' : '4px solid var(--bay-teal)',
-              }}>
-                {msg}
-              </div>
-            )}
-
-            <form onSubmit={requestCreateEvent}>
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>Event Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Typhoon Relief Batch 1"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
-              </div>
-
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>Item Type</label>
-                <select
-                  id="event-item-type"
-                  aria-label="Select Relief Item Type"
-                  value={itemType}
-                  onChange={(e) => setItemType(e.target.value)}
-                  style={{ ...inputStyle, background: 'var(--card)', cursor: 'pointer' }}
-                >
-                  <option value="Family Food Pack">Family Food Pack (Headcount-Scaled)</option>
-                  <option value="Water">Water (Headcount-Scaled)</option>
-                  <option value="Hygiene Kit">Hygiene Kit (Headcount-Scaled)</option>
-                  <option value="Clothing">Clothing (Headcount-Scaled)</option>
-                  <option value="Medicine">Medicine (Fixed Unit)</option>
-                  <option value="Temporary Shelter">Temporary Shelter (Fixed Unit)</option>
-                  <option value="Shelter Repair Materials">Shelter Repair Materials (Fixed Unit)</option>
-                </select>
-              </div>
-
-              <div style={fieldGroupStyle}>
-                <label style={labelStyle}>Batch ID</label>
-                <input
-                  type="text"
-                  placeholder="e.g. BATCH-2026-08"
-                  value={batchId}
-                  onChange={(e) => setBatchId(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
-              </div>
-
-              <div style={{ ...fieldGroupStyle, marginBottom: '22px' }}>
-                <label style={labelStyle}>Location</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Brgy 291 Covered Court"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
-              </div>
-
-              <button type="submit" className="clay-button-primary" style={{ width: '100%', justifyContent: 'center', padding: '11px' }}>
-                <Plus size={16} /> Launch Distribution Event
-              </button>
-            </form>
-          </div>
-        )}
 
       {/* ── Real-time Duplicate Alert Stream ── */}
       <div className="clay-card">

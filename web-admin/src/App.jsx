@@ -9,6 +9,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Sidebar from "./components/Sidebar";
 import Footer from "./components/Footer";
 import SystemInfoModal from "./components/SystemInfoModal";
+import io from "socket.io-client";
+import { API_BASE_URL, SOCKET_URL } from "./config";
 import { ROLES } from "./utils/roleUtils";
 
 // Code-Splitting / Lazy Loading for Lightning Fast Initial Load & 95+ Performance Score
@@ -182,6 +184,8 @@ function AppRoutes() {
   const notifRef = useRef(null);
   const location = useLocation();
 
+  const [toastDirective, setToastDirective] = useState(null);
+
   useEffect(() => {
     const handleNotifUpdate = () => {
       try {
@@ -196,6 +200,78 @@ function AppRoutes() {
       window.removeEventListener('mitigateplus_notif_update', handleNotifUpdate);
     };
   }, []);
+
+  // Real-Time Socket.IO & Audit Log Sync for Cross-Device Executive Directives
+  useEffect(() => {
+    if (!token) return;
+
+    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    socket.emit('join_admin_room');
+
+    socket.on('executive_directive', (data) => {
+      const bCode = data.barangayCode || data.barangay || '291';
+      const incomingNotif = {
+        id: Date.now(),
+        type: "directive",
+        title: "Executive Directive: Deploy Relief",
+        body: `City Mayor / SuperAdmin has dispatched LGU Disaster Operations to deploy relief in Barangay ${bCode}. ${data.notes || ''}`.trim(),
+        time: "Just now",
+        read: false,
+        link: `/distribution-events?barangay=${bCode}`,
+      };
+
+      setNotifsState(prev => {
+        const filtered = prev.filter(n => n.title !== incomingNotif.title || n.body !== incomingNotif.body);
+        const updated = [incomingNotif, ...filtered];
+        try {
+          localStorage.setItem('mitigateplus_user_notifications', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+
+      setToastDirective({
+        isOpen: true,
+        barangay: bCode,
+        notes: data.notes || '',
+        issuedBy: data.issuedBy || 'City Mayor / SuperAdmin',
+      });
+    });
+
+    // Also sync past directives from database audit logs
+    fetch(`${API_BASE_URL}/audit-logs?action=EXECUTIVE_RELIEF_DIRECTIVE&limit=5`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.logs) && data.logs.length > 0) {
+          const fetchedNotifs = data.logs.map(log => ({
+            id: String(log._id),
+            type: "directive",
+            title: "Executive Directive: Deploy Relief",
+            body: log.notes || `Disaster Operations dispatched for Barangay ${log.targetId}`,
+            time: new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            read: false,
+            link: `/distribution-events?barangay=${log.targetId}`,
+          }));
+
+          setNotifsState(prev => {
+            const existingIds = new Set(prev.map(p => String(p.id)));
+            const newOnes = fetchedNotifs.filter(f => !existingIds.has(f.id));
+            if (newOnes.length > 0) {
+              const merged = [...newOnes, ...prev];
+              try {
+                localStorage.setItem('mitigateplus_user_notifications', JSON.stringify(merged));
+              } catch (e) {}
+              return merged;
+            }
+            return prev;
+          });
+        }
+      })
+      .catch(() => {});
+
+    return () => socket.disconnect();
+  }, [token]);
 
   useEffect(() => {
     if (!notifOpen) return;
@@ -234,6 +310,61 @@ function AppRoutes() {
 
   return (
     <div className="app-layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%' }}>
+
+      {/* ── REAL-TIME EXECUTIVE DIRECTIVE FLOATING ALERT ── */}
+      {toastDirective && (
+        <div style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 10000,
+          maxWidth: 420,
+          background: '#FFFBEB',
+          border: '2px solid #F59E0B',
+          borderRadius: 12,
+          padding: '14px 18px',
+          boxShadow: '0 10px 25px rgba(217, 119, 6, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B45309', fontWeight: 800, fontSize: 13.5 }}>
+              <Bell size={18} color="#D97706" />
+              <span>EXECUTIVE RELIEF DIRECTIVE</span>
+            </div>
+            <button
+              onClick={() => setToastDirective(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B45309' }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: 12.5, color: '#78350F', lineHeight: 1.4 }}>
+            Nag-isyu ang City Mayor / SuperAdmin ng agarang relief deployment directive para sa <strong>Barangay {toastDirective.barangay}</strong>.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <Link
+              to={`/distribution-events?barangay=${toastDirective.barangay}`}
+              onClick={() => setToastDirective(null)}
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                background: '#D97706',
+                color: '#FFFFFF',
+                padding: '6px 14px',
+                borderRadius: 8,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              Buksan ang Event Creation →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ── FULL-WIDTH TOPBAR — spans above sidebar AND main content ── */}
       {isAuthLayout && (

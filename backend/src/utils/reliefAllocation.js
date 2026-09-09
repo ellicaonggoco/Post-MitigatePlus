@@ -56,14 +56,14 @@ function calculateReliefAllocation(memberCount, baseCoverage = 5, category = 'he
  *   - Infant / Sanggol (0-2 yo): +1 Infant Care & Baby Nutrition Pack
  *   - PWD: +1 PWD Health & Mobility Support Pack
  */
-function calculateHouseholdEntitlement(household) {
+function calculateHouseholdEntitlement(household, customPolicy = null) {
   const memberCount = Math.max(1, parseInt(household?.memberCount) || (household?.members?.length || 1));
-  const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
+  const baseCoverage = (customPolicy && customPolicy.baseCoverage) ? Number(customPolicy.baseCoverage) : 5;
   
   // Base All-in-One Relief Packs (Food + Medicine + Water)
   const basePacks = Math.max(1, Math.floor(memberCount / baseCoverage));
   const remainder = memberCount > baseCoverage ? memberCount - (basePacks * baseCoverage) : 0;
-  const extraMemberTopUps = remainder; // extra units for headcount > 5
+  const extraMemberTopUps = remainder; // extra units for headcount > baseCoverage
 
   // Inspect members array for vulnerabilities
   const members = Array.isArray(household?.members) ? household.members : [];
