@@ -327,7 +327,9 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const pastRequests = await AssistanceRequest.find({ householdId: household._id });
     const pastDistributions = await Distribution.find({ householdId: household._id });
 
-    const entitlement = calculateHouseholdEntitlement(household);
+    const PolicyConfig = require('../models/PolicyConfig');
+    const policy = await PolicyConfig.findOne({ key: 'relief_allocation' });
+    const entitlement = calculateHouseholdEntitlement(household, policy);
     const gapAnalysis = detectAssistanceGaps(pastRequests, pastDistributions);
 
     const recovery = await RecoveryStatus.findOne({ householdId: household._id });
