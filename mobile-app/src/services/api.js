@@ -11,21 +11,34 @@ const getAuthHeaders = (token) => ({
 // and returned a fake success object or null, which made every screen lie
 // about whether anything actually saved to the database.
 async function request(url, options = {}) {
-  const res = await fetch(url, options);
-  let data;
+  const controller = new AbortController();
+  const timeoutMs = options.timeout || 15000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    data = await res.json();
-  } catch {
-    data = null;
-  }
-  if (!res.ok) {
-    const message = (data && data.message) || `Request failed (${res.status})`;
-    const err = new Error(message);
-    err.status = res.status;
-    err.data = data;
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+    if (!res.ok) {
+      const message = (data && data.message) || `Request failed (${res.status})`;
+      const err = new Error(message);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Hindi makakonekta sa server (Request Timed Out). Pakisuri ang koneksyon sa internet.');
+    }
     throw err;
   }
-  return data;
 }
 
 /**

@@ -9,6 +9,8 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
+import expo.modules.ReactActivityDelegateWrapper
+
 class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     try {
@@ -22,10 +24,14 @@ class MainActivity : ReactActivity() {
   override fun getMainComponentName(): String = "main"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate {
-    return DefaultReactActivityDelegate(
+    return ReactActivityDelegateWrapper(
         this,
-        mainComponentName,
-        fabricEnabled
+        BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+        object : DefaultReactActivityDelegate(
+            this,
+            mainComponentName,
+            fabricEnabled
+        ) {}
     )
   }
 

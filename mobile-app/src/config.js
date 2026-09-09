@@ -31,9 +31,10 @@ const getDevHost = () => {
 const DEV_LAN_IP = getDevHost();
 const LOCAL_DEV_URL = Platform.OS === 'web' ? 'http://localhost:5000' : `http://${DEV_LAN_IP}:5000`;
 
+const isProd = typeof __DEV__ !== 'undefined' ? !__DEV__ : process.env.NODE_ENV === 'production';
 const BASE_HOST = process.env.EXPO_PUBLIC_API_URL 
   ? process.env.EXPO_PUBLIC_API_URL.replace(/\/api\/?$/, '') 
-  : LOCAL_DEV_URL;
+  : (isProd ? LIVE_RENDER_API : LOCAL_DEV_URL);
 
 export const API_BASE_URL = `${BASE_HOST}/api`;
 export const SOCKET_URL = BASE_HOST;

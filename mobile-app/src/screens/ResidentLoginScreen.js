@@ -178,12 +178,12 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </View>
           ) : null}
 
-          {/* Mobile Phone Number Input (Uniform for Resident and Staff) */}
+          {/* Unified Phone Number / Email / Staff ID Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
+            label={lang === 'tl' ? 'Phone Number o Email / Staff ID' : 'Phone Number or Email / Staff ID'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number (09XXXXXXXXX)' : 'Enter Phone Number (09XXXXXXXXX)'}
+            placeholder={lang === 'tl' ? '09XXXXXXXXX o staff@manila.gov.ph' : '09XXXXXXXXX or staff@manila.gov.ph'}
             errorText={errors.emailOrPhone}
             required
             keyboardType="default"
@@ -208,13 +208,18 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
           </MotionPressable>
 
           <MotionPressable
-            style={[styles.submitBtn, loading && { opacity: 0.7 }]}
+            style={[styles.submitBtn, loading && { opacity: 0.85 }]}
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <View style={styles.loadingRow}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={styles.submitBtnText}>
+                  {lang === 'tl' ? 'Pumapasok sa System...' : 'Signing in...'}
+                </Text>
+              </View>
             ) : (
               <Text style={styles.submitBtnText}>
                 {lang === 'tl' ? 'Mag-Log In sa Account' : 'Sign In to Account'}
@@ -243,7 +248,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
                 } catch { /* silently fail */ }
               }}
             >
-              <FingerprintIcon size={18} color="#C8102E" />
+              <FingerprintIcon size={18} color="#1C3F94" />
               <Text style={styles.biometricBtnText}>
                 {lang === 'tl' ? 'Mag-login gamit ang Fingerprint / Face ID' : 'Sign in with Fingerprint / Face ID'}
               </Text>
@@ -252,7 +257,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
 
         </View>
 
-        {/* Register Household Secondary Button Card */}
+        {/* Register Household Secondary Button Card with Staff Notice */}
         <View style={styles.registerCard}>
           <Text style={styles.registerCardTitle}>
             {lang === 'tl' ? 'Wala ka pang rehistradong account?' : 'No registered household account yet?'}
@@ -266,6 +271,11 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
               {lang === 'tl' ? 'Mag-rehistro ng Bagong Pamilya' : 'Register New Household'}
             </Text>
           </TouchableOpacity>
+          <Text style={styles.staffNotice}>
+            {lang === 'tl'
+              ? 'Paunawa: Ang mga Field Staff account ay direktang nililikha ng LGU Admin.'
+              : 'Notice: Field Staff accounts are provisioned directly by LGU Admin.'}
+          </Text>
         </View>
 
         <Text style={styles.footerNote}>
@@ -321,8 +331,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#DDE4F0',
-    borderTopColor: '#C9A84C',
-    borderTopWidth: 3.5,
     padding: RESPONSIVE.cardPadding,
     marginBottom: 16,
     ...(Platform.OS === 'web' ? {
@@ -361,25 +369,31 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 12,
-    color: '#C8102E',
+    color: '#1C3F94',
     fontWeight: '700',
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#C8102E',
+    backgroundColor: '#1C3F94',
     borderRadius: 12,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
+      boxShadow: '0 4px 14px rgba(28, 63, 148, 0.35)',
     } : {
-      shadowColor: '#C8102E',
+      shadowColor: '#1C3F94',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.35,
       shadowRadius: 8,
       elevation: 4,
     }),
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
   submitBtnText: {
     color: '#FFFFFF',
@@ -393,8 +407,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#DDE4F0',
-    borderTopColor: '#C9A84C',
-    borderTopWidth: 2.5,
     padding: 18,
     alignItems: 'center',
     marginBottom: 20,
@@ -420,16 +432,16 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#C8102E',
+    borderColor: '#1C3F94',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.12)',
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.08)',
     } : {
-      shadowColor: '#C8102E',
+      shadowColor: '#1C3F94',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.10,
+      shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -437,7 +449,14 @@ const styles = StyleSheet.create({
   registerActionBtnText: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#C8102E',
+    color: '#1C3F94',
+  },
+  staffNotice: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 15,
   },
   footerNote: {
     fontSize: 10,
@@ -451,18 +470,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FECDD3',
-    backgroundColor: '#FEF0F2',
+    borderColor: '#D6DEFA',
+    backgroundColor: '#EDF1FB',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
+      boxShadow: '0 2px 8px rgba(28, 63, 148, 0.06)',
     } : {
-      shadowColor: '#C8102E',
+      shadowColor: '#1C3F94',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
+      shadowOpacity: 0.06,
       shadowRadius: 4,
       elevation: 1,
     }),
@@ -470,6 +489,6 @@ const styles = StyleSheet.create({
   biometricBtnText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#C8102E',
+    color: '#1C3F94',
   },
 });
