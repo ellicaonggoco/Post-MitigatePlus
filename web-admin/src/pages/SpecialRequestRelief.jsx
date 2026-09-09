@@ -34,6 +34,8 @@ export default function SpecialRequestRelief() {
   const [specialSearch, setSpecialSearch] = useState('');
   const [assignModal, setAssignModal] = useState({ isOpen: false, request: null });
   const [assignStaffName, setAssignStaffName] = useState('Field Officer Juan Santos (Team Alpha)');
+  const [selectedStaffId, setSelectedStaffId] = useState('');
+  const [staffList, setStaffList] = useState([]);
   const [assignLoading, setAssignLoading] = useState(false);
 
   // State for Create Special Request Modal (For Barangay & LGU Admin)
@@ -77,6 +79,23 @@ export default function SpecialRequestRelief() {
 
   useEffect(() => {
     fetchAssistanceRequests();
+    if (token) {
+      fetch(`${API_BASE_URL}/auth/provisioned-users`, {
+        headers: { Authorization: 'Bearer ' + token },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const fieldStaff = data.filter(u => u.role === 'field_staff');
+            setStaffList(fieldStaff);
+            if (fieldStaff.length > 0) {
+              setSelectedStaffId(fieldStaff[0]._id || fieldStaff[0].id);
+              setAssignStaffName(`${fieldStaff[0].name} (${fieldStaff[0].teamName || 'Field Operations'})`);
+            }
+          }
+        })
+        .catch(() => {});
+    }
   }, [token]);
 
   const handleAssignDelivery = async () => {
@@ -91,7 +110,7 @@ export default function SpecialRequestRelief() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          assignedStaffId: user?._id || 'staff_alpha',
+          assignedStaffId: selectedStaffId || null,
           assignedStaffName: assignStaffName,
         }),
       });
@@ -643,14 +662,34 @@ export default function SpecialRequestRelief() {
                 Assign Field Officer / Team *
               </label>
               <select
-                value={assignStaffName}
-                onChange={e => setAssignStaffName(e.target.value)}
+                value={selectedStaffId || assignStaffName}
+                onChange={e => {
+                  const val = e.target.value;
+                  const found = staffList.find(s => (s._id || s.id) === val);
+                  if (found) {
+                    setSelectedStaffId(found._id || found.id);
+                    setAssignStaffName(`${found.name} (${found.teamName || 'Field Operations'})`);
+                  } else {
+                    setSelectedStaffId('');
+                    setAssignStaffName(val);
+                  }
+                }}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', outline: 'none', cursor: 'pointer', fontWeight: 700 }}
               >
-                <option value="Field Officer Juan Santos (Team Alpha)">Field Officer Juan Santos (Team Alpha) - Standby</option>
-                <option value="Field Officer Maria Clara (Team Bravo)">Field Officer Maria Clara (Team Bravo) - Standby</option>
-                <option value="Quick Response Team 1">Quick Response Team 1 - Standby</option>
-                <option value="Barangay Health Worker On-Duty">Barangay Health Worker On-Duty - Standby</option>
+                {staffList.length > 0 ? (
+                  staffList.map(s => (
+                    <option key={s._id || s.id} value={s._id || s.id}>
+                      {s.name} ({s.teamName || 'Field Operations'}) - {s.status === 'active' ? 'Standby' : s.status}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Field Officer Juan Santos (Team Alpha)">Field Officer Juan Santos (Team Alpha) - Standby</option>
+                    <option value="Field Officer Maria Clara (Team Bravo)">Field Officer Maria Clara (Team Bravo) - Standby</option>
+                    <option value="Quick Response Team 1">Quick Response Team 1 - Standby</option>
+                    <option value="Barangay Health Worker On-Duty">Barangay Health Worker On-Duty - Standby</option>
+                  </>
+                )}
               </select>
             </div>
 

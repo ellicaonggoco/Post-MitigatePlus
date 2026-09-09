@@ -6,6 +6,7 @@ import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 import ConfirmModal from '../components/ConfirmModal';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
+import OfflineQRCode from '../components/OfflineQRCode';
 
 export default function ProvisionAccounts() {
   const { token, user } = useContext(AuthContext);
@@ -2454,10 +2455,10 @@ export default function ProvisionAccounts() {
             <div style={{ padding: '22px 24px', textAlign: 'center' }}>
               {/* QR Visual */}
               <div style={{ display: 'inline-block', padding: 12, background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.12)', border: '1.5px solid var(--border)' }}>
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrModalData.household?.qrCode || qrModalData.contactNum || qrModalData.emailOrPhone)}`}
+                <OfflineQRCode
+                  value={qrModalData.household?.qrCode || qrModalData.contactNum || qrModalData.emailOrPhone}
+                  size={190}
                   alt="Official QR Relief Pass"
-                  style={{ width: 190, height: 190, display: 'block' }}
                 />
               </div>
 
