@@ -22,6 +22,7 @@ import {
   MapPinIcon,
   PackageIcon,
   TruckIcon,
+  CalendarIcon,
 } from '../components/AppIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
@@ -343,14 +344,17 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                           isMyTask ? styles.myStaffPillTextActive : styles.otherStaffPillText
                         ]}>
                           {isMyTask
-                            ? (lang === 'tl' ? `🎯 Naka-assign sa Iyo (${item.assignedStaff})` : `🎯 Assigned to You (${item.assignedStaff})`)
+                            ? (lang === 'tl' ? `Naka-assign sa Iyo (${item.assignedStaff})` : `Assigned to You (${item.assignedStaff})`)
                             : `Officer: ${item.assignedStaff}`}
                         </Text>
                       </View>
                       {item.assignedAt && (
-                        <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
-                          📅 {item.assignedAt}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <CalendarIcon size={12} color="#64748B" />
+                          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
+                            {item.assignedAt}
+                          </Text>
+                        </View>
                       )}
                     </View>
                   );

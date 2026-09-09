@@ -362,7 +362,7 @@ export default function ProvisionAccounts() {
 
           const data = await res.json();
           if (res.ok) {
-            setStatusMsg({ type: 'success', text: `✅ Na-update na ang resident account at household profile ni ${name.trim()}!` });
+            setStatusMsg({ type: 'success', text: `Na-update na ang resident account at household profile ni ${name.trim()}!` });
             await fetchResidentAccounts();
             setEditingAccount(null);
             setIsCreateModalOpen(false);
@@ -399,7 +399,7 @@ export default function ProvisionAccounts() {
 
         const data = await res.json();
         if (res.ok) {
-          setStatusMsg({ type: 'success', text: `✅ Nalikha at na-pre-verify na ang resident account ni ${name.trim()}!` });
+          setStatusMsg({ type: 'success', text: `Nalikha at na-pre-verify na ang resident account ni ${name.trim()}!` });
           await fetchResidentAccounts();
           setName('');
           setEmailOrPhone('');
@@ -2062,8 +2062,8 @@ export default function ProvisionAccounts() {
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                 Master directory of registered citizens and household beneficiaries ({filteredResidents.length} total)
                 {selectedBarangayFilter !== 'all' && (
-                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 999, background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)', fontWeight: 800, fontSize: 11 }}>
-                    📍 Scoped to Barangay {selectedBarangayFilter}
+                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 999, background: 'rgba(37, 99, 235, 0.1)', color: 'var(--manila-blue)', fontWeight: 800, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MapPin size={11} color="var(--manila-blue)" /> Scoped to Barangay {selectedBarangayFilter}
                   </span>
                 )}
               </span>

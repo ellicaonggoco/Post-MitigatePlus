@@ -298,7 +298,7 @@ export default function RecoveryProgressTracker() {
       });
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
-        // ✅ STRICT DEDUP: Use a Map keyed on householdId only — prevents any duplicate
+        // STRICT DEDUP: Use a Map keyed on householdId only — prevents any duplicate
         // household cards regardless of whether name/headKey differs between entries.
         const seenMap = new Map();
         for (const h of data) {

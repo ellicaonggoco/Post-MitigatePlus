@@ -11,6 +11,7 @@ import {
   Package,
   Users,
   CheckCircle,
+  CheckCircle2,
   Clock,
   XCircle,
   Megaphone,
@@ -21,6 +22,9 @@ import {
   Edit3,
   Globe,
   AlertTriangle,
+  Scale,
+  RefreshCw,
+  Info,
   Receipt,
   Search,
   FileText,
@@ -1016,8 +1020,8 @@ export default function DistributionEvents() {
                   <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Assigned Field Team *
                   </label>
-                  <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700 }}>
-                    ⚖️ Workload Balancer Active
+                  <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Scale size={12} color="#158A64" /> Workload Balancer Active
                   </span>
                 </div>
                 <select
@@ -1028,8 +1032,8 @@ export default function DistributionEvents() {
                   {FIELD_TEAMS.map(t => {
                     const wl = getTeamWorkload(t);
                     const label = wl.total === 0
-                      ? `${t} — 🟢 0 Active Drives (Available / Recommended)`
-                      : `${t} — 🟡 ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
+                      ? `${t} — 0 Active Drives (Available / Recommended)`
+                      : `${t} — ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
                     return (
                       <option key={t} value={t}>
                         {label}
@@ -1042,7 +1046,7 @@ export default function DistributionEvents() {
                 <div style={{ marginTop: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-inner)', padding: '12px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: 11.5, fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      ⚖️ Field Team Workload Distribution
+                      <Scale size={13} color="#1E293B" /> Field Team Workload Distribution
                     </span>
                     <span style={{ fontSize: 11, color: '#64748B' }}>Piliin ang team na may pinakamababang karga</span>
                   </div>
@@ -1100,7 +1104,7 @@ export default function DistributionEvents() {
                     if (selectedWl.total > 0) {
                       return (
                         <div style={{ marginTop: 8, fontSize: 11.5, color: '#B45309', display: 'flex', alignItems: 'center', gap: 5 }}>
-                          <span>⚠️</span>
+                          <AlertTriangle size={14} color="#B45309" />
                           <span>
                             <strong>Paalala sa Pagiging Patas:</strong> May <strong>{selectedWl.total}</strong> aktibong distribution drive na ang <strong>{form.staff}</strong> ({selectedWl.ongoing} ongoing, {selectedWl.scheduled} scheduled). Maaari mo itong ituloy o pumili ng available na team na may 0 active drives.
                           </span>
@@ -1109,7 +1113,7 @@ export default function DistributionEvents() {
                     }
                     return (
                       <div style={{ marginTop: 8, fontSize: 11.5, color: '#15803D', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <span>✓</span>
+                        <CheckCircle2 size={14} color="#15803D" />
                         <span><strong>Inirerekomenda:</strong> Libre ang <strong>{form.staff}</strong> (0 active drives). Patas ang distribusyon ng trabaho.</span>
                       </div>
                     );
@@ -1613,7 +1617,7 @@ export default function DistributionEvents() {
                   </>
                 )}
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#B45309', fontWeight: 700 }}>
-                  <Edit3 size={13} color="#B45309" /> <span>Marka sa Mobile: <strong>✏️ "(Nai-edit)"</strong></span>
+                  <Edit3 size={13} color="#B45309" /> <span>Marka sa Mobile: <strong><Edit3 size={11} color="#B45309" style={{ display: 'inline', verticalAlign: 'middle' }} /> "(Nai-edit)"</strong></span>
                 </span>
               </div>
             </div>
@@ -1668,8 +1672,8 @@ export default function DistributionEvents() {
                 }}
                 required
               />
-              <p style={{ margin: '6px 0 0', fontSize: 11.5, color: '#64748B' }}>
-                💡 Pagka-save, magpapadala ito ng real-time broadcast at magkakaroon ng <strong>✏️ Nai-edit</strong> status badge sa mobile app.
+              <p style={{ margin: '6px 0 0', fontSize: 11.5, color: '#64748B', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                <Info size={13} color="#64748B" style={{ marginTop: 1, flexShrink: 0 }} /> Pagka-save, magpapadala ito ng real-time broadcast at magkakaroon ng <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Edit3 size={11} color="#B45309" /> Nai-edit</strong> status badge sa mobile app.
               </p>
             </div>
 
@@ -1728,10 +1732,18 @@ export default function DistributionEvents() {
               Piliin ang Barangay (List-down Dropbox & Search)
             </div>
             <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>
-                {selectedBrgy === 'all'
-                  ? '🌐 Lahat ng Barangay (Entire Manila City)'
-                  : `📍 Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}`}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {selectedBrgy === 'all' ? (
+                  <>
+                    <Globe size={15} color="#2563EB" />
+                    <span>Lahat ng Barangay (Entire Manila City)</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin size={15} color="#DC2626" />
+                    <span>Barangay {String(selectedBrgy).replace(/[^0-9]/g, '')}</span>
+                  </>
+                )}
               </span>
               {selectedBrgy !== 'all' && (
                 <span style={{
@@ -1782,10 +1794,10 @@ export default function DistributionEvents() {
               outline: 'none',
             }}
           >
-            <option value="all">🌐 Lahat ng Barangay (All)</option>
+            <option value="all">Lahat ng Barangay (All)</option>
             {availableBarangaysWithClaims.map(([bCode, count]) => (
               <option key={`opt-avail-${bCode}`} value={bCode}>
-                📍 Barangay {bCode} ({count} {count === 1 ? 'Resibo' : 'Resibo'})
+                Barangay {bCode} ({count} {count === 1 ? 'Resibo' : 'Resibo'})
               </option>
             ))}
             <option disabled>──────────</option>
@@ -1913,7 +1925,7 @@ export default function DistributionEvents() {
                 className="clay-button-ghost"
                 style={{ fontSize: 12, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 700 }}
               >
-                ↻ Refresh Central Roster
+                <RefreshCw size={13} color="currentColor" /> Refresh Central Roster
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>
                 <span>Show:</span>

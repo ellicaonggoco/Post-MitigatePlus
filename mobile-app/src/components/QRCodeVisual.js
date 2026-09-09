@@ -4,6 +4,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCodeCore from 'qrcode/lib/core/qrcode';
 import { API_BASE_URL } from '../config';
+import { CheckIcon } from './AppIcons';
 import { COLORS, RADIUS, FONT_WEIGHT, SPACING, SHADOWS } from '../theme';
 
 /**
@@ -221,9 +222,10 @@ export default function QRCodeVisual({
           )}
         </View>
 
-        <View style={styles.verifyBadge}>
+        <View style={[styles.verifyBadge, { flexDirection: 'row', alignItems: 'center', gap: 5 }]}>
+          <CheckIcon size={11} color="#34D399" />
           <Text style={styles.verifyBadgeText}>
-            {lang === 'tl' ? '✓ Opisyal na High-Definition QR Pass' : '✓ Official High-Definition QR Pass'}
+            {lang === 'tl' ? 'Opisyal na High-Definition QR Pass' : 'Official High-Definition QR Pass'}
           </Text>
         </View>
       </LinearGradient>

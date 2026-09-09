@@ -38,6 +38,7 @@ import {
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  UsersIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
 import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
@@ -714,16 +715,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      // ✅ BARANGAY MISMATCH: Cross-barangay QR scan rejected
+      // [SECURITY] BARANGAY MISMATCH: Cross-barangay QR scan rejected
       if (err.status === 403 && err.data?.barangayMismatch) {
         const hhBrgy = err.data?.householdBarangay;
         const evBrgy = err.data?.eventBarangay;
         setScanNotice({
           type: 'error',
-          text: `⛔ HINDI PWEDE: QR ng Brgy ${hhBrgy} — Event para sa Brgy ${evBrgy} lamang`,
+          text: `HINDI PWEDE: QR ng Brgy ${hhBrgy} — Event para sa Brgy ${evBrgy} lamang`,
         });
         Alert.alert(
-          '⛔ Maling Barangay',
+          'Maling Barangay',
           err.message || `Ang QR Code na ito ay para sa Barangay ${hhBrgy} lamang. Ang kasalukuyang event ay para sa Barangay ${evBrgy} lamang.`,
           [{ text: 'Naiintindihan', style: 'cancel' }]
         );
@@ -829,12 +830,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      // ✅ BARANGAY MISMATCH: Cross-barangay release rejected
+      // [SECURITY] BARANGAY MISMATCH: Cross-barangay release rejected
       if (err.status === 403 && err.data?.barangayMismatch) {
         const hhBrgy = err.data?.householdBarangay;
         const evBrgy = err.data?.eventBarangay;
         Alert.alert(
-          '⛔ Hindi Pwede — Maling Barangay',
+          'Hindi Pwede — Maling Barangay',
           err.message || `Ang pamilyang ito ay mula sa Barangay ${hhBrgy}. Ang distribution event ay para sa Barangay ${evBrgy} lamang. Hindi maaaring ibigay ang relief dito.`,
           [{ text: 'OK', style: 'cancel' }]
         );
@@ -1698,16 +1699,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <View style={{ flex: 1, paddingRight: 8 }}>
                       <Text style={styles.popupHhName}>{scanResult.household.name}</Text>
-                      <Text style={styles.popupHhAddress}>
-                        📍 {scanResult.household.address}
-                      </Text>
-                      <Text style={styles.popupHhMeta}>
-                        👥 {scanResult.household.familyHeadcount} {lang === 'tl' ? 'Miyembro ng Pamilya' : 'Household Members'} • Brgy {scanResult.household.barangayCode || dutyBrgy}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                        <MapPinIcon size={12} color="#64748B" />
+                        <Text style={styles.popupHhAddress}>
+                          {scanResult.household.address}
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                        <UsersIcon size={12} color="#64748B" />
+                        <Text style={styles.popupHhMeta}>
+                          {scanResult.household.familyHeadcount} {lang === 'tl' ? 'Miyembro ng Pamilya' : 'Household Members'} • Brgy {scanResult.household.barangayCode || dutyBrgy}
+                        </Text>
+                      </View>
                     </View>
                     <View style={[styles.verifTag, isHouseholdVerified ? styles.verifTagVerified : styles.verifTagPending]}>
                       <Text style={[styles.verifTagText, isHouseholdVerified ? styles.verifTagTextVerified : styles.verifTagTextPending]}>
-                        {isHouseholdVerified ? '✓ VERIFIED' : 'PENDING'}
+                        {isHouseholdVerified ? 'VERIFIED' : 'PENDING'}
                       </Text>
                     </View>
                   </View>
@@ -1726,9 +1733,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 </View>
 
                 {!isHouseholdVerified && (
-                  <View style={styles.unverifiedWarningBox}>
-                    <Text style={styles.unverifiedWarningText}>
-                      ⚠️ Paalala: Nakabinbin pa ang verification ng pamilyang ito sa Barangay. Hindi pa maaaring ipamahagi ang relief pack.
+                  <View style={[styles.unverifiedWarningBox, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                    <AlertTriangleIcon size={14} color="#D97706" />
+                    <Text style={[styles.unverifiedWarningText, { flex: 1 }]}>
+                      Paalala: Nakabinbin pa ang verification ng pamilyang ito sa Barangay. Hindi pa maaaring ipamahagi ang relief pack.
                     </Text>
                   </View>
                 )}
@@ -1765,7 +1773,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   activeOpacity={0.8}
                 >
                   <Text style={styles.cancelBtnText}>
-                    {lang === 'tl' ? '✕ Kanselahin / Isara' : '✕ Cancel / Close'}
+                    {lang === 'tl' ? 'Kanselahin / Isara' : 'Cancel / Close'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1807,7 +1815,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {/* Released & Audited Badge */}
                 <View style={styles.auditedBadge}>
                   <CheckIcon size={14} color="#15803D" />
-                  <Text style={styles.auditedBadgeText}>✓ RELEASED & AUDITED</Text>
+                  <Text style={styles.auditedBadgeText}>RELEASED & AUDITED</Text>
                 </View>
 
                 {/* Receipt Monospace Code Box */}
@@ -1895,7 +1903,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <View style={styles.receiptRow}>
                     <Text style={styles.receiptFieldLabel}>Central Cloud Ledger:</Text>
                     <Text style={[styles.receiptFieldValue, { color: '#059669', fontWeight: '800' }]}>
-                      ✓ SAVED & VERIFIED IN WEB
+                      SAVED & VERIFIED IN WEB
                     </Text>
                   </View>
                 </View>
@@ -1926,7 +1934,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     <CheckIcon size={20} color="#FFFFFF" />
                     <Text style={styles.receiptDoneBtnText}>
-                      {lang === 'tl' ? '✓ Tapos Na / I-scan ang Susunod' : '✓ Done / Scan Next Beneficiary'}
+                      {lang === 'tl' ? 'Tapos Na / I-scan ang Susunod' : 'Done / Scan Next Beneficiary'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -1980,9 +1988,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               {duplicateData?.claimedAt && (
                 <View style={styles.duplicateInfoRow}>
                   <Text style={styles.duplicateInfoLabel}>Oras ng Unang Claim:</Text>
-                  <Text style={[styles.duplicateInfoVal, { color: '#DC2626', fontWeight: '800' }]}>
-                    🕒 {new Date(duplicateData.claimedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <ClockIcon size={12} color="#DC2626" />
+                    <Text style={[styles.duplicateInfoVal, { color: '#DC2626', fontWeight: '800' }]}>
+                      {new Date(duplicateData.claimedAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </Text>
+                  </View>
                 </View>
               )}
               <View style={styles.duplicateInfoRow}>
@@ -1994,9 +2005,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             </View>
 
             {/* Anti-Fraud Alert Notice */}
-            <View style={styles.duplicateNoticeBanner}>
-              <Text style={styles.duplicateNoticeText}>
-                🛡️ <Text style={{ fontWeight: '800' }}>Anti-Fraud Protection:</Text> Nakatala na sa Central Cloud Ledger ang relief release para sa pamilyang ito. Hindi maaaring maglabas ng panibagong ayuda upang maiwasan ang dobleng pagkuha.
+            <View style={[styles.duplicateNoticeBanner, { flexDirection: 'row', alignItems: 'flex-start', gap: 6 }]}>
+              <ShieldIcon size={15} color="#DC2626" style={{ marginTop: 2 }} />
+              <Text style={[styles.duplicateNoticeText, { flex: 1 }]}>
+                <Text style={{ fontWeight: '800' }}>Anti-Fraud Protection:</Text> Nakatala na sa Central Cloud Ledger ang relief release para sa pamilyang ito. Hindi maaaring maglabas ng panibagong ayuda upang maiwasan ang dobleng pagkuha.
               </Text>
             </View>
 
@@ -2018,7 +2030,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               activeOpacity={0.8}
             >
               <Text style={styles.duplicateCloseBtnText}>
-                {lang === 'tl' ? '✕ Isara ang Babala' : '✕ Dismiss'}
+                {lang === 'tl' ? 'Isara ang Babala' : 'Dismiss'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -23,6 +23,10 @@ import {
   Calendar,
   Info,
   CheckCircle2,
+  Droplets,
+  Hammer,
+  Package,
+  Wrench,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import Pagination from '../components/Pagination';
@@ -777,13 +781,14 @@ export default function LivelihoodAssistance() {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {[
-                    { label: '🌊 Drainage & Canal Declogging', title: 'Drainage and Canal Declogging Drive', cat: 'Drainage & Canal Declogging', desc: 'Clearing culverts, storm drains, and canal waterways to ensure rapid flood water recession.' },
-                    { label: '🚧 Debris & Mud Clearing', title: 'Debris and Mud Clearing Operation', cat: 'Debris & Mud Clearing', desc: 'Road clearing, mud shoveling, and storm debris removal across community streets.' },
-                    { label: '🏥 Evacuation Center Sanitation', title: 'Evacuation Center Disinfection & Sanitation', cat: 'Evacuation Center Sanitation', desc: 'Deep cleaning, disinfection, and facility maintenance in designated shelters.' },
-                    { label: '📦 Relief Goods Logistics', title: 'Emergency Relief Logistics and Assembly', cat: 'Relief Goods Logistics & Packing', desc: 'Assembling food packs, organizing warehouse supplies, and staging distribution lines.' },
-                    { label: '🔨 Carpentry & Facility Repair', title: 'Emergency Carpentry and Facility Repair', cat: 'Carpentry & Facility Repair', desc: 'Restoring damaged roofs, partitions, handrails, and emergency community barriers.' },
+                    { label: 'Drainage & Canal Declogging', Icon: Droplets, title: 'Drainage and Canal Declogging Drive', cat: 'Drainage & Canal Declogging', desc: 'Clearing culverts, storm drains, and canal waterways to ensure rapid flood water recession.' },
+                    { label: 'Debris & Mud Clearing', Icon: Hammer, title: 'Debris and Mud Clearing Operation', cat: 'Debris & Mud Clearing', desc: 'Road clearing, mud shoveling, and storm debris removal across community streets.' },
+                    { label: 'Evacuation Center Sanitation', Icon: Building2, title: 'Evacuation Center Disinfection & Sanitation', cat: 'Evacuation Center Sanitation', desc: 'Deep cleaning, disinfection, and facility maintenance in designated shelters.' },
+                    { label: 'Relief Goods Logistics', Icon: Package, title: 'Emergency Relief Logistics and Assembly', cat: 'Relief Goods Logistics & Packing', desc: 'Assembling food packs, organizing warehouse supplies, and staging distribution lines.' },
+                    { label: 'Carpentry & Facility Repair', Icon: Wrench, title: 'Emergency Carpentry and Facility Repair', cat: 'Carpentry & Facility Repair', desc: 'Restoring damaged roofs, partitions, handrails, and emergency community barriers.' },
                   ].map(preset => {
                     const isPresetActive = selectedCategories.length === 1 && selectedCategories[0] === preset.cat;
+                    const PresetIcon = preset.Icon;
                     return (
                       <button
                         key={preset.label}
@@ -803,9 +808,13 @@ export default function LivelihoodAssistance() {
                           color: isPresetActive ? '#1D4ED8' : 'var(--ink)',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
                         }}
                       >
-                        {preset.label}
+                        <PresetIcon size={13} style={{ flexShrink: 0 }} />
+                        <span>{preset.label}</span>
                       </button>
                     );
                   })}

@@ -9,7 +9,7 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -661,9 +661,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       {basePacks}x Base Pack {topUpUnits > 0 ? `+ ${topUpUnits} Top-Up Units` : ''}
                     </Text>
                     {activeEvent && (
-                      <Text style={styles.claimedEventLocation}>
-                        📍 {activeEvent.location || `Barangay ${brgyCode} Covered Court`}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                        <MapPinIcon size={12} color="#475569" />
+                        <Text style={styles.claimedEventLocation}>
+                          {activeEvent.location || `Barangay ${brgyCode} Covered Court`}
+                        </Text>
+                      </View>
                     )}
                   </View>
 
@@ -723,7 +726,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <Text style={styles.standbyRefreshBtnText}>
                       {loadingProfile
                         ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
-                        : (lang === 'tl' ? '🔄 I-check kung may Binuksang Event' : '🔄 Check for Active Event')}
+                        : (lang === 'tl' ? 'I-check kung may Binuksang Event' : 'Check for Active Event')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -895,7 +898,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           </View>
                           {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
                             <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
-                              <Text style={{ fontSize: 9 }}>✏️</Text>
+                              <EditIcon size={9} color="#B45309" />
                               <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
                                 {lang === 'tl' ? 'Nai-edit' : 'Edited'}
                               </Text>
@@ -1318,7 +1321,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
                 {(selectedAnnouncement?.edited || selectedAnnouncement?.editedAt || selectedAnnouncement?.tag === 'UPDATED' || (selectedAnnouncement?.title && selectedAnnouncement.title.includes('Na-update'))) && (
                   <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
-                    <Text style={{ fontSize: 10 }}>✏️</Text>
+                    <EditIcon size={10} color="#B45309" />
                     <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
                       {lang === 'tl' ? 'Nai-edit ng Opisyal' : 'Edited by Official'}
                     </Text>

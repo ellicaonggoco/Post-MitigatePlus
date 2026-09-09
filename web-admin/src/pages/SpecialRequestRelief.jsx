@@ -20,6 +20,8 @@ import {
   Camera,
   Image as ImageIcon,
   Plus,
+  Scale,
+  AlertTriangle,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import Pagination from '../components/Pagination';
@@ -679,8 +681,8 @@ export default function SpecialRequestRelief() {
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Assign Field Officer / Team *
                 </label>
-                <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700 }}>
-                  ⚖️ Workload Balancer Active
+                <span style={{ fontSize: 11, color: '#158A64', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Scale size={12} color="#158A64" /> Workload Balancer Active
                 </span>
               </div>
               <select
@@ -702,8 +704,8 @@ export default function SpecialRequestRelief() {
                   staffList.map(s => {
                     const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
                     const workloadLabel = count === 0
-                      ? '— 🟢 0 Active Deliveries (Recommended)'
-                      : `— 🟡 ${count} Active Deliveries`;
+                      ? '— 0 Active Deliveries (Recommended)'
+                      : `— ${count} Active Deliveries`;
                     return (
                       <option key={s._id || s.id} value={s._id || s.id}>
                         {s.name} ({s.teamName || 'Field Operations'}) {workloadLabel}
@@ -713,16 +715,16 @@ export default function SpecialRequestRelief() {
                 ) : (
                   <>
                     <option value="Field Officer Juan Santos (Team Alpha)">
-                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
+                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
                     </option>
                     <option value="Field Officer Maria Clara (Team Bravo)">
-                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
+                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
                     </option>
                     <option value="Quick Response Team 1">
-                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
+                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
                     </option>
                     <option value="Barangay Health Worker On-Duty">
-                      Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '— 🟢 0 Active Deliveries (Recommended)' : `— 🟡 ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
+                      Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
                     </option>
                   </>
                 )}
@@ -732,7 +734,7 @@ export default function SpecialRequestRelief() {
               <div style={{ marginTop: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 'var(--radius-inner)', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 11.5, fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    ⚖️ Door-to-Door Delivery Workload Balancer
+                    <Scale size={13} color="#1E293B" /> Door-to-Door Delivery Workload Balancer
                   </span>
                   <span style={{ fontSize: 11, color: '#64748B' }}>Pumili ng opisyal na may pinakamababang karga</span>
                 </div>
@@ -800,7 +802,7 @@ export default function SpecialRequestRelief() {
                   if (currentCount > 0) {
                     return (
                       <div style={{ marginTop: 8, fontSize: 11.5, color: '#B45309', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <span>⚠️</span>
+                        <AlertTriangle size={14} color="#B45309" />
                         <span>
                           <strong>Paalala sa Pagiging Patas:</strong> May <strong>{currentCount}</strong> aktibong delivery assignments na si <strong>{assignStaffName}</strong>. Mainam na pumili ng staff na may 0 active deliveries upang hindi maipon ang trabaho.
                         </span>
@@ -809,7 +811,7 @@ export default function SpecialRequestRelief() {
                   }
                   return (
                     <div style={{ marginTop: 8, fontSize: 11.5, color: '#15803D', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span>✓</span>
+                      <CheckCircle2 size={14} color="#15803D" />
                       <span><strong>Inirerekomenda:</strong> Libre si <strong>{assignStaffName}</strong> (0 active deliveries). Patas ang distribusyon ng delivery.</span>
                     </div>
                   );

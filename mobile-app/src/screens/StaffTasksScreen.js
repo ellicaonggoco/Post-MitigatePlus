@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { fetchDistributionEvents } from '../services/api';
-import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon } from '../components/AppIcons';
+import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon, CalendarIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
 import { initSocket, onDistributionEventCreated, onDistributionEventUpdated, onStaffAssignmentDispatched } from '../services/socketService';
 
@@ -255,14 +255,17 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                           isMyTeam ? styles.myTeamPillTextActive : styles.otherTeamPillText
                         ]}>
                           {isMyTeam
-                            ? (lang === 'tl' ? `🎯 Naka-assign sa Team Mo: ${item.assignedTeam}` : `🎯 Assigned to Your Team: ${item.assignedTeam}`)
+                            ? (lang === 'tl' ? `Naka-assign sa Team Mo: ${item.assignedTeam}` : `Assigned to Your Team: ${item.assignedTeam}`)
                             : `Team: ${item.assignedTeam}`}
                         </Text>
                       </View>
                       {item.scheduledDate && (
-                        <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
-                          📅 {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <CalendarIcon size={12} color="#64748B" />
+                          <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
+                            {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
+                          </Text>
+                        </View>
                       )}
                     </View>
                   );

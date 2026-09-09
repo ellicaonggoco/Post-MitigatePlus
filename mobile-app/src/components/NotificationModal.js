@@ -113,7 +113,7 @@ export default function NotificationModal({
                   </View>
                   {(selectedNotif.edited || selectedNotif.isEdited || selectedNotif.tag === 'UPDATED' || selectedNotif.title?.includes('Na-update') || selectedNotif.title?.includes('Updated')) && (
                     <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2.5, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#FCD34D' }}>
-                      <Text style={{ fontSize: 10, color: '#B45309' }}>✏️</Text>
+                      <EditIcon size={10} color="#B45309" />
                       <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
                         {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
                       </Text>
