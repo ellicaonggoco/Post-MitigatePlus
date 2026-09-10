@@ -760,8 +760,8 @@ export default function SpecialRequestRelief() {
                   staffList.map(s => {
                     const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
                     const workloadLabel = count === 0
-                      ? '— 0 Active Deliveries (Recommended)'
-                      : `— ${count} Active Deliveries`;
+                      ? '- 0 Active Deliveries (Recommended)'
+                      : `- ${count} Active Deliveries`;
                     return (
                       <option key={s._id || s.id} value={s._id || s.id}>
                         {s.name} ({s.teamName || 'Field Operations'}) {workloadLabel}
@@ -771,16 +771,16 @@ export default function SpecialRequestRelief() {
                 ) : (
                   <>
                     <option value="Field Officer Juan Santos (Team Alpha)">
-                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
+                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
                     </option>
                     <option value="Field Officer Maria Clara (Team Bravo)">
-                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
+                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
                     </option>
                     <option value="Quick Response Team 1">
-                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
+                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
                     </option>
                     <option value="Barangay Health Worker On-Duty">
-                      Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '— 0 Active Deliveries (Recommended)' : `— ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
+                      Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
                     </option>
                   </>
                 )}

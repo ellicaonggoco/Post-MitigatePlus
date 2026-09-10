@@ -91,6 +91,7 @@ function HouseholdProfileHeader({
   profilePhoto,
   photoPickingLoading,
   onToggleAvatar,
+  verificationStatus = 'verified',
   lang,
 }) {
   const initials = (name || 'Resident')
@@ -101,6 +102,9 @@ function HouseholdProfileHeader({
     .slice(0, 2);
 
   const formattedName = formatCapitalizeWords(name || 'Resident Representative');
+  const isVerified = verificationStatus === 'verified';
+  const isNeedsInfo = verificationStatus === 'needs_info';
+  const isRejected = verificationStatus === 'rejected';
 
   return (
     <View style={{ marginHorizontal: 0, marginBottom: 16, marginTop: 4 }}>
@@ -121,9 +125,23 @@ function HouseholdProfileHeader({
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 20, fontWeight: '900', color: '#0B1525', letterSpacing: -0.4 }}>{formattedName}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 6 }}>
-            <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(13,138,90,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-              <Text style={{ color: '#0D8A5A', fontSize: 11, fontWeight: '700' }}>Verified</Text>
-            </View>
+            {isVerified ? (
+              <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(13,138,90,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#0D8A5A', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
+              </View>
+            ) : isNeedsInfo ? (
+              <View style={{ backgroundColor: '#EFF6FF', borderColor: 'rgba(29,78,216,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#1D4ED8', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Kailangan ng Impormasyon' : 'Needs Info'}</Text>
+              </View>
+            ) : isRejected ? (
+              <View style={{ backgroundColor: '#FEF2F2', borderColor: 'rgba(220,38,38,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#DC2626', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Hindi Naaprubahan' : 'Rejected'}</Text>
+              </View>
+            ) : (
+              <View style={{ backgroundColor: '#FEF3C7', borderColor: 'rgba(217,119,6,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#D97706', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Nirerepaso ng Barangay' : 'Pending Verification'}</Text>
+              </View>
+            )}
           </View>
           <Text style={{ fontSize: 12, color: '#8A9BB8' }}>Barangay {barangayCode || '291'}, Manila</Text>
           <Text style={{ fontSize: 12, color: '#8A9BB8' }}>{contact}</Text>
@@ -166,6 +184,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const [verificationStatus, setVerificationStatus] = useState(
+    user?.household?.verificationStatus || user?.verificationStatus || 'verified'
+  );
 
   // Household Members State
   const [members, setMembers] = useState(
@@ -262,7 +284,28 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       try {
         const saved = await AsyncStorage.getItem('mitigateplus_profile_photo');
         if (saved) setProfilePhoto(saved);
-      } catch (e) {}
+
+        const token = await AsyncStorage.getItem('mitigateplus_token');
+        if (token) {
+          const res = await fetch(`${API_BASE_URL}/households/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const hh = data.household || data;
+            if (hh) {
+              if (hh.verificationStatus) {
+                setVerificationStatus(hh.verificationStatus);
+              }
+              if (Array.isArray(hh.members) && hh.members.length > 0) {
+                setMembers(hh.members);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Settings load error:', e);
+      }
     })();
   }, []);
 
@@ -743,6 +786,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           profilePhoto={profilePhoto}
           photoPickingLoading={photoPickingLoading}
           onToggleAvatar={() => setShowAvatarPicker(!showAvatarPicker)}
+          verificationStatus={verificationStatus}
           lang={lang}
         />
 

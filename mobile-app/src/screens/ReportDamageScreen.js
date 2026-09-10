@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { submitDamageReport } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon, MapPinIcon } from '../components/AppIcons';
@@ -154,10 +155,28 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
     return { lat: Number((14.5850 + ((num % 15) * 0.001)).toFixed(6)), lng: Number((121.0050 + ((num % 10) * 0.001)).toFixed(6)) };
   };
 
-  const handleGetGPSLocation = () => {
+  const handleGetGPSLocation = async () => {
     setIsLocating(true);
     const brgyCode = householdData?.barangayCode || user?.barangayCode || '291';
     const fallback = getBarangayCentroid(brgyCode);
+
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          if (loc && loc.coords) {
+            const lat = Number(loc.coords.latitude.toFixed(6));
+            const lng = Number(loc.coords.longitude.toFixed(6));
+            setGeoCoords({ lat, lng, accuracy: Math.round(loc.coords.accuracy || 4) });
+            setIsLocating(false);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Expo location error:', e);
+    }
 
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(

@@ -280,6 +280,25 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </Text>
 
+            {fallbackOtp ? (
+              <View style={{
+                backgroundColor: '#EFF6FF',
+                borderColor: '#BFDBFE',
+                borderWidth: 1,
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 14,
+                alignItems: 'center',
+              }}>
+                <Text style={{ fontSize: 11.5, color: '#1E40AF', fontWeight: '700' }}>
+                  {lang === 'tl' ? 'Verification Code (SMS / System Backup):' : 'Verification Code (SMS / System Backup):'}
+                </Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#1E3A8A', letterSpacing: 4, marginTop: 4 }}>
+                  {fallbackOtp}
+                </Text>
+              </View>
+            ) : null}
+
             <View style={styles.otpGrid}>
               {otpCode.map((digit, i) => (
                 <TextInput

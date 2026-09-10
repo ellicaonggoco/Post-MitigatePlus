@@ -82,13 +82,13 @@ export default function SettingsPage() {
 
   // ── Profile state ───────────────────────────────────────────────────────────
   const [displayName, setDisplayName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
+  const [email, setEmail] = useState(user?.emailOrPhone || user?.email || '');
   const [avatarSrc, setAvatarSrc] = useState(() => localStorage.getItem(avatarKey) || null);
 
   // Sync state if logged-in user changes
   useEffect(() => {
     setDisplayName(user?.name || '');
-    setEmail(user?.email || '');
+    setEmail(user?.emailOrPhone || user?.email || '');
     setAvatarSrc(localStorage.getItem(avatarKey) || null);
   }, [userKey]);
 

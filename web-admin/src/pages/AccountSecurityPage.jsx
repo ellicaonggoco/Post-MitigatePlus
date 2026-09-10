@@ -114,32 +114,59 @@ export default function AccountSecurityPage() {
   // ── Suspend / Reactivate Request ──
   const requestToggle = (acc) => {
     const isAct = acc.status === 'active';
+    const accId = acc._id || acc.id;
     setModal({
       isOpen: true,
       title: isAct ? 'I-suspend ang Account?' : 'I-reactivate ang Account?',
       message: `Are you sure you want to ${isAct ? 'suspend' : 'reactivate'} the account of ${acc.name}? ${isAct ? 'They will no longer be able to log in.' : 'They will regain access to the dashboard.'}`,
       type: isAct ? 'danger' : 'success',
       confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
-      onConfirm: () => {
-        const updated = accounts.map(a => a.id === acc.id ? { ...a, status: isAct ? 'suspended' : 'active' } : a);
-        saveToStorage(updated);
-        closeConfirm();
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/provisioned-users/${accId}/status`, {
+            method: 'PATCH',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: isAct ? 'suspended' : 'active' }),
+          });
+          if (res.ok) {
+            closeConfirm();
+            fetchAccounts();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            alert(`Failed to update account status: ${err.message || 'Server error'}`);
+          }
+        } catch (e) {
+          alert('Could not connect to server. Please try again.');
+        }
       },
     });
   };
 
   // ── Delete Account Request ──
   const requestDelete = (acc) => {
+    const accId = acc._id || acc.id;
     setModal({
       isOpen: true,
       title: 'Delete Account?',
       message: `Are you sure you want to permanently DELETE the account of ${acc.name} (${acc.email || acc.emailOrPhone})? This action cannot be undone.`,
       type: 'danger',
       confirmText: 'Yes, Delete Account',
-      onConfirm: () => {
-        const updated = accounts.filter(a => a.id !== acc.id);
-        saveToStorage(updated);
-        closeConfirm();
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/provisioned-users/${accId}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          });
+          if (res.ok) {
+            closeConfirm();
+            fetchAccounts();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            alert(`Failed to delete account: ${err.message || 'Server error'}`);
+          }
+        } catch (e) {
+          alert('Could not connect to server. Please try again.');
+        }
       },
     });
   };

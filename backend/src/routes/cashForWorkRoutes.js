@@ -582,11 +582,30 @@ router.get('/attendance/today', protect, requireRole('field_staff', 'barangay_of
 // -------------------------------------------------------------
 // 8. LGU ADMIN & BARANGAY: Live Payroll Summary, Applicants & Certified Disbursement
 // -------------------------------------------------------------
-router.get(['/payroll/:projectId', '/projects/:projectId/payroll'], protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
+router.get(['/payroll', '/payroll/:projectId', '/projects/:projectId/payroll'], protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
   try {
-    const project = await CashForWorkProject.findById(req.params.projectId);
+    const targetId = req.params.projectId || req.query.projectId;
+    let project = null;
+    if (targetId && targetId !== 'null' && targetId !== 'undefined' && mongoose.Types.ObjectId.isValid(targetId)) {
+      project = await CashForWorkProject.findById(targetId);
+    }
     if (!project) {
-      return res.status(400).json({ message: 'Project not found' });
+      project = await CashForWorkProject.findOne({
+        ...(req.user.barangayCode && req.user.role === 'barangay_official' ? { barangayCode: req.user.barangayCode } : {})
+      }).sort({ createdAt: -1 });
+    }
+    if (!project) {
+      return res.json({
+        success: true,
+        project: null,
+        totalWorkers: 0,
+        totalApplicants: 0,
+        pendingCount: 0,
+        totalDisbursementEarned: 0,
+        allocatedBudget: 0,
+        remainingBudget: 0,
+        workers: [],
+      });
     }
 
     // Retrieve ALL applications for this project (pending, approved, rejected)

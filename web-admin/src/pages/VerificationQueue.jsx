@@ -222,12 +222,12 @@ export default function VerificationQueue() {
             style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)', background: 'transparent', cursor: 'pointer' }}
           >
             <option value="ALL">All Barangays (City-Wide)</option>
-            <option value="128">Barangay 128 (Smokey Mountain)</option>
-            <option value="291">Barangay 291</option>
-            <option value="292">Barangay 292</option>
-            <option value="293">Barangay 293</option>
-            <option value="294">Barangay 294</option>
-            <option value="344">Barangay 344</option>
+            {Array.from(new Set([
+              '101', '102', '105', '128', '291', '292', '293', '294', '300', '344', '350', '395', '412', '586', '628', '701', '830',
+              ...households.map(h => String(h.barangayCode || '').trim()).filter(Boolean),
+            ])).sort((a, b) => Number(a) - Number(b)).map(b => (
+              <option key={b} value={b}>Barangay {b}</option>
+            ))}
           </select>
         ) : (
           <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)' }}>

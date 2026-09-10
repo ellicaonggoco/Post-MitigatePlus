@@ -139,26 +139,7 @@ export default function SmartPriorityDashboard() {
     const bCode = directiveModal.barangay.code;
     const familyCount = directiveModal.barangay.households.length;
     
-    // Create new directive notification for LGU Admin
-    const newNotif = {
-      id: Date.now(),
-      type: "directive",
-      title: "Executive Directive: Deploy Relief",
-      body: `City Mayor / SuperAdmin has dispatched LGU Disaster Operations to deploy relief in Barangay ${bCode} (${familyCount} households).`,
-      time: "Just now",
-      read: false,
-      link: `/distribution-events?barangay=${bCode}`,
-    };
-
-    try {
-      const saved = localStorage.getItem('mitigateplus_user_notifications');
-      const list = saved ? JSON.parse(saved) : [];
-      localStorage.setItem('mitigateplus_user_notifications', JSON.stringify([newNotif, ...list]));
-      window.dispatchEvent(new Event('mitigateplus_notif_update'));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {
-      console.error(e);
-    }
+    // Broadcast executive directive via socket to LGU Admin and Barangay rooms
 
     try {
       const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });

@@ -974,7 +974,7 @@ export default function ProvisionAccounts() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>
-                        {editingAccount ? 'Reset Password (Optional — leave blank to keep current)' : 'Mobile App Password *'}
+                        {editingAccount ? 'Reset Password (Optional  -  leave blank to keep current)' : 'Mobile App Password *'}
                       </label>
                       <div style={{ position: 'relative' }}>
                         <input
@@ -1043,7 +1043,7 @@ export default function ProvisionAccounts() {
                                 background: barangayCode === b.code ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
                               }}
                             >
-                              <strong>Barangay {b.code}</strong> — City of Manila
+                              <strong>Barangay {b.code}</strong>  -  City of Manila
                             </div>
                           ))}
                         </div>
@@ -1519,7 +1519,7 @@ export default function ProvisionAccounts() {
               {/* Initial Password with Show / Hide Toggle */}
               <div style={{ ...fieldGroupStyle, marginBottom: 20 }}>
                 <label style={labelStyle}>
-                  {editingAccount ? 'Reset Password (Optional — leave blank to keep current)' : 'Initial Temporary Password *'}
+                  {editingAccount ? 'Reset Password (Optional  -  leave blank to keep current)' : 'Initial Temporary Password *'}
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input

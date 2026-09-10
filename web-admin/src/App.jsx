@@ -297,7 +297,8 @@ function AppRoutes() {
     "/warehouse-inventory": "Warehouse Inventory",
     "/fraud-interception": "Fraud Interception",
     "/recovery-progress": "Recovery Progress Tracker",
-    "/special-request-relief": "Livelihood Assistance (Cash-for-Work)",
+    "/special-request-relief": "Special Relief Requests",
+    "/livelihood-assistance": "Livelihood Assistance (Cash-for-Work)",
     "/announcements": "Announcements",
     "/global-policy": "Global Policy Configuration",
     "/system-audit-logs": "System Audit Logs",
@@ -366,7 +367,7 @@ function AppRoutes() {
         </div>
       )}
 
-      {/* ── FULL-WIDTH TOPBAR — spans above sidebar AND main content ── */}
+      {/* ── FULL-WIDTH TOPBAR  -  spans above sidebar AND main content ── */}
       {isAuthLayout && (
         <header className="app-topbar">
           {/* Left: mobile menu + logo */}
@@ -565,7 +566,7 @@ function AppRoutes() {
         </main>
       </div>
 
-      {/* Global Institutional & Developer Footer — FULL WIDTH (across sidebar & main content) */}
+      {/* Global Institutional & Developer Footer  -  FULL WIDTH (across sidebar & main content) */}
       {isAuthLayout && <Footer />}
 
       {/* Interactive System & Developer Details Modal */}

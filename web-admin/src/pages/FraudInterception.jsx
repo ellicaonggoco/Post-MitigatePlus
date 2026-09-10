@@ -19,16 +19,19 @@ export default function FraudInterception() {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchAttempts = async () => {
+      if (!token) { setLoading(false); return; }
       setLoading(true);
       try {
         const res = await fetch(`${API_BASE_URL}/reports/duplicate-attempts`, {
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
         });
-        const data = await res.json();
         if (res.ok) {
+          const data = await res.json();
           setAttempts(data.attempts || data || []);
         } else {
           setAttempts([]);
@@ -48,8 +51,6 @@ export default function FraudInterception() {
 
     return () => socket.disconnect();
   }, [token]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
 
   // Reset to page 1 when filter or search changes
   useEffect(() => {

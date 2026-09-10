@@ -93,7 +93,7 @@ export default function SystemInfoModal({ isOpen, onClose }) {
                   VERSION 1.0.0
                 </span>
                 <span style={{ fontSize: '12px', color: '#DDE4F0', fontWeight: 600 }}>
-                  A.Y. 2025–2026
+                  A.Y. 2025-2026
                 </span>
               </div>
               <h2 style={{ fontSize: '19px', fontWeight: 800, margin: '4px 0 0', letterSpacing: '-0.3px', color: '#FFFFFF' }}>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Rect } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCodeCore from 'qrcode/lib/core/qrcode';
@@ -44,7 +45,15 @@ export default function QRCodeVisual({
   const [useBackendFallback, setUseBackendFallback] = useState(false);
   const [useOfflineSvg, setUseOfflineSvg] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
   const code = String(value || 'MNL-QR-OFFICIAL-PASS').trim();
+
+  // Load auth token for the protected qr-image endpoint
+  useEffect(() => {
+    AsyncStorage.getItem('mitigateplus_token').then(t => {
+      if (t) setAuthToken(t);
+    }).catch(() => {});
+  }, []);
 
   // Reset fallback state when code prop changes
   useEffect(() => {
@@ -54,7 +63,7 @@ export default function QRCodeVisual({
   }, [code]);
 
   const primaryApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(code)}&margin=8&format=png`;
-  const backendApiUrl = `${API_BASE_URL}/households/qr-image/${encodeURIComponent(code)}?size=400&margin=2`;
+  const backendApiUrl = `${API_BASE_URL}/households/qr-image/${encodeURIComponent(code)}?size=400&margin=2${authToken ? `&token=${encodeURIComponent(authToken)}` : ''}`;
 
   const activeImageUri = useBackendFallback ? backendApiUrl : primaryApiUrl;
 

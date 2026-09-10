@@ -64,7 +64,7 @@ export default function Footer() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
             <span style={{ display: 'inline-flex', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
             <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#64748B' }}>
-              System Operational &bull; A.Y. 2025–2026
+              System Operational &bull; A.Y. 2025-2026
             </span>
           </div>
         </div>

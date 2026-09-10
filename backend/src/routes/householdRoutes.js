@@ -475,15 +475,16 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
       }
     }
 
-    // ✅ BARANGAY-EVENT GATING: If a specific event was passed by the scanner,
-    // reject the scan if the household's barangay does NOT match the event's barangay.
+    // BARANGAY-EVENT GATING: If a specific event was passed by the scanner,
+    // check if household's barangay matches event's barangay.
     if (resolvedEvent && resolvedEvent.barangayCode && household.barangayCode) {
       const hhBrgy = String(household.barangayCode).trim();
       const evBrgy = String(resolvedEvent.barangayCode).trim();
-      if (hhBrgy !== evBrgy) {
+      const allowCross = req.query.allowCrossBarangay === 'true';
+      if (hhBrgy !== evBrgy && !allowCross) {
         return res.status(403).json({
           barangayMismatch: true,
-          message: `Hindi pwede. Ang QR Code na ito ay para sa Barangay ${hhBrgy} lamang, ngunit ang kasalukuyang distribution event ay para sa Barangay ${evBrgy}. Tanging ang mga residente ng Barangay ${evBrgy} lamang ang maaaring tumanggap ng relief dito.`,
+          message: `Babala: Ang QR Code na ito ay para sa Barangay ${hhBrgy}, ngunit ang kasalukuyang distribution event ay para sa Barangay ${evBrgy}.`,
           householdBarangay: hhBrgy,
           eventBarangay: evBrgy,
           eventTitle: resolvedEvent.title,
@@ -503,7 +504,11 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
         queryEvId = activeEv._id;
         eventName = activeEv.title;
       } else {
-        const recentEv = await DistributionEvent.findOne(household.barangayCode ? { barangayCode: household.barangayCode } : {}).sort({ createdAt: -1 });
+        const recentEv = await DistributionEvent.findOne({
+          isActive: true,
+          status: { $in: ['Ongoing', 'Scheduled'] },
+          ...(household.barangayCode ? { barangayCode: household.barangayCode } : {}),
+        }).sort({ createdAt: -1 });
         if (recentEv) {
           queryEvId = recentEv._id;
           eventName = recentEv.title;
@@ -845,7 +850,7 @@ router.patch('/me/notifications/:id/read', protect, requireRole('resident'), asy
 
 // @route   GET /api/households/qr-image/:code
 // @desc    Generate an authentic, high-resolution PNG QR Code via official standard
-router.get('/qr-image/:code', async (req, res) => {
+router.get('/qr-image/:code', protect, async (req, res) => {
   try {
     const rawCode = String(req.params.code || '').trim();
     if (!rawCode) {

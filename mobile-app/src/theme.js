@@ -73,7 +73,7 @@ export const RESPONSIVE = {
   fontScale: SCALE,
 };
 
-// Manila City Seal Color Identity — Red + Royal Blue + Gold
+// Manila City Seal Color Identity  -  Red + Royal Blue + Gold
 export const M = {
   // Manila Crimson Red
   red: '#C8102E',

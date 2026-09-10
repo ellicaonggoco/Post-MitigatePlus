@@ -1032,8 +1032,8 @@ export default function DistributionEvents() {
                   {FIELD_TEAMS.map(t => {
                     const wl = getTeamWorkload(t);
                     const label = wl.total === 0
-                      ? `${t} — 0 Active Drives (Available / Recommended)`
-                      : `${t} — ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
+                      ? `${t}  -  0 Active Drives (Available / Recommended)`
+                      : `${t}  -  ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
                     return (
                       <option key={t} value={t}>
                         {label}

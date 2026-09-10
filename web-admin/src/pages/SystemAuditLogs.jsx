@@ -48,6 +48,8 @@ export default function SystemAuditLogs() {
     status: l.status || (l.action?.includes('BLOCKED') ? 'BLOCKED' : 'SUCCESS'),
   }));
 
+  const uniqueModules = ['ALL', ...Array.from(new Set(normalizedLogs.map(l => l.module))).sort()];
+
   const filteredLogs = normalizedLogs.filter(l => {
     const matchMod = moduleFilter === 'ALL' || l.module === moduleFilter;
     const q = searchQuery.toLowerCase().trim();
@@ -167,13 +169,9 @@ export default function SystemAuditLogs() {
               style={{ padding: '8px 12px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--manila-blue)', background: 'var(--card)', outline: 'none', cursor: 'pointer' }}
             >
               <option value="ALL">All Modules</option>
-              <option value="Relief Allocation Engine">Relief Allocation Engine</option>
-              <option value="Field Staff Mobile App">Field Staff Mobile App</option>
-              <option value="Special Relief Requests">Special Relief Requests</option>
-              <option value="Warehouse Inventory">Warehouse Inventory</option>
-              <option value="Distribution Events">Distribution Events</option>
-              <option value="Account Management">Account Management</option>
-              <option value="Fraud Interception">Fraud Interception</option>
+              {uniqueModules.filter(m => m !== 'ALL').map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
             </select>
           </div>
 
