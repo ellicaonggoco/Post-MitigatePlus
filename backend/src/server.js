@@ -19,6 +19,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 // Disable fingerprinting header
@@ -83,28 +84,31 @@ app.use(mongoSanitize());
 // Multi-Tier Rate Limiting Architecture
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 600,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Too many requests, please try again later.' }
+  message: { message: 'Too many requests, please try again later.' },
+  validate: { trustProxy: false },
 });
 app.use('/api/', globalLimiter);
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 15,
+  windowMs: 10 * 60 * 1000,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Too many authentication attempts. Please try again after 15 minutes.' }
+  message: { message: 'Too many authentication attempts. Please try again after 10 minutes.' },
+  validate: { trustProxy: false },
 });
 app.use('/api/auth/login', authLimiter);
 
 const otpLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
+  windowMs: 3 * 60 * 1000, // 3 minutes cooldown window
+  max: 60, // allow up to 60 OTP requests per 3 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Too many OTP requests from this address. Please try again after 1 hour.' }
+  message: { message: 'Masyadong maraming OTP request. Mangyaring maghintay ng 3 minuto bago sumubok muli. (Too many OTP requests. Please wait 3 minutes before trying again.)' },
+  validate: { trustProxy: false },
 });
 app.use('/api/auth/send-otp', otpLimiter);
 app.use('/api/auth/forgot-password', otpLimiter);
