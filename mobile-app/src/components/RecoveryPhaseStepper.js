@@ -251,8 +251,8 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: 10.5,
-    color: '#8A9BB8',
-    fontWeight: '500',
+    color: '#475569',
+    fontWeight: '600',
     marginTop: 1,
   },
   percentBadge: {
@@ -332,8 +332,8 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontSize: 10,
-    color: '#8A9BB8',
-    fontWeight: '500',
+    color: '#475569',
+    fontWeight: '600',
     textAlign: 'center',
   },
   stepLabelActive: {

@@ -73,6 +73,9 @@ function AnimatedNavItem({ item, isActive, onPress }) {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       activeOpacity={1}
+      accessibilityRole="tab"
+      accessibilityLabel={item.label}
+      accessibilityState={{ selected: isActive }}
     >
       <Animated.View
         style={[
@@ -83,7 +86,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
         {item.renderIcon(isActive)}
       </Animated.View>
       <Text style={[
-        { fontSize: 10, fontWeight: isActive ? '800' : '500', color: isActive ? '#1C3F94' : '#8A9BB8' },
+        { fontSize: 10, fontWeight: isActive ? '800' : '600', color: isActive ? '#1C3F94' : '#475569' },
       ]}>
         {item.label}
       </Text>
@@ -546,6 +549,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           style={styles.bellBtn}
           onPress={handleOpenNotificationModal}
           activeOpacity={0.8}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={hasAnyUnread ? (lang === 'tl' ? 'Mga Abiso, may mga bagong mensahe' : 'Notifications, you have unread messages') : (lang === 'tl' ? 'Mga Abiso' : 'Notifications')}
+          accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang buksan ang mga abiso' : 'Double tap to open notifications'}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <BellIcon size={18} color="#FFFFFF" />
           {hasAnyUnread && (
@@ -559,6 +567,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           ]}
           onPress={() => setShowVerifInfoModal(true)}
           activeOpacity={0.7}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={isVerified ? (lang === 'tl' ? 'Katayuan: Beripikadong Residente' : 'Status: Verified Resident') : (lang === 'tl' ? 'Katayuan: Nakabinbing Beripikasyon' : 'Status: Pending Verification')}
+          accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang tingnan ang impormasyon sa beripikasyon' : 'Double tap to view verification info'}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           {isVerified ? (
             <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
@@ -726,6 +739,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       }
                     }}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'Muling I-check ang Katayuan ng Pag-apruba' : 'Refresh Approval Status'}
+                    accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang i-refresh ang katayuan ng beripikasyon' : 'Double tap to refresh verification status'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Text style={styles.refreshStatusBtnText}>
                       {loadingProfile
@@ -818,6 +835,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     style={styles.standbyRefreshBtn}
                     onPress={() => refreshData(true)}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'I-check kung may Binuksang Event' : 'Check for Active Event'}
+                    accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang tingnan kung may aktibong pamamahagi ng ayuda' : 'Double tap to check for active relief events'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Text style={styles.standbyRefreshBtnText}>
                       {loadingProfile
@@ -948,10 +969,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 {unreadCount > 0 && (
                   <TouchableOpacity
                     onPress={handleMarkAllAsRead}
-                    style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#EDF1FB', borderWidth: 1, borderColor: '#D6DEFA' }}
+                    style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#EDF1FB', borderWidth: 1, borderColor: '#D6DEFA' }}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'Basahin Lahat ng Anunsyo' : 'Mark all announcements as read'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1C3F94' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}>
                       {lang === 'tl' ? 'Basahin Lahat' : 'Mark all read'}
                     </Text>
                   </TouchableOpacity>
@@ -1020,6 +1044,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                             navigateToTab(ann.targetTab);
                           }}
                           activeOpacity={0.85}
+                          accessibilityRole="button"
+                          accessibilityLabel={ann.targetTab === 'request' || ann.targetTab === 'assistance'
+                            ? (lang === 'tl' ? 'Humiling ng Ayuda' : 'Request Relief')
+                            : ann.targetTab === 'damage'
+                            ? (lang === 'tl' ? 'Mag-ulat ng Sira' : 'Report Damage')
+                            : (lang === 'tl' ? 'Tingnan ang History' : 'View History')}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                           <Text style={styles.annActionBtnText}>
                             {ann.targetTab === 'request' || ann.targetTab === 'assistance'
@@ -1058,6 +1089,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       Linking.openURL(`tel:${cleanNum}`);
                     }}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${hotline.name}, ${hotline.phone}`}
+                    accessibilityHint={lang === 'tl' ? 'Pindutin upang tawagan ang numerong ito' : 'Double tap to dial this number'}
                   >
                     <View style={styles.emergencyIconWell}>
                       <PhoneCallIcon size={14} color="#C8102E" />
@@ -1132,11 +1166,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* Tab Bar - frosted glass */}
 <View style={styles.tabBarContainer}>
   {[
-    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
-    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} strokeWidth={isActive ? 2.4 : 2.0} filled={false} /> },
-    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
-    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
-    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
+    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#475569'} strokeWidth={isActive ? 2.4 : 2.0} filled={false} /> },
+    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
   ].map((item) => {
     const isTabActive = item.key === activeTab ||
       (item.key === 'history' && (activeTab === 'distribution' || activeTab === 'claim' || activeTab === 'claims' || activeTab === 'schedule')) ||
@@ -1681,9 +1715,11 @@ headerActionArea: {
   gap: 8,
 },
 bellBtn: {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
+  width: 44,
+  height: 44,
+  minWidth: 44,
+  minHeight: 44,
+  borderRadius: 22,
   backgroundColor: 'rgba(255,255,255,0.15)',
   borderWidth: 1,
   borderColor: 'rgba(255,255,255,0.25)',
@@ -1693,8 +1729,8 @@ bellBtn: {
 },
 unreadBadgeDot: {
   position: 'absolute',
-  top: 7,
-  right: 7,
+  top: 9,
+  right: 9,
   width: 8,
   height: 8,
   borderRadius: 4,
@@ -1703,9 +1739,11 @@ unreadBadgeDot: {
   borderColor: '#C8102E',
 },
 verifCheckCircleBtn: {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
+  width: 44,
+  height: 44,
+  minWidth: 44,
+  minHeight: 44,
+  borderRadius: 22,
   alignItems: 'center',
   justifyContent: 'center',
 },
@@ -1804,7 +1842,7 @@ verifCheckCirclePending: {
   metricGridLabelGlass: {
     fontSize: 8,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.90)',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -1816,8 +1854,8 @@ verifCheckCirclePending: {
   },
   metricGridSubGlass: {
     fontSize: 9.5,
-    color: 'rgba(255, 255, 255, 0.65)',
-    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.92)',
+    fontWeight: '600',
     marginTop: 1,
   },
   qrInteractiveFrameWhite: {
@@ -2053,10 +2091,12 @@ verifCheckCirclePending: {
   refreshStatusBtn: {
     backgroundColor: '#1C3F94',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    minHeight: 48,
     borderRadius: 10,
     width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
     ...SHADOWS.button,
   },
   refreshStatusBtnText: {
@@ -2218,9 +2258,12 @@ verifCheckCirclePending: {
   },
   annActionBtn: {
     backgroundColor: '#1C3F94',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
     borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...SHADOWS.sm,
   },
   annActionBtnText: {
@@ -2762,7 +2805,8 @@ navIconPillInactive: {
   },
   emergencySectionSub: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
+    fontWeight: '500',
     marginBottom: 12,
   },
   emergencyGrid: {
@@ -2772,6 +2816,7 @@ navIconPillInactive: {
   },
   emergencyDialBtn: {
     width: '48.5%',
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
@@ -3038,10 +3083,12 @@ navIconPillInactive: {
   standbyRefreshBtn: {
     backgroundColor: '#1C3F94',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    minHeight: 48,
     borderRadius: 12,
     width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   standbyRefreshBtnText: {
     color: '#FFFFFF',
