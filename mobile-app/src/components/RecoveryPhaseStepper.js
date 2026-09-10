@@ -146,8 +146,16 @@ export default function RecoveryPhaseStepper({
           const isCurrent = idx === activeIndex && completedCount < 5;
 
           return (
-            <View key={stage.key} style={styles.stepItem}>
+            <View
+              key={stage.key}
+              style={styles.stepItem}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={`${lang === 'tl' ? 'Hakbang' : 'Step'} ${idx + 1}: ${stage.label}. ${isCompleted ? (lang === 'tl' ? 'Tapos na' : 'Completed') : isCurrent ? (lang === 'tl' ? 'Kasalukuyang ginagawa' : 'Current stage') : (lang === 'tl' ? 'Susunod na yugto' : 'Upcoming stage')}`}
+            >
               <View
+                importantForAccessibility="no-hide-descendants"
+                accessible={false}
                 style={[
                   styles.stepNode,
                   isCompleted
@@ -173,6 +181,8 @@ export default function RecoveryPhaseStepper({
               </View>
 
               <Text
+                importantForAccessibility="no"
+                accessible={false}
                 style={[
                   styles.stepLabel,
                   (isCompleted || isCurrent) && styles.stepLabelActive,
@@ -265,8 +275,8 @@ const styles = StyleSheet.create({
   },
   percentText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#0D8A5A',
+    fontWeight: '900',
+    color: '#065F46',
   },
   trackBackground: {
     height: 6,
@@ -323,29 +333,31 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   stepNodeUpcoming: {
-    backgroundColor: '#DCE6F5',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   stepNumberUpcoming: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#6882A9',
+    fontWeight: '800',
+    color: '#0F172A',
   },
   stepLabel: {
     fontSize: 10,
-    color: '#475569',
-    fontWeight: '600',
+    color: '#334155',
+    fontWeight: '700',
     textAlign: 'center',
   },
   stepLabelActive: {
-    color: '#3D5070',
-    fontWeight: '700',
+    color: '#0F172A',
+    fontWeight: '900',
   },
   activeCallout: {
-    backgroundColor: '#FEF9EC',
+    backgroundColor: '#FFFBEB',
     borderWidth: 1,
-    borderColor: '#F0DFB0',
-    borderRadius: 11,
-    padding: 9,
+    borderColor: '#FDE68A',
+    borderRadius: 12,
+    padding: 12,
   },
   activeCalloutHeader: {
     flexDirection: 'row',
@@ -360,16 +372,17 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   activeCalloutTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#A17A16',
+    fontSize: 11.5,
+    fontWeight: '900',
+    color: '#78350F',
     letterSpacing: 0.2,
   },
   activeCalloutDesc: {
-    fontSize: 10.5,
-    color: '#997A20',
-    lineHeight: 14.5,
+    fontSize: 11,
+    color: '#451A03',
+    lineHeight: 16,
     paddingLeft: 13,
+    fontWeight: '600',
   },
   activeCalloutReady: {
     backgroundColor: '#ECFDF5',

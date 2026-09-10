@@ -66,7 +66,7 @@ function AnimatedNavItem({ item, isActive, onPress }) {
   return (
     <TouchableOpacity
       style={[
-        { flex: 1, alignItems: 'center', paddingVertical: 6, paddingBottom: 18, gap: 3 },
+        { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, paddingBottom: 18, minHeight: 48, gap: 3 },
         Platform.OS === 'web' ? { outlineStyle: 'none' } : {},
       ]}
       onPress={onPress}
@@ -78,6 +78,8 @@ function AnimatedNavItem({ item, isActive, onPress }) {
       accessibilityState={{ selected: isActive }}
     >
       <Animated.View
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
         style={[
           isActive ? styles.navIconPillActive : styles.navIconPillInactive,
           { transform: [{ scale: scaleAnim }] },
@@ -85,9 +87,11 @@ function AnimatedNavItem({ item, isActive, onPress }) {
       >
         {item.renderIcon(isActive)}
       </Animated.View>
-      <Text style={[
-        { fontSize: 10, fontWeight: isActive ? '800' : '600', color: isActive ? '#1C3F94' : '#475569' },
-      ]}>
+      <Text
+        style={[
+          { fontSize: 10, fontWeight: isActive ? '800' : '700', color: isActive ? '#1C3F94' : '#334155' },
+        ]}
+      >
         {item.label}
       </Text>
     </TouchableOpacity>
@@ -1715,11 +1719,11 @@ headerActionArea: {
   gap: 8,
 },
 bellBtn: {
-  width: 44,
-  height: 44,
-  minWidth: 44,
-  minHeight: 44,
-  borderRadius: 22,
+  width: 48,
+  height: 48,
+  minWidth: 48,
+  minHeight: 48,
+  borderRadius: 24,
   backgroundColor: 'rgba(255,255,255,0.15)',
   borderWidth: 1,
   borderColor: 'rgba(255,255,255,0.25)',
@@ -1739,11 +1743,11 @@ unreadBadgeDot: {
   borderColor: '#C8102E',
 },
 verifCheckCircleBtn: {
-  width: 44,
-  height: 44,
-  minWidth: 44,
-  minHeight: 44,
-  borderRadius: 22,
+  width: 48,
+  height: 48,
+  minWidth: 48,
+  minHeight: 48,
+  borderRadius: 24,
   alignItems: 'center',
   justifyContent: 'center',
 },
