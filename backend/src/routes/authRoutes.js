@@ -82,9 +82,8 @@ router.post('/send-otp', async (req, res) => {
       // Registration flow: strictly check that the phone number or email is NOT already registered to any account
       const existingUser = await findExistingUserWithIdentifier(key);
       if (existingUser) {
-        const roleLabel = existingUser.role === 'resident' ? 'Residente' : existingUser.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
         return res.status(400).json({
-          message: `Ang numero na ito ay rehistrado na bilang ${roleLabel} (${existingUser.name}). Isang account lamang ang pinapayagan kada mobile number.`
+          message: 'Ang numero na ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan kada mobile number.'
         });
       }
     }
@@ -361,9 +360,8 @@ router.post('/register', async (req, res) => {
 
     const existingUser = await findExistingUserWithIdentifier(emailOrPhone);
     if (existingUser) {
-      const roleLabel = existingUser.role === 'resident' ? 'Residente' : existingUser.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
       return res.status(400).json({
-        message: `Ang phone number na ito ay rehistrado na bilang ${roleLabel} (${existingUser.name}). Bawal magkaparehas ang number ng kahit sinong user.`
+        message: 'Ang phone number na ito ay rehistrado na sa sistema. Bawal magkaparehas ang number ng kahit sinong user.'
       });
     }
 
@@ -1022,9 +1020,8 @@ router.post('/provision-resident', protect, requireRole('lgu_admin', 'lgu_supera
     const cleanContact = emailOrPhone.trim();
     const existing = await findExistingUserWithIdentifier(cleanContact);
     if (existing) {
-      const roleLabel = existing.role === 'resident' ? 'Residente' : existing.role === 'field_staff' ? 'Field Staff' : 'Opisyal';
       return res.status(400).json({
-        message: `Ang phone number o email na ito ay rehistrado na bilang ${roleLabel} (${existing.name}). Bawal magkaparehas ang contact ng kahit sinong user.`,
+        message: 'Ang phone number o email na ito ay rehistrado na sa sistema. Bawal magkaparehas ang contact ng kahit sinong user.',
       });
     }
 
