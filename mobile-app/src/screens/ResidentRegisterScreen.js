@@ -1146,7 +1146,13 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   ? 'Mga Tuntunin at Patakaran sa Privacy'
                   : 'Terms of Service & Data Privacy'}
               </Text>
-              <TouchableOpacity onPress={() => setShowTermsModal(false)}>
+              <TouchableOpacity
+                onPress={() => setShowTermsModal(false)}
+                style={{ width: 48, height: 48, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang mga tuntunin' : 'Close terms'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
@@ -1226,7 +1232,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
               <TouchableOpacity
                 onPress={() => setShowIdTypeModal(false)}
-                style={{ flexShrink: 0, padding: 6, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                style={{ flexShrink: 0, padding: 6, width: 48, height: 48, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
                 accessibilityRole="button"
                 accessibilityLabel={lang === 'tl' ? 'Isara ang pagpili ng ID' : 'Close ID selection'}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -1276,7 +1282,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
               <TouchableOpacity
                 onPress={() => setShowAddMemberModal(false)}
-                style={{ flexShrink: 0, padding: 6, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                style={{ flexShrink: 0, padding: 6, width: 48, height: 48, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
                 accessibilityRole="button"
                 accessibilityLabel={lang === 'tl' ? 'Isara ang pagdagdag ng miyembro' : 'Close add member'}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}

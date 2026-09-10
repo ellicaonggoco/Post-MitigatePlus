@@ -132,7 +132,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
           <Text style={[styles.label, { marginTop: 14 }]}>Password ng Kawani:</Text>
           <View style={{ position: 'relative', justifyContent: 'center' }}>
             <TextInput
-              style={[styles.input, { paddingRight: 48 }]}
+              style={[styles.input, { paddingRight: 56 }]}
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••••••"
@@ -141,7 +141,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: 6, top: 6, width: 44, height: 44, borderRadius: 8, backgroundColor: '#EDF1FB', borderWidth: 1, borderColor: '#D6DEFA', alignItems: 'center', justifyContent: 'center' }}
+              style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 52, minWidth: 48, minHeight: 48, borderTopRightRadius: 10, borderBottomRightRadius: 10, backgroundColor: '#EDF1FB', borderLeftWidth: 1, borderColor: '#D6DEFA', alignItems: 'center', justifyContent: 'center' }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? "Itago ang password" : "Ipakita ang password"}
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     fontSize: 13.5,
     color: '#0B1525',
-    minHeight: 48,
+    minHeight: 52,
   },
   loginBtn: {
     backgroundColor: '#C8102E',

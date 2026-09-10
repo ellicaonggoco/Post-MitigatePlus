@@ -68,7 +68,7 @@ export default function NeumorphicInput({
             ref={inputRef}
             style={[
               styles.inputField,
-              isPassword && { paddingRight: 48 },
+              isPassword && { paddingRight: 56 },
               multiline && styles.inputMultiline,
               inputStyle,
             ]}
@@ -246,13 +246,16 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     position: 'absolute',
-    right: 4,
-    top: 4,
-    bottom: 4,
-    width: 44,
-    borderRadius: 8,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 52,
+    minWidth: 48,
+    minHeight: 48,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
     backgroundColor: '#EDF1FB',
-    borderWidth: 1,
+    borderLeftWidth: 1,
     borderColor: '#D6DEFA',
     justifyContent: 'center',
     alignItems: 'center',
