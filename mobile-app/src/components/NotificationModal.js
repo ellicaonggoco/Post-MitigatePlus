@@ -33,7 +33,7 @@ export default function NotificationModal({
   const handleItemPress = (notif) => {
     setSelectedNotif(notif);
     if (onMarkRead && notif?.id) {
-      onMarkRead(notif.id);
+      onMarkRead(notif.id, notif);
     }
   };
 
@@ -178,9 +178,16 @@ export default function NotificationModal({
               <View style={styles.popoverHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, paddingRight: 8 }}>
                   <BellIcon size={17} color="#1C3F94" />
-                  <Text style={[styles.popoverTitle, { flex: 1 }]} numberOfLines={1}>
+                  <Text style={[styles.popoverTitle, { flexShrink: 1 }]} numberOfLines={1}>
                     {lang === 'tl' ? 'Mga Notipikasyon at Alert' : 'Notifications & Alerts'}
                   </Text>
+                  {notifs.filter((n) => n.unread).length > 0 && (
+                    <View style={styles.unreadCountBadge}>
+                      <Text style={styles.unreadCountBadgeText}>
+                        {notifs.filter((n) => n.unread).length}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   {onMarkAllRead && notifs.some((n) => n.unread) && (
@@ -189,8 +196,9 @@ export default function NotificationModal({
                       style={styles.markAllReadBtn}
                       activeOpacity={0.8}
                       accessibilityRole="button"
-                      accessibilityLabel="Basahin Lahat, Mark all as read"
-                      accessibilityHint="Marks all notifications as read"
+                      accessibilityLabel={lang === 'tl' ? 'Basahin Lahat ng Notipikasyon' : 'Mark all notifications as read'}
+                      accessibilityHint={lang === 'tl' ? 'Minamarkahan ang lahat ng notipikasyon bilang nabasa na' : 'Marks all notifications as read'}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <CheckIcon size={12} color="#1C3F94" strokeWidth={2.5} />
                       <Text style={styles.markAllReadText}>
@@ -203,8 +211,8 @@ export default function NotificationModal({
                     style={styles.closeBtn}
                     activeOpacity={0.8}
                     accessibilityRole="button"
-                    accessibilityLabel="Close notifications"
-                    accessibilityHint="Closes the notification modal"
+                    accessibilityLabel={lang === 'tl' ? 'Isara ang mga notipikasyon' : 'Close notifications'}
+                    accessibilityHint={lang === 'tl' ? 'Isinasara ang window ng notipikasyon' : 'Closes the notification window'}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <CloseIcon size={14} color="#0B1525" />
@@ -234,16 +242,26 @@ export default function NotificationModal({
                       onPress={() => handleItemPress(n)}
                       activeOpacity={0.85}
                       accessibilityRole="button"
-                      accessibilityLabel={`${n.unread ? 'Unread notification' : 'Notification'}: ${n.title}`}
-                      accessibilityHint="Tap to read full announcement"
+                      accessibilityLabel={`${n.unread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${n.title}`}
+                      accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
                     >
                       <View style={styles.notifTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          {n.unread && (
+                            <View style={styles.notifRedDot} />
+                          )}
                           <View style={[styles.typeBadge, n.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
                             <Text style={[styles.typeBadgeText, n.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
                               {n.tag || (n.type === 'urgent' ? 'URGENT' : 'ADVISORY')}
                             </Text>
                           </View>
+                          {n.unread && (
+                            <View style={styles.notifNewBadge}>
+                              <Text style={styles.notifNewBadgeText}>
+                                {lang === 'tl' ? 'BAGO' : 'NEW'}
+                              </Text>
+                            </View>
+                          )}
                           {(n.edited || n.isEdited || n.tag === 'UPDATED' || n.title?.includes('Na-update') || n.title?.includes('Updated')) && (
                             <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                               <EditIcon size={11} color="#B45309" />
@@ -256,14 +274,14 @@ export default function NotificationModal({
                         <Text style={styles.notifTime}>{n.time}</Text>
                       </View>
 
-                      <Text style={styles.notifTitle}>{n.title}</Text>
+                      <Text style={[styles.notifTitle, n.unread && { fontWeight: '800', color: '#0B1525' }]}>{n.title}</Text>
                       <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text>
 
                       <View style={[styles.tapToReadRow, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
-                        <Text style={styles.tapToReadText}>
+                        <Text style={[styles.tapToReadText, n.unread && { color: '#C8102E', fontWeight: '700' }]}>
                           {lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
                         </Text>
-                        <ArrowRightIcon size={12} color="#1C3F94" />
+                        <ArrowRightIcon size={12} color={n.unread ? '#C8102E' : '#1C3F94'} />
                       </View>
                     </MotionPressable>
                   ))
@@ -368,12 +386,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDE4F0',
     borderLeftWidth: 4,
-    borderLeftColor: '#1C3F94',
+    borderLeftColor: '#DDE4F0',
     marginBottom: 8,
   },
   notifItemUnread: {
-    backgroundColor: '#F3F6FC',
-    borderColor: '#DDE4F0',
+    backgroundColor: '#FFF8F8',
+    borderColor: '#F5D0D6',
+    borderLeftWidth: 4,
+    borderLeftColor: '#C8102E',
+  },
+  notifRedDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#C8102E',
+  },
+  notifNewBadge: {
+    backgroundColor: '#FEF0F2',
+    borderColor: '#F5E0E3',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  notifNewBadgeText: {
+    color: '#C8102E',
+    fontWeight: '800',
+    fontSize: 9,
+  },
+  unreadCountBadge: {
+    backgroundColor: '#C8102E',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadCountBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   notifTopRow: {
     flexDirection: 'row',

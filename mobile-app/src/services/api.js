@@ -84,6 +84,17 @@ export async function fetchHouseholdProfile(token) {
 }
 
 /**
+ * 4b. Mark In-App Notification as Read
+ */
+export async function markNotificationAsRead(notifId, token) {
+  if (!notifId || !token) return null;
+  return request(`${API_BASE_URL}/households/me/notifications/${encodeURIComponent(notifId)}/read`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(token),
+  });
+}
+
+/**
  * 5. Submit Damage Report
  */
 export async function submitDamageReport(data, token) {

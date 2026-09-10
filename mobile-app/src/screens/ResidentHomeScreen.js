@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
@@ -13,7 +13,7 @@ import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, Settings
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
-import { fetchAnnouncements, fetchHouseholdProfile } from '../services/api';
+import { fetchAnnouncements, fetchHouseholdProfile, markNotificationAsRead } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
 
 const STATUSBAR_INSET = getStatusBarHeight();
@@ -209,94 +209,122 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       try {
         const saved = await AsyncStorage.getItem('mitigateplus_read_announcements');
         if (saved) {
-          setReadAnnouncementIds(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) setReadAnnouncementIds(parsed);
         }
         const savedNotifs = await AsyncStorage.getItem('mitigateplus_read_notifs');
         if (savedNotifs) {
-          setReadNotifIds(JSON.parse(savedNotifs));
+          const parsedNotifs = JSON.parse(savedNotifs);
+          if (Array.isArray(parsedNotifs)) setReadNotifIds(parsedNotifs);
         }
       } catch (e) {}
     })();
   }, []);
 
+  const isAnnouncementUnread = useCallback(
+    (ann) => {
+      if (!ann) return false;
+      const idKey = String(ann._id || ann.id || '');
+      const titleKey = String(ann.title || '');
+      if (idKey && readAnnouncementIds.includes(idKey)) return false;
+      if (titleKey && readAnnouncementIds.includes(titleKey)) return false;
+      return true;
+    },
+    [readAnnouncementIds]
+  );
+
+  const isNotifUnread = useCallback(
+    (n) => {
+      if (!n) return false;
+      if (n.isRead) return false;
+      const idKey = String(n.id || n._id || '');
+      const titleKey = String(n.title || '');
+      if (idKey && readNotifIds.includes(idKey)) return false;
+      if (titleKey && readNotifIds.includes(titleKey)) return false;
+      return true;
+    },
+    [readNotifIds]
+  );
+
   const handleOpenAnnouncement = async (ann) => {
+    if (!ann) return;
     setSelectedAnnouncement(ann);
-    const annId = String(ann._id || ann.id || ann.title);
-    if (!readAnnouncementIds.includes(annId)) {
-      const updated = [...readAnnouncementIds, annId];
-      setReadAnnouncementIds(updated);
-      try {
-        await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updated));
-      } catch (e) {}
-    }
+
+    const idKey = String(ann._id || ann.id || '');
+    const titleKey = String(ann.title || '');
+    const keysToAdd = [idKey, titleKey].filter(Boolean);
+
+    const updatedAnns = Array.from(new Set([...readAnnouncementIds, ...keysToAdd]));
+    setReadAnnouncementIds(updatedAnns);
+
+    const updatedNotifs = Array.from(new Set([...readNotifIds, ...keysToAdd]));
+    setReadNotifIds(updatedNotifs);
+
+    try {
+      await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updatedAnns));
+      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(updatedNotifs));
+    } catch (e) {}
   };
 
-  const handleMarkNotifAsRead = async (id) => {
-    const idStr = String(id);
-    if (!readNotifIds.includes(idStr)) {
-      const updatedNotifs = [...readNotifIds, idStr];
-      setReadNotifIds(updatedNotifs);
+  const handleMarkNotifAsRead = async (id, notifObj = null) => {
+    const idKey = String(id || '');
+    const titleKey = notifObj ? String(notifObj.title || '') : '';
+    const keysToAdd = [idKey, titleKey].filter(Boolean);
+
+    const updatedNotifs = Array.from(new Set([...readNotifIds, ...keysToAdd]));
+    setReadNotifIds(updatedNotifs);
+
+    const updatedAnns = Array.from(new Set([...readAnnouncementIds, ...keysToAdd]));
+    setReadAnnouncementIds(updatedAnns);
+
+    try {
+      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(updatedNotifs));
+      await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updatedAnns));
+    } catch (e) {}
+
+    // If it has a valid backend notification ID, notify server
+    if (token && idKey && !idKey.startsWith('ann_')) {
       try {
-        await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(updatedNotifs));
-      } catch (e) {}
-    }
-    if (!readAnnouncementIds.includes(idStr)) {
-      const updatedAnns = [...readAnnouncementIds, idStr];
-      setReadAnnouncementIds(updatedAnns);
-      try {
-        await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updatedAnns));
-      } catch (e) {}
+        await markNotificationAsRead(idKey, token);
+      } catch (err) {}
     }
   };
 
   const handleMarkAllAsRead = async () => {
-    const allIds = announcements.map((a) => String(a._id || a.id || a.title));
-    const combined = Array.from(new Set([...readAnnouncementIds, ...allIds]));
-    setReadAnnouncementIds(combined);
-
-    const allNotifIds = inAppNotifs.map((n) => String(n.id || n._id));
-    const combinedNotifs = Array.from(new Set([...readNotifIds, ...allNotifIds]));
-    setReadNotifIds(combinedNotifs);
-
-    setHasUnreadNotifs(false);
-
-    try {
-      await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(combined));
-      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(combinedNotifs));
-    } catch (e) {}
-  };
-
-  const handleOpenNotificationModal = async () => {
-    setShowNotifModal(true);
-    setHasUnreadNotifs(false);
-
-    // Auto-mark all current notifications and announcements as read upon opening the bell
-    const allNotifIds = inAppNotifs.map((n) => String(n.id || n._id));
-    const combinedNotifs = Array.from(new Set([...readNotifIds, ...allNotifIds]));
-    setReadNotifIds(combinedNotifs);
-
-    const allAnnIds = announcements.map((a) => String(a._id || a.id || a.title));
-    const combinedAnns = Array.from(new Set([...readAnnouncementIds, ...allAnnIds]));
+    const allAnnKeys = announcements.flatMap((a) => [
+      String(a._id || a.id || ''),
+      String(a.title || ''),
+    ]).filter(Boolean);
+    const combinedAnns = Array.from(new Set([...readAnnouncementIds, ...allAnnKeys]));
     setReadAnnouncementIds(combinedAnns);
 
+    const allNotifKeys = inAppNotifs.flatMap((n) => [
+      String(n.id || n._id || ''),
+      String(n.title || ''),
+    ]).filter(Boolean);
+    const combinedNotifs = Array.from(new Set([...readNotifIds, ...allNotifKeys]));
+    setReadNotifIds(combinedNotifs);
+
+    setHasUnreadNotifs(false);
+
     try {
-      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(combinedNotifs));
       await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(combinedAnns));
+      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(combinedNotifs));
     } catch (e) {}
   };
 
-  const unreadAnnouncements = announcements.filter(
-    (ann) => !readAnnouncementIds.includes(String(ann._id || ann.id || ann.title))
-  );
+  const handleOpenNotificationModal = () => {
+    setShowNotifModal(true);
+  };
+
+  const unreadAnnouncements = announcements.filter(isAnnouncementUnread);
   const unreadCount = unreadAnnouncements.length;
 
-  const unreadInAppNotifs = inAppNotifs.filter(
-    (n) => !n.isRead && !readNotifIds.includes(String(n.id || n._id))
-  );
+  const unreadInAppNotifs = inAppNotifs.filter(isNotifUnread);
   const unreadNotifCount = unreadInAppNotifs.length;
 
   // The bell icon badge only shows if there are actual unread notifications or unread announcements
-  const hasAnyUnread = hasUnreadNotifs || unreadNotifCount > 0 || unreadCount > 0;
+  const hasAnyUnread = unreadNotifCount > 0 || unreadCount > 0;
 
   useEffect(() => {
     if (propLang) setLang(propLang);
@@ -1049,8 +1077,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               ) : (
                 announcements.map((ann, idx) => {
-                  const annId = String(ann._id || ann.id || ann.title);
-                  const isUnread = !readAnnouncementIds.includes(annId);
+                  const isUnread = isAnnouncementUnread(ann);
 
                   return (
                     <TouchableOpacity
@@ -1060,17 +1087,21 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         ann.isUrgent && styles.announcementCardUrgent,
                         isUnread && {
                           borderLeftWidth: 4,
-                          borderLeftColor: ann.isUrgent ? '#C8102E' : '#1C3F94',
-                          backgroundColor: '#F3F6FC',
+                          borderLeftColor: '#C8102E',
+                          backgroundColor: '#FFF8F8',
                         },
                       ]}
                       onPress={() => handleOpenAnnouncement(ann)}
                       activeOpacity={0.85}
+                      accessible={true}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${isUnread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${ann.title}`}
+                      accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Double tap to read announcement details'}
                     >
                       <View style={styles.annTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           {isUnread && (
-                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#C8102E' : '#1C3F94' }} />
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8102E' }} />
                           )}
                           <View style={styles.annTagBadge}>
                             <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
@@ -1084,8 +1115,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                             </View>
                           ) : null}
                           {isUnread && (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#EDF1FB', borderColor: '#D6DEFA' }]}>
-                              <Text style={[styles.annTagText, { color: '#1C3F94', fontWeight: '800', fontSize: 9 }]}>
+                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
+                              <Text style={[styles.annTagText, { color: '#C8102E', fontWeight: '800', fontSize: 9 }]}>
                                 {lang === 'tl' ? 'BAGO' : 'NEW'}
                               </Text>
                             </View>
@@ -1597,28 +1628,27 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         visible={showNotifModal}
         onClose={() => {
           setShowNotifModal(false);
-          setHasUnreadNotifs(false);
         }}
         notifs={[
           ...inAppNotifs.map((n) => ({
-            id: String(n.id || n._id),
+            id: String(n.id || n._id || n.title),
             title: n.title,
             body: n.message,
-            time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Kamakailan',
-            tag: n.type === 'priority_update' ? 'Priority' : 'Opisyal',
+            time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (lang === 'tl' ? 'Kamakailan' : 'Recent'),
+            tag: n.type === 'priority_update' ? 'Priority' : (lang === 'tl' ? 'Opisyal' : 'Official'),
             targetTab: 'history',
             type: 'urgent',
-            unread: !n.isRead && !readNotifIds.includes(String(n.id || n._id)),
+            unread: isNotifUnread(n),
           })),
           ...announcements.map((a, idx) => ({
             id: String(a._id || a.id || a.title),
             title: a.title,
             body: a.body,
-            time: a.timestamp,
+            time: a.timestamp || (a.postedAt ? new Date(a.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''),
             tag: a.tag,
             targetTab: a.targetTab || (idx === 0 ? 'request' : idx === 1 ? 'damage' : 'history'),
             type: a.isUrgent ? 'urgent' : 'advisory',
-            unread: !readAnnouncementIds.includes(String(a._id || a.id || a.title)),
+            unread: isAnnouncementUnread(a),
           }))
         ]}
         onMarkAllRead={handleMarkAllAsRead}
@@ -1627,9 +1657,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           if (targetTab) {
             navigateToTab(targetTab);
             setShowNotifModal(false);
-            setHasUnreadNotifs(false);
           }
         }}
+        lang={lang}
       />
     </View>
   );
