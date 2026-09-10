@@ -530,7 +530,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                 <TextInput
                   style={styles.notesInput}
                   placeholder={lang === 'tl' ? 'Hal. Tinanggap ni Aling Remedios kasama ang apo...' : 'e.g. Received directly by beneficiary at doorstep...'}
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#334155"
                   value={recipientNotes}
                   onChangeText={setRecipientNotes}
                   multiline

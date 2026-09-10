@@ -411,11 +411,11 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             <TouchableOpacity
               onPress={onBack}
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                minWidth: 44,
-                minHeight: 44,
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                minWidth: 48,
+                minHeight: 48,
                 backgroundColor: 'rgba(255,255,255,0.15)',
                 borderWidth: 1,
                 borderColor: 'rgba(255,255,255,0.25)',
@@ -433,7 +433,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             <View style={{flex: 1, alignItems: 'center'}}>
               <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Report Damage</Text>
             </View>
-            <View style={{width: 44}} />
+            <View style={{width: 48}} />
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
             <Text style={{ fontSize: 9.5, fontWeight: '800', color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: 0.8 }}>DAMAGE ASSESSMENT</Text>

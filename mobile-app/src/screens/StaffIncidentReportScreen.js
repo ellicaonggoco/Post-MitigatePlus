@@ -162,7 +162,7 @@ export default function StaffIncidentReportScreen({ token }) {
           keyboardType="numeric"
           style={styles.input}
           placeholder="e.g. 291"
-          placeholderTextColor="#54657E"
+          placeholderTextColor="#334155"
         />
 
         <Text style={styles.label}>Incident Details & Action Taken:</Text>
@@ -173,7 +173,7 @@ export default function StaffIncidentReportScreen({ token }) {
           numberOfLines={4}
           style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
           placeholder="Describe what happened on-ground and any actions taken..."
-          placeholderTextColor="#54657E"
+          placeholderTextColor="#334155"
         />
 
         {/* GPS Location Card */}

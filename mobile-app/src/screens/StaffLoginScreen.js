@@ -124,7 +124,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
             placeholder="Enter Username"
-            placeholderTextColor="#54657E"
+            placeholderTextColor="#334155"
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -136,12 +136,12 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••••••"
-              placeholderTextColor="#54657E"
+              placeholderTextColor="#334155"
               secureTextEntry={!showPassword}
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+              style={{ position: 'absolute', right: 6, top: 6, width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? "Itago ang password" : "Ipakita ang password"}

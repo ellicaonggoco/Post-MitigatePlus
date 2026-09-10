@@ -75,7 +75,7 @@ export default function NeumorphicInput({
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
-            placeholderTextColor="#54657E"
+            placeholderTextColor="#334155"
             secureTextEntry={isPassword ? isPasswordHidden : false}
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize}

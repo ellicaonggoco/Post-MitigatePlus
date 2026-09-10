@@ -680,7 +680,7 @@ export default function AssistanceRequestScreen({
                               ? 'Maikling tala tungkol sa inyong karanasan o kakayahan (opsyonal)...'
                               : 'Brief note regarding relevant skills or experience (optional)...'
                           }
-                          placeholderTextColor="#54657E"
+                          placeholderTextColor="#334155"
                           value={experienceNotes}
                           onChangeText={setExperienceNotes}
                           multiline

@@ -913,7 +913,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <TextInput
                         style={styles.brgySearchInput}
                         placeholder={lang === 'tl' ? 'I-type ang barangay number o distrito (hal. 291)...' : 'Type barangay number or district (e.g. 291)...'}
-                        placeholderTextColor="#54657E"
+                        placeholderTextColor="#334155"
                         value={brgySearch}
                         onChangeText={setBrgySearch}
                         autoFocus
@@ -921,6 +921,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       {brgySearch.length > 0 && (
                         <TouchableOpacity
                           onPress={() => setBrgySearch('')}
+                          style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
                           accessibilityRole="button"
                           accessibilityLabel={lang === 'tl' ? 'Burahin ang paghahanap' : 'Clear search'}
                           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -1443,6 +1444,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     digit ? styles.otpBoxInputFilled : null,
                     otpError ? styles.otpBoxInputError : null,
                   ]}
+                  hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   value={digit}
                   onChangeText={(val) => {
                     const cleanVal = val.replace(/[^0-9]/g, '');

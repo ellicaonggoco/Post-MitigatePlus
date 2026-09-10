@@ -304,6 +304,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                   key={i}
                   ref={(r) => (otpRefs.current[i] = r)}
                   style={[styles.otpBoxInput, digit ? styles.otpBoxInputFilled : null]}
+                  hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   value={digit}
                   onChangeText={(val) => {
                     const clean = val.replace(/[^0-9]/g, '');
