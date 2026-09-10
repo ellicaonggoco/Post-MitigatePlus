@@ -174,8 +174,39 @@ router.get('/projects', protect, async (req, res) => {
       filter.status = req.query.status;
     }
 
-    const projects = await CashForWorkProject.find(filter).sort({ createdAt: -1 });
-    res.json({ success: true, projects });
+    const projects = await CashForWorkProject.find(filter).sort({ createdAt: -1 }).lean();
+
+    // Attach application counts for each project
+    const projectIds = projects.map(p => p._id);
+    const appCounts = await CashForWorkApplication.aggregate([
+      { $match: { projectId: { $in: projectIds } } },
+      {
+        $group: {
+          _id: '$projectId',
+          total: { $sum: 1 },
+          pending: {
+            $sum: { $cond: [{ $eq: ['$status', 'pending_barangay_review'] }, 1, 0] }
+          },
+          approved: {
+            $sum: { $cond: [{ $eq: ['$status', 'approved_for_work'] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    const countMap = {};
+    appCounts.forEach(c => {
+      countMap[c._id.toString()] = c;
+    });
+
+    const enrichedProjects = projects.map(p => ({
+      ...p,
+      applicantCount: countMap[p._id.toString()]?.total || 0,
+      pendingCount: countMap[p._id.toString()]?.pending || 0,
+      approvedCount: countMap[p._id.toString()]?.approved || 0,
+    }));
+
+    res.json({ success: true, projects: enrichedProjects });
   } catch (error) {
     console.error('Get CFW Projects error:', error);
     res.status(500).json({ message: 'Error fetching projects', error: error.message });
@@ -334,15 +365,20 @@ router.patch('/applications/:id/review', protect, requireRole('barangay_official
       return res.status(400).json({ message: 'Application not found' });
     }
 
+    const prevStatus = application.status;
     application.status = status;
     application.reviewNotes = reviewNotes || '';
     application.reviewedByUserId = req.user._id;
     application.reviewedAt = new Date();
 
-    if (status === 'approved_for_work') {
-      // Increment filled slots
-      await CashForWorkProject.findByIdAndUpdate(application.projectId._id, {
+    const targetProjId = application.projectId?._id || application.projectId;
+    if (status === 'approved_for_work' && prevStatus !== 'approved_for_work' && targetProjId) {
+      await CashForWorkProject.findByIdAndUpdate(targetProjId, {
         $inc: { filledSlots: 1 },
+      });
+    } else if (status === 'rejected' && prevStatus === 'approved_for_work' && targetProjId) {
+      await CashForWorkProject.findByIdAndUpdate(targetProjId, {
+        $inc: { filledSlots: -1 },
       });
     }
 
@@ -456,7 +492,7 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
 });
 
 // -------------------------------------------------------------
-// 8. LGU ADMIN: Live Payroll Summary & Certified Disbursement
+// 8. LGU ADMIN & BARANGAY: Live Payroll Summary, Applicants & Certified Disbursement
 // -------------------------------------------------------------
 router.get(['/payroll/:projectId', '/projects/:projectId/payroll'], protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {
   try {
@@ -465,21 +501,30 @@ router.get(['/payroll/:projectId', '/projects/:projectId/payroll'], protect, req
       return res.status(400).json({ message: 'Project not found' });
     }
 
-    const workers = await CashForWorkApplication.find({
-      projectId: project._id,
-      status: 'approved_for_work',
-    }).populate('householdId');
+    // Retrieve ALL applications for this project (pending, approved, rejected)
+    // Also include any application for this barangay if it has no projectId or if orphaned
+    const allApplications = await CashForWorkApplication.find({
+      $or: [
+        { projectId: project._id },
+        { projectId: null, barangayCode: project.barangayCode },
+        { projectId: { $exists: false }, barangayCode: project.barangayCode },
+      ],
+    }).populate('householdId').sort({ createdAt: -1 });
 
-    const totalDisbursementEarned = workers.reduce((sum, w) => sum + (w.totalPayoutEarned || 0), 0);
+    const approvedWorkers = allApplications.filter(w => w.status === 'approved_for_work');
+    const pendingApplicants = allApplications.filter(w => w.status === 'pending_barangay_review');
+    const totalDisbursementEarned = approvedWorkers.reduce((sum, w) => sum + (w.totalPayoutEarned || 0), 0);
 
     res.json({
       success: true,
       project,
-      totalWorkers: workers.length,
+      totalWorkers: approvedWorkers.length,
+      totalApplicants: allApplications.length,
+      pendingCount: pendingApplicants.length,
       totalDisbursementEarned,
       allocatedBudget: project.allocatedBudget,
       remainingBudget: project.allocatedBudget - totalDisbursementEarned,
-      workers,
+      workers: allApplications,
     });
   } catch (error) {
     console.error('Get payroll error:', error);

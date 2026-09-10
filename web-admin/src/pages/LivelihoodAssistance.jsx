@@ -57,6 +57,8 @@ export default function LivelihoodAssistance() {
 
   // Vulnerability Priority Filter
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState('ALL'); // 'ALL' | 'CRITICAL' | 'HIGH' | 'MODERATE'
+  // Application Status Filter
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'pending_barangay_review' | 'approved_for_work' | 'rejected'
 
   // Modal State for Creating / Requesting Project
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -87,13 +89,14 @@ export default function LivelihoodAssistance() {
         const list = data.projects || [];
         setProjects(list);
         if (list.length > 0) {
-          // If previous selection still exists in list, keep it; else select first active
-          const activeFirst = list.find(p => p.status === 'approved_active') || list[0];
+          // Prioritize project with pending review applications or first active project
+          const defaultProject = list.find(p => (p.pendingCount || 0) > 0) || list.find(p => p.status === 'approved_active') || list[0];
           setSelectedProjectId(prev => {
             const exists = list.some(p => p._id === prev);
-            return exists ? prev : activeFirst._id;
+            const targetId = exists ? prev : defaultProject._id;
+            fetchPayroll(targetId);
+            return targetId;
           });
-          fetchPayroll(activeFirst._id);
         } else {
           setSelectedProjectId(null);
           setPayrollData(null);
@@ -303,6 +306,7 @@ export default function LivelihoodAssistance() {
   }).sort((a, b) => b.computedScore - a.computedScore);
 
   const filteredApplicants = sortedApplicants.filter(a => {
+    if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
     if (vulnerabilityFilter === 'CRITICAL') return a.computedScore >= 85;
     if (vulnerabilityFilter === 'HIGH') return a.computedScore >= 75;
     if (vulnerabilityFilter === 'MODERATE') return a.computedScore < 75;
@@ -314,7 +318,7 @@ export default function LivelihoodAssistance() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [vulnerabilityFilter, selectedProjectId]);
+  }, [vulnerabilityFilter, statusFilter, selectedProjectId]);
 
   const paginatedApplicants = filteredApplicants.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -538,18 +542,34 @@ export default function LivelihoodAssistance() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>SELECT REHABILITATION PROJECT</div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Filter by Vulnerability:</span>
-            <select
-              value={vulnerabilityFilter}
-              onChange={e => setVulnerabilityFilter(e.target.value)}
-              style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
-            >
-              <option value="ALL">All Applicants (Ranked)</option>
-              <option value="CRITICAL">Critical Need (Score 85+)</option>
-              <option value="HIGH">High Priority (Score 75+)</option>
-              <option value="MODERATE">Moderate / Standard Need</option>
-            </select>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Application Status:</span>
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
+              >
+                <option value="ALL">All ({sortedApplicants.length})</option>
+                <option value="pending_barangay_review">Pending Review ({sortedApplicants.filter(a => a.status === 'pending_barangay_review').length})</option>
+                <option value="approved_for_work">Approved Workers ({sortedApplicants.filter(a => a.status === 'approved_for_work').length})</option>
+                <option value="rejected">Rejected ({sortedApplicants.filter(a => a.status === 'rejected').length})</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Vulnerability:</span>
+              <select
+                value={vulnerabilityFilter}
+                onChange={e => setVulnerabilityFilter(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
+              >
+                <option value="ALL">All Scores</option>
+                <option value="CRITICAL">Critical (Score 85+)</option>
+                <option value="HIGH">High (Score 75+)</option>
+                <option value="MODERATE">Standard (&lt;75)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -562,6 +582,7 @@ export default function LivelihoodAssistance() {
             {projects.map(p => {
               const isSelected = selectedProjectId === p._id;
               const isPendingApproval = p.status === 'pending_lgu_approval';
+              const pendingApps = p.pendingCount || 0;
               return (
                 <button
                   key={p._id}
@@ -581,12 +602,24 @@ export default function LivelihoodAssistance() {
                   }}
                 >
                   <span>{p.title + ' (Brgy ' + p.barangayCode + ')'}</span>
+                  {pendingApps > 0 && (
+                    <span style={{
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      background: '#FEF3C7',
+                      color: '#B45309',
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                    }}>
+                      {pendingApps} Pending
+                    </span>
+                  )}
                   {isPendingApproval && (
                     <span style={{
                       fontSize: 10,
                       fontWeight: 800,
-                      background: '#FEF3C7',
-                      color: '#B45309',
+                      background: '#FEE2E2',
+                      color: '#DC2626',
                       padding: '1px 6px',
                       borderRadius: 4,
                     }}>
@@ -623,11 +656,25 @@ export default function LivelihoodAssistance() {
 
       {/* Worker Registry Table Ranked by Vulnerability Rating */}
       <div className="clay-card" style={{ borderRadius: 12, overflow: 'hidden', padding: 0 }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
-              Vulnerability-Ranked Worker Registry and Daily Attendance Ledger
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+                Vulnerability-Ranked Worker Registry and Daily Attendance Ledger
+              </h3>
+              {sortedApplicants.filter(a => a.status === 'pending_barangay_review').length > 0 && (
+                <span style={{
+                  background: '#FEF3C7',
+                  color: '#B45309',
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 800,
+                }}>
+                  {sortedApplicants.filter(a => a.status === 'pending_barangay_review').length} Awaiting Review
+                </span>
+              )}
+            </div>
             <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--ink-soft)' }}>
               Households with the highest disaster vulnerability score are prioritized for slot confirmation.
             </p>
