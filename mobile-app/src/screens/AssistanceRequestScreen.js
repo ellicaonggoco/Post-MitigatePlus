@@ -692,7 +692,7 @@ export default function AssistanceRequestScreen({
             </View>
 
             <TouchableOpacity
-              style={[styles.modalCloseBtn, { backgroundColor: '#0F766E' }]}
+              style={[styles.modalCloseBtn, { backgroundColor: '#1C3F94' }]}
               onPress={() => setShowAttendanceQrModal(false)}
             >
               <Text style={styles.modalCloseBtnText}>
@@ -987,30 +987,32 @@ const styles = StyleSheet.create({
     color: '#166534',
   },
   showAttendanceQrBtn: {
-    backgroundColor: '#0F766E',
-    borderRadius: 10,
-    paddingVertical: 12,
+    backgroundColor: '#1C3F94',
+    borderRadius: 12,
+    paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   showAttendanceQrBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   viewVoucherBtn: {
-    backgroundColor: '#1C3F94',
-    borderRadius: 10,
-    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingVertical: 11,
     alignItems: 'center',
   },
   viewVoucherBtnText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#334155',
   },
 
   // ── PROJECT OVERVIEW CARD ────────────────────────────────────────

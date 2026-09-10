@@ -1030,14 +1030,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 }}
                 activeOpacity={0.8}
               >
-                <PackageIcon size={15} color={scanMode === 'relief' ? '#FFFFFF' : '#64748B'} />
+                <PackageIcon size={16} color={scanMode === 'relief' ? '#FFFFFF' : '#64748B'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'relief' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'Pamamahagi ng Ayuda' : 'Relief Goods'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.scanModeTab, scanMode === 'attendance' && styles.scanModeTabActiveAttendance]}
+                style={[styles.scanModeTab, scanMode === 'attendance' && styles.scanModeTabActive]}
                 onPress={() => {
                   setScanMode('attendance');
                   setScanResult(null);
@@ -1045,7 +1045,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 }}
                 activeOpacity={0.8}
               >
-                <ClockIcon size={15} color={scanMode === 'attendance' ? '#FFFFFF' : '#64748B'} />
+                <ClockIcon size={16} color={scanMode === 'attendance' ? '#FFFFFF' : '#64748B'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'attendance' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'CFW Attendance' : 'CFW Attendance'}
                 </Text>
@@ -1053,108 +1053,76 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             </View>
 
             {/* ── 1. ACTIVE OPERATION WIDGET ── */}
-            {scanMode === 'relief' ? (
-              <View style={styles.driveWidgetCard}>
-                <View style={styles.driveWidgetHeader}>
-                  <View style={styles.driveWidgetLiveTag}>
-                    <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
-                    <Text style={styles.driveWidgetLiveText}>
-                      LIVE DISTRIBUTION DRIVE
-                    </Text>
-                  </View>
-                  <View style={styles.driveActivePill}>
-                    <View style={styles.driveActivePillDot} />
-                    <Text style={styles.driveActivePillText}>ACTIVE</Text>
-                  </View>
+            <View style={styles.driveWidgetCard}>
+              <View style={styles.driveWidgetHeader}>
+                <View style={styles.driveWidgetLiveTag}>
+                  <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
+                  <Text style={styles.driveWidgetLiveText}>
+                    {scanMode === 'relief' ? 'LIVE DISTRIBUTION DRIVE' : 'CASH-FOR-WORK ATTENDANCE'}
+                  </Text>
+                </View>
+                <View style={styles.driveActivePill}>
+                  <View style={styles.driveActivePillDot} />
+                  <Text style={styles.driveActivePillText}>
+                    {scanMode === 'relief' ? 'ACTIVE' : 'CHECKER'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.driveWidgetTitle}>
+                {scanMode === 'relief'
+                  ? (selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive'))
+                  : (lang === 'tl' ? 'Pang-araw-araw na Attendance ng Manggagawa' : 'Daily Worker Duty & Attendance')}
+              </Text>
+
+              <View style={styles.driveWidgetMetaRow}>
+                <View style={styles.driveMetaBadge}>
+                  <MapPinIcon size={13} color="#1C3F94" />
+                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                    {scanMode === 'relief'
+                      ? (selectedEvent?.venue || selectedEvent?.location || ('Barangay ' + dutyBrgy + ' Evacuation Site'))
+                      : ('Barangay ' + dutyBrgy + ' Worksites')}
+                  </Text>
                 </View>
 
-                <Text style={styles.driveWidgetTitle}>
-                  {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive')}
-                </Text>
-
-                <View style={styles.driveWidgetMetaRow}>
-                  <View style={styles.driveMetaItem}>
-                    <MapPinIcon size={13} color="#1C3F94" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      {selectedEvent?.venue || selectedEvent?.location || ('Barangay ' + dutyBrgy + ' Evacuation Site')}
-                    </Text>
-                  </View>
-                  <View style={styles.driveMetaDivider} />
-                  <View style={styles.driveMetaItem}>
+                <View style={styles.driveMetaBadge}>
+                  {scanMode === 'relief' ? (
                     <PackageIcon size={13} color="#1C3F94" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      {selectedEvent?.itemType || 'Family Food Pack'}
-                    </Text>
-                  </View>
-                  <View style={styles.driveMetaDivider} />
-                  <View style={styles.driveMetaItem}>
-                    <ClockIcon size={13} color="#1C3F94" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      08:00 AM - 05:00 PM
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={[styles.driveWidgetCard, { borderLeftColor: '#0F766E' }]}>
-                <View style={styles.driveWidgetHeader}>
-                  <View style={[styles.driveWidgetLiveTag, { backgroundColor: '#F0FDFA' }]}>
-                    <Animated.View style={[styles.beaconDot, { backgroundColor: '#0F766E', opacity: beaconAnim }]} />
-                    <Text style={[styles.driveWidgetLiveText, { color: '#0F766E' }]}>
-                      CASH-FOR-WORK ATTENDANCE
-                    </Text>
-                  </View>
-                  <View style={[styles.driveActivePill, { backgroundColor: '#CCFBF1' }]}>
-                    <View style={[styles.driveActivePillDot, { backgroundColor: '#0F766E' }]} />
-                    <Text style={[styles.driveActivePillText, { color: '#0F766E' }]}>CHECKER</Text>
-                  </View>
+                  ) : (
+                    <BriefcaseOutlineIcon size={13} color="#1C3F94" />
+                  )}
+                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                    {scanMode === 'relief'
+                      ? (selectedEvent?.itemType || 'Family Food Pack')
+                      : 'PHP 500.00 / day'}
+                  </Text>
                 </View>
 
-                <Text style={styles.driveWidgetTitle}>
-                  {lang === 'tl' ? 'Pang-araw-araw na Attendance ng Manggagawa' : 'Daily Worker Duty & Attendance'}
-                </Text>
-
-                <View style={styles.driveWidgetMetaRow}>
-                  <View style={styles.driveMetaItem}>
-                    <MapPinIcon size={13} color="#0F766E" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      {'Barangay ' + dutyBrgy + ' Worksites'}
-                    </Text>
-                  </View>
-                  <View style={styles.driveMetaDivider} />
-                  <View style={styles.driveMetaItem}>
-                    <BriefcaseOutlineIcon size={13} color="#0F766E" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      PHP 500.00 / day
-                    </Text>
-                  </View>
-                  <View style={styles.driveMetaDivider} />
-                  <View style={styles.driveMetaItem}>
-                    <ClockIcon size={13} color="#0F766E" />
-                    <Text style={styles.driveMetaText} numberOfLines={1}>
-                      Time-In & Time-Out
-                    </Text>
-                  </View>
+                <View style={styles.driveMetaBadge}>
+                  <ClockIcon size={13} color="#1C3F94" />
+                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                    {scanMode === 'relief' ? '08:00 AM - 05:00 PM' : 'Time-In & Time-Out'}
+                  </Text>
                 </View>
               </View>
-            )}
+            </View>
 
             {/* ── 2. OFFICIAL QR PASS SCANNER PANEL (Dark Gradient Card + Top 3px Gold Rule) ── */}
             <LinearGradient
-              colors={scanMode === 'attendance' ? ['#042F2E', '#115E59', '#0F766E'] : ['#0B1D4E', '#12296A', '#1C3F94']}
+              colors={['#0B1D4E', '#12296A', '#1C3F94']}
               start={{ x: 0, y: 0 }}
               end={{ x: 0.3, y: 1 }}
               style={styles.scannerPanelCard}
             >
               {/* Top 3px Gold Rule */}
-              <View style={[styles.scannerPanelGoldRule, scanMode === 'attendance' && { backgroundColor: '#2DD4BF' }]} />
+              <View style={styles.scannerPanelGoldRule} />
 
               <View style={styles.scannerPanelInner}>
                 {/* Header Row */}
                 <View style={styles.scannerPanelHeader}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
                     <View style={styles.scannerHeaderIconBadge}>
-                      <ScanIcon size={20} color={scanMode === 'attendance' ? '#2DD4BF' : '#C9A84C'} />
+                      <ScanIcon size={20} color="#C9A84C" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.scannerPanelTitle}>
@@ -1214,10 +1182,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.mainScanTriggerTitle}>
-                        {lang === 'tl' ? 'Buksan ang QR Camera Scanner' : 'Open QR Camera Scanner'}
+                        {scanMode === 'attendance'
+                          ? (lang === 'tl' ? 'Buksan ang Attendance Scanner' : 'Open Attendance Scanner')
+                          : (lang === 'tl' ? 'Buksan ang QR Camera Scanner' : 'Open QR Camera Scanner')}
                       </Text>
                       <Text style={styles.mainScanTriggerSub}>
-                        {lang === 'tl' ? 'Live Camera Feed & Auto QR Scan' : 'Live Camera Feed & Auto QR Scan'}
+                        {scanMode === 'attendance'
+                          ? (lang === 'tl' ? 'Auto Time-In & Time-Out Detection' : 'Auto Time-In & Time-Out Detection')
+                          : (lang === 'tl' ? 'Live Camera Feed & Auto QR Scan' : 'Live Camera Feed & Auto QR Scan')}
                       </Text>
                     </View>
                   </LinearGradient>
@@ -2101,7 +2073,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               {/* Header */}
               <View style={styles.popupHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                  <View style={[styles.popupIconCircle, attendanceResult.actionType === 'TIME_IN' ? { backgroundColor: '#16A34A' } : { backgroundColor: '#0284C7' }]}>
+                  <View style={[styles.popupIconCircle, attendanceResult.actionType === 'TIME_IN' ? { backgroundColor: '#16A34A' } : { backgroundColor: '#1C3F94' }]}>
                     <ClockIcon size={20} color="#FFFFFF" />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -2166,7 +2138,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
               {/* Action Button */}
               <TouchableOpacity
-                style={[styles.popupReleaseBtn, attendanceResult.actionType === 'TIME_IN' ? { backgroundColor: '#16A34A' } : { backgroundColor: '#0284C7' }]}
+                style={styles.popupReleaseBtn}
                 onPress={() => {
                   setAttendanceResult(null);
                   setScanned(false);
@@ -2362,40 +2334,48 @@ const styles = StyleSheet.create({
   // ── SCANNER MODE SEGMENT SWITCHER ──
   scanModeSegment: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     padding: 4,
     marginBottom: 12,
     gap: 6,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          elevation: 2,
+        }),
   },
   scanModeTab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
+    paddingVertical: 10,
     paddingHorizontal: 8,
-    borderRadius: 9,
-    gap: 6,
+    borderRadius: 10,
+    gap: 8,
+    backgroundColor: 'transparent',
   },
   scanModeTabActive: {
     backgroundColor: '#1C3F94',
-    shadowColor: '#1C3F94',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  scanModeTabActiveAttendance: {
-    backgroundColor: '#0F766E',
-    shadowColor: '#0F766E',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 2,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 6px rgba(28,63,148,0.25)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 3,
+        }),
   },
   scanModeTabText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#64748B',
   },
@@ -2443,7 +2423,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8102E', // Manila Red beacon
   },
   driveWidgetLiveText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '800',
     color: '#C8102E',
     letterSpacing: 0.8,
@@ -2481,24 +2461,24 @@ const styles = StyleSheet.create({
   driveWidgetMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     flexWrap: 'wrap',
   },
-  driveMetaItem: {
+  driveMetaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 4.5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  driveMetaText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#3D5070',
-  },
-  driveMetaDivider: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#8A9BB8',
+  driveMetaBadgeText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#334155',
   },
 
   // 2. Official QR Pass Scanner Panel (Dark Navy Gradient Card + Top 3px Gold Rule + Lift Shadow)
