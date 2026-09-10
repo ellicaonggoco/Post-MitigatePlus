@@ -336,12 +336,12 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const householdObj = household.toObject();
     householdObj.recoveryStatus = recovery ? recovery.status : 'waiting';
 
-    // Check for active or scheduled distribution event in this household's barangay
+    // Check for active distribution event in this household's barangay (strictly ongoing)
     const activeEvent = await DistributionEvent.findOne({
       barangayCode: household.barangayCode || '291',
       $or: [
         { isActive: true },
-        { status: { $in: ['Ongoing', 'Scheduled'] } },
+        { status: 'Ongoing' },
       ],
     }).sort({ isActive: -1, openedAt: -1, createdAt: -1 });
 

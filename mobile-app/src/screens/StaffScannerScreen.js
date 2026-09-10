@@ -55,6 +55,7 @@ import {
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeVisual from '../components/QRCodeVisual';
+import { initSocket } from '../services/socketService';
 
 const BARCODE_SCANNER_SETTINGS = {
   barcodeTypes: ['qr'],
@@ -66,6 +67,7 @@ const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const hasOngoingEvent = !!(selectedEvent && (selectedEvent.isActive === true || String(selectedEvent.status).toLowerCase() === 'ongoing'));
   const [scanMode, setScanMode] = useState('relief'); // 'relief' | 'attendance'
   const [attendanceResult, setAttendanceResult] = useState(null);
   const [currentUser, setCurrentUser] = useState(user || {});
@@ -262,6 +264,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   };
 
   const showPhotoScanOptions = () => {
+    if (scanMode === 'relief' && !hasOngoingEvent) {
+      Alert.alert(
+        lang === 'tl' ? 'Walang Aktibong Pamamahagi' : 'No Active Distribution Event',
+        lang === 'tl'
+          ? `Walang aktibong relief distribution drive sa Barangay ${dutyBrgy} sa ngayon. Maghintay na mag-activate ang LGU Admin sa Web Admin bago mag-scan ng relief.`
+          : `There is no active relief distribution drive in Barangay ${dutyBrgy} right now. Please wait for an LGU Admin to activate an event before scanning relief.`
+      );
+      return;
+    }
     Alert.alert(
       lang === 'tl' ? 'Mag-upload ng QR Pass' : 'Upload QR Pass',
       lang === 'tl'
@@ -447,13 +458,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   };
 
   // Auto-fetch active distribution event from backend so selectedEvent has real MongoDB _id
-  useEffect(() => {
+  const loadActiveEvent = async () => {
     if (!token) return;
-    (async () => {
-      try {
-        const events = await fetchDistributionEvents(token);
-        if (Array.isArray(events) && events.length > 0) {
-          const active = events.find(e => e.isActive) || events[0];
+    try {
+      const events = await fetchDistributionEvents(token);
+      if (Array.isArray(events) && events.length > 0) {
+        // Strictly find an event that is Ongoing or isActive: true for duty barangay (or ALL)
+        const active = events.find(e => {
+          const isOngoing = e.isActive === true || String(e.status).toLowerCase() === 'ongoing';
+          if (!isOngoing) return false;
+          if (!dutyBrgy) return true;
+          return String(e.barangayCode) === String(dutyBrgy) || e.barangayCode === 'ALL' || !e.barangayCode;
+        });
+
+        if (active) {
           setSelectedEvent({
             _id: active._id,
             id: active._id,
@@ -461,14 +479,51 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             venue: active.location || 'Covered Court',
             location: active.location || 'Covered Court',
             itemType: active.itemType || 'Family Food Pack',
-            isActive: active.isActive,
+            scheduledDate: active.scheduledDate,
+            scheduledTime: active.scheduledTime,
+            status: active.status || 'Ongoing',
+            barangayCode: active.barangayCode,
+            isActive: true,
           });
+        } else {
+          setSelectedEvent(null);
         }
-      } catch (e) {
-        console.warn('Auto fetch event error:', e);
+      } else {
+        setSelectedEvent(null);
       }
-    })();
-  }, [token]);
+    } catch (e) {
+      console.warn('Auto fetch event error:', e);
+      setSelectedEvent(null);
+    }
+  };
+
+  useEffect(() => {
+    loadActiveEvent();
+  }, [token, dutyBrgy]);
+
+  // Real-time socket listener for distribution event updates
+  useEffect(() => {
+    let socket = null;
+    try {
+      socket = initSocket(null, dutyBrgy || '291');
+      if (socket) {
+        const handleEventChange = () => {
+          loadActiveEvent();
+        };
+        socket.on('distribution_event_created', handleEventChange);
+        socket.on('distribution_event_updated', handleEventChange);
+        socket.on('distribution_status_changed', handleEventChange);
+
+        return () => {
+          socket.off('distribution_event_created', handleEventChange);
+          socket.off('distribution_event_updated', handleEventChange);
+          socket.off('distribution_status_changed', handleEventChange);
+        };
+      }
+    } catch (e) {
+      console.warn('Staff socket setup error:', e);
+    }
+  }, [dutyBrgy]);
 
   // Load offline storage and silently preload fresh roster for duty barangay
   useEffect(() => {
@@ -743,6 +798,18 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       } finally {
         setLoading(false);
       }
+      return;
+    }
+
+    if (scanMode === 'relief' && !hasOngoingEvent) {
+      Alert.alert(
+        lang === 'tl' ? 'Walang Aktibong Distribusyon' : 'No Active Distribution Event',
+        lang === 'tl'
+          ? `Walang aktibong relief distribution drive sa Barangay ${dutyBrgy} sa ngayon. Maghintay na mag-activate ang LGU Admin sa Web Admin bago mag-scan ng relief.`
+          : `There is no active relief distribution drive in Barangay ${dutyBrgy} right now. Please wait for an LGU Admin to activate an event before scanning relief.`
+      );
+      setLoading(false);
+      setTimeout(() => setScanned(false), 2000);
       return;
     }
 
@@ -1177,59 +1244,97 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             </View>
 
             {/* ── 1. ACTIVE OPERATION WIDGET ── */}
-            <View style={styles.driveWidgetCard}>
-              <View style={styles.driveWidgetHeader}>
-                <View style={styles.driveWidgetLiveTag}>
-                  <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
-                  <Text style={styles.driveWidgetLiveText}>
-                    {scanMode === 'relief' ? 'LIVE DISTRIBUTION DRIVE' : 'CASH-FOR-WORK ATTENDANCE'}
-                  </Text>
-                </View>
-                <View style={styles.driveActivePill}>
-                  <View style={styles.driveActivePillDot} />
-                  <Text style={styles.driveActivePillText}>
-                    {scanMode === 'relief' ? 'ACTIVE' : 'CHECKER'}
-                  </Text>
-                </View>
-              </View>
+            {scanMode === 'relief' ? (
+              hasOngoingEvent ? (
+                <View style={styles.driveWidgetCard}>
+                  <View style={styles.driveWidgetHeader}>
+                    <View style={styles.driveWidgetLiveTag}>
+                      <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
+                      <Text style={styles.driveWidgetLiveText}>
+                        LIVE DISTRIBUTION DRIVE
+                      </Text>
+                    </View>
+                    <View style={styles.driveActivePill}>
+                      <View style={styles.driveActivePillDot} />
+                      <Text style={styles.driveActivePillText}>
+                        ACTIVE
+                      </Text>
+                    </View>
+                  </View>
 
-              <Text style={styles.driveWidgetTitle}>
-                {scanMode === 'relief'
-                  ? (selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive'))
-                  : (lang === 'tl' ? 'Pang-araw-araw na Attendance ng Manggagawa' : 'Daily Worker Duty & Attendance')}
-              </Text>
-
-              <View style={styles.driveWidgetMetaRow}>
-                <View style={styles.driveMetaBadge}>
-                  <MapPinIcon size={13} color="#1C3F94" />
-                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
-                    {scanMode === 'relief'
-                      ? (selectedEvent?.venue || selectedEvent?.location || ('Barangay ' + dutyBrgy + ' Evacuation Site'))
-                      : ('Barangay ' + dutyBrgy + ' Worksites')}
+                  <Text style={styles.driveWidgetTitle}>
+                    {selectedEvent.title}
                   </Text>
+
+                  <View style={styles.driveWidgetMetaRow}>
+                    <View style={styles.driveMetaBadge}>
+                      <MapPinIcon size={13} color="#1C3F94" />
+                      <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                        {selectedEvent.venue || selectedEvent.location || ('Barangay ' + dutyBrgy + ' Evacuation Site')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.driveMetaBadge}>
+                      <PackageIcon size={13} color="#1C3F94" />
+                      <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                        {selectedEvent.itemType || 'Family Food Pack'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.driveMetaBadge}>
+                      <ClockIcon size={13} color="#1C3F94" />
+                      <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                        {selectedEvent.scheduledTime || (selectedEvent.scheduledDate ? new Date(selectedEvent.scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null) || 'Ongoing Now'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ) : null
+            ) : (
+              <View style={styles.driveWidgetCard}>
+                <View style={styles.driveWidgetHeader}>
+                  <View style={styles.driveWidgetLiveTag}>
+                    <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
+                    <Text style={styles.driveWidgetLiveText}>
+                      CASH-FOR-WORK ATTENDANCE
+                    </Text>
+                  </View>
+                  <View style={styles.driveActivePill}>
+                    <View style={styles.driveActivePillDot} />
+                    <Text style={styles.driveActivePillText}>
+                      CHECKER
+                    </Text>
+                  </View>
                 </View>
 
-                <View style={styles.driveMetaBadge}>
-                  {scanMode === 'relief' ? (
-                    <PackageIcon size={13} color="#1C3F94" />
-                  ) : (
+                <Text style={styles.driveWidgetTitle}>
+                  {lang === 'tl' ? 'Pang-araw-araw na Attendance ng Manggagawa' : 'Daily Worker Duty & Attendance'}
+                </Text>
+
+                <View style={styles.driveWidgetMetaRow}>
+                  <View style={styles.driveMetaBadge}>
+                    <MapPinIcon size={13} color="#1C3F94" />
+                    <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                      {'Barangay ' + dutyBrgy + ' Worksites'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.driveMetaBadge}>
                     <BriefcaseOutlineIcon size={13} color="#1C3F94" />
-                  )}
-                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
-                    {scanMode === 'relief'
-                      ? (selectedEvent?.itemType || 'Family Food Pack')
-                      : 'PHP 500.00 / day'}
-                  </Text>
-                </View>
+                    <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                      PHP 500.00 / day
+                    </Text>
+                  </View>
 
-                <View style={styles.driveMetaBadge}>
-                  <ClockIcon size={13} color="#1C3F94" />
-                  <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
-                    {scanMode === 'relief' ? '08:00 AM - 05:00 PM' : 'Time-In & Time-Out'}
-                  </Text>
+                  <View style={styles.driveMetaBadge}>
+                    <ClockIcon size={13} color="#1C3F94" />
+                    <Text style={styles.driveMetaBadgeText} numberOfLines={1}>
+                      Time-In & Time-Out
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
 
             {/* ── 2. OFFICIAL QR PASS SCANNER PANEL (Dark Gradient Card + Top 3px Gold Rule) ── */}
             <LinearGradient
@@ -1253,7 +1358,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                         {scanMode === 'attendance' ? 'Worker Attendance Scanner' : 'QR Pass Camera Scanner'}
                       </Text>
                       <Text style={styles.scannerPanelSub}>
-                        {scanMode === 'attendance' ? 'LGU Manila · Cash-for-Work Duty' : 'LGU Manila · MDRRMO Operations'}
+                        {scanMode === 'attendance'
+                          ? 'LGU Manila · Cash-for-Work Duty'
+                          : hasOngoingEvent
+                            ? `Live Drive: ${selectedEvent.title}`
+                            : (lang === 'tl' ? `Barangay ${dutyBrgy} · Walang Aktibong Distribusyon` : `Barangay ${dutyBrgy} · Standby (No Active Drive)`)}
                       </Text>
                     </View>
                   </View>
@@ -1285,6 +1394,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     (!permission?.granted && Platform.OS !== 'web' && !permission?.canAskAgain) && styles.scanCtaDisabled,
                   ]}
                   onPress={async () => {
+                    if (scanMode === 'relief' && !hasOngoingEvent) {
+                      Alert.alert(
+                        lang === 'tl' ? 'Walang Aktibong Pamamahagi' : 'No Active Distribution Event',
+                        lang === 'tl'
+                          ? `Walang aktibong relief distribution drive sa Barangay ${dutyBrgy} sa ngayon. Maghintay na mag-activate ang LGU Admin sa Web Admin bago mag-scan ng relief.`
+                          : `There is no active relief distribution drive in Barangay ${dutyBrgy} right now. Please wait for an LGU Admin to activate an event before scanning relief.`
+                      );
+                      return;
+                    }
                     if (Platform.OS !== 'web' && (!permission || (!permission.granted && permission.canAskAgain))) {
                       await requestPermission();
                     }
@@ -2338,12 +2456,18 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             <View style={styles.activeDrivePreviewCard}>
               <Text style={styles.activeDriveKicker}>CURRENT DISTRIBUTION DRIVE</Text>
               <Text style={styles.activeDriveTitle}>
-                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution')}
+                {hasOngoingEvent
+                  ? selectedEvent.title
+                  : (lang === 'tl' ? 'Walang Aktibong Pamamahagi' : 'No Active Distribution Event')}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
                 <MapPinIcon size={12} color="#D6DEFA" />
                 <Text style={styles.activeDriveSub}>
-                  {selectedEvent?.venue || selectedEvent?.location || 'Barangay 291'} • {selectedEvent?.itemType || 'All-in-One Family Food Pack'}
+                  {hasOngoingEvent
+                    ? `${selectedEvent?.venue || selectedEvent?.location || ('Barangay ' + dutyBrgy)} • ${selectedEvent?.itemType || 'All-in-One Family Food Pack'}`
+                    : (lang === 'tl'
+                        ? `Barangay ${dutyBrgy} • Naka-standby sa Admin activation`
+                        : `Barangay ${dutyBrgy} • Standby awaiting Admin activation`)}
                 </Text>
               </View>
             </View>
