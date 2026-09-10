@@ -532,6 +532,54 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
 });
 
 // -------------------------------------------------------------
+// 7B. FIELD STAFF & BARANGAY: Get Today's Worker Attendance Roster
+// -------------------------------------------------------------
+router.get('/attendance/today', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const barangayCode = req.query.barangayCode || req.user.barangayCode || '291';
+
+    const applications = await CashForWorkApplication.find({
+      barangayCode,
+      status: { $in: ['approved_for_work', 'active_on_duty', 'completed'] },
+    }).populate('projectId');
+
+    const attendanceList = [];
+    applications.forEach((app) => {
+      const todayLog = (app.attendanceLogs || []).find((l) => l.date === todayStr);
+      if (todayLog) {
+        attendanceList.push({
+          id: `${app._id}_${todayLog.dayNumber}`,
+          applicationId: app._id,
+          workerName: app.applicantName,
+          payoutVoucherCode: app.payoutVoucherCode,
+          category: app.selectedCategory,
+          barangayCode: app.barangayCode,
+          dayNumber: todayLog.dayNumber,
+          timeIn: todayLog.timeIn,
+          timeOut: todayLog.timeOut,
+          isCompleted: todayLog.isCompleted,
+          status: todayLog.timeOut ? 'TIME_OUT' : 'TIME_IN',
+          dailyWageRate: app.dailyWageRate || 500,
+          totalEarned: app.totalPayoutEarned || 0,
+          totalDaysWorked: app.totalDaysWorked || 0,
+          durationDays: app.projectId?.durationDays || 10,
+        });
+      }
+    });
+
+    res.json({
+      success: true,
+      todayStr,
+      attendance: attendanceList.sort((a, b) => new Date(b.timeIn || 0) - new Date(a.timeIn || 0)),
+    });
+  } catch (error) {
+    console.error('Get today attendance error:', error);
+    res.status(500).json({ message: 'Error fetching today attendance', error: error.message });
+  }
+});
+
+// -------------------------------------------------------------
 // 8. LGU ADMIN & BARANGAY: Live Payroll Summary, Applicants & Certified Disbursement
 // -------------------------------------------------------------
 router.get(['/payroll/:projectId', '/projects/:projectId/payroll'], protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_official'), async (req, res) => {

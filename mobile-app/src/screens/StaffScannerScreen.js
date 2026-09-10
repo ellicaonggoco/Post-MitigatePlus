@@ -66,6 +66,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [scanMode, setScanMode] = useState('relief'); // 'relief' | 'attendance'
   const [attendanceResult, setAttendanceResult] = useState(null);
+  const [currentUser, setCurrentUser] = useState(user || {});
+  const [workerAttendanceList, setWorkerAttendanceList] = useState([]);
+  const [loadingAttendanceList, setLoadingAttendanceList] = useState(false);
+  const [attendancePage, setAttendancePage] = useState(1);
+
+  useEffect(() => {
+    if (user) {
+      setCurrentUser(prev => ({ ...prev, ...user }));
+    }
+  }, [user]);
   const lastBackPressRef = useRef(0);
 
   useEffect(() => {
@@ -347,9 +357,81 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [flaggedTodayCount, setFlaggedTodayCount] = useState(0);
 
   // Officer info
-  const officerName = user?.fullName || 'Officer Cruz';
-  const dutyBrgy = user?.assignedBarangay || user?.barangayCode || '291';
-  const officerId = user?.contactNum || user?.phoneNumber || user?.employeeId || 'STF-2026-8891';
+  const officerName = currentUser?.name || currentUser?.fullName || user?.name || user?.fullName || 'Officer Cruz';
+  const dutyBrgy = currentUser?.barangayCode || currentUser?.assignedBarangay || user?.barangayCode || user?.assignedBarangay || '291';
+  const officerId = currentUser?.employeeId || currentUser?.contactNum || user?.employeeId || user?.contactNum || 'STAFF-291-04';
+
+  const fetchTodayAttendance = async () => {
+    try {
+      setLoadingAttendanceList(true);
+      const res = await fetch(`${API_BASE_URL}/cash-for-work/attendance/today?barangayCode=${dutyBrgy}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.attendance)) {
+        setWorkerAttendanceList(data.attendance);
+      }
+    } catch (err) {
+      console.warn('Error fetching worker attendance roster:', err);
+    } finally {
+      setLoadingAttendanceList(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'scanner' && scanMode === 'attendance') {
+      fetchTodayAttendance();
+    }
+  }, [activeTab, scanMode, dutyBrgy]);
+
+  const handleUpdateDesignation = async (newDesignation) => {
+    try {
+      const updated = { ...currentUser, staffDesignation: newDesignation };
+      setCurrentUser(updated);
+      await AsyncStorage.setItem('mitigateplus_user_designation', newDesignation);
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/my-designation`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ staffDesignation: newDesignation }),
+        });
+      }
+      Alert.alert(
+        'Designation Updated',
+        newDesignation === 'team_leader'
+          ? 'Switched to Team Leader. You can now start and finalize distribution drives for your team.'
+          : 'Switched to Field Officer. Start distribution buttons will be disabled/locked.'
+      );
+    } catch (e) {
+      console.warn('Update designation error:', e);
+    }
+  };
+
+  const handleUpdateTeam = async (newTeam) => {
+    try {
+      const updated = { ...currentUser, teamName: newTeam };
+      setCurrentUser(updated);
+      await AsyncStorage.setItem('mitigateplus_user_team', newTeam);
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/my-designation`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ teamName: newTeam }),
+        });
+      }
+      Alert.alert('Team Assignment Updated', `Assigned team set to ${newTeam}.`);
+    } catch (e) {
+      console.warn('Update team error:', e);
+    }
+  };
 
   // Auto-fetch active distribution event from backend so selectedEvent has real MongoDB _id
   useEffect(() => {
@@ -615,6 +697,23 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             type: 'success',
             text: (attData.actionType === 'TIME_IN' ? 'TIME-IN RECORDED: ' : 'TIME-OUT RECORDED: ') + attData.applicantName + ' (Day ' + attData.dayNumber + ')',
           });
+          const newAttRecord = {
+            id: `${attData.application?._id || Date.now()}_${attData.dayNumber}`,
+            workerName: attData.applicantName || 'Resident Worker',
+            payoutVoucherCode: attData.application?.payoutVoucherCode || rawCode,
+            category: attData.application?.selectedCategory || 'Rehabilitation Assignment',
+            barangayCode: attData.application?.barangayCode || dutyBrgy,
+            dayNumber: attData.dayNumber || 1,
+            timeIn: new Date().toISOString(),
+            timeOut: attData.actionType === 'TIME_OUT' ? new Date().toISOString() : null,
+            status: attData.actionType,
+            dailyWageRate: attData.dailyWageRate || 500,
+            totalEarned: attData.totalPayoutEarned || 0,
+            totalDaysWorked: attData.totalDaysWorked || 0,
+            durationDays: attData.durationDays || 10,
+          };
+          setWorkerAttendanceList(prev => [newAttRecord, ...prev.filter(p => p.payoutVoucherCode !== newAttRecord.payoutVoucherCode)]);
+          fetchTodayAttendance();
         } else {
           Alert.alert(
             lang === 'tl' ? 'Attendance Checker' : 'Attendance Scan Result',
@@ -961,36 +1060,44 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       {/* 1. App Header: Royal Navy Authority Header with LinearGradient + Gold Accent Rule */}
-      <LinearGradient
-        colors={['#0B1D4E', '#12296A', '#1C3F94']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topHeader}
-      >
-        {/* Gold rule top */}
-        <View style={styles.headerGoldRule} />
-        <View style={styles.headerContentRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
-            <Text style={styles.headerOfficerName}>{officerName}</Text>
-            <View style={styles.headerDutyRow}>
-              <MapPinIcon size={12} color="#C9A84C" />
-              <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} (Batch 1)</Text>
+      <View style={styles.headerWrapper}>
+        <LinearGradient
+          colors={['#071438', '#0B1D4E', '#1C3F94']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.topHeader}
+        >
+          {/* Frosted / Blurry Status Bar Overlay */}
+          <View style={styles.statusBarBlurBackdrop} />
+
+          {/* Refined Gold Accent Rule */}
+          <View style={styles.headerGoldRule} />
+
+          <View style={styles.headerContentRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
+              <Text style={styles.headerOfficerName}>{officerName}</Text>
+              <View style={styles.headerDutyRow}>
+                <MapPinIcon size={12} color="#C9A84C" />
+                <Text style={styles.headerDutyText}>
+                  Duty: Brgy {dutyBrgy} ({currentUser?.teamName || 'Field Team Bravo'})
+                </Text>
+              </View>
             </View>
+            {onLogout && (
+              <TouchableOpacity
+                style={styles.headerLogoutBtn}
+                onPress={onLogout}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.headerLogoutText}>Logout</Text>
+              </TouchableOpacity>
+            )}
           </View>
-          {onLogout && (
-            <TouchableOpacity
-              style={styles.headerLogoutBtn}
-              onPress={onLogout}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.headerLogoutText}>Logout</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </LinearGradient>
+        </LinearGradient>
+      </View>
 
 
       {/* 2. Main Tab Content Body */}
@@ -998,7 +1105,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         {activeTab === 'tasks' ? (
           <StaffTasksScreen
             token={token}
-            user={user}
+            user={currentUser}
             onSelectScanEvent={(evt) => {
               setSelectedEvent(evt);
               setActiveTab('scanner');
@@ -1433,130 +1540,276 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
 
 
-            {/* Mga Naipamahaging Relief (Completion List) */}
-            <View style={styles.completionListCard}>
-              <View style={styles.completionHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={styles.completionIconBadge}>
-                    <ListIcon size={18} color="#FFFFFF" />
+            {/* ── CONDITIONAL ROSTER: ATTENDANCE WORKERS vs RELIEF DISTRIBUTION ── */}
+            {scanMode === 'attendance' ? (
+              <View style={styles.completionListCard}>
+                <View style={styles.completionHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={[styles.completionIconBadge, { backgroundColor: '#0B1D4E' }]}>
+                      <BriefcaseOutlineIcon size={18} color="#FFFFFF" />
+                    </View>
+                    <View>
+                      <Text style={styles.completionTitle}>
+                        {lang === 'tl' ? 'Listahan ng Attendance ng Manggagawa' : "Today's Worker Attendance Roster"}
+                      </Text>
+                      <Text style={styles.completionSub}>
+                        {lang === 'tl' ? 'Naka-sync sa Cash-for-Work Payroll Ledger' : 'Synced to Cash-for-Work Payroll Ledger'}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.completionTitle}>
-                      {lang === 'tl' ? 'Mga Naipamahaging Relief' : "Today's Distribution Roster"}
-                    </Text>
-                    <Text style={styles.completionSub}>
-                      {lang === 'tl' ? 'Naka-save sa Central Web Database' : 'Saved to Central Web Database'}
+                  <View style={[styles.completionCountPill, { backgroundColor: '#EFF6FF', borderColor: 'rgba(37,99,235,0.3)' }]}>
+                    <Text style={[styles.completionCountText, { color: '#1D4ED8' }]}>
+                      {workerAttendanceList.length} {lang === 'tl' ? 'Manggagawa' : 'Workers'}
                     </Text>
                   </View>
                 </View>
-                <View style={styles.completionCountPill}>
-                  <Text style={styles.completionCountText}>
-                    {completedScans.length} {lang === 'tl' ? 'Naipamahagi' : 'Released'}
-                  </Text>
-                </View>
-              </View>
 
-              {loadingCompletedScans ? (
-                <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                  <ActivityIndicator size="small" color="#1E3A8A" />
-                  <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
-                    {lang === 'tl' ? 'Kinakarga ang mga naipamahagi mula sa server...' : 'Loading distribution roster from cloud...'}
-                  </Text>
-                </View>
-              ) : completedScans.length === 0 ? (
-                <View style={styles.emptyCompletionBox}>
-                  <Text style={styles.emptyCompletionText}>
-                    {lang === 'tl'
-                      ? 'Wala pang naipapamahaging relief sa shift na ito. I-scan ang QR pass ng residente upang magsimula.'
-                      : 'No relief distributions logged yet for this shift. Scan a resident QR pass to begin.'}
-                  </Text>
-                </View>
-              ) : (() => {
-                const totalPages = Math.ceil(completedScans.length / ROSTER_PER_PAGE);
-                const pageItems = completedScans.slice((rosterPage - 1) * ROSTER_PER_PAGE, rosterPage * ROSTER_PER_PAGE);
-                return (
-                  <View style={{ gap: 10, marginTop: 14 }}>
-                    {pageItems.map((item, idx) => (
-                      <View key={item.receiptNumber || item.id || idx} style={styles.completionItem}>
-                        <View style={{ flex: 1, paddingRight: 8 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                            <Text style={styles.completionItemName} numberOfLines={1}>
-                              {item.householdName || item.headOfHousehold || 'Verified Beneficiary'}
-                            </Text>
-                            <View style={styles.claimedPill}>
-                              <CheckCircleIcon size={11} color="#059669" />
-                              <Text style={styles.claimedPillText}>CLAIMED</Text>
+                {loadingAttendanceList && workerAttendanceList.length === 0 ? (
+                  <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                    <ActivityIndicator size="small" color="#1E3A8A" />
+                    <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                      {lang === 'tl' ? 'Kinakarga ang attendance records mula sa server...' : 'Loading worker attendance roster from cloud...'}
+                    </Text>
+                  </View>
+                ) : workerAttendanceList.length === 0 ? (
+                  <View style={styles.emptyCompletionBox}>
+                    <Text style={styles.emptyCompletionText}>
+                      {lang === 'tl'
+                        ? 'Wala pang naitalang attendance ng worker ngayong araw. I-scan ang QR pass ng Cash-for-Work worker upang mag-Time In o Time Out.'
+                        : 'No worker attendance logged yet for today. Scan a Cash-for-Work worker QR pass to record morning Time-In or afternoon Time-Out.'}
+                    </Text>
+                  </View>
+                ) : (() => {
+                  const ATT_PAGE_SIZE = 5;
+                  const totalPages = Math.ceil(workerAttendanceList.length / ATT_PAGE_SIZE);
+                  const pageItems = workerAttendanceList.slice((attendancePage - 1) * ATT_PAGE_SIZE, attendancePage * ATT_PAGE_SIZE);
+                  return (
+                    <View style={{ gap: 10, marginTop: 14 }}>
+                      {pageItems.map((item, idx) => {
+                        const isOut = item.isCompleted || item.status === 'TIME_OUT' || !!item.timeOut;
+                        const timeInStr = item.timeIn ? new Date(item.timeIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const timeOutStr = item.timeOut ? new Date(item.timeOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+
+                        return (
+                          <View key={item.id || item.applicationId || idx} style={styles.completionItem}>
+                            <View style={{ flex: 1, paddingRight: 8 }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <Text style={styles.completionItemName} numberOfLines={1}>
+                                  {item.workerName || item.applicantName || 'Resident Worker'}
+                                </Text>
+                                <View style={[styles.claimedPill, isOut ? { backgroundColor: '#EFF6FF' } : { backgroundColor: '#DCFCE7' }]}>
+                                  <CheckCircleIcon size={11} color={isOut ? '#2563EB' : '#059669'} />
+                                  <Text style={[styles.claimedPillText, isOut ? { color: '#1D4ED8' } : { color: '#15803D' }]}>
+                                    {isOut ? `COMPLETED (Day ${item.dayNumber || 1})` : `TIME-IN (Day ${item.dayNumber || 1})`}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                                <MapPinIcon size={11} color="#64748B" />
+                                <Text style={styles.completionItemAddr} numberOfLines={1}>
+                                  {item.category || 'Rehabilitation Duty'} • Brgy {item.barangayCode || dutyBrgy}
+                                </Text>
+                              </View>
+
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                                <Text style={styles.completionReceiptCode}>
+                                  {item.payoutVoucherCode || 'CFW-PASS'}
+                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                  <ClockIcon size={11} color="#059669" />
+                                  <Text style={styles.completionTime}>
+                                    In: {timeInStr}
+                                  </Text>
+                                </View>
+                                {timeOutStr && (
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                    <ClockIcon size={11} color="#2563EB" />
+                                    <Text style={[styles.completionTime, { color: '#2563EB' }]}>
+                                      Out: {timeOutStr}
+                                    </Text>
+                                  </View>
+                                )}
+                              </View>
+                            </View>
+
+                            <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                              <View style={{ backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#1E293B' }}>
+                                  Day {item.dayNumber || 1}/{item.durationDays || 10}
+                                </Text>
+                                <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#059669', marginTop: 1 }}>
+                                  PHP {item.dailyWageRate || 500}/day
+                                </Text>
+                              </View>
                             </View>
                           </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                            <MapPinIcon size={11} color="#64748B" />
-                            <Text style={styles.completionItemAddr} numberOfLines={1}>
-                              {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
+                        );
+                      })}
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <View style={styles.paginationRow}>
+                          <TouchableOpacity
+                            style={[styles.paginationBtn, attendancePage === 1 && styles.paginationBtnDisabled]}
+                            onPress={() => setAttendancePage(p => Math.max(1, p - 1))}
+                            disabled={attendancePage === 1}
+                            activeOpacity={0.8}
+                          >
+                            <ChevronLeftIcon size={16} color={attendancePage === 1 ? '#CBD5E1' : '#1C3F94'} />
+                            <Text style={[styles.paginationBtnText, attendancePage === 1 && styles.paginationBtnTextDisabled]}>
+                              {lang === 'tl' ? 'Nakaraan' : 'Prev'}
+                            </Text>
+                          </TouchableOpacity>
+
+                          <View style={styles.paginationPageIndicator}>
+                            <Text style={styles.paginationPageText}>
+                              {lang === 'tl' ? `Pahina ${attendancePage} ng ${totalPages}` : `Page ${attendancePage} of ${totalPages}`}
                             </Text>
                           </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                            <Text style={styles.completionReceiptCode}>
-                              {item.receiptNumber}
+
+                          <TouchableOpacity
+                            style={[styles.paginationBtn, attendancePage === totalPages && styles.paginationBtnDisabled]}
+                            onPress={() => setAttendancePage(p => Math.min(totalPages, p + 1))}
+                            disabled={attendancePage === totalPages}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={[styles.paginationBtnText, attendancePage === totalPages && styles.paginationBtnTextDisabled]}>
+                              {lang === 'tl' ? 'Susunod' : 'Next'}
                             </Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                              <ClockIcon size={11} color="#94A3B8" />
-                              <Text style={styles.completionTime}>
-                                {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <ChevronRightIcon size={16} color={attendancePage === totalPages ? '#CBD5E1' : '#1C3F94'} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })()}
+              </View>
+            ) : (
+              <View style={styles.completionListCard}>
+                <View style={styles.completionHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={styles.completionIconBadge}>
+                      <ListIcon size={18} color="#FFFFFF" />
+                    </View>
+                    <View>
+                      <Text style={styles.completionTitle}>
+                        {lang === 'tl' ? 'Mga Naipamahaging Relief' : "Today's Distribution Roster"}
+                      </Text>
+                      <Text style={styles.completionSub}>
+                        {lang === 'tl' ? 'Naka-save sa Central Web Database' : 'Saved to Central Web Database'}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.completionCountPill}>
+                    <Text style={styles.completionCountText}>
+                      {completedScans.length} {lang === 'tl' ? 'Naipamahagi' : 'Released'}
+                    </Text>
+                  </View>
+                </View>
+
+                {loadingCompletedScans ? (
+                  <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                    <ActivityIndicator size="small" color="#1E3A8A" />
+                    <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                      {lang === 'tl' ? 'Kinakarga ang mga naipamahagi mula sa server...' : 'Loading distribution roster from cloud...'}
+                    </Text>
+                  </View>
+                ) : completedScans.length === 0 ? (
+                  <View style={styles.emptyCompletionBox}>
+                    <Text style={styles.emptyCompletionText}>
+                      {lang === 'tl'
+                        ? 'Wala pang naipapamahaging relief sa shift na ito. I-scan ang QR pass ng residente upang magsimula.'
+                        : 'No relief distributions logged yet for this shift. Scan a resident QR pass to begin.'}
+                    </Text>
+                  </View>
+                ) : (() => {
+                  const totalPages = Math.ceil(completedScans.length / ROSTER_PER_PAGE);
+                  const pageItems = completedScans.slice((rosterPage - 1) * ROSTER_PER_PAGE, rosterPage * ROSTER_PER_PAGE);
+                  return (
+                    <View style={{ gap: 10, marginTop: 14 }}>
+                      {pageItems.map((item, idx) => (
+                        <View key={item.receiptNumber || item.id || idx} style={styles.completionItem}>
+                          <View style={{ flex: 1, paddingRight: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <Text style={styles.completionItemName} numberOfLines={1}>
+                                {item.householdName || item.headOfHousehold || 'Verified Beneficiary'}
+                              </Text>
+                              <View style={styles.claimedPill}>
+                                <CheckCircleIcon size={11} color="#059669" />
+                                <Text style={styles.claimedPillText}>CLAIMED</Text>
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                              <MapPinIcon size={11} color="#64748B" />
+                              <Text style={styles.completionItemAddr} numberOfLines={1}>
+                                {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
                               </Text>
                             </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                              <Text style={styles.completionReceiptCode}>
+                                {item.receiptNumber}
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                                <ClockIcon size={11} color="#94A3B8" />
+                                <Text style={styles.completionTime}>
+                                  {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                              </View>
+                            </View>
                           </View>
+
+                          <TouchableOpacity
+                            style={styles.viewReceiptBtn}
+                            onPress={() => setReceiptModalData(item)}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={styles.viewReceiptBtnText}>
+                              {lang === 'tl' ? 'Resibo' : 'Receipt'}
+                            </Text>
+                          </TouchableOpacity>
                         </View>
+                      ))}
 
-                        <TouchableOpacity
-                          style={styles.viewReceiptBtn}
-                          onPress={() => setReceiptModalData(item)}
-                          activeOpacity={0.8}
-                        >
-                          <Text style={styles.viewReceiptBtnText}>
-                            {lang === 'tl' ? 'Resibo' : 'Receipt'}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <View style={styles.paginationRow}>
+                          <TouchableOpacity
+                            style={[styles.paginationBtn, rosterPage === 1 && styles.paginationBtnDisabled]}
+                            onPress={() => setRosterPage(p => Math.max(1, p - 1))}
+                            disabled={rosterPage === 1}
+                            activeOpacity={0.8}
+                          >
+                            <ChevronLeftIcon size={16} color={rosterPage === 1 ? '#CBD5E1' : '#1C3F94'} />
+                            <Text style={[styles.paginationBtnText, rosterPage === 1 && styles.paginationBtnTextDisabled]}>
+                              {lang === 'tl' ? 'Nakaraan' : 'Prev'}
+                            </Text>
+                          </TouchableOpacity>
 
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                      <View style={styles.paginationRow}>
-                        <TouchableOpacity
-                          style={[styles.paginationBtn, rosterPage === 1 && styles.paginationBtnDisabled]}
-                          onPress={() => setRosterPage(p => Math.max(1, p - 1))}
-                          disabled={rosterPage === 1}
-                          activeOpacity={0.8}
-                        >
-                          <ChevronLeftIcon size={16} color={rosterPage === 1 ? '#CBD5E1' : '#1C3F94'} />
-                          <Text style={[styles.paginationBtnText, rosterPage === 1 && styles.paginationBtnTextDisabled]}>
-                            {lang === 'tl' ? 'Nakaraan' : 'Prev'}
-                          </Text>
-                        </TouchableOpacity>
+                          <View style={styles.paginationPageIndicator}>
+                            <Text style={styles.paginationPageText}>
+                              {lang === 'tl' ? `Pahina ${rosterPage} ng ${totalPages}` : `Page ${rosterPage} of ${totalPages}`}
+                            </Text>
+                          </View>
 
-                        <View style={styles.paginationPageIndicator}>
-                          <Text style={styles.paginationPageText}>
-                            {lang === 'tl' ? `Pahina ${rosterPage} ng ${totalPages}` : `Page ${rosterPage} of ${totalPages}`}
-                          </Text>
+                          <TouchableOpacity
+                            style={[styles.paginationBtn, rosterPage === totalPages && styles.paginationBtnDisabled]}
+                            onPress={() => setRosterPage(p => Math.min(totalPages, p + 1))}
+                            disabled={rosterPage === totalPages}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={[styles.paginationBtnText, rosterPage === totalPages && styles.paginationBtnTextDisabled]}>
+                              {lang === 'tl' ? 'Susunod' : 'Next'}
+                            </Text>
+                            <ChevronRightIcon size={16} color={rosterPage === totalPages ? '#CBD5E1' : '#1C3F94'} />
+                          </TouchableOpacity>
                         </View>
-
-                        <TouchableOpacity
-                          style={[styles.paginationBtn, rosterPage === totalPages && styles.paginationBtnDisabled]}
-                          onPress={() => setRosterPage(p => Math.min(totalPages, p + 1))}
-                          disabled={rosterPage === totalPages}
-                          activeOpacity={0.8}
-                        >
-                          <Text style={[styles.paginationBtnText, rosterPage === totalPages && styles.paginationBtnTextDisabled]}>
-                            {lang === 'tl' ? 'Susunod' : 'Next'}
-                          </Text>
-                          <ChevronRightIcon size={16} color={rosterPage === totalPages ? '#CBD5E1' : '#1C3F94'} />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-                );
-              })()}
-            </View>
+                      )}
+                    </View>
+                  );
+                })()}
+              </View>
+            )}
           </ScrollView>
         ) : activeTab === 'incident' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
@@ -1698,7 +1951,79 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.dutyDivider} />
               <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Assignment</Text>
-                <Text style={styles.dutyInfoVal}>Field Distribution Leader</Text>
+                <Text style={styles.dutyInfoVal}>
+                  {currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}
+                </Text>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={{ paddingVertical: 8 }}>
+                <Text style={styles.dutyInfoKicker}>Field Designation & Role</Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.designationToggleBtn,
+                      currentUser?.staffDesignation === 'team_leader' && styles.designationToggleBtnActive,
+                    ]}
+                    onPress={() => handleUpdateDesignation('team_leader')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.designationToggleText,
+                        currentUser?.staffDesignation === 'team_leader' && styles.designationToggleTextActive,
+                      ]}
+                    >
+                      Team Leader
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.designationToggleBtn,
+                      currentUser?.staffDesignation !== 'team_leader' && styles.designationToggleBtnActive,
+                    ]}
+                    onPress={() => handleUpdateDesignation('field_officer')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.designationToggleText,
+                        currentUser?.staffDesignation !== 'team_leader' && styles.designationToggleTextActive,
+                      ]}
+                    >
+                      Field Officer
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.dutyDivider} />
+              <View style={{ paddingVertical: 8 }}>
+                <Text style={styles.dutyInfoKicker}>Assigned Team</Text>
+                <View style={{ flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                  {['Field Team Bravo', 'Field Team Alpha', 'Field Team Charlie', 'Field Team Delta'].map((tName) => {
+                    const isCur = (currentUser?.teamName || 'Field Team Bravo').toLowerCase() === tName.toLowerCase();
+                    return (
+                      <TouchableOpacity
+                        key={tName}
+                        style={[
+                          styles.teamSelectBtn,
+                          isCur && styles.teamSelectBtnActive,
+                        ]}
+                        onPress={() => handleUpdateTeam(tName)}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.teamSelectBtnText,
+                            isCur && styles.teamSelectBtnTextActive,
+                          ]}
+                        >
+                          {tName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
               <View style={styles.dutyDivider} />
               <View style={styles.dutyInfoRow}>
@@ -2264,16 +2589,76 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 54,
   },
-  // Top Header: Royal Navy (LinearGradient handles the bg color)
+  headerWrapper: {
+    backgroundColor: '#071438',
+  },
   topHeader: {
-    paddingTop: Math.max(StatusBar.currentHeight || 0, 38) + 6,
-    paddingBottom: 4,
+    paddingTop: Math.max(StatusBar.currentHeight || 0, 38) + 4,
+    paddingBottom: 6,
     position: 'relative',
     overflow: 'hidden',
   },
+  statusBarBlurBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: Math.max(StatusBar.currentHeight || 0, 38) + 8,
+    backgroundColor: 'rgba(5, 15, 45, 0.70)',
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' } : {}),
+  },
   headerGoldRule: {
-    height: 3,
+    height: 1.5,
     backgroundColor: '#C9A84C',
+    opacity: 0.85,
+    marginHorizontal: 16,
+    borderRadius: 1,
+    marginBottom: 4,
+  },
+  designationToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  designationToggleBtnActive: {
+    backgroundColor: '#1E3A8A',
+    borderColor: '#1E3A8A',
+  },
+  designationToggleText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  designationToggleTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  teamSelectBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 4,
+  },
+  teamSelectBtnActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#3B82F6',
+  },
+  teamSelectBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  teamSelectBtnTextActive: {
+    color: '#1D4ED8',
+    fontWeight: '800',
   },
   headerContentRow: {
     flexDirection: 'row',

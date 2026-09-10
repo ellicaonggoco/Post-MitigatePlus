@@ -81,10 +81,15 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
     }
 
     if (status === 'Completed' || isActive === false) {
+      event.status = 'Completed';
       event.isActive = false;
-      event.closedAt = new Date();
+      event.closedAt = req.body.completedAt ? new Date(req.body.completedAt) : new Date();
     } else if (status === 'Ongoing' || isActive === true) {
+      event.status = 'Ongoing';
       event.isActive = true;
+      if (!event.openedAt || event.status !== 'Ongoing') {
+        event.openedAt = req.body.startedAt ? new Date(req.body.startedAt) : new Date();
+      }
       event.closedAt = null;
     }
 

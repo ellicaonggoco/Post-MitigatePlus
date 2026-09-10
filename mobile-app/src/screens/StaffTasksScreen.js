@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { fetchDistributionEvents } from '../services/api';
-import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon, CalendarIcon } from '../components/AppIcons';
+import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon, CalendarIcon, LockIcon, ClockIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
 import { initSocket, onDistributionEventCreated, onDistributionEventUpdated, onStaffAssignmentDispatched } from '../services/socketService';
 
@@ -9,6 +9,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
   const [filterTab, setFilterTab] = useState('scheduled'); // 'scheduled' | 'ongoing' | 'completed'
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const loadEvents = async () => {
     if (!token) return;
@@ -30,15 +31,17 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
             totalTarget: e.targetHouseholds || e.targetCount || 150,
             scheduledDate: e.scheduledDate || 'Today',
             scheduledTime: e.scheduledTime || '08:00 AM',
-            assignedTeam: e.assignedTeam || e.staffAssigned || 'Field Team Alpha',
+            assignedTeam: e.assignedTeam || e.staffAssigned || 'Field Team Bravo',
             barangayCode: e.barangayCode || '291',
-            startTime: new Date(e.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            completedTime: e.completedAt ? new Date(e.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+            startTime: e.openedAt ? new Date(e.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date(e.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            openedAt: e.openedAt || null,
+            completedTime: (e.completedAt || e.closedAt) ? new Date(e.completedAt || e.closedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+            completedAt: e.completedAt || e.closedAt || null,
             allocatedItems: e.itemType || 'All-in-One Family Food Pack',
           };
         }));
       } else {
-        // No events available from server — show empty state
+        // No events available from server: show empty state
         setEvents([]);
       }
     } catch (err) {
@@ -69,19 +72,50 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
     } catch (e) {}
   }, [token]);
 
+  const checkStaffPermission = (assignedTeam) => {
+    const isTeamLeader =
+      user?.staffDesignation === 'team_leader' ||
+      user?.isLeader === true ||
+      user?.isTeamLeader === true ||
+      user?.role === 'lgu_admin' ||
+      user?.role === 'lgu_superadmin' ||
+      (user?.name && user.name.toLowerCase().includes('leader'));
+
+    const userTeam = (user?.teamName || '').toLowerCase().trim();
+    const eventTeam = (assignedTeam || '').toLowerCase().trim();
+    const isMyTeam = !eventTeam || !userTeam || eventTeam.includes(userTeam) || userTeam.includes(eventTeam);
+
+    const canStart = isTeamLeader && isMyTeam;
+    return { isTeamLeader, isMyTeam, canStart };
+  };
+
   const handleStartDistribution = async (item) => {
+    const perm = checkStaffPermission(item.assignedTeam);
+    if (!perm.canStart) {
+      Alert.alert(
+        lang === 'tl' ? 'Pahintulot ng Team Leader' : 'Team Leader Required',
+        lang === 'tl'
+          ? `Tanging ang Team Leader lamang ng ${item.assignedTeam || 'team'} ang may pahintulot na magsimula ng distribusyon.`
+          : `Only the designated Team Leader of ${item.assignedTeam || 'the team'} can start this relief distribution.`
+      );
+      return;
+    }
+
     Alert.alert(
       lang === 'tl' ? 'Simulan ang Pamamahagi?' : 'Start Distribution Drive?',
       lang === 'tl'
-        ? `Ikaw ang Field Team Leader para sa ${item.title}. Simulan na ba ang live relief distribution at buksan ang QR scanner?`
-        : `You are the Field Team Leader for ${item.title}. Do you want to start live distribution and launch the QR scanner?`,
+        ? `Ikaw ang Team Leader para sa ${item.title}. Simulan na ba ang live relief distribution at i-update ang status sa ONGOING sa central web admin?`
+        : `You are the Team Leader for ${item.title}. Start live relief distribution and update the central web admin status to ONGOING?`,
       [
         { text: lang === 'tl' ? 'Kanselahin' : 'Cancel', style: 'cancel' },
         {
           text: lang === 'tl' ? 'Oo, Simulan' : 'Yes, Start',
           onPress: async () => {
+            const evId = item._id || item.id;
+            const nowIso = new Date().toISOString();
+            const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setActionLoadingId(evId);
             try {
-              const evId = item._id || item.id;
               if (item._id) {
                 await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
                   method: 'PATCH',
@@ -89,17 +123,28 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                     Authorization: 'Bearer ' + token,
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({ status: 'Ongoing', isActive: true }),
+                  body: JSON.stringify({
+                    status: 'Ongoing',
+                    isActive: true,
+                    openedAt: nowIso,
+                  }),
                 });
-              }
-              setEvents(prev => prev.map(e => (e._id || e.id) === evId ? { ...e, status: 'ongoing' } : e));
-              setFilterTab('ongoing');
-              if (onSelectScanEvent) {
-                onSelectScanEvent({ ...item, status: 'ongoing', isActive: true });
               }
             } catch (err) {
               console.error('Error starting event from mobile:', err);
-              if (onSelectScanEvent) onSelectScanEvent(item);
+            } finally {
+              setActionLoadingId(null);
+            }
+            setEvents(prev => prev.map(e => (e._id || e.id) === evId ? {
+              ...e,
+              status: 'ongoing',
+              isActive: true,
+              openedAt: nowIso,
+              startTime: nowTimeStr,
+            } : e));
+            setFilterTab('ongoing');
+            if (onSelectScanEvent) {
+              onSelectScanEvent({ ...item, status: 'ongoing', isActive: true, openedAt: nowIso, startTime: nowTimeStr });
             }
           },
         },
@@ -108,18 +153,39 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
   };
 
   const handleCompleteDistribution = async (item) => {
+    const isTeamLeader =
+      user?.staffDesignation === 'team_leader' ||
+      user?.isLeader === true ||
+      user?.isTeamLeader === true ||
+      user?.role === 'lgu_admin' ||
+      user?.role === 'lgu_superadmin' ||
+      (user?.name && user.name.toLowerCase().includes('leader'));
+
+    if (!isTeamLeader) {
+      Alert.alert(
+        lang === 'tl' ? 'Pahintulot ng Team Leader' : 'Team Leader Required',
+        lang === 'tl'
+          ? 'Tanging ang Team Leader lamang ang may pahintulot na mag-finalize at kumpletuhin ang distribution drive.'
+          : 'Only the designated Team Leader can finalize and complete this distribution drive.'
+      );
+      return;
+    }
+
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     Alert.alert(
       lang === 'tl' ? 'Tapusin ang Pamamahagi?' : 'Complete Distribution Drive?',
       lang === 'tl'
-        ? `Ikaw ang Field Team Leader para sa ${item.title}. Sigurado ka bang tapos na ang lahat ng relief claims para sa araw na ito? I-fi-finalize nito ang distribusyon para sa auditing.`
-        : `You are the Field Team Leader for ${item.title}. Are all claims finished for this event? This will finalize the distribution for auditing.`,
+        ? `Ikaw ang Team Leader para sa ${item.title}. I-finalize na ba ang relief drive na ito sa ganap na ${nowTimeStr}? Itatala ang eksaktong timestamp na ito sa central web admin audit log.`
+        : `You are the Team Leader for ${item.title}. Finalize this distribution drive at ${nowTimeStr}? This exact timestamp will be recorded in the central web admin audit log.`,
       [
         { text: lang === 'tl' ? 'Bumalik' : 'Back', style: 'cancel' },
         {
           text: lang === 'tl' ? 'Oo, Tapusin' : 'Yes, Complete',
           onPress: async () => {
+            const evId = item._id || item.id;
+            const nowIso = new Date().toISOString();
+            setActionLoadingId(evId);
             try {
-              const evId = item._id || item.id;
               if (item._id) {
                 await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
                   method: 'PATCH',
@@ -127,14 +193,27 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                     Authorization: 'Bearer ' + token,
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({ status: 'Completed', isActive: false }),
+                  body: JSON.stringify({
+                    status: 'Completed',
+                    isActive: false,
+                    completedAt: nowIso,
+                    closedAt: nowIso,
+                  }),
                 });
               }
-              setEvents(prev => prev.map(e => (e._id || e.id) === evId ? { ...e, status: 'completed' } : e));
-              setFilterTab('completed');
             } catch (err) {
               console.error('Error completing event from mobile:', err);
+            } finally {
+              setActionLoadingId(null);
             }
+            setEvents(prev => prev.map(e => (e._id || e.id) === evId ? {
+              ...e,
+              status: 'completed',
+              isActive: false,
+              completedAt: nowIso,
+              completedTime: nowTimeStr,
+            } : e));
+            setFilterTab('completed');
           },
         },
       ]
@@ -193,7 +272,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
         </TouchableOpacity>
       </View>
 
-      {/* 4. Distribution Events List */}
+      {/* 3. Distribution Events List */}
       <View style={styles.eventList}>
         {loading && events.length === 0 ? (
           <View style={styles.emptyStateCard}>
@@ -220,9 +299,11 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
           filteredEvents.map(item => {
             const isOngoing = item.status === 'ongoing';
             const isScheduled = item.status === 'scheduled';
+            const perm = checkStaffPermission(item.assignedTeam);
+            const isItemLoading = actionLoadingId === (item._id || item.id);
 
             return (
-              <View key={item.id} style={styles.taskCard}>
+              <View key={item.id || item._id} style={styles.taskCard}>
                 {/* Header Row: Event Title + Status Pill */}
                 <View style={styles.cardHeaderRow}>
                   <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
@@ -240,36 +321,30 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                 </View>
 
                 {/* Team Assignment Banner */}
-                {(() => {
-                  const isMyTeam = (user?.teamName && item.assignedTeam && item.assignedTeam.toLowerCase().includes(user.teamName.toLowerCase())) ||
-                    (user?.name && item.assignedTeam && item.assignedTeam.toLowerCase().includes(user.name.toLowerCase()));
-                  return (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-                      <View style={[
-                        styles.teamPillBadge,
-                        isMyTeam ? styles.myTeamPillActive : styles.otherTeamPill
-                      ]}>
-                        <TruckIcon size={12} color={isMyTeam ? '#047857' : '#1E40AF'} />
-                        <Text style={[
-                          styles.teamPillText,
-                          isMyTeam ? styles.myTeamPillTextActive : styles.otherTeamPillText
-                        ]}>
-                          {isMyTeam
-                            ? (lang === 'tl' ? `Naka-assign sa Team Mo: ${item.assignedTeam}` : `Assigned to Your Team: ${item.assignedTeam}`)
-                            : `Team: ${item.assignedTeam}`}
-                        </Text>
-                      </View>
-                      {item.scheduledDate && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <CalendarIcon size={12} color="#64748B" />
-                          <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
-                            {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
-                          </Text>
-                        </View>
-                      )}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <View style={[
+                    styles.teamPillBadge,
+                    perm.isMyTeam ? styles.myTeamPillActive : styles.otherTeamPill
+                  ]}>
+                    <TruckIcon size={12} color={perm.isMyTeam ? '#047857' : '#1E40AF'} />
+                    <Text style={[
+                      styles.teamPillText,
+                      perm.isMyTeam ? styles.myTeamPillTextActive : styles.otherTeamPillText
+                    ]}>
+                      {perm.isMyTeam
+                        ? (lang === 'tl' ? `Naka-assign sa Team Mo: ${item.assignedTeam}` : `Assigned to Your Team: ${item.assignedTeam}`)
+                        : `Team: ${item.assignedTeam}`}
+                    </Text>
+                  </View>
+                  {item.scheduledDate && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <CalendarIcon size={12} color="#64748B" />
+                      <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
+                        {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
+                      </Text>
                     </View>
-                  );
-                })()}
+                  )}
+                </View>
 
                 {/* Location Row */}
                 <View style={styles.metaRow}>
@@ -285,20 +360,61 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                   </Text>
                 </View>
 
-                {/* Royal Blue Action Button */}
+                {/* Action Buttons Section */}
                 {isScheduled ? (
-                  <TouchableOpacity
-                    style={styles.royalBlueBtn}
-                    onPress={() => handleStartDistribution(item)}
-                    activeOpacity={0.85}
-                  >
-                    <PlayIcon size={14} color="#FFFFFF" />
-                    <Text style={styles.royalBlueBtnText}>
-                      {lang === 'tl' ? 'Simulan ang Pamamahagi' : 'Start Distribution Drive'}
-                    </Text>
-                  </TouchableOpacity>
+                  perm.canStart ? (
+                    <TouchableOpacity
+                      style={styles.royalBlueBtn}
+                      onPress={() => handleStartDistribution(item)}
+                      disabled={isItemLoading}
+                      activeOpacity={0.85}
+                    >
+                      {isItemLoading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <>
+                          <PlayIcon size={14} color="#FFFFFF" />
+                          <Text style={styles.royalBlueBtnText}>
+                            {lang === 'tl' ? 'Simulan ang Pamamahagi' : 'Start Distribution Drive'}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={{ gap: 6 }}>
+                      <TouchableOpacity
+                        style={styles.disabledStartBtn}
+                        disabled={true}
+                        activeOpacity={1}
+                      >
+                        <LockIcon size={14} color="#94A3B8" />
+                        <Text style={styles.disabledStartBtnText}>
+                          {lang === 'tl' ? 'Team Leader Lamang ang Makakabukas' : 'Only Team Leader Can Start'}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={styles.disabledLeaderHelperText}>
+                        {lang === 'tl'
+                          ? (!perm.isTeamLeader
+                              ? `Tanging ang itinalagang Team Leader ng ${item.assignedTeam || 'team'} ang may pahintulot magsimula.`
+                              : `Ang distribusyong ito ay nakatalaga para sa ${item.assignedTeam}.`)
+                          : (!perm.isTeamLeader
+                              ? `Only the designated Team Leader of ${item.assignedTeam || 'this team'} can start this drive.`
+                              : `This distribution drive is assigned to ${item.assignedTeam}.`)}
+                      </Text>
+                    </View>
+                  )
                 ) : isOngoing ? (
                   <View style={{ gap: 8 }}>
+                    {/* Ongoing Timestamp Badge */}
+                    <View style={styles.ongoingTimeBadge}>
+                      <ClockIcon size={13} color="#1D4ED8" />
+                      <Text style={styles.ongoingTimeText}>
+                        {lang === 'tl'
+                          ? `Nagsimula: ${item.startTime || 'Kasalukuyang Aktibo'}`
+                          : `Started: ${item.startTime || 'In Progress'}`}
+                      </Text>
+                    </View>
+
                     <TouchableOpacity
                       style={styles.royalBlueBtn}
                       onPress={() => onSelectScanEvent && onSelectScanEvent(item)}
@@ -309,23 +425,55 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                         {lang === 'tl' ? 'Buksan ang QR Scanner' : 'Open QR Scanner'}
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.completeBtn}
-                      onPress={() => handleCompleteDistribution(item)}
-                      activeOpacity={0.85}
-                    >
-                      <CheckIcon size={14} color="#0D8A5A" />
-                      <Text style={styles.completeBtnText}>
-                        {lang === 'tl' ? 'Tapusin ang Pamamahagi' : 'Finalize & Complete Event'}
-                      </Text>
-                    </TouchableOpacity>
+
+                    {perm.isTeamLeader ? (
+                      <TouchableOpacity
+                        style={styles.completeBtn}
+                        onPress={() => handleCompleteDistribution(item)}
+                        disabled={isItemLoading}
+                        activeOpacity={0.85}
+                      >
+                        {isItemLoading ? (
+                          <ActivityIndicator size="small" color="#0D8A5A" />
+                        ) : (
+                          <>
+                            <CheckIcon size={14} color="#0D8A5A" />
+                            <Text style={styles.completeBtnText}>
+                              {lang === 'tl'
+                                ? 'Tapusin ang Pamamahagi (May Timestamp)'
+                                : 'Finalize & Complete Event (Logs Timestamp)'}
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.leaderNoticeBox}>
+                        <Text style={styles.leaderNoticeText}>
+                          {lang === 'tl'
+                            ? `Tanging ang Team Leader ng ${item.assignedTeam} ang makakapag-finalize ng event na ito.`
+                            : `Only the Team Leader of ${item.assignedTeam} can finalize and complete this event.`}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 ) : (
-                  <View style={styles.completedBanner}>
-                    <CheckIcon size={14} color="#0D8A5A" />
-                    <Text style={styles.completedBannerText}>
-                      {lang === 'tl' ? 'Matagumpay na Naipamahagi' : 'Distribution Successfully Completed'}
-                    </Text>
+                  <View style={{ gap: 6 }}>
+                    <View style={styles.completedBanner}>
+                      <CheckIcon size={14} color="#0D8A5A" />
+                      <Text style={styles.completedBannerText}>
+                        {lang === 'tl' ? 'Matagumpay na Naipamahagi' : 'Distribution Successfully Completed'}
+                      </Text>
+                    </View>
+                    {item.completedTime && (
+                      <View style={styles.completedTimeRow}>
+                        <ClockIcon size={12} color="#059669" />
+                        <Text style={styles.completedTimeText}>
+                          {lang === 'tl'
+                            ? `Natapos: ${item.completedTime} • Naka-record sa Central Web Database`
+                            : `Completed: ${item.completedTime} • Recorded to Central Web Database`}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -347,7 +495,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 40,
   },
-  // Kicker Pill
   taskManagerPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -367,7 +514,6 @@ const styles = StyleSheet.create({
     color: '#1D4ED8',
     letterSpacing: 0.4,
   },
-  // Heading
   pageTitle: {
     fontSize: 22,
     fontWeight: '900',
@@ -380,7 +526,6 @@ const styles = StyleSheet.create({
     color: '#3D5070',
     lineHeight: 18,
   },
-  // Segmented Filter
   segmentedContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -419,7 +564,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
   },
-  // Event Cards
   eventList: {
     gap: 12,
   },
@@ -496,7 +640,6 @@ const styles = StyleSheet.create({
     color: '#3D5070',
     flex: 1,
   },
-  // Royal Blue Action Button
   royalBlueBtn: {
     backgroundColor: '#1C3F94',
     borderRadius: 16,
@@ -522,12 +665,55 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.2,
   },
+  disabledStartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#E2E8F0',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    paddingVertical: 13,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  disabledStartBtnText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  disabledLeaderHelperText: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    lineHeight: 15,
+  },
+  ongoingTimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  ongoingTimeText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#1E40AF',
+  },
   completeBtn: {
     backgroundColor: '#E6F6EF',
-    borderWidth: 1,
-    borderColor: 'rgba(13,138,90,0.3)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(13,138,90,0.35)',
     borderRadius: 14,
-    paddingVertical: 11,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -536,7 +722,21 @@ const styles = StyleSheet.create({
   completeBtnText: {
     color: '#0D8A5A',
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  leaderNoticeBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  leaderNoticeText: {
+    fontSize: 11,
+    color: '#64748B',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   completedBanner: {
     backgroundColor: '#E6F6EF',
@@ -555,7 +755,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  // Empty State
+  completedTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 2,
+  },
+  completedTimeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#059669',
+  },
   emptyStateCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -586,41 +797,6 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
-  },
-  operationsToggleRow: {
-    flexDirection: 'row',
-    backgroundColor: '#EFF6FF',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    gap: 6,
-  },
-  operationsToggleBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  operationsToggleBtnActive: {
-    backgroundColor: '#1E3A8A',
-    shadowColor: '#1E3A8A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  operationsToggleText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1E3A8A',
-  },
-  operationsToggleTextActive: {
-    color: '#FFFFFF',
   },
   teamPillBadge: {
     flexDirection: 'row',

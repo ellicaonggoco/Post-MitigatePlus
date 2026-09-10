@@ -587,10 +587,45 @@ router.post('/login', async (req, res) => {
       role: user.role,
       barangayCode: user.barangayCode,
       household,
+      teamName: user.teamName || (user.role === 'field_staff' ? 'Field Team Bravo' : null),
+      staffDesignation: user.staffDesignation || 'field_officer',
+      department: user.department || 'MDRRMO Field Operations',
+      employeeId: user.employeeId || null,
       token: generateToken(user._id),
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error during login', error: error.message });
+  }
+});
+
+// @route   PATCH /api/auth/my-designation
+// @desc    Field staff toggle or update their active designation (team_leader vs field_officer) or teamName
+router.patch('/my-designation', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (req.body.staffDesignation) {
+      user.staffDesignation = req.body.staffDesignation;
+    }
+    if (req.body.teamName) {
+      user.teamName = req.body.teamName;
+    }
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Staff designation updated',
+      user: {
+        _id: user._id,
+        name: user.name,
+        role: user.role,
+        teamName: user.teamName,
+        staffDesignation: user.staffDesignation,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating designation', error: err.message });
   }
 });
 
