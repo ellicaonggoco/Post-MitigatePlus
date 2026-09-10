@@ -298,7 +298,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
         ) : filteredTasks.length === 0 ? (
           <View style={styles.emptyStateCard}>
             <View style={styles.emptyIconWell}>
-              <TruckIcon size={26} color="#8A9BB8" />
+              <TruckIcon size={26} color="#64748B" />
             </View>
             <Text style={styles.emptyStateTitle}>
               {filterTab === 'assigned'
@@ -383,7 +383,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
 
                 {/* Location / Address Row */}
                 <View style={styles.metaRow}>
-                  <MapPinIcon size={14} color="#8A9BB8" />
+                  <MapPinIcon size={14} color="#64748B" />
                   <Text style={styles.metaText} numberOfLines={1}>
                     Brgy {item.barangay} • {item.address}
                   </Text>
@@ -397,7 +397,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
 
                 {/* Allocation Items Row */}
                 <View style={[styles.metaRow, { marginBottom: 14 }]}>
-                  <PackageIcon size={14} color="#8A9BB8" />
+                  <PackageIcon size={14} color="#64748B" />
                   <Text style={styles.metaText} numberOfLines={1}>
                     Allocation: <Text style={{ color: '#1C3F94', fontWeight: '800' }}>{item.items}</Text> ({item.members} members)
                   </Text>
@@ -530,7 +530,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                 <TextInput
                   style={styles.notesInput}
                   placeholder={lang === 'tl' ? 'Hal. Tinanggap ni Aling Remedios kasama ang apo...' : 'e.g. Received directly by beneficiary at doorstep...'}
-                  placeholderTextColor="#8A9BB8"
+                  placeholderTextColor="#64748B"
                   value={recipientNotes}
                   onChangeText={setRecipientNotes}
                   multiline
@@ -797,11 +797,11 @@ const styles = StyleSheet.create({
   deliveredLabelText: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#0D8A5A',
+    color: '#047857',
   },
   deliveredDateText: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
   },
   deliveredThumbnail: {
     width: '100%',

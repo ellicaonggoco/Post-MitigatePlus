@@ -145,7 +145,7 @@ export default function StaffIncidentReportScreen({ token }) {
                 {isSelected ? (
                   <RadioCheckedIcon size={16} color="#1C3F94" />
                 ) : (
-                  <RadioUncheckedIcon size={16} color="#8A9BB8" />
+                  <RadioUncheckedIcon size={16} color="#64748B" />
                 )}
                 <Text style={[styles.typeOptionText, isSelected && styles.typeOptionTextActive]}>
                   {type}

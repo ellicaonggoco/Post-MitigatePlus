@@ -1206,7 +1206,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           <View style={styles.headerContentRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.headerKicker}>LGU MANILA • FIELD STAFF PORTAL</Text>
-              <Text style={styles.headerOfficerName}>{officerName}</Text>
+              <Text style={styles.headerOfficerName} accessibilityLabel={`Active Field Officer: ${officerName}`}>{officerName}</Text>
               <View style={styles.headerDutyRow}>
                 <MapPinIcon size={12} color="#C9A84C" />
                 <Text style={styles.headerDutyText}>
@@ -1602,12 +1602,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   ) : !permission?.granted ? (
                     <View style={styles.camPermBox}>
                       <View style={styles.camPermIconCircle}>
-                        <CameraIcon size={28} color="#8A9BB8" />
+                        <CameraIcon size={28} color="#64748B" />
                       </View>
                       <Text style={styles.camPermTitle}>
                         {lang === 'tl' ? 'Kailangan ng Camera Access' : 'Camera Permission Required'}
                       </Text>
-                      <TouchableOpacity style={styles.camPermBtn} onPress={requestPermission} activeOpacity={0.85}>
+                      <TouchableOpacity
+                        style={styles.camPermBtn}
+                        onPress={requestPermission}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                        accessibilityLabel={lang === 'tl' ? 'Pahintulutan ang Camera' : 'Allow Camera Access'}
+                        accessibilityHint="Requests camera access for QR scanning"
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
                         <Text style={styles.camPermBtnText}>
                           {lang === 'tl' ? 'Pahintulutan ang Camera' : 'Allow Camera Access'}
                         </Text>
@@ -1952,7 +1960,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 {item.receiptNumber}
                               </Text>
                               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                <ClockIcon size={11} color="#8A9BB8" />
+                                <ClockIcon size={11} color="#64748B" />
                                 <Text style={styles.completionTime}>
                                   {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
@@ -1964,6 +1972,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             style={styles.viewReceiptBtn}
                             onPress={() => setReceiptModalData(item)}
                             activeOpacity={0.8}
+                            accessibilityRole="button"
+                            accessibilityLabel={`View claim receipt for ${item.householdName || item.headOfHousehold || 'beneficiary'}`}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
                             <Text style={styles.viewReceiptBtnText}>
                               {lang === 'tl' ? 'Resibo' : 'Receipt'}
@@ -2166,11 +2177,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 5,
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      minHeight: 44,
-                      minWidth: 44,
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      minHeight: 48,
+                      minWidth: 48,
                       backgroundColor: '#EDF1FB',
                       borderRadius: 10,
                       borderWidth: 1,
@@ -2201,7 +2213,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                 ) : myIncidentsList.length === 0 ? (
                   <View style={{ paddingVertical: 36, alignItems: 'center', justifyContent: 'center' }}>
-                    <AlertTriangleIcon size={36} color="#8A9BB8" />
+                    <AlertTriangleIcon size={36} color="#64748B" />
                     <Text style={{ marginTop: 10, fontSize: 15, fontWeight: '800', color: '#0B1525' }}>
                       No Incidents Logged Yet
                     </Text>
@@ -2218,17 +2230,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
                     return (
                       <View>
-                        {paginated.map((inc) => {
+                        {paginated.map((inc, idx) => {
                           const isResolved = inc.status === 'resolved';
                           const isAck = inc.status === 'acknowledged';
                           const statusBg = isResolved ? '#E6F6EF' : isAck ? '#FBF5E4' : '#FEF0F2';
                           const statusBorder = isResolved ? 'rgba(13,138,90,0.35)' : isAck ? '#F0DFA0' : '#F5E0E3';
                           const statusColor = isResolved ? '#047857' : isAck ? '#854D0E' : '#B91C1C';
                           const statusLabel = isResolved ? 'RESOLVED' : isAck ? 'IN PROGRESS' : 'OPEN';
+                          const reportNum = startIndex + idx + 1;
 
                           return (
                             <View
                               key={inc._id}
+                              accessible={true}
+                              accessibilityLabel={`Incident Report #${reportNum}: ${inc.incidentType} in Barangay ${inc.barangayCode || dutyBrgy}, Status ${statusLabel}`}
                               style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: 16,
@@ -2257,11 +2272,17 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     borderWidth: 1,
                                     borderColor: '#D6DEFA',
                                   }}>
-                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}>
+                                    <Text
+                                      style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}
+                                      accessibilityLabel={`Incident Type: ${inc.incidentType}, Report #${reportNum}`}
+                                    >
                                       {inc.incidentType}
                                     </Text>
                                   </View>
-                                  <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>
+                                  <Text
+                                    style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}
+                                    accessibilityLabel={`Location: Barangay ${inc.barangayCode || dutyBrgy}, Report #${reportNum}`}
+                                  >
                                     Brgy {inc.barangayCode || dutyBrgy}
                                   </Text>
                                 </View>
@@ -2275,7 +2296,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderRadius: 6,
                                   flexShrink: 0,
                                 }}>
-                                  <Text style={{ fontSize: 10, fontWeight: '900', color: statusColor }}>
+                                  <Text
+                                    style={{ fontSize: 10, fontWeight: '900', color: statusColor }}
+                                    accessibilityLabel={`Status: ${statusLabel}, Report #${reportNum}`}
+                                  >
                                     {statusLabel}
                                   </Text>
                                 </View>
@@ -2341,7 +2365,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: '#F0DFA0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#B8932A' }}>
+                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#854D0E' }}>
                                     In Progress: Acknowledged by Command Center. Action being dispatched.
                                   </Text>
                                 </View>
@@ -2380,15 +2404,21 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: 4,
-                                paddingVertical: 6,
-                                paddingHorizontal: 12,
+                                minHeight: 48,
+                                minWidth: 48,
+                                paddingVertical: 12,
+                                paddingHorizontal: 16,
                                 borderRadius: 8,
                                 backgroundColor: safePage === 1 ? '#F3F6FC' : '#1C3F94',
                               }}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              accessibilityRole="button"
+                              accessibilityLabel="Previous page of incident reports"
                             >
-                              <ChevronLeftIcon size={14} color={safePage === 1 ? '#8A9BB8' : '#FFFFFF'} />
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === 1 ? '#8A9BB8' : '#FFFFFF' }}>
+                              <ChevronLeftIcon size={14} color={safePage === 1 ? '#64748B' : '#FFFFFF'} />
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === 1 ? '#64748B' : '#FFFFFF' }}>
                                 Prev
                               </Text>
                             </TouchableOpacity>
@@ -2403,17 +2433,23 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: 4,
-                                paddingVertical: 6,
-                                paddingHorizontal: 12,
+                                minHeight: 48,
+                                minWidth: 48,
+                                paddingVertical: 12,
+                                paddingHorizontal: 16,
                                 borderRadius: 8,
                                 backgroundColor: safePage === totalPages ? '#F3F6FC' : '#1C3F94',
                               }}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              accessibilityRole="button"
+                              accessibilityLabel="Next page of incident reports"
                             >
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === totalPages ? '#8A9BB8' : '#FFFFFF' }}>
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === totalPages ? '#64748B' : '#FFFFFF' }}>
                                 Next
                               </Text>
-                              <ChevronRightIcon size={14} color={safePage === totalPages ? '#8A9BB8' : '#FFFFFF'} />
+                              <ChevronRightIcon size={14} color={safePage === totalPages ? '#64748B' : '#FFFFFF'} />
                             </TouchableOpacity>
                           </View>
                         )}
@@ -2434,13 +2470,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   <ShieldIcon size={24} color="#FFFFFF" filled={true} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.dutyOfficerName}>{officerName}</Text>
+                  <Text style={styles.dutyOfficerName} accessibilityLabel={`Officer Profile: ${officerName}`}>{officerName}</Text>
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
                     <View style={styles.onDutyBadge}>
                       <Text style={styles.onDutyText}>On Duty</Text>
                     </View>
                     <View style={styles.fieldLeaderBadge}>
-                      <Text style={styles.fieldLeaderText}>Field Leader</Text>
+                      <Text style={styles.fieldLeaderText} accessibilityLabel="Role Badge: Field Leader">Field Leader</Text>
                     </View>
                   </View>
                 </View>
@@ -2448,17 +2484,17 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
               {/* 3-Stat Grid */}
               <View style={styles.statGridRow}>
-                <View style={styles.statGridCard}>
+                <View style={styles.statGridCard} accessible={true} accessibilityLabel={`Total Scans Today: ${scansTodayCount}`}>
                   <Text style={styles.statGridLabel}>SCANS TODAY</Text>
-                  <Text style={styles.statGridVal}>{scansTodayCount}</Text>
+                  <Text style={styles.statGridVal} accessibilityLabel={`Total Scans Today: ${scansTodayCount}`}>{scansTodayCount}</Text>
                 </View>
-                <View style={styles.statGridCard}>
+                <View style={styles.statGridCard} accessible={true} accessibilityLabel={`Verified Scans Today: ${verifiedTodayCount}`}>
                   <Text style={styles.statGridLabel}>VERIFIED</Text>
-                  <Text style={[styles.statGridVal, { color: '#047857' }]}>{verifiedTodayCount}</Text>
+                  <Text style={[styles.statGridVal, { color: '#047857' }]} accessibilityLabel={`Verified Scans Today: ${verifiedTodayCount}`}>{verifiedTodayCount}</Text>
                 </View>
-                <View style={styles.statGridCard}>
+                <View style={styles.statGridCard} accessible={true} accessibilityLabel={`Flagged Scans Today: ${flaggedTodayCount}`}>
                   <Text style={styles.statGridLabel}>FLAGGED</Text>
-                  <Text style={[styles.statGridVal, { color: '#DC2626' }]}>{flaggedTodayCount}</Text>
+                  <Text style={[styles.statGridVal, { color: '#DC2626' }]} accessibilityLabel={`Flagged Scans Today: ${flaggedTodayCount}`}>{flaggedTodayCount}</Text>
                 </View>
               </View>
             </View>
@@ -2478,7 +2514,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.dutyDivider} />
               <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Assignment</Text>
-                <Text style={styles.dutyInfoVal}>
+                <Text
+                  style={styles.dutyInfoVal}
+                  accessibilityLabel={`Current Assignment: ${currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}`}
+                >
                   {currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}
                 </Text>
               </View>
@@ -2486,7 +2525,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Field Designation & Role</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.dutyInfoVal}>
+                  <Text
+                    style={styles.dutyInfoVal}
+                    accessibilityLabel={`Field Designation Role: ${currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}`}
+                  >
                     {currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}
                   </Text>
                   <View style={{
@@ -2557,7 +2599,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
             {/* Diagnostics and Action */}
             <View style={[styles.dutyInfoCard, { marginTop: 14, padding: 14 }]}>
-              <TouchableOpacity style={styles.logoutBtnFull} onPress={onLogout} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={styles.logoutBtnFull}
+                onPress={onLogout}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Sign Out of Duty"
+                accessibilityHint="Signs out of field staff duty shift"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Text style={styles.logoutBtnFullText}>Sign Out of Duty</Text>
               </TouchableOpacity>
             </View>
@@ -2845,7 +2895,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   </View>
                   <View style={styles.receiptRow}>
                     <Text style={styles.receiptFieldLabel}>Central Cloud Ledger:</Text>
-                    <Text style={[styles.receiptFieldValue, { color: '#059669', fontWeight: '800' }]}>
+                    <Text style={[styles.receiptFieldValue, { color: '#047857', fontWeight: '800' }]}>
                       SAVED & VERIFIED IN WEB
                     </Text>
                   </View>
@@ -3791,7 +3841,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   scanModalSub: {
-    color: '#8A9BB8',
+    color: '#E2E8F0',
     fontSize: 11.5,
     fontWeight: '600',
     marginTop: 2,
@@ -3870,7 +3920,11 @@ const styles = StyleSheet.create({
   camPermBtn: {
     backgroundColor: '#1C3F94',
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingVertical: 12,
+    minHeight: 48,
+    minWidth: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
   },
   camPermBtnText: {
@@ -4001,9 +4055,12 @@ const styles = StyleSheet.create({
   paginationBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 48,
+    minWidth: 48,
     borderRadius: 8,
     backgroundColor: '#EDF1FB',
     borderWidth: 1,
@@ -4019,7 +4076,7 @@ const styles = StyleSheet.create({
     color: '#1C3F94',
   },
   paginationBtnTextDisabled: {
-    color: '#8A9BB8',
+    color: '#64748B',
   },
   paginationPageIndicator: {
     paddingHorizontal: 12,
@@ -4407,7 +4464,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   onDutyText: {
-    color: '#047857',
+    color: '#065F46',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -4522,11 +4579,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FCA5A5',
     paddingVertical: 12,
+    minHeight: 48,
+    minWidth: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoutBtnFullText: {
-    color: '#DC2626',
+    color: '#B91C1C',
     fontSize: 13.5,
     fontWeight: '800',
   },
@@ -4672,7 +4731,7 @@ const styles = StyleSheet.create({
   },
   popupHhMeta: {
     fontSize: 11.5,
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 3,
   },
   popupQuotaBox: {
@@ -4691,7 +4750,9 @@ const styles = StyleSheet.create({
   cancelBtn: {
     marginTop: 10,
     paddingVertical: 12,
+    minHeight: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#F3F6FC',
     borderRadius: 12,
   },
@@ -4881,7 +4942,7 @@ const styles = StyleSheet.create({
   },
   receiptBarcodeText: {
     fontSize: 9,
-    color: '#8A9BB8',
+    color: '#475569',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     marginTop: 3,
     letterSpacing: 1.5,
@@ -4894,8 +4955,10 @@ const styles = StyleSheet.create({
   receiptDoneBtn: {
     backgroundColor: '#1C3F94',
     paddingVertical: 13,
+    minHeight: 48,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   receiptDoneBtnText: {
     color: '#FFFFFF',
@@ -4945,7 +5008,7 @@ const styles = StyleSheet.create({
   },
   completionSub: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 1,
   },
   completionCountPill: {
@@ -4959,7 +5022,7 @@ const styles = StyleSheet.create({
   completionCountText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#0D8A5A',
+    color: '#047857',
   },
   emptyCompletionBox: {
     paddingVertical: 24,
@@ -5001,7 +5064,7 @@ const styles = StyleSheet.create({
   },
   completionTime: {
     fontSize: 10,
-    color: '#8A9BB8',
+    color: '#475569',
     fontWeight: '600',
   },
   claimedPill: {
@@ -5013,14 +5076,16 @@ const styles = StyleSheet.create({
   claimedPillText: {
     fontSize: 9,
     fontWeight: '900',
-    color: '#0D8A5A',
+    color: '#047857',
   },
   viewReceiptBtn: {
     backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#D6DEFA',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 48,
+    minWidth: 48,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',

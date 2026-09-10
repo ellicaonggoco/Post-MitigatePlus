@@ -300,7 +300,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
         ) : filteredEvents.length === 0 ? (
           <View style={styles.emptyStateCard}>
             <View style={styles.emptyIconWell}>
-              <PackageIcon size={24} color="#8A9BB8" />
+              <PackageIcon size={24} color="#64748B" />
             </View>
             <Text style={styles.emptyStateTitle}>
               {lang === 'tl'
@@ -366,13 +366,13 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
 
                 {/* Location Row */}
                 <View style={styles.metaRow}>
-                  <MapPinIcon size={14} color="#8A9BB8" />
+                  <MapPinIcon size={14} color="#64748B" />
                   <Text style={styles.metaText} numberOfLines={1}>{item.venue || item.location}</Text>
                 </View>
 
                 {/* Allocation Row */}
                 <View style={[styles.metaRow, { marginBottom: 14 }]}>
-                  <PackageIcon size={14} color="#8A9BB8" />
+                  <PackageIcon size={14} color="#64748B" />
                   <Text style={styles.metaText} numberOfLines={1}>
                     Allocation: <Text style={{ color: '#334155', fontWeight: '600' }}>{item.allocatedItems || item.itemType}</Text>
                   </Text>
@@ -405,7 +405,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                         disabled={true}
                         activeOpacity={1}
                       >
-                        <LockIcon size={14} color="#8A9BB8" />
+                        <LockIcon size={14} color="#64748B" />
                         <Text style={styles.disabledStartBtnText}>
                           {lang === 'tl' ? `Nakatalaga sa ${item.assignedTeam || 'Ibang Team'}` : `Assigned to ${item.assignedTeam || 'Other Team'}`}
                         </Text>

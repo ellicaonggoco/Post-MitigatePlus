@@ -92,7 +92,7 @@ export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkM
                 <Text
                   style={[
                     styles.stopLabel,
-                    { color: isCurrent ? theme.labelCurrent : darkMode ? '#8A9BB8' : '#3D5070' },
+                    { color: isCurrent ? theme.labelCurrent : darkMode ? '#E2E8F0' : '#1E293B' },
                     isCurrent && styles.stopLabelCurrent,
                   ]}
                   numberOfLines={1}

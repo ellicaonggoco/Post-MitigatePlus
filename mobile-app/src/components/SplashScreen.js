@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   footerAnchorText: {
     fontSize: 9.5,
     fontWeight: '700',
-    color: '#8A9BB8',
+    color: '#D6DEFA',
     letterSpacing: 1.2,
     textAlign: 'center',
   },
