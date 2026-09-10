@@ -12,6 +12,7 @@ const { protect, requireRole, requireBarangayScope } = require('../middleware/au
 const { calculatePriorityIndex } = require('../utils/priorityIndex');
 const { calculateReliefAllocation, calculateHouseholdEntitlement } = require('../utils/reliefAllocation');
 const { detectAssistanceGaps } = require('../utils/gapDetection');
+const { isStaffTeamMatch } = require('../utils/teamHelper');
 const QRCode = require('qrcode');
 const { PNG } = require('pngjs');
 const jpeg = require('jpeg-js');
@@ -489,6 +490,45 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
           eventBarangay: evBrgy,
           eventTitle: resolvedEvent.title,
         });
+      }
+    }
+
+    // TEAM-EVENT GATING: If scanning against an event, field staff must belong to the event's assigned team
+    if (resolvedEvent && resolvedEvent.assignedTeam && req.user.role === 'field_staff') {
+      const isTeamAllowed = isStaffTeamMatch(req.user.teamName, resolvedEvent.assignedTeam || resolvedEvent.staffAssigned, req.user.name);
+      if (!isTeamAllowed) {
+        return res.status(403).json({
+          teamMismatch: true,
+          message: `Babala: Ang relief distribution event na ito ("${resolvedEvent.title}") ay nakatalaga sa ${resolvedEvent.assignedTeam}. Ikaw ay kabilang sa ${req.user.teamName || 'ibang team'}. Bawal mag-scan ng QR code para sa event na nakatalaga sa ibang team.`,
+          eventTeam: resolvedEvent.assignedTeam,
+          staffTeam: req.user.teamName,
+          eventTitle: resolvedEvent.title,
+        });
+      }
+    }
+
+    // SPECIAL RELIEF / DOOR-TO-DOOR GATING: Check if resident has an active special relief request assigned to another team/staff
+    if (req.user.role === 'field_staff') {
+      const activeSpecialReq = await AssistanceRequest.findOne({
+        householdId: { $in: relatedHhIds },
+        status: { $in: ['pending', 'approved', 'under_review', 'assigned'] },
+      }).populate('assignedStaff', 'name teamName');
+
+      if (activeSpecialReq && activeSpecialReq.assignedStaff) {
+        const assignedStaffUser = activeSpecialReq.assignedStaff;
+        const assignedTeamName = assignedStaffUser.teamName || activeSpecialReq.assignedStaffName || '';
+        const isSpecialMatch = isStaffTeamMatch(req.user.teamName, assignedTeamName, req.user.name) ||
+          (assignedStaffUser._id && assignedStaffUser._id.toString() === req.user._id.toString());
+        if (!isSpecialMatch) {
+          return res.status(403).json({
+            teamMismatch: true,
+            isSpecialReliefMismatch: true,
+            message: `Babala: Ang espesyal na relief delivery para sa residenteng ito ay nakatalaga kay ${activeSpecialReq.assignedStaffName || assignedStaffUser.name} (${assignedTeamName || 'Ibang Team'}). Bawal itong i-scan ng ibang team (${req.user.teamName || 'Field Staff'}).`,
+            assignedStaffName: activeSpecialReq.assignedStaffName || assignedStaffUser.name,
+            assignedTeam: assignedTeamName,
+            staffTeam: req.user.teamName,
+          });
+        }
       }
     }
 

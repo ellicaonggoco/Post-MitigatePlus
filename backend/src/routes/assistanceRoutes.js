@@ -320,6 +320,27 @@ router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_st
       };
     }
 
+    // Role guard for field staff: Only see tasks assigned to them or their team
+    if (req.user.role === 'field_staff') {
+      const staffConditions = [
+        { assignedStaff: req.user._id },
+      ];
+      if (req.user.name) {
+        staffConditions.push({ assignedStaffName: new RegExp(req.user.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') });
+      }
+      if (req.user.teamName) {
+        const cleanTeam = req.user.teamName.replace(/field\s*team\s*/i, '').trim();
+        if (cleanTeam) {
+          staffConditions.push({ assignedStaffName: new RegExp(cleanTeam, 'i') });
+        }
+      }
+      if (query.$or) {
+        query = { $and: [{ $or: query.$or }, { $or: staffConditions }] };
+      } else {
+        query.$or = staffConditions;
+      }
+    }
+
     const requests = await AssistanceRequest.find(query)
       .populate({
         path: 'householdId',

@@ -5,12 +5,24 @@ import { fetchDistributionEvents } from '../services/api';
 import { MapPinIcon, PackageIcon, CheckIcon, PlayIcon, ListIcon, QrCodeIcon, TruckIcon, CalendarIcon, LockIcon, ClockIcon } from '../components/AppIcons';
 import { API_BASE_URL } from '../config';
 import { initSocket, onDistributionEventCreated, onDistributionEventUpdated, onStaffAssignmentDispatched } from '../services/socketService';
+import { isStaffTeamMatch } from '../utils/teamHelper';
 
 export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNavigateDeliveries, lang = 'en' }) {
   const [filterTab, setFilterTab] = useState('scheduled'); // 'scheduled' | 'ongoing' | 'completed'
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [staffTeam, setStaffTeam] = useState(user?.teamName || 'Field Team Bravo');
+
+  useEffect(() => {
+    if (user?.teamName) {
+      setStaffTeam(user.teamName);
+    } else {
+      AsyncStorage.getItem('mitigateplus_user_team').then(t => {
+        if (t) setStaffTeam(t);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   const loadEvents = async () => {
     try {
@@ -85,12 +97,9 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
       return { isTeamLeader: true, isMyTeam: true, canStart: true };
     }
 
-    const clean = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const userTeam = clean(user?.teamName || '');
-    const eventTeam = clean(assignedTeam || '');
-
-    const isMatch = !eventTeam || !userTeam || eventTeam.includes(userTeam) || userTeam.includes(eventTeam);
-    return { isTeamLeader: true, isMyTeam: isMatch || true, canStart: true };
+    const currentTeam = user?.teamName || staffTeam || 'Field Team Bravo';
+    const isMatch = isStaffTeamMatch(currentTeam, assignedTeam, user?.name);
+    return { isTeamLeader: true, isMyTeam: isMatch, canStart: isMatch };
   };
 
   const handleStartDistribution = async (item) => {
@@ -203,10 +212,19 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
     );
   };
 
-  const scheduledCount = events.filter(e => e.status === 'scheduled').length;
-  const ongoingCount = events.filter(e => e.status === 'ongoing').length;
-  const completedCount = events.filter(e => e.status === 'completed').length;
-  const filteredEvents = events.filter(e => e.status === filterTab);
+  const userRole = (user?.role || '').toLowerCase();
+  const isFieldStaff = userRole === 'field_staff' || !userRole;
+  const currentTeam = user?.teamName || staffTeam || 'Field Team Bravo';
+
+  // Field staff should ONLY see events assigned to their own team
+  const myTeamEvents = isFieldStaff
+    ? events.filter(e => isStaffTeamMatch(currentTeam, e.assignedTeam || e.staffAssigned, user?.name))
+    : events;
+
+  const scheduledCount = myTeamEvents.filter(e => e.status === 'scheduled').length;
+  const ongoingCount = myTeamEvents.filter(e => e.status === 'ongoing').length;
+  const completedCount = myTeamEvents.filter(e => e.status === 'completed').length;
+  const filteredEvents = myTeamEvents.filter(e => e.status === filterTab);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -270,12 +288,14 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
               <PackageIcon size={24} color="#8A9BB8" />
             </View>
             <Text style={styles.emptyStateTitle}>
-              {lang === 'tl' ? 'Walang relief events sa kategoryang ito' : 'No distribution events in this category'}
+              {lang === 'tl'
+                ? `Walang relief events para sa ${currentTeam} sa kategoryang ito`
+                : `No distribution events for ${currentTeam} in this category`}
             </Text>
             <Text style={styles.emptyStateText}>
               {lang === 'tl'
-                ? 'Ang mga relief drives na itinalaga ng LGU Command Center ay lalabas dito.'
-                : 'Relief drives assigned by the LGU Command Center will appear here.'}
+                ? `Ang mga relief drives na nakatalaga para sa iyong team (${currentTeam}) ay lalabas dito.`
+                : `Relief drives assigned by the LGU Command Center to ${currentTeam} will appear here.`}
             </Text>
           </View>
         ) : (

@@ -327,6 +327,27 @@ router.post('/apply', protect, async (req, res) => {
       req.ip
     );
 
+    const io = req.app.get('io');
+    if (io) {
+      io.to('admin_room').emit('cfw_application_submitted', {
+        applicationId: application._id,
+        projectId: project._id,
+        applicantName: application.applicantName,
+        barangayCode: project.barangayCode,
+        category: application.selectedCategory,
+      });
+      io.to(`barangay:${project.barangayCode}`).emit('cfw_application_submitted', {
+        applicationId: application._id,
+        projectId: project._id,
+        applicantName: application.applicantName,
+      });
+      io.emit('cfw_application_submitted', {
+        applicationId: application._id,
+        projectId: project._id,
+        barangayCode: project.barangayCode,
+      });
+    }
+
     res.status(201).json({ success: true, application });
   } catch (error) {
     console.error('CFW Apply error:', error);
@@ -393,12 +414,26 @@ router.patch('/applications/:id/review', protect, requireRole('barangay_official
       req.ip
     );
 
-    // Notify household room
+    // Notify household room and web admin
     const io = req.app.get('io');
     if (io) {
       io.to(`household:${application.householdId}`).emit('cfw_application_status', {
         applicationId: application._id,
         status: application.status,
+      });
+      io.to(`barangay:${application.barangayCode}`).emit('cfw_application_status_updated', {
+        applicationId: application._id,
+        status: application.status,
+      });
+      io.to('admin_room').emit('cfw_application_status_updated', {
+        applicationId: application._id,
+        status: application.status,
+      });
+      io.emit('cfw_application_status_updated', {
+        applicationId: application._id,
+        status: application.status,
+        householdId: application.householdId,
+        applicantUserId: application.applicantUserId,
       });
     }
 
@@ -461,7 +496,7 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
 
     let actionType = 'TIME_IN';
     if (!record) {
-      // Time-In
+      // Time-In: Worker is present on duty today
       const newDayNum = application.attendanceLogs.length + 1;
       record = {
         dayNumber: newDayNum,
@@ -473,6 +508,7 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
         isCompleted: false,
       };
       application.attendanceLogs.push(record);
+      application.status = 'active_on_duty';
       actionType = 'TIME_IN';
     } else if (!record.timeOut) {
       // Time-Out (Complete day)
@@ -501,17 +537,29 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`household:${application.householdId}`).emit('cfw_attendance_updated', {
+      const payload = {
         actionType,
         dayNumber: record.dayNumber,
         totalDaysWorked: application.totalDaysWorked,
         totalPayoutEarned: application.totalPayoutEarned,
-      });
+        applicationId: application._id,
+        householdId: application.householdId,
+        applicantUserId: application.applicantUserId,
+        attendanceLogs: application.attendanceLogs,
+      };
+      io.to(`household:${application.householdId}`).emit('cfw_attendance_updated', payload);
       io.to(`barangay:${application.barangayCode}`).emit('cfw_attendance_logged', {
         workerName: application.applicantName,
         actionType,
         dayNumber: record.dayNumber,
       });
+      io.to('admin_room').emit('cfw_attendance_logged', {
+        workerName: application.applicantName,
+        actionType,
+        dayNumber: record.dayNumber,
+        applicationId: application._id,
+      });
+      io.emit('cfw_attendance_updated', payload);
     }
 
     res.json({

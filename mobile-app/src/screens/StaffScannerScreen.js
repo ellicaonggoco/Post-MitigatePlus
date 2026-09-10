@@ -56,6 +56,7 @@ import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCodeVisual from '../components/QRCodeVisual';
 import { initSocket } from '../services/socketService';
+import { isStaffTeamMatch } from '../utils/teamHelper';
 
 const BARCODE_SCANNER_SETTINGS = {
   barcodeTypes: ['qr'],
@@ -463,12 +464,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     try {
       const events = await fetchDistributionEvents(token);
       if (Array.isArray(events) && events.length > 0) {
-        // Strictly find an event that is Ongoing or isActive: true for duty barangay (or ALL)
+        const myTeam = currentUser?.teamName || user?.teamName || 'Field Team Bravo';
+        // Strictly find an event that is Ongoing or isActive: true for duty barangay (or ALL) AND matches my assigned team
         const active = events.find(e => {
           const isOngoing = e.isActive === true || String(e.status).toLowerCase() === 'ongoing';
           if (!isOngoing) return false;
-          if (!dutyBrgy) return true;
-          return String(e.barangayCode) === String(dutyBrgy) || e.barangayCode === 'ALL' || !e.barangayCode;
+          const brgyMatch = !dutyBrgy || String(e.barangayCode) === String(dutyBrgy) || e.barangayCode === 'ALL' || !e.barangayCode;
+          if (!brgyMatch) return false;
+          return isStaffTeamMatch(myTeam, e.assignedTeam || e.staffAssigned, officerName);
         });
 
         if (active) {
@@ -483,6 +486,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             scheduledTime: active.scheduledTime,
             status: active.status || 'Ongoing',
             barangayCode: active.barangayCode,
+            assignedTeam: active.assignedTeam || active.staffAssigned,
             isActive: true,
           });
         } else {
@@ -801,16 +805,31 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       return;
     }
 
-    if (scanMode === 'relief' && !hasOngoingEvent) {
-      Alert.alert(
-        lang === 'tl' ? 'Walang Aktibong Distribusyon' : 'No Active Distribution Event',
-        lang === 'tl'
-          ? `Walang aktibong relief distribution drive sa Barangay ${dutyBrgy} sa ngayon. Maghintay na mag-activate ang LGU Admin sa Web Admin bago mag-scan ng relief.`
-          : `There is no active relief distribution drive in Barangay ${dutyBrgy} right now. Please wait for an LGU Admin to activate an event before scanning relief.`
-      );
-      setLoading(false);
-      setTimeout(() => setScanned(false), 2000);
-      return;
+    if (scanMode === 'relief') {
+      const myTeam = currentUser?.teamName || user?.teamName || 'Field Team Bravo';
+      if (!hasOngoingEvent) {
+        Alert.alert(
+          lang === 'tl' ? 'Walang Aktibong Distribusyon' : 'No Active Distribution Event',
+          lang === 'tl'
+            ? `Walang aktibong relief distribution drive para sa ${myTeam} sa Barangay ${dutyBrgy} sa ngayon. Maghintay na mag-activate ang LGU Admin sa Web Admin bago mag-scan ng relief.`
+            : `There is no active relief distribution drive for ${myTeam} in Barangay ${dutyBrgy} right now. Please wait for an LGU Admin to activate an event before scanning relief.`
+        );
+        setLoading(false);
+        setTimeout(() => setScanned(false), 2000);
+        return;
+      }
+
+      if (selectedEvent?.assignedTeam && !isStaffTeamMatch(myTeam, selectedEvent.assignedTeam, officerName)) {
+        Alert.alert(
+          lang === 'tl' ? 'Bawal I-scan (Ibang Team)' : 'Team Mismatch (Unauthorized)',
+          lang === 'tl'
+            ? `Ang distribution event na ito ay nakatalaga sa ${selectedEvent.assignedTeam}. Ikaw ay kabilang sa ${myTeam}. Bawal mag-scan sa event ng ibang team.`
+            : `This distribution event is assigned to ${selectedEvent.assignedTeam}. You belong to ${myTeam}. You cannot scan for another team's event.`
+        );
+        setLoading(false);
+        setTimeout(() => setScanned(false), 2000);
+        return;
+      }
     }
 
     const activeDrive = selectedEvent || {
@@ -949,8 +968,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      // [SECURITY] BARANGAY MISMATCH: Cross-barangay QR scan rejected
-      if (err.status === 403 && err.data?.barangayMismatch) {
+      // [SECURITY] TEAM MISMATCH: Cross-team relief or event scan rejected
+      if (err.status === 403 && (err.data?.teamMismatch || err.message?.includes('team') || err.message?.includes('nakatalaga sa ibang team'))) {
+        setScanNotice({
+          type: 'error',
+          text: `BAWAL I-SCAN: Nakatalaga sa ibang team`,
+        });
+        Alert.alert(
+          lang === 'tl' ? 'Bawal I-scan (Ibang Team)' : 'Team Mismatch (Unauthorized)',
+          err.message || (lang === 'tl'
+            ? 'Ang relief o distribution event na ito ay nakatalaga sa ibang team. Bawal i-scan ang residenteng ito.'
+            : 'This relief or event is assigned to another team. You are not authorized to scan this resident.'),
+          [{ text: 'OK', onPress: () => setScanned(false) }]
+        );
+        setFlaggedTodayCount(prev => prev + 1);
+        setTimeout(() => setScanned(false), 3000);
+      } else if (err.status === 403 && err.data?.barangayMismatch) {
         const hhBrgy = err.data?.householdBarangay;
         const evBrgy = err.data?.eventBarangay;
         setScanNotice({
@@ -1064,8 +1097,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         }
       }
     } catch (err) {
-      // [SECURITY] BARANGAY MISMATCH: Cross-barangay release rejected
-      if (err.status === 403 && err.data?.barangayMismatch) {
+      // [SECURITY] TEAM MISMATCH: Cross-team release rejected
+      if (err.status === 403 && (err.data?.teamMismatch || err.message?.includes('team') || err.message?.includes('nakatalaga sa ibang team'))) {
+        Alert.alert(
+          lang === 'tl' ? 'Bawal I-release (Ibang Team)' : 'Unauthorized: Team Mismatch',
+          err.message || (lang === 'tl'
+            ? 'Ang relief distribution na ito ay nakatalaga sa ibang team. Bawal mag-release ang ibang team.'
+            : 'This relief distribution is assigned to another team. Only the assigned team may release.'),
+          [{ text: 'OK', style: 'cancel' }]
+        );
+        setFlaggedTodayCount(prev => prev + 1);
+        setScanResult(null);
+        setScanned(false);
+      } else if (err.status === 403 && err.data?.barangayMismatch) {
         const hhBrgy = err.data?.householdBarangay;
         const evBrgy = err.data?.eventBarangay;
         Alert.alert(

@@ -30,6 +30,7 @@ import {
   Search,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import io from 'socket.io-client';
 import Pagination from '../components/Pagination';
 import { MotionCard } from '../components/motion';
 
@@ -86,6 +87,46 @@ export default function LivelihoodAssistance() {
   useEffect(() => {
     fetchProjects();
   }, [token]);
+
+  // Real-time socket listener for CFW applications, reviews, and attendance
+  useEffect(() => {
+    if (!token) return;
+    let socket;
+    try {
+      const SOCKET_URL = API_BASE_URL.replace('/api', '');
+      socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+      socket.emit('join_admin_room');
+      if (userBrgy) {
+        socket.emit('join_barangay_room', userBrgy);
+      }
+
+      const handleLiveCfwUpdate = () => {
+        fetchProjects();
+        if (selectedProjectId) {
+          fetchPayroll(selectedProjectId);
+        }
+      };
+
+      socket.on('cfw_application_submitted', handleLiveCfwUpdate);
+      socket.on('cfw_application_status_updated', handleLiveCfwUpdate);
+      socket.on('cfw_attendance_logged', handleLiveCfwUpdate);
+      socket.on('cfw_attendance_updated', handleLiveCfwUpdate);
+      socket.on('cfw_project_status_updated', handleLiveCfwUpdate);
+
+      return () => {
+        if (socket) {
+          socket.off('cfw_application_submitted', handleLiveCfwUpdate);
+          socket.off('cfw_application_status_updated', handleLiveCfwUpdate);
+          socket.off('cfw_attendance_logged', handleLiveCfwUpdate);
+          socket.off('cfw_attendance_updated', handleLiveCfwUpdate);
+          socket.off('cfw_project_status_updated', handleLiveCfwUpdate);
+          socket.disconnect();
+        }
+      };
+    } catch (err) {
+      console.warn('Socket connection error in LivelihoodAssistance:', err);
+    }
+  }, [token, userBrgy, selectedProjectId]);
 
   const fetchProjects = async () => {
     if (!token) return;

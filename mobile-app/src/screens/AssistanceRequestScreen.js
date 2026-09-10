@@ -30,6 +30,7 @@ import {
 } from '../components/AppIcons';
 import { SHADOWS, RESPONSIVE } from '../theme';
 import { API_BASE_URL } from '../config';
+import { initSocket } from '../services/socketService';
 
 // ── CASH FOR WORK CATEGORIES ────────────────────────────────────────
 const JOB_CATEGORIES = [
@@ -164,6 +165,65 @@ export default function AssistanceRequestScreen({
     }
   };
 
+  // ── REAL-TIME SOCKET LISTENER (STATUS & ATTENDANCE) ───────────────
+  useEffect(() => {
+    let socket = null;
+    try {
+      const hhId = householdData?._id || user?._id;
+      const bCode = householdData?.barangayCode || user?.barangayCode || '291';
+      socket = initSocket(hhId, bCode);
+
+      if (socket) {
+        const handleStatusUpdate = (payload) => {
+          if (!payload) return;
+          const isTarget =
+            (payload.applicationId && payload.applicationId === userApplication?._id) ||
+            (payload.householdId && String(payload.householdId) === String(hhId)) ||
+            (payload.applicantUserId && String(payload.applicantUserId) === String(user?._id));
+
+          if (isTarget || !userApplication) {
+            fetchCFWData();
+          } else if (payload.status) {
+            setUserApplication(prev => prev ? { ...prev, status: payload.status } : prev);
+          }
+        };
+
+        const handleAttendanceUpdate = (payload) => {
+          if (!payload) return;
+          const isTarget =
+            (payload.applicationId && payload.applicationId === userApplication?._id) ||
+            (payload.householdId && String(payload.householdId) === String(hhId)) ||
+            (payload.applicantUserId && String(payload.applicantUserId) === String(user?._id));
+
+          if (isTarget || !userApplication) {
+            if (payload.attendanceLogs) {
+              setUserApplication(prev => prev ? {
+                ...prev,
+                status: 'active_on_duty',
+                totalDaysWorked: payload.totalDaysWorked ?? prev.totalDaysWorked,
+                totalPayoutEarned: payload.totalPayoutEarned ?? prev.totalPayoutEarned,
+                attendanceLogs: payload.attendanceLogs,
+              } : prev);
+            }
+            fetchCFWData();
+          }
+        };
+
+        socket.on('cfw_application_status', handleStatusUpdate);
+        socket.on('cfw_application_status_updated', handleStatusUpdate);
+        socket.on('cfw_attendance_updated', handleAttendanceUpdate);
+
+        return () => {
+          socket.off('cfw_application_status', handleStatusUpdate);
+          socket.off('cfw_application_status_updated', handleStatusUpdate);
+          socket.off('cfw_attendance_updated', handleAttendanceUpdate);
+        };
+      }
+    } catch (err) {
+      console.warn('CFW socket setup warning:', err);
+    }
+  }, [userApplication?._id, householdData?._id, user?._id]);
+
   // ── CASH FOR WORK LOGIC ───────────────────────────────────────────
   const availableJobCategories = useMemo(() => {
     if (!activeProject) return JOB_CATEGORIES;
@@ -254,7 +314,15 @@ export default function AssistanceRequestScreen({
   const isApprovedOrActive = appStatus === 'approved_for_work' || appStatus === 'active_on_duty';
   const totalDays = activeProject?.durationDays || 10;
   const workedDays = userApplication?.totalDaysWorked || 0;
-  const earnedAmount = workedDays * 500;
+  const dailyWageRate = activeProject?.dailyWageRate || userApplication?.dailyWageRate || 500;
+  const earnedAmount = (userApplication?.totalPayoutEarned !== undefined && userApplication?.totalPayoutEarned > 0)
+    ? userApplication.totalPayoutEarned
+    : (workedDays * dailyWageRate);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayLog = (userApplication?.attendanceLogs || []).find(l => l.date === todayStr);
+  const isPresentToday = !!(todayLog && todayLog.timeIn && !todayLog.isCompleted);
+  const effectiveAttended = workedDays + (isPresentToday ? 1 : 0);
 
   return (
     <KeyboardAvoidingView
@@ -368,24 +436,47 @@ export default function AssistanceRequestScreen({
 
                   <View style={styles.stepperContainer}>
                     <View style={styles.stepperHeader}>
-                      <Text style={styles.stepperTitle}>Attendance Progress</Text>
+                      <View>
+                        <Text style={styles.stepperTitle}>Attendance Progress</Text>
+                        {isPresentToday && (
+                          <View style={styles.presentTodayTag}>
+                            <View style={styles.presentTodayDot} />
+                            <Text style={styles.presentTodayTagText}>
+                              {lang === 'tl'
+                                ? `Nasa Worksite Ngayon (Day ${todayLog.dayNumber})`
+                                : `Active on Duty Today (Day ${todayLog.dayNumber})`}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.stepperCount}>
-                        {'Day ' + workedDays + ' of ' + totalDays + ' Attended'}
+                        {'Day ' + effectiveAttended + ' of ' + totalDays + ' Attended'}
                       </Text>
                     </View>
 
                     <View style={styles.daysGrid}>
                       {Array.from({ length: totalDays }, (_, i) => {
                         const dayNum = i + 1;
-                        const isDone = workedDays >= dayNum;
+                        const logForDay = (userApplication?.attendanceLogs || []).find(l => l.dayNumber === dayNum);
+                        const isDone = (workedDays >= dayNum) || !!(logForDay && logForDay.isCompleted);
+                        const isPresent = !isDone && !!(logForDay && logForDay.timeIn);
                         return (
-                          <View key={dayNum} style={[styles.dayCircle, isDone && styles.dayCircleDone]}>
+                          <View
+                            key={dayNum}
+                            style={[
+                              styles.dayCircle,
+                              isDone && styles.dayCircleDone,
+                              isPresent && styles.dayCirclePresent,
+                            ]}
+                          >
                             {isDone ? (
                               <CheckIcon size={12} color="#15803D" />
+                            ) : isPresent ? (
+                              <Text style={styles.dayCircleNumPresent}>{'D' + dayNum}</Text>
                             ) : (
                               <Text style={styles.dayCircleNum}>{'D' + dayNum}</Text>
                             )}
-                            <Text style={[styles.dayCircleSub, isDone && styles.dayCircleSubDone]}>
+                            <Text style={[styles.dayCircleSub, (isDone || isPresent) && styles.dayCircleSubDone]}>
                               {'Day ' + dayNum}
                             </Text>
                           </View>
@@ -596,49 +687,59 @@ export default function AssistanceRequestScreen({
         <View style={styles.modalOverlay}>
           <View style={styles.voucherModalCard}>
             <View style={styles.voucherHeaderRow}>
-              <View>
+              <TouchableOpacity
+                style={styles.modalTopBackBtn}
+                onPress={() => setShowVoucherModal(false)}
+                activeOpacity={0.7}
+              >
+                <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2.2} />
+                <Text style={styles.modalTopBackText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 6 }}>
                 <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
-                <Text style={styles.voucherMainTitle}>Digital Cash-for-Work Voucher</Text>
+                <Text style={styles.voucherMainTitle}>Digital Payout Voucher</Text>
               </View>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowVoucherModal(false)}>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowVoucherModal(false)} activeOpacity={0.7}>
                 <CloseIcon size={16} color="#0F172A" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.voucherDetailsBox}>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Reference Code:</Text>
-                <Text style={styles.voucherMetaValue}>{userApplication?.payoutVoucherCode || 'CFW-291-88492A'}</Text>
+            <ScrollView style={styles.modalScrollArea} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.voucherDetailsBoxCompact}>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Reference Code:</Text>
+                  <Text style={styles.voucherMetaValueCompact} numberOfLines={1}>{userApplication?.payoutVoucherCode || 'CFW-291-88492A'}</Text>
+                </View>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Beneficiary:</Text>
+                  <Text style={styles.voucherMetaValueCompact} numberOfLines={1}>{userApplication?.applicantName || 'Resident Worker'}</Text>
+                </View>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Days Rendered:</Text>
+                  <Text style={styles.voucherMetaValueCompact}>{(userApplication?.totalDaysWorked || 0) + ' / ' + (activeProject?.durationDays || 10) + ' Days'}</Text>
+                </View>
+                <View style={styles.voucherDividerCompact} />
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherTotalLabelCompact}>Certified Payout:</Text>
+                  <Text style={styles.voucherTotalAmountCompact}>
+                    {'PHP ' + earnedAmount.toLocaleString() + '.00'}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Beneficiary Name:</Text>
-                <Text style={styles.voucherMetaValue}>{userApplication?.applicantName || 'Resident Worker'}</Text>
-              </View>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Days Rendered:</Text>
-                <Text style={styles.voucherMetaValue}>{(userApplication?.totalDaysWorked || 0) + ' / ' + (activeProject?.durationDays || 10) + ' Days'}</Text>
-              </View>
-              <View style={styles.voucherDivider} />
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherTotalLabel}>Total Certified Payout:</Text>
-                <Text style={styles.voucherTotalAmount}>
-                  {'PHP ' + earnedAmount.toLocaleString() + '.00'}
+
+              <View style={styles.qrContainerCompact}>
+                <QRCodeVisual
+                  value={userApplication?.payoutVoucherCode || 'CFW-291-OFFICIAL-PAYOUT'}
+                  size={140}
+                  isCompact={true}
+                />
+                <Text style={styles.qrInstructionsCompact}>
+                  Present this certified voucher code at the Barangay Hall or City Hall Payout Center.
                 </Text>
               </View>
-            </View>
+            </ScrollView>
 
-            <View style={styles.qrContainer}>
-              <QRCodeVisual
-                value={userApplication?.payoutVoucherCode || 'CFW-291-OFFICIAL-PAYOUT'}
-                size={150}
-                isCompact
-              />
-              <Text style={styles.qrInstructions}>
-                Present this certified voucher code at the Barangay Hall or City Hall Payout Center.
-              </Text>
-            </View>
-
-            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowVoucherModal(false)}>
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowVoucherModal(false)} activeOpacity={0.85}>
               <Text style={styles.modalCloseBtnText}>Close Voucher</Text>
             </TouchableOpacity>
           </View>
@@ -650,50 +751,61 @@ export default function AssistanceRequestScreen({
         <View style={styles.modalOverlay}>
           <View style={styles.voucherModalCard}>
             <View style={styles.voucherHeaderRow}>
-              <View>
+              <TouchableOpacity
+                style={styles.modalTopBackBtn}
+                onPress={() => setShowAttendanceQrModal(false)}
+                activeOpacity={0.7}
+              >
+                <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2.2} />
+                <Text style={styles.modalTopBackText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
+              </TouchableOpacity>
+              <View style={{ alignItems: 'center', flex: 1, paddingHorizontal: 6 }}>
                 <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
                 <Text style={styles.voucherMainTitle}>Attendance Duty QR Pass</Text>
               </View>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowAttendanceQrModal(false)}>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowAttendanceQrModal(false)} activeOpacity={0.7}>
                 <CloseIcon size={16} color="#0F172A" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.voucherDetailsBox}>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Worker Name:</Text>
-                <Text style={styles.voucherMetaValue}>{userApplication?.applicantName || user?.name || 'Resident Worker'}</Text>
+            <ScrollView style={styles.modalScrollArea} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.voucherDetailsBoxCompact}>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Worker Name:</Text>
+                  <Text style={styles.voucherMetaValueCompact} numberOfLines={1}>{userApplication?.applicantName || user?.name || 'Resident Worker'}</Text>
+                </View>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Assigned Scope:</Text>
+                  <Text style={styles.voucherMetaValueCompact} numberOfLines={1}>{userApplication?.selectedCategory || 'Rehabilitation Assignment'}</Text>
+                </View>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Worksite:</Text>
+                  <Text style={styles.voucherMetaValueCompact} numberOfLines={1}>{'Barangay ' + (userApplication?.barangayCode || householdData?.barangayCode || '291')}</Text>
+                </View>
+                <View style={styles.voucherMetaRowCompact}>
+                  <Text style={styles.voucherMetaLabelCompact}>Daily Wage Rate:</Text>
+                  <Text style={[styles.voucherMetaValueCompact, { color: '#15803D', fontWeight: '800' }]}>PHP 500.00 / day</Text>
+                </View>
               </View>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Assigned Scope:</Text>
-                <Text style={styles.voucherMetaValue}>{userApplication?.selectedCategory || 'Rehabilitation Assignment'}</Text>
-              </View>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Worksite Location:</Text>
-                <Text style={styles.voucherMetaValue}>{'Barangay ' + (userApplication?.barangayCode || householdData?.barangayCode || '291')}</Text>
-              </View>
-              <View style={styles.voucherMetaRow}>
-                <Text style={styles.voucherMetaLabel}>Daily Wage Rate:</Text>
-                <Text style={[styles.voucherMetaValue, { color: '#15803D', fontWeight: '800' }]}>PHP 500.00 / day</Text>
-              </View>
-            </View>
 
-            <View style={styles.qrContainer}>
-              <QRCodeVisual
-                value={userApplication?.payoutVoucherCode || householdData?.qrCode || 'CFW-291-OFFICIAL-ATTENDANCE'}
-                size={170}
-                isCompact={false}
-              />
-              <Text style={styles.qrInstructions}>
-                {lang === 'tl'
-                  ? 'Ipakita ang QR Code na ito sa LGU Attendance Checker para sa Morning Time-In at Afternoon Time-Out.'
-                  : 'Present this QR Pass to the LGU Field Staff for daily Morning Time-In and Afternoon Time-Out.'}
-              </Text>
-            </View>
+              <View style={styles.qrContainerCompact}>
+                <QRCodeVisual
+                  value={userApplication?.payoutVoucherCode || householdData?.qrCode || 'CFW-291-OFFICIAL-ATTENDANCE'}
+                  size={140}
+                  isCompact={true}
+                />
+                <Text style={styles.qrInstructionsCompact}>
+                  {lang === 'tl'
+                    ? 'Ipakita ang QR Code na ito sa LGU Field Staff para sa Morning Time-In at Afternoon Time-Out.'
+                    : 'Present this QR Pass to the LGU Field Staff for daily Morning Time-In and Afternoon Time-Out.'}
+                </Text>
+              </View>
+            </ScrollView>
 
             <TouchableOpacity
               style={[styles.modalCloseBtn, { backgroundColor: '#1C3F94' }]}
               onPress={() => setShowAttendanceQrModal(false)}
+              activeOpacity={0.85}
             >
               <Text style={styles.modalCloseBtnText}>
                 {lang === 'tl' ? 'Isara ang QR Pass' : 'Close QR Pass'}
@@ -1206,33 +1318,48 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   voucherModalCard: {
     width: '100%',
     maxWidth: 360,
+    maxHeight: '90%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 18,
+    padding: 14,
     ...SHADOWS.card,
   },
   voucherHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  modalTopBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#EDF1FB',
+    gap: 4,
+  },
+  modalTopBackText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#1C3F94',
   },
   voucherGovKicker: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#1C3F94',
     letterSpacing: 0.8,
   },
   voucherMainTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
-    marginTop: 2,
+    marginTop: 1,
   },
   closeBtn: {
     width: 28,
@@ -1241,6 +1368,67 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F6FC',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalScrollArea: {
+    maxHeight: 440,
+  },
+  modalScrollContent: {
+    paddingVertical: 4,
+  },
+  voucherDetailsBoxCompact: {
+    backgroundColor: '#F3F6FC',
+    borderRadius: 10,
+    padding: 9,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    marginBottom: 8,
+  },
+  voucherMetaRowCompact: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  voucherMetaLabelCompact: {
+    fontSize: 11,
+    color: '#3D5070',
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 6,
+  },
+  voucherMetaValueCompact: {
+    fontSize: 11.5,
+    color: '#0B1525',
+    fontWeight: '700',
+    textAlign: 'right',
+    maxWidth: '65%',
+  },
+  voucherDividerCompact: {
+    height: 1,
+    backgroundColor: '#DDE4F0',
+    marginVertical: 5,
+  },
+  voucherTotalLabelCompact: {
+    fontSize: 11.5,
+    color: '#0F172A',
+    fontWeight: '700',
+  },
+  voucherTotalAmountCompact: {
+    fontSize: 14,
+    color: '#15803D',
+    fontWeight: '800',
+  },
+  qrContainerCompact: {
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  qrInstructionsCompact: {
+    fontSize: 10.5,
+    color: '#5A6E8C',
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 14,
+    paddingHorizontal: 10,
   },
   voucherDetailsBox: {
     backgroundColor: '#F3F6FC',
@@ -1306,5 +1494,46 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+
+  // ── ACTIVE DUTY & STEPPER COLOR STYLES ────────────────────────────
+  dayCirclePresent: {
+    backgroundColor: '#E6F6EF',
+    borderColor: '#0D8A5A',
+    borderWidth: 2,
+    shadowColor: '#0D8A5A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dayCircleNumPresent: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0D8A5A',
+  },
+  presentTodayTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E6F6EF',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    marginTop: 3,
+    alignSelf: 'flex-start',
+  },
+  presentTodayDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0D8A5A',
+    marginRight: 5,
+  },
+  presentTodayTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0D8A5A',
   },
 });

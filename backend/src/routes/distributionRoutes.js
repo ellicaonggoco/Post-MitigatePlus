@@ -11,9 +11,10 @@ const WarehouseItem = require('../models/WarehouseItem');
 const WarehouseLog = require('../models/WarehouseLog');
 const { protect, requireRole } = require('../middleware/auth');
 const { calculateReliefAllocation } = require('../utils/reliefAllocation');
+const { isStaffTeamMatch } = require('../utils/teamHelper');
 
 // @route   GET /api/distribution-events
-// @desc    Get distribution events (admins see all, barangay officials/residents see their barangay, field staff see active drives)
+// @desc    Get distribution events (admins see all, barangay officials/residents see their barangay, field staff see active drives for their team)
 router.get('/events', protect, async (req, res) => {
   try {
     let query = {};
@@ -26,21 +27,37 @@ router.get('/events', protect, async (req, res) => {
       const residentBrgy = hh?.barangayCode || req.user.barangayCode || '291';
       query.barangayCode = residentBrgy;
     } else if (req.user.role === 'field_staff') {
-      // Field staff see drives assigned to their team, their barangay, or any active/scheduled/completed drive
-      const staffConditions = [
-        { isActive: true },
-        { status: { $in: ['Ongoing', 'Scheduled', 'Completed'] } },
-      ];
-      if (req.user.teamName) {
-        staffConditions.push({ assignedTeam: req.user.teamName });
+      // Field staff ONLY see drives assigned to their specific team or user name
+      const userTeam = req.user.teamName || '';
+      const cleanTeam = userTeam.replace(/field\s*team\s*/i, '').trim();
+      const staffConditions = [];
+
+      if (cleanTeam) {
+        staffConditions.push({ assignedTeam: new RegExp(cleanTeam, 'i') });
+        staffConditions.push({ staffAssigned: new RegExp(cleanTeam, 'i') });
+      } else if (userTeam) {
+        staffConditions.push({ assignedTeam: userTeam });
+        staffConditions.push({ staffAssigned: userTeam });
       }
+
       if (req.user.name) {
-        staffConditions.push({ assignedTeam: { $regex: new RegExp(req.user.name, 'i') } });
+        const escapedName = req.user.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        staffConditions.push({ assignedTeam: new RegExp(escapedName, 'i') });
+        staffConditions.push({ staffAssigned: new RegExp(escapedName, 'i') });
       }
-      if (req.user.barangayCode) {
-        staffConditions.push({ barangayCode: req.user.barangayCode });
+
+      if (staffConditions.length > 0) {
+        if (req.user.barangayCode) {
+          query.$and = [
+            { $or: staffConditions },
+            { $or: [{ barangayCode: req.user.barangayCode }, { barangayCode: 'ALL' }, { barangayCode: null }] }
+          ];
+        } else {
+          query.$or = staffConditions;
+        }
+      } else if (req.user.barangayCode) {
+        query.barangayCode = req.user.barangayCode;
       }
-      query.$or = staffConditions;
     }
 
     // 2. Query parameter filters
@@ -91,6 +108,16 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
     const event = await DistributionEvent.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ message: 'Distribution event not found.' });
+    }
+
+    // Role guard for field staff: Can only start/complete/modify events assigned to their team
+    if (req.user.role === 'field_staff') {
+      const isTeamAllowed = isStaffTeamMatch(req.user.teamName, event.assignedTeam || event.staffAssigned, req.user.name);
+      if (!isTeamAllowed) {
+        return res.status(403).json({
+          message: `Babala: Ang relief drive na ito ay nakatalaga sa ${event.assignedTeam}. Tanging ang mga opisyal ng naka-assign na team ang maaaring magbago ng status nito.`,
+        });
+      }
     }
 
     if (assignedTeam || staffAssigned) {
@@ -467,6 +494,50 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       }
     }
     distributionEventId = event._id;
+
+    // TEAM-EVENT GATING: For field staff, ensure event is assigned to their team
+    if (req.user.role === 'field_staff' && event && event.assignedTeam) {
+      const isTeamAllowed = isStaffTeamMatch(req.user.teamName, event.assignedTeam || event.staffAssigned, req.user.name);
+      if (!isTeamAllowed) {
+        await AuditLog.create({
+          actorUserId: req.user._id,
+          actorRole: req.user.role,
+          action: 'TEAM_MISMATCH_CLAIM_BLOCKED',
+          targetType: 'DistributionEvent',
+          targetId: event._id.toString(),
+          notes: `BLOCKED: Team mismatch. Staff ${req.user.name || req.user.emailOrPhone} (${req.user.teamName}) attempted relief release for event "${event.title}" assigned to ${event.assignedTeam}.`,
+        });
+        return res.status(403).json({
+          teamMismatch: true,
+          message: `Babala: Ang relief distribution event na ito ay nakatalaga sa ${event.assignedTeam}. Ikaw ay kabilang sa ${req.user.teamName || 'ibang team'}. Bawal mag-release ng ayuda para sa event na nakatalaga sa ibang team.`,
+          eventTeam: event.assignedTeam,
+          staffTeam: req.user.teamName,
+        });
+      }
+    }
+
+    // SPECIAL ASSISTANCE GATING: If resident has an active special relief request assigned to another team/staff
+    const AssistanceRequest = require('../models/AssistanceRequest');
+    const activeAssistance = await AssistanceRequest.findOne({
+      householdId: household._id,
+      status: { $in: ['pending', 'approved', 'under_review', 'assigned'] },
+    }).populate('assignedStaff', 'name teamName');
+
+    if (activeAssistance && activeAssistance.assignedStaff && req.user.role === 'field_staff') {
+      const assignedStaffUser = activeAssistance.assignedStaff;
+      const assignedTeamName = assignedStaffUser.teamName || activeAssistance.assignedStaffName || '';
+      const isMatch = isStaffTeamMatch(req.user.teamName, assignedTeamName, req.user.name) ||
+        (assignedStaffUser._id && assignedStaffUser._id.toString() === req.user._id.toString());
+      if (!isMatch) {
+        return res.status(403).json({
+          teamMismatch: true,
+          isSpecialReliefMismatch: true,
+          message: `Babala: Ang relief delivery para sa residenteng ito ay nakatalaga kay ${activeAssistance.assignedStaffName || assignedStaffUser.name} (${assignedTeamName || 'Ibang Team'}). Bawal itong i-release ng ibang team.`,
+          assignedTeam: assignedTeamName,
+          staffTeam: req.user.teamName,
+        });
+      }
+    }
 
     // BARANGAY-EVENT GATING: Check if household's barangay matches event's barangay.
     if (event.barangayCode && household.barangayCode) {
