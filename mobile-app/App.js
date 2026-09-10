@@ -9,6 +9,8 @@ LogBox.ignoreLogs([
   'The <CameraView> component does not support children',
   'Require cycle:',
   'VirtualizedLists should never be nested',
+  'Cannot record touch end without a touch start',
+  'Ended a touch event which was not counted in trackedTouchCount',
 ]);
 
 import SplashScreen from './src/components/SplashScreen';
