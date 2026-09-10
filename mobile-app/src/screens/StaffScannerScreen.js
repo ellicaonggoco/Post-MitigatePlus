@@ -2140,7 +2140,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <TextInput
                   style={styles.textArea}
                   placeholder="Describe field conditions or incident at distribution site..."
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#334155"
                   value={incidentNotes}
                   onChangeText={setIncidentNotes}
                   multiline
@@ -3817,9 +3817,9 @@ const styles = StyleSheet.create({
     right: 0,
   },
   headerFlashBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -3844,9 +3844,9 @@ const styles = StyleSheet.create({
     maxWidth: 240,
   },
   scanModalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
