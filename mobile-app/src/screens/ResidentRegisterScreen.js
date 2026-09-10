@@ -118,7 +118,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   // Step 2: Address & Household composition
   const [selectedBrgyCode, setSelectedBrgyCode] = useState('291');
   const [address, setAddress] = useState('');
-  const [purok, setPurok] = useState('Purok 3');
+  const [purok, setPurok] = useState('');
   const [showBrgyList, setShowBrgyList] = useState(false);
   const [brgySearch, setBrgySearch] = useState('');
 
