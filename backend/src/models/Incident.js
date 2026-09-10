@@ -32,6 +32,7 @@ const incidentSchema = new mongoose.Schema({
     idPresented: { type: String, default: '' },
     evacSite: { type: String, default: '' },
     evacueesCount: { type: Number, default: 0 },
+    voucherCode: { type: String, default: '' },
   },
   resolvedAt: { type: Date, default: null },
   resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

@@ -53,6 +53,7 @@ import {
 } from '../services/api';
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import QRCodeVisual from '../components/QRCodeVisual';
 
 const BARCODE_SCANNER_SETTINGS = {
   barcodeTypes: ['qr'],
@@ -369,6 +370,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [myIncidentsList, setMyIncidentsList] = useState([]);
   const [loadingMyIncidents, setLoadingMyIncidents] = useState(false);
   const [incidentHistoryPage, setIncidentHistoryPage] = useState(1);
+  const [selectedVoucherIncident, setSelectedVoucherIncident] = useState(null);
   const INCIDENTS_PER_PAGE = 4;
 
   const fetchMyIncidents = async () => {
@@ -2085,6 +2087,28 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   <Text style={{ fontSize: 12, color: '#14532D', fontWeight: '600', lineHeight: 17 }}>
                                     {inc.resolutionNotes}
                                   </Text>
+                                  {(inc.resolutionDetails?.voucherCode || (inc.resolutionNotes && inc.resolutionNotes.includes('Voucher:'))) && (
+                                    <TouchableOpacity
+                                      onPress={() => setSelectedVoucherIncident(inc)}
+                                      style={{
+                                        marginTop: 8,
+                                        backgroundColor: '#1C3F94',
+                                        borderRadius: 8,
+                                        paddingVertical: 7,
+                                        paddingHorizontal: 10,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 6,
+                                      }}
+                                      activeOpacity={0.85}
+                                    >
+                                      <QrCodeIcon size={14} color="#FFFFFF" />
+                                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>
+                                        View Digital Gate Pass & Voucher
+                                      </Text>
+                                    </TouchableOpacity>
+                                  )}
                                 </View>
                               ) : isAck ? (
                                 <View style={{
@@ -2819,6 +2843,152 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      {/* ── DIGITAL AUTHORIZATION VOUCHER / GATE PASS MODAL ── */}
+      <Modal
+        visible={!!selectedVoucherIncident}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedVoucherIncident(null)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 16,
+        }}>
+          {selectedVoucherIncident && (() => {
+            const details = selectedVoucherIncident.resolutionDetails || {};
+            const vCode = details.voucherCode || (selectedVoucherIncident.resolutionNotes?.match(/Voucher(?:\s*Ref)?:\s*([A-Z0-9-]+)/i)?.[1]) || `VCH-${selectedVoucherIncident.barangayCode || dutyBrgy}-${String(selectedVoucherIncident._id).slice(-6).toUpperCase()}`;
+
+            return (
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 20,
+                width: '100%',
+                maxWidth: 380,
+                padding: 20,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.25,
+                shadowRadius: 20,
+                elevation: 10,
+                alignItems: 'center',
+              }}>
+                {/* Gold Top Accent Line */}
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 20,
+                  right: 20,
+                  height: 3,
+                  backgroundColor: '#C9A84C',
+                  borderTopLeftRadius: 10,
+                  borderTopRightRadius: 10,
+                }} />
+
+                {/* Header Tag */}
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 4 }}>
+                  LGU Manila MDRRMO • Official Gate Pass
+                </Text>
+
+                <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', marginTop: 2, textAlign: 'center' }}>
+                  Emergency Stock Release Voucher
+                </Text>
+
+                {/* QR Code container */}
+                <View style={{
+                  marginTop: 14,
+                  padding: 12,
+                  backgroundColor: '#F8FAFC',
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: '#CBD5E1',
+                  alignItems: 'center',
+                }}>
+                  <QRCodeVisual value={vCode} size={150} lang={lang} isCompact />
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#1C3F94', letterSpacing: 1, marginTop: 8, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                    {vCode}
+                  </Text>
+                </View>
+
+                {/* Information Table Box */}
+                <View style={{
+                  width: '100%',
+                  marginTop: 14,
+                  backgroundColor: '#F1F5F9',
+                  borderRadius: 10,
+                  padding: 10,
+                  gap: 6,
+                }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Collector:</Text>
+                    <Text style={{ fontSize: 11, color: '#0F172A', fontWeight: '700' }}>
+                      {selectedVoucherIncident.reportedBy?.name || officerName}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Authorized Item:</Text>
+                    <Text style={{ fontSize: 11, color: '#0F172A', fontWeight: '700' }}>
+                      {details.itemType || 'Family Food Packs'}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Approved Quantity:</Text>
+                    <Text style={{ fontSize: 12, color: '#059669', fontWeight: '900' }}>
+                      {details.quantity || 50} Packs / Units
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Pickup Location:</Text>
+                    <Text style={{ fontSize: 10.5, color: '#1C3F94', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 }}>
+                      {details.sourceLocation || 'City Hall Disaster Office'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Instruction note */}
+                <View style={{
+                  marginTop: 10,
+                  padding: 8,
+                  backgroundColor: '#ECFDF5',
+                  borderRadius: 8,
+                  borderLeftWidth: 3,
+                  borderLeftColor: '#059669',
+                  width: '100%',
+                }}>
+                  <Text style={{ fontSize: 11, color: '#14532D', lineHeight: 15 }}>
+                    Ipakita ang digital voucher na ito sa Warehouse Custodian o City Hall Guard upang ma-claim ang stocks.
+                  </Text>
+                </View>
+
+                {/* Close Button */}
+                <TouchableOpacity
+                  onPress={() => setSelectedVoucherIncident(null)}
+                  style={{
+                    marginTop: 14,
+                    width: '100%',
+                    backgroundColor: '#1C3F94',
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800' }}>
+                    Close Gate Pass
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })()}
         </View>
       </Modal>
     </View>

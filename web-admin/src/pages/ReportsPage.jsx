@@ -246,11 +246,124 @@ export default function ReportsPage() {
     }
   };
 
+  const handlePrintVoucher = (inc) => {
+    const details = inc.resolutionDetails || {};
+    const vCode = details.voucherCode || `VCH-${inc.barangayCode || '291'}-${String(inc._id).slice(-6).toUpperCase()}`;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Popup blocker prevented opening voucher. Please allow popups.');
+      return;
+    }
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>LGU Manila - Stock Requisition & Gate Pass Voucher (${vCode})</title>
+        <style>
+          body { font-family: 'Arial', sans-serif; padding: 30px; color: #0F172A; max-width: 750px; margin: 0 auto; }
+          .header { text-align: center; border-bottom: 2px solid #1C3F94; padding-bottom: 16px; margin-bottom: 20px; }
+          .city-seal { font-size: 13px; font-weight: bold; color: #C8102E; text-transform: uppercase; letter-spacing: 1px; }
+          .dept-title { font-size: 16px; font-weight: bold; color: #1C3F94; margin: 4px 0; }
+          .doc-title { font-size: 20px; font-weight: 900; color: #0F172A; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .voucher-box { border: 2px dashed #1C3F94; background: #F8FAFC; border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: center; }
+          .voucher-label { font-size: 11px; font-weight: bold; color: #64748B; text-transform: uppercase; }
+          .voucher-code { font-size: 28px; font-weight: 900; color: #1C3F94; letter-spacing: 2px; margin: 4px 0; font-family: monospace; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #CBD5E1; padding: 10px 14px; font-size: 13px; text-align: left; }
+          th { background: #F1F5F9; font-weight: bold; width: 35%; color: #334155; }
+          .instructions-box { background: #ECFDF5; border-left: 4px solid #059669; padding: 12px 16px; font-size: 13px; margin-bottom: 25px; border-radius: 0 8px 8px 0; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; }
+          .sig-line { border-top: 1px solid #000; text-align: center; padding-top: 6px; font-size: 12px; }
+          .footer { margin-top: 25px; font-size: 11px; color: #64748B; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="city-seal">Republika ng Pilipinas • Lungsod ng Maynila</div>
+          <div class="dept-title">Disaster Risk Reduction and Management Office (MDRRMO)</div>
+          <div class="doc-title">Emergency Stock Requisition & Gate Pass Voucher</div>
+          <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Incident Ref #${inc._id} • Authorized for Relief Mobilization</div>
+        </div>
+
+        <div class="voucher-box">
+          <div class="voucher-label">Official Warehouse Authorization Voucher Number</div>
+          <div class="voucher-code">${vCode}</div>
+          <div style="font-size: 12px; color: #059669; font-weight: bold;">Status: AUTHORIZED & VALID FOR WAREHOUSE RELEASE</div>
+        </div>
+
+        <table>
+          <tr>
+            <th>Authorized Collector / Officer</th>
+            <td><strong>${inc.reportedBy?.name || 'Field Officer Cruz'}</strong> (${inc.reportedBy?.teamName || 'MDRRMO Field Operations'})</td>
+          </tr>
+          <tr>
+            <th>Destination Barangay / Post</th>
+            <td>Barangay ${inc.barangayCode || '291'} Evacuation & Distribution Command Post</td>
+          </tr>
+          <tr>
+            <th>Approved Relief Supply Item</th>
+            <td><strong>${details.itemType || 'Family Food Packs (FFP)'}</strong></td>
+          </tr>
+          <tr>
+            <th>Authorized Release Quantity</th>
+            <td style="font-size: 16px; font-weight: bold; color: #1C3F94;">${details.quantity || 50} Units / Packs</td>
+          </tr>
+          <tr>
+            <th>Warehouse / Pickup Facility</th>
+            <td><strong>${details.sourceLocation || 'Manila City Hall Disaster Management Office (Room 102)'}</strong></td>
+          </tr>
+          <tr>
+            <th>Release Method</th>
+            <td>${details.dispatchMethod || 'Staff Office Pickup with Voucher'}</td>
+          </tr>
+          <tr>
+            <th>Date & Time Authorized</th>
+            <td>${new Date().toLocaleString()}</td>
+          </tr>
+        </table>
+
+        <div class="instructions-box">
+          <strong>Official Directive for Warehouse Keeper / Gate Guard:</strong><br/>
+          ${inc.resolutionNotes || 'Please release the requested relief stocks immediately upon presentation of this voucher.'}
+        </div>
+
+        <div class="signatures">
+          <div>
+            <div style="height: 40px;"></div>
+            <div class="sig-line">
+              <strong>${inc.reportedBy?.name || 'Authorized Field Staff'}</strong><br/>
+              Receiving Officer / Field Collector
+            </div>
+          </div>
+          <div>
+            <div style="height: 40px;"></div>
+            <div class="sig-line">
+              <strong>LGU MDRRMO Administrator</strong><br/>
+              Approving Authority • City of Manila
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          Notice: This voucher is an official government audit instrument. Counterfeiting or unauthorized alterations are punishable by law.
+        </div>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 400);
+  };
+
   const handleConfirmResolve = async () => {
     if (!resolvingIncident) return;
     setSubmittingResolution(true);
     try {
       const cat = (resolvingIncident.incidentType || '').toLowerCase();
+      const generatedVoucherCode = `VCH-${resolvingIncident.barangayCode || '291'}-${Date.now().toString().slice(-6)}`;
       let compiledDirective = '';
       const structuredDetails = {
         actionType: resActionType,
@@ -263,22 +376,23 @@ export default function ReportsPage() {
         idPresented: resIdPresented,
         evacSite: resEvacSite,
         evacueesCount: Number(resEvacueesCount) || 0,
+        voucherCode: generatedVoucherCode,
       };
 
       if (cat.includes('shortage') || cat.includes('stock')) {
         if (resActionType === 'office_pickup') {
-          compiledDirective = `[KUMUHA SA OFFICE / WAREHOUSE] Kumuha ng ${resQuantity} ${resItemType} sa ${resLocation}. Paraan: ${resDispatchMethod}. Instruksyon: ${resolutionRemarks.trim()}`;
+          compiledDirective = `[KUMUHA SA OFFICE / WAREHOUSE] Voucher: ${generatedVoucherCode}. Kumuha ng ${resQuantity} ${resItemType} sa ${resLocation}. Paraan: ${resDispatchMethod}. Instruksyon: ${resolutionRemarks.trim()}`;
         } else if (resActionType === 'truck_dispatch') {
-          compiledDirective = `[LOGISTICS TRUCK DISPATCHED] Nagpadala ng ${resQuantity} ${resItemType} mula ${resLocation}. Instruksyon: ${resolutionRemarks.trim()}`;
+          compiledDirective = `[LOGISTICS TRUCK DISPATCHED] Voucher: ${generatedVoucherCode}. Nagpadala ng ${resQuantity} ${resItemType} mula ${resLocation}. Instruksyon: ${resolutionRemarks.trim()}`;
         } else {
-          compiledDirective = `[BUFFER STOCK TRANSFER] Naglipat ng ${resQuantity} ${resItemType} mula sa kalapit na post. Instruksyon: ${resolutionRemarks.trim()}`;
+          compiledDirective = `[BUFFER STOCK TRANSFER] Voucher: ${generatedVoucherCode}. Naglipat ng ${resQuantity} ${resItemType} mula sa kalapit na post. Instruksyon: ${resolutionRemarks.trim()}`;
         }
       } else if (cat.includes('lost') || cat.includes('pass') || cat.includes('qr') || cat.includes('duplicate') || cat.includes('unregistered')) {
-        compiledDirective = `[MANUAL VERIFICATION RESOLVED] Resident: ${resBeneficiaryName || 'Beneficiary'} (Verified via ${resIdPresented}). Emergency Pass Clearance naibigay. Instruksyon: ${resolutionRemarks.trim()}`;
+        compiledDirective = `[MANUAL VERIFICATION RESOLVED] Voucher: ${generatedVoucherCode}. Resident: ${resBeneficiaryName || 'Beneficiary'} (Verified via ${resIdPresented}). Emergency Pass Clearance naibigay. Instruksyon: ${resolutionRemarks.trim()}`;
       } else if (cat.includes('evac') || cat.includes('emergency') || cat.includes('hazard')) {
-        compiledDirective = `[EVACUATION FACILITY ACTIVATED] Evac Center: ${resEvacSite} (${resEvacueesCount} families). Unit: ${resPersonnel || 'MDRRMO Rescue'}. Instruksyon: ${resolutionRemarks.trim()}`;
+        compiledDirective = `[EVACUATION FACILITY ACTIVATED] Voucher: ${generatedVoucherCode}. Evac Center: ${resEvacSite} (${resEvacueesCount} families). Unit: ${resPersonnel || 'MDRRMO Rescue'}. Instruksyon: ${resolutionRemarks.trim()}`;
       } else {
-        compiledDirective = `[LGU DIRECTIVE ISSUED] ${resolutionRemarks.trim() || 'Aksyon naisagawa at verified ng Command Center.'}`;
+        compiledDirective = `[LGU DIRECTIVE ISSUED] Voucher: ${generatedVoucherCode}. ${resolutionRemarks.trim() || 'Aksyon naisagawa at verified ng Command Center.'}`;
       }
 
       const res = await fetch(`${API_BASE_URL}/incidents/${resolvingIncident._id}`, {
@@ -1212,9 +1326,19 @@ export default function ReportsPage() {
                               )}
 
                               {inc.status === 'resolved' && (
-                                <span style={{ fontSize: 12, fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  <Check size={14} /> Settled
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <Check size={14} /> Settled
+                                  </span>
+                                  <button
+                                    onClick={() => handlePrintVoucher(inc)}
+                                    className="clay-button-secondary"
+                                    style={{ padding: '4px 8px', fontSize: '10.5px', gap: 4, borderColor: '#3B82F6', color: '#1D4ED8', display: 'flex', alignItems: 'center' }}
+                                    title="Print / Save Official Authorization Voucher"
+                                  >
+                                    <Printer size={12} /> Voucher
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </td>
