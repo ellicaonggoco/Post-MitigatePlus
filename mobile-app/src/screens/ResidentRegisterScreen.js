@@ -609,6 +609,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             style={styles.backBtn}
             onPress={step === 2 ? () => setStep(1) : onBack}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={step === 2 ? (lang === 'tl' ? 'Bumalik sa Hakbang 1' : 'Back to Step 1') : (lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In')}
+            accessibilityHint="Double tap to navigate back"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <View style={styles.backIconCircle}>
               <ArrowLeftIcon size={14} color="#C8102E" />
@@ -700,6 +704,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                           setHeadAge('60');
                         }
                       }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${c.label.trim()}, ${c.sub}`}
+                      accessibilityState={{ selected: headCondition === c.id }}
                     >
                       <Text style={[styles.conditionChipTitle, headCondition === c.id && styles.conditionChipTitleActive]}>
                         {c.label}
@@ -761,6 +768,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   style={styles.dropdownSelectorBtn}
                   onPress={() => setShowIdTypeModal(true)}
                   activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${lang === 'tl' ? 'Piliin ang Uri ng Valid ID. Kasalukuyang napili:' : 'Select Valid ID Type. Currently selected:'} ${idType}`}
                 >
                   <Text style={styles.dropdownSelectedText} numberOfLines={1}>
                     {idType}
@@ -804,18 +813,36 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <Text style={styles.idPreviewSuccessText}>{lang === 'tl' ? 'Nai-upload ang ID' : 'ID Photo Attached'}</Text>
                       <Text style={styles.idPreviewFileName} numberOfLines={1}>{idPhotoName || 'valid_id.jpg'}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => setIdPhoto(null)} style={styles.idRemoveBtn}>
+                    <TouchableOpacity
+                      onPress={() => setIdPhoto(null)}
+                      style={styles.idRemoveBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel={lang === 'tl' ? 'Alisin ang litrato ng ID' : 'Remove ID photo'}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
                       <TrashIcon size={13} color="#DC2626" />
                       <Text style={styles.idRemoveBtnText}>{lang === 'tl' ? 'Alisin' : 'Remove'}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={styles.idUploadBtnRow}>
-                    <TouchableOpacity style={styles.idCameraBtn} onPress={handlePickIdFromCamera} activeOpacity={0.85}>
+                    <TouchableOpacity
+                      style={styles.idCameraBtn}
+                      onPress={handlePickIdFromCamera}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={lang === 'tl' ? 'Kumuha ng litrato ng ID gamit ang Camera' : 'Take photo of ID using Camera'}
+                    >
                       <CameraIcon size={20} color="#1C3F94" />
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Kumuha sa Camera' : 'Take with Camera'}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.idGalleryBtn} onPress={handlePickIdFromLibrary} activeOpacity={0.85}>
+                    <TouchableOpacity
+                      style={styles.idGalleryBtn}
+                      onPress={handlePickIdFromLibrary}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={lang === 'tl' ? 'Pumili ng litrato ng ID mula sa Gallery' : 'Choose photo of ID from Gallery'}
+                    >
                       <ImageIcon size={20} color="#3D5070" />
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Pumili sa Gallery' : 'Choose from Gallery'}</Text>
                     </TouchableOpacity>
@@ -832,6 +859,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   if (validateStep1()) setStep(2);
                 }}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Magpatuloy sa Talaan ng Pamilya (Hakbang 2)' : 'Continue to Family Roster (Step 2)'}
               >
                 <Text style={styles.submitBtnText}>
                   {lang === 'tl' ? 'Magpatuloy sa Talaan ng Pamilya (Hakbang 2)' : 'Continue to Family Roster (Step 2)'}
@@ -861,6 +890,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   style={styles.brgySelectorBtn}
                   onPress={() => setShowBrgyList(!showBrgyList)}
                   activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${lang === 'tl' ? 'Pumili ng Barangay. Kasalukuyang napili:' : 'Select Barangay. Currently selected:'} ${selectedBrgyObj.name}`}
+                  accessibilityState={{ expanded: showBrgyList }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, paddingRight: 6 }}>
                     <MapPinIcon size={16} color="#1C3F94" />
@@ -882,13 +915,19 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <TextInput
                         style={styles.brgySearchInput}
                         placeholder={lang === 'tl' ? 'I-type ang barangay number o distrito (hal. 291)...' : 'Type barangay number or district (e.g. 291)...'}
-                        placeholderTextColor="#8A9BB8"
+                        placeholderTextColor="#54657E"
                         value={brgySearch}
                         onChangeText={setBrgySearch}
                         autoFocus
+                        accessibilityLabel={lang === 'tl' ? 'Maghanap ng Barangay' : 'Search Barangay'}
                       />
                       {brgySearch.length > 0 && (
-                        <TouchableOpacity onPress={() => setBrgySearch('')}>
+                        <TouchableOpacity
+                          onPress={() => setBrgySearch('')}
+                          accessibilityRole="button"
+                          accessibilityLabel={lang === 'tl' ? 'Burahin ang paghahanap' : 'Clear search'}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
                           <CloseIcon size={14} color="#3D5070" />
                         </TouchableOpacity>
                       )}
@@ -968,6 +1007,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     setShowAddMemberModal(true);
                   }}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'tl' ? 'Magdagdag ng Miyembro ng Pamilya' : 'Add Household Member'}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Text style={styles.addMemberBtnText}>{lang === 'tl' ? '+ Magdagdag ng Miyembro' : '+ Add Member'}</Text>
                 </TouchableOpacity>
@@ -993,6 +1035,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                         <TouchableOpacity
                           onPress={() => setMembersList(membersList.filter(item => item.id !== m.id))}
                           style={styles.deleteMemberBtn}
+                          accessibilityRole="button"
+                          accessibilityLabel={lang === 'tl' ? `Alisin si ${m.name}` : `Remove ${m.name}`}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                           <TrashIcon size={14} color="#DC2626" />
                         </TouchableOpacity>
@@ -1006,6 +1051,12 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 style={styles.certRow}
                 onPress={() => setCertified(!certified)}
                 activeOpacity={0.8}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: certified }}
+                accessibilityLabel={lang === 'tl'
+                  ? 'Pinatutunayan ko na ang lahat ng impormasyon ay totoo at tumpak.'
+                  : 'I certify that all information stated above is accurate and truthful.'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <View style={[styles.checkbox, certified && styles.checkboxActive]}>
                   {certified && <CheckIcon size={12} color="#FFFFFF" />}
@@ -1021,6 +1072,12 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 style={[styles.certRow, { marginTop: 10 }]}
                 onPress={() => setAgreedTerms(!agreedTerms)}
                 activeOpacity={0.8}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: agreedTerms }}
+                accessibilityLabel={lang === 'tl'
+                  ? 'Sumasang-ayon ako sa Mga Tuntunin at Kundisyon at Patakaran sa Privacy ng Lungsod ng Maynila.'
+                  : 'I agree to the Terms and Conditions and City of Manila Data Privacy Policy.'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <View style={[styles.checkbox, agreedTerms && styles.checkboxActive]}>
                   {agreedTerms && <CheckIcon size={12} color="#FFFFFF" />}
@@ -1032,6 +1089,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <Text
                         style={{ color: '#1C3F94', fontWeight: '800', textDecorationLine: 'underline' }}
                         onPress={() => setShowTermsModal(true)}
+                        accessibilityRole="link"
                       >
                         Mga Tuntunin at Kundisyon (Terms & Conditions)
                       </Text>{' '}
@@ -1043,6 +1101,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <Text
                         style={{ color: '#1C3F94', fontWeight: '800', textDecorationLine: 'underline' }}
                         onPress={() => setShowTermsModal(true)}
+                        accessibilityRole="link"
                       >
                         Terms and Conditions
                       </Text>{' '}
@@ -1057,6 +1116,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 onPress={handleInitiateRegistration}
                 disabled={loading}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'I-submit ang Pagpaparehistro' : 'Submit Household Registration'}
+                accessibilityState={{ disabled: loading, busy: loading }}
               >
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -1129,15 +1191,19 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             <TouchableOpacity
               style={{
                 backgroundColor: '#1C3F94',
-                paddingVertical: 12,
+                paddingVertical: 14,
+                minHeight: 48,
                 borderRadius: 10,
                 alignItems: 'center',
+                justifyContent: 'center',
                 marginTop: 10,
               }}
               onPress={() => {
                 setAgreedTerms(true);
                 setShowTermsModal(false);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Nauunawaan Ko at Sumasang-ayon' : 'I Understand & Agree'}
             >
               <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
                 {lang === 'tl' ? 'Nauunawaan Ko at Sumasang-ayon' : 'I Understand & Agree'}
@@ -1160,7 +1226,13 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               <Text style={[styles.idModalTitle, { flex: 1, paddingRight: 8 }]}>
                 {lang === 'tl' ? 'Pumili ng Uri ng Valid ID' : 'Select Valid ID Type'}
               </Text>
-              <TouchableOpacity onPress={() => setShowIdTypeModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+              <TouchableOpacity
+                onPress={() => setShowIdTypeModal(false)}
+                style={{ flexShrink: 0, padding: 6, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang pagpili ng ID' : 'Close ID selection'}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
@@ -1173,6 +1245,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     setIdType(idItem);
                     setShowIdTypeModal(false);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={idItem}
+                  accessibilityState={{ selected: idType === idItem }}
                 >
                   <Text style={[styles.idOptionText, idType === idItem && styles.idOptionTextActive]}>
                     {idItem}
@@ -1201,7 +1276,13 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               <Text style={[styles.idModalTitle, { flex: 1, paddingRight: 8 }]}>
                 {lang === 'tl' ? 'Magdagdag ng Miyembro ng Pamilya' : 'Add Household Member'}
               </Text>
-              <TouchableOpacity onPress={() => setShowAddMemberModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+              <TouchableOpacity
+                onPress={() => setShowAddMemberModal(false)}
+                style={{ flexShrink: 0, padding: 6, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang pagdagdag ng miyembro' : 'Close add member'}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
@@ -1236,6 +1317,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                         setNewMemberAge('60');
                       }
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${c.label.trim()}, ${c.sub}`}
+                    accessibilityState={{ selected: newMemberCondition === c.id }}
                   >
                     <Text style={[styles.conditionChipTitle, newMemberCondition === c.id && styles.conditionChipTitleActive]}>
                       {c.label}
@@ -1286,6 +1370,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                     key={rel}
                     style={[styles.relChip, newMemberRel === rel && styles.relChipActive]}
                     onPress={() => setNewMemberRel(rel)}
+                    accessibilityRole="button"
+                    accessibilityLabel={rel}
+                    accessibilityState={{ selected: newMemberRel === rel }}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                   >
                     <Text style={[styles.relChipText, newMemberRel === rel && styles.relChipTextActive]}>
                       {rel}
@@ -1295,10 +1383,20 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </View>
 
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-                <TouchableOpacity style={styles.cancelAddBtn} onPress={() => setShowAddMemberModal(false)}>
+                <TouchableOpacity
+                  style={styles.cancelAddBtn}
+                  onPress={() => setShowAddMemberModal(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'tl' ? 'Kanselahin ang pagdagdag' : 'Cancel add member'}
+                >
                   <Text style={styles.cancelAddBtnText}>{lang === 'tl' ? 'Kanselahin' : 'Cancel'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmAddBtn} onPress={handleAddMember}>
+                <TouchableOpacity
+                  style={styles.confirmAddBtn}
+                  onPress={handleAddMember}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'tl' ? 'I-save ang Miyembro' : 'Save Member'}
+                >
                   <Text style={styles.confirmAddBtnText}>{lang === 'tl' ? '+ I-save ang Miyembro' : '+ Save Member'}</Text>
                 </TouchableOpacity>
               </View>
@@ -1352,6 +1450,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       }
                     }}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'I-auto fill ang verification code' : 'Auto-fill verification code'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Text style={styles.autoFillBtnText}>
                       {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
@@ -1409,6 +1510,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   maxLength={6}
                   textAlign="center"
                   selectTextOnFocus
+                  accessibilityLabel={lang === 'tl' ? `Numero ${idx + 1} ng 6-digit code` : `Digit ${idx + 1} of 6`}
                 />
               ))}
             </View>
@@ -1424,7 +1526,14 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
             {/* RESEND TIMER & ACTION */}
             <View style={styles.otpResendRow}>
               {canResend ? (
-                <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading}>
+                <TouchableOpacity
+                  onPress={handleResendOtp}
+                  disabled={otpLoading}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'tl' ? 'Magpadala Muli ng Verification Code' : 'Resend Verification Code'}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  style={{ minHeight: 48, justifyContent: 'center' }}
+                >
                   <Text style={styles.otpResendActiveText}>
                     {lang === 'tl' ? ' Magpadala Muli ng Code' : ' Resend Verification Code'}
                   </Text>
@@ -1445,6 +1554,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 onPress={handleVerifyOtpAndComplete}
                 disabled={otpLoading}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'I-verify at Tapusin ang Rehistrasyon' : 'Verify and Complete Registration'}
+                accessibilityState={{ disabled: otpLoading, busy: otpLoading }}
               >
                 {otpLoading ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -1459,6 +1571,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 style={styles.cancelOtpBtn}
                 onPress={() => setShowOtpModal(false)}
                 disabled={otpLoading}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Kanselahin ang OTP at Baguhin ang Numero' : 'Cancel OTP and Change Number'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text style={styles.cancelOtpBtnText}>
                   {lang === 'tl' ? 'Kanselahin / Baguhin ang Numero' : 'Cancel / Change Number'}
@@ -1499,8 +1614,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#DDE4F0',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
     borderRadius: 9999,
     marginBottom: 12,
     ...(Platform.OS === 'web' ? {
@@ -1563,7 +1679,7 @@ const styles = StyleSheet.create({
   stepSegmentText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#8A9BB8',
+    color: '#475569',
   },
   stepSegmentTextActive: {
     color: '#C8102E',
@@ -1623,6 +1739,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    minHeight: 52,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -1656,6 +1773,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    minHeight: 52,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -1758,8 +1876,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF0F2',
     borderWidth: 1,
     borderColor: '#FECDD3',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: 'center',
     borderRadius: 8,
   },
   addMemberBtnText: {
@@ -1793,7 +1913,11 @@ const styles = StyleSheet.create({
     color: '#3D5070',
   },
   deleteMemberBtn: {
-    padding: 6,
+    padding: 10,
+    minHeight: 48,
+    minWidth: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeSenior: {
     fontSize: 9.5,
@@ -1861,6 +1985,8 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: '#C8102E',
     borderRadius: 12,
+    height: 52,
+    minHeight: 52,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1959,6 +2085,7 @@ const styles = StyleSheet.create({
     borderColor: '#D6DEFA',
     borderRadius: 10,
     paddingVertical: 12,
+    minHeight: 48,
   },
   idGalleryBtn: {
     flex: 1,
@@ -1971,6 +2098,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     borderRadius: 10,
     paddingVertical: 12,
+    minHeight: 48,
   },
   idBtnMainText: {
     fontSize: 12,
@@ -2097,6 +2225,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     borderRadius: 8,
     padding: 8,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   conditionChipActive: {
     backgroundColor: '#FEF0F2',
@@ -2147,7 +2277,9 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     borderRadius: 6,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    minHeight: 40,
+    justifyContent: 'center',
   },
   relChipActive: {
     backgroundColor: '#C8102E',
@@ -2167,6 +2299,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F6FC',
     borderRadius: 8,
     paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   cancelAddBtnText: {
@@ -2179,6 +2313,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8102E',
     borderRadius: 8,
     paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   confirmAddBtnText: {
@@ -2279,8 +2415,10 @@ const styles = StyleSheet.create({
   },
   autoFillBtn: {
     backgroundColor: '#16A34A',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 48,
+    justifyContent: 'center',
     borderRadius: 8,
   },
   autoFillBtnText: {
@@ -2367,6 +2505,8 @@ const styles = StyleSheet.create({
   verifyOtpBtn: {
     backgroundColor: '#C8102E',
     paddingVertical: 14,
+    minHeight: 52,
+    height: 52,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -2386,7 +2526,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   cancelOtpBtn: {
-    paddingVertical: 10,
+    paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   cancelOtpBtnText: {
