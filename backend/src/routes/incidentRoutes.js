@@ -66,6 +66,12 @@ router.get('/', protect, requireRole('field_staff', 'barangay_official', 'lgu_ad
       query.barangayCode = req.query.barangayCode;
     }
 
+    if (req.query.reportedBy === 'me' || req.query.myReports === 'true') {
+      query.reportedBy = req.user._id;
+    } else if (req.query.reportedBy) {
+      query.reportedBy = req.query.reportedBy;
+    }
+
     if (req.query.status && req.query.status !== 'all') {
       query.status = req.query.status;
     }
@@ -88,10 +94,10 @@ router.get('/', protect, requireRole('field_staff', 'barangay_official', 'lgu_ad
 });
 
 // @route   PATCH /api/incidents/:id
-// @desc    Update incident status (open -> acknowledged -> resolved) & resolution notes
+// @desc    Update incident status (open -> acknowledged -> resolved), resolution notes & structured details
 router.patch('/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
-    const { status, resolutionNotes } = req.body;
+    const { status, resolutionNotes, resolutionDetails } = req.body;
     const incident = await Incident.findById(req.params.id);
     if (!incident) {
       return res.status(404).json({ message: 'Incident not found' });
@@ -99,6 +105,12 @@ router.patch('/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu
 
     if (status) incident.status = status;
     if (resolutionNotes !== undefined) incident.resolutionNotes = resolutionNotes;
+    if (resolutionDetails !== undefined) {
+      incident.resolutionDetails = {
+        ...(incident.resolutionDetails?.toObject?.() || {}),
+        ...resolutionDetails,
+      };
+    }
     if (status === 'resolved') {
       incident.resolvedAt = new Date();
       incident.resolvedBy = req.user._id;

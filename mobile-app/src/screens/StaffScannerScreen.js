@@ -365,6 +365,39 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [incidentNotes, setIncidentNotes] = useState('');
   const [submittingIncident, setSubmittingIncident] = useState(false);
   const [incidentSuccess, setIncidentSuccess] = useState(false);
+  const [incidentSubTab, setIncidentSubTab] = useState('new'); // 'new' | 'history'
+  const [myIncidentsList, setMyIncidentsList] = useState([]);
+  const [loadingMyIncidents, setLoadingMyIncidents] = useState(false);
+  const [incidentHistoryPage, setIncidentHistoryPage] = useState(1);
+  const INCIDENTS_PER_PAGE = 4;
+
+  const fetchMyIncidents = async () => {
+    try {
+      setLoadingMyIncidents(true);
+      const storedToken = token || (await AsyncStorage.getItem('mitigateplus_token')) || (await AsyncStorage.getItem('token'));
+      const res = await fetch(`${API_BASE_URL}/incidents?barangayCode=${dutyBrgy}`, {
+        headers: {
+          ...(storedToken ? { Authorization: 'Bearer ' + storedToken } : {}),
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setMyIncidentsList(data);
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching staff incident history:', e);
+    } finally {
+      setLoadingMyIncidents(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'incident') {
+      fetchMyIncidents();
+    }
+  }, [activeTab, dutyBrgy]);
 
   // Statistics counters
   const [scansTodayCount, setScansTodayCount] = useState(0);
@@ -401,51 +434,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     }
   }, [activeTab, scanMode, dutyBrgy]);
 
-  const handleUpdateDesignation = async (newDesignation) => {
-    try {
-      const updated = { ...currentUser, staffDesignation: newDesignation };
-      setCurrentUser(updated);
-      await AsyncStorage.setItem('mitigateplus_user_designation', newDesignation);
-      if (token) {
-        await fetch(`${API_BASE_URL}/auth/my-designation`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: 'Bearer ' + token,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ staffDesignation: newDesignation }),
-        });
-      }
-      Alert.alert(
-        'Designation Updated',
-        newDesignation === 'team_leader'
-          ? 'Switched to Team Leader. You can now start and finalize distribution drives for your team.'
-          : 'Switched to Field Officer. Start distribution buttons will be disabled/locked.'
-      );
-    } catch (e) {
-      console.warn('Update designation error:', e);
-    }
+  // Designation and team assignments are strictly provisioned by Admin
+  const handleUpdateDesignation = () => {
+    Alert.alert('Administrative Access Only', 'Staff roles and field designations are strictly provisioned by LGU MDRRMO Command Center Administrators.');
   };
 
-  const handleUpdateTeam = async (newTeam) => {
-    try {
-      const updated = { ...currentUser, teamName: newTeam };
-      setCurrentUser(updated);
-      await AsyncStorage.setItem('mitigateplus_user_team', newTeam);
-      if (token) {
-        await fetch(`${API_BASE_URL}/auth/my-designation`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: 'Bearer ' + token,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ teamName: newTeam }),
-        });
-      }
-      Alert.alert('Team Assignment Updated', `Assigned team set to ${newTeam}.`);
-    } catch (e) {
-      console.warn('Update team error:', e);
-    }
+  const handleUpdateTeam = () => {
+    Alert.alert('Administrative Access Only', 'Field team assignments are managed exclusively by the LGU Admin.');
   };
 
   // Auto-fetch active distribution event from backend so selectedEvent has real MongoDB _id
@@ -1063,7 +1058,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       if (res.ok) {
         setIncidentSuccess(true);
         setIncidentNotes('');
-        Alert.alert('Incident Logged!', 'The on-ground incident has been logged and broadcasted in real-time to the LGU Command Center.');
+        await fetchMyIncidents();
+        setIncidentSubTab('history');
+        Alert.alert('Incident Logged!', 'The on-ground incident has been logged and broadcasted in real-time to the LGU Command Center. You can track status and admin directives in your Incident Logs.');
       } else {
         const errData = await res.json().catch(() => ({}));
         Alert.alert('Submission Notice', errData.message || 'Incident report could not be verified by server.');
@@ -1830,89 +1827,356 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
           </ScrollView>
         ) : activeTab === 'incident' ? (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
-            <View style={styles.formCard}>
-              <View style={styles.goldAccentLine} />
-              <Text style={styles.formTitle}>Field Incident Report</Text>
-              <Text style={styles.formSub}>Log lost QR passes, damaged inventory stocks, or emergency relocations.</Text>
-
-              <Text style={styles.sectionLabel}>INCIDENT CATEGORY *</Text>
-              {[
-                {
-                  key: 'Stock Shortage',
-                  sub: 'Relief packs running low',
-                  dotColor: '#D97706',
-                  activeBg: '#FEFCE8',
-                  activeBorder: '#FDE047',
-                  activeTextColor: '#92400E',
-                },
-                {
-                  key: 'Lost Citizen QR Pass',
-                  sub: 'Beneficiary lost or damaged QR pass',
-                  dotColor: '#2563EB',
-                  activeBg: '#EFF6FF',
-                  activeBorder: '#3B82F6',
-                  activeTextColor: '#1D4ED8',
-                },
-                {
-                  key: 'Emergency Evacuation',
-                  sub: 'Unplanned evacuation or site incident',
-                  dotColor: '#DC2626',
-                  activeBg: '#FEF2F2',
-                  activeBorder: '#EF4444',
-                  activeTextColor: '#B91C1C',
-                },
-              ].map((cat) => {
-                const isSelected = incidentType === cat.key;
-                return (
-                  <TouchableOpacity
-                    key={cat.key}
-                    style={[
-                      styles.categoryCard,
-                      isSelected && {
-                        backgroundColor: cat.activeBg,
-                        borderColor: cat.activeBorder,
-                      },
-                    ]}
-                    onPress={() => setIncidentType(cat.key)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[styles.catDot, { backgroundColor: cat.dotColor }]} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.catTitle, isSelected && { color: cat.activeTextColor }]}>{cat.key}</Text>
-                      <Text style={styles.catSub}>{cat.sub}</Text>
-                    </View>
-                    {isSelected && (
-                      <View style={[styles.checkCircle, { backgroundColor: cat.dotColor }]}>
-                        <CheckIcon size={12} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-
-              <Text style={[styles.sectionLabel, { marginTop: 16 }]}>INCIDENT DETAILS & NOTES *</Text>
-              <TextInput
-                style={styles.textArea}
-                placeholder="Describe field conditions or incident at distribution site..."
-                placeholderTextColor="#94A3B8"
-                value={incidentNotes}
-                onChangeText={setIncidentNotes}
-                multiline
-              />
+            {/* Sub-tab switcher */}
+            <View style={styles.incidentSubTabContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.incidentSubTabBtn,
+                  incidentSubTab === 'new' && styles.incidentSubTabBtnActive,
+                ]}
+                onPress={() => setIncidentSubTab('new')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.incidentSubTabBtnText,
+                    incidentSubTab === 'new' && styles.incidentSubTabBtnTextActive,
+                  ]}
+                >
+                  Log New Incident
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.redSubmitBtn}
-                onPress={handleSubmitIncident}
-                activeOpacity={0.85}
-                disabled={submittingIncident}
+                style={[
+                  styles.incidentSubTabBtn,
+                  incidentSubTab === 'history' && styles.incidentSubTabBtnActive,
+                ]}
+                onPress={() => {
+                  setIncidentSubTab('history');
+                  fetchMyIncidents();
+                }}
+                activeOpacity={0.8}
               >
-                {submittingIncident ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.redSubmitBtnText}>Submit Incident to Admin</Text>
-                )}
+                <Text
+                  style={[
+                    styles.incidentSubTabBtnText,
+                    incidentSubTab === 'history' && styles.incidentSubTabBtnTextActive,
+                  ]}
+                >
+                  Incident Logs ({myIncidentsList.length})
+                </Text>
               </TouchableOpacity>
             </View>
+
+            {incidentSubTab === 'new' ? (
+              <View style={styles.formCard}>
+                <View style={styles.goldAccentLine} />
+                <Text style={styles.formTitle}>Field Incident Report</Text>
+                <Text style={styles.formSub}>Log lost QR passes, damaged inventory stocks, or emergency relocations.</Text>
+
+                <Text style={styles.sectionLabel}>INCIDENT CATEGORY *</Text>
+                {[
+                  {
+                    key: 'Stock Shortage',
+                    sub: 'Relief packs running low',
+                    dotColor: '#D97706',
+                    activeBg: '#FEFCE8',
+                    activeBorder: '#FDE047',
+                    activeTextColor: '#92400E',
+                  },
+                  {
+                    key: 'Lost Citizen QR Pass',
+                    sub: 'Beneficiary lost or damaged QR pass',
+                    dotColor: '#2563EB',
+                    activeBg: '#EFF6FF',
+                    activeBorder: '#3B82F6',
+                    activeTextColor: '#1D4ED8',
+                  },
+                  {
+                    key: 'Emergency Evacuation',
+                    sub: 'Unplanned evacuation or site incident',
+                    dotColor: '#DC2626',
+                    activeBg: '#FEF2F2',
+                    activeBorder: '#EF4444',
+                    activeTextColor: '#B91C1C',
+                  },
+                ].map((cat) => {
+                  const isSelected = incidentType === cat.key;
+                  return (
+                    <TouchableOpacity
+                      key={cat.key}
+                      style={[
+                        styles.categoryCard,
+                        isSelected && {
+                          backgroundColor: cat.activeBg,
+                          borderColor: cat.activeBorder,
+                        },
+                      ]}
+                      onPress={() => setIncidentType(cat.key)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={[styles.catDot, { backgroundColor: cat.dotColor }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.catTitle, isSelected && { color: cat.activeTextColor }]}>{cat.key}</Text>
+                        <Text style={styles.catSub}>{cat.sub}</Text>
+                      </View>
+                      {isSelected && (
+                        <View style={[styles.checkCircle, { backgroundColor: cat.dotColor }]}>
+                          <CheckIcon size={12} color="#FFFFFF" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+
+                <Text style={[styles.sectionLabel, { marginTop: 16 }]}>INCIDENT DETAILS & NOTES *</Text>
+                <TextInput
+                  style={styles.textArea}
+                  placeholder="Describe field conditions or incident at distribution site..."
+                  placeholderTextColor="#94A3B8"
+                  value={incidentNotes}
+                  onChangeText={setIncidentNotes}
+                  multiline
+                />
+
+                <TouchableOpacity
+                  style={styles.redSubmitBtn}
+                  onPress={handleSubmitIncident}
+                  activeOpacity={0.85}
+                  disabled={submittingIncident}
+                >
+                  {submittingIncident ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.redSubmitBtnText}>Submit Incident to Admin</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* Incident History List with Pagination */
+              <View style={styles.formCard}>
+                <View style={styles.goldAccentLine} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <View>
+                    <Text style={styles.formTitle}>Field Incident Logs</Text>
+                    <Text style={styles.formSub}>Real-time status and directives from LGU Admin</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={fetchMyIncidents}
+                    style={{ paddingVertical: 5, paddingHorizontal: 10, backgroundColor: '#F1F5F9', borderRadius: 8 }}
+                    activeOpacity={0.7}
+                  >
+                    {loadingMyIncidents ? (
+                      <ActivityIndicator size="small" color="#1C3F94" />
+                    ) : (
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#1C3F94' }}>Refresh</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {loadingMyIncidents && myIncidentsList.length === 0 ? (
+                  <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#1C3F94" />
+                    <Text style={{ marginTop: 10, fontSize: 13, color: '#64748B' }}>Loading incident reports...</Text>
+                  </View>
+                ) : myIncidentsList.length === 0 ? (
+                  <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                    <AlertTriangleIcon size={36} color="#94A3B8" />
+                    <Text style={{ marginTop: 10, fontSize: 14, fontWeight: '700', color: '#334155' }}>
+                      No Incidents Logged Yet
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#64748B', textAlign: 'center', marginTop: 4, maxWidth: 260 }}>
+                      Reports you submit from the field will appear here along with admin resolution directives.
+                    </Text>
+                  </View>
+                ) : (
+                  (() => {
+                    const totalPages = Math.ceil(myIncidentsList.length / INCIDENTS_PER_PAGE) || 1;
+                    const safePage = Math.min(Math.max(1, incidentHistoryPage), totalPages);
+                    const startIndex = (safePage - 1) * INCIDENTS_PER_PAGE;
+                    const paginated = myIncidentsList.slice(startIndex, startIndex + INCIDENTS_PER_PAGE);
+
+                    return (
+                      <View>
+                        {paginated.map((inc) => {
+                          const isResolved = inc.status === 'resolved';
+                          const isAck = inc.status === 'acknowledged';
+                          const statusBg = isResolved ? '#ECFDF5' : isAck ? '#FFFBEB' : '#FEF2F2';
+                          const statusBorder = isResolved ? '#A7F3D0' : isAck ? '#FDE68A' : '#FCA5A5';
+                          const statusColor = isResolved ? '#059669' : isAck ? '#D97706' : '#DC2626';
+                          const statusLabel = isResolved ? 'RESOLVED' : isAck ? 'IN PROGRESS' : 'OPEN';
+
+                          return (
+                            <View
+                              key={inc._id}
+                              style={{
+                                backgroundColor: '#FFFFFF',
+                                borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: '#E2E8F0',
+                                padding: 14,
+                                marginBottom: 12,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 6,
+                                elevation: 1,
+                              }}
+                            >
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                  <View style={{
+                                    backgroundColor: '#EFF6FF',
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 3,
+                                    borderRadius: 6,
+                                    borderWidth: 1,
+                                    borderColor: '#BFDBFE',
+                                  }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#1D4ED8' }}>
+                                      {inc.incidentType}
+                                    </Text>
+                                  </View>
+                                  <Text style={{ fontSize: 10.5, color: '#64748B' }}>
+                                    Brgy {inc.barangayCode || dutyBrgy}
+                                  </Text>
+                                </View>
+
+                                <View style={{
+                                  backgroundColor: statusBg,
+                                  borderColor: statusBorder,
+                                  borderWidth: 1,
+                                  paddingHorizontal: 7,
+                                  paddingVertical: 2,
+                                  borderRadius: 4,
+                                }}>
+                                  <Text style={{ fontSize: 10, fontWeight: '900', color: statusColor }}>
+                                    {statusLabel}
+                                  </Text>
+                                </View>
+                              </View>
+
+                              {/* Officer notes */}
+                              <Text style={{ fontSize: 13, color: '#1E293B', fontWeight: '500', marginBottom: 6 }}>
+                                {inc.notes}
+                              </Text>
+
+                              <Text style={{ fontSize: 10.5, color: '#94A3B8', marginBottom: 4 }}>
+                                Logged: {new Date(inc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </Text>
+
+                              {/* Admin Directive & Resolution Box */}
+                              {inc.resolutionNotes ? (
+                                <View style={{
+                                  marginTop: 8,
+                                  backgroundColor: '#F0FDF4',
+                                  borderRadius: 8,
+                                  borderWidth: 1,
+                                  borderColor: '#BBF7D0',
+                                  padding: 10,
+                                }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                                    <CheckCircleIcon size={14} color="#059669" />
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#166534' }}>
+                                      LGU COMMAND CENTER DIRECTIVE:
+                                    </Text>
+                                  </View>
+                                  <Text style={{ fontSize: 12, color: '#14532D', fontWeight: '600', lineHeight: 17 }}>
+                                    {inc.resolutionNotes}
+                                  </Text>
+                                </View>
+                              ) : isAck ? (
+                                <View style={{
+                                  marginTop: 8,
+                                  backgroundColor: '#FFFBEB',
+                                  borderRadius: 8,
+                                  borderWidth: 1,
+                                  borderColor: '#FDE68A',
+                                  padding: 8,
+                                }}>
+                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>
+                                    In Progress: Acknowledged by Command Center. Action being dispatched.
+                                  </Text>
+                                </View>
+                              ) : (
+                                <View style={{
+                                  marginTop: 8,
+                                  backgroundColor: '#F8FAFC',
+                                  borderRadius: 8,
+                                  borderWidth: 1,
+                                  borderColor: '#E2E8F0',
+                                  padding: 8,
+                                }}>
+                                  <Text style={{ fontSize: 11, color: '#64748B' }}>
+                                    Status: Pending review at LGU Manila Command Center.
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          );
+                        })}
+
+                        {/* Pagination footer */}
+                        {totalPages > 1 && (
+                          <View style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: 10,
+                            paddingTop: 10,
+                            borderTopWidth: 1,
+                            borderTopColor: '#E2E8F0',
+                          }}>
+                            <TouchableOpacity
+                              onPress={() => setIncidentHistoryPage(p => Math.max(1, p - 1))}
+                              disabled={safePage === 1}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                                paddingVertical: 6,
+                                paddingHorizontal: 12,
+                                borderRadius: 8,
+                                backgroundColor: safePage === 1 ? '#F1F5F9' : '#1C3F94',
+                              }}
+                            >
+                              <ChevronLeftIcon size={14} color={safePage === 1 ? '#94A3B8' : '#FFFFFF'} />
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === 1 ? '#94A3B8' : '#FFFFFF' }}>
+                                Prev
+                              </Text>
+                            </TouchableOpacity>
+
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
+                              Page {safePage} of {totalPages}
+                            </Text>
+
+                            <TouchableOpacity
+                              onPress={() => setIncidentHistoryPage(p => Math.min(totalPages, p + 1))}
+                              disabled={safePage === totalPages}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                                paddingVertical: 6,
+                                paddingHorizontal: 12,
+                                borderRadius: 8,
+                                backgroundColor: safePage === totalPages ? '#F1F5F9' : '#1C3F94',
+                              }}
+                            >
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === totalPages ? '#94A3B8' : '#FFFFFF' }}>
+                                Next
+                              </Text>
+                              <ChevronRightIcon size={14} color={safePage === totalPages ? '#94A3B8' : '#FFFFFF'} />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })()
+                )}
+              </View>
+            )}
           </ScrollView>
         ) : (
           <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
@@ -1973,73 +2237,41 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 </Text>
               </View>
               <View style={styles.dutyDivider} />
-              <View style={{ paddingVertical: 8 }}>
+              <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Field Designation & Role</Text>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                  <TouchableOpacity
-                    style={[
-                      styles.designationToggleBtn,
-                      currentUser?.staffDesignation === 'team_leader' && styles.designationToggleBtnActive,
-                    ]}
-                    onPress={() => handleUpdateDesignation('team_leader')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.designationToggleText,
-                        currentUser?.staffDesignation === 'team_leader' && styles.designationToggleTextActive,
-                      ]}
-                    >
-                      Team Leader
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.designationToggleBtn,
-                      currentUser?.staffDesignation !== 'team_leader' && styles.designationToggleBtnActive,
-                    ]}
-                    onPress={() => handleUpdateDesignation('field_officer')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.designationToggleText,
-                        currentUser?.staffDesignation !== 'team_leader' && styles.designationToggleTextActive,
-                      ]}
-                    >
-                      Field Officer
-                    </Text>
-                  </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.dutyInfoVal}>
+                    {currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}
+                  </Text>
+                  <View style={{
+                    backgroundColor: '#EFF6FF',
+                    paddingHorizontal: 7,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                  }}>
+                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1D4ED8' }}>LGU ASSIGNED</Text>
+                  </View>
                 </View>
               </View>
               <View style={styles.dutyDivider} />
-              <View style={{ paddingVertical: 8 }}>
+              <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Assigned Team</Text>
-                <View style={{ flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                  {['Field Team Bravo', 'Field Team Alpha', 'Field Team Charlie', 'Field Team Delta'].map((tName) => {
-                    const isCur = (currentUser?.teamName || 'Field Team Bravo').toLowerCase() === tName.toLowerCase();
-                    return (
-                      <TouchableOpacity
-                        key={tName}
-                        style={[
-                          styles.teamSelectBtn,
-                          isCur && styles.teamSelectBtnActive,
-                        ]}
-                        onPress={() => handleUpdateTeam(tName)}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          style={[
-                            styles.teamSelectBtnText,
-                            isCur && styles.teamSelectBtnTextActive,
-                          ]}
-                        >
-                          {tName}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.dutyInfoVal}>
+                    {currentUser?.teamName || 'Field Team Bravo'}
+                  </Text>
+                  <View style={{
+                    backgroundColor: '#EFF6FF',
+                    paddingHorizontal: 7,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: '#BFDBFE',
+                  }}>
+                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1D4ED8' }}>ADMIN ONLY</Text>
+                  </View>
                 </View>
               </View>
               <View style={styles.dutyDivider} />
@@ -2675,6 +2907,37 @@ const styles = StyleSheet.create({
   },
   teamSelectBtnTextActive: {
     color: '#1D4ED8',
+    fontWeight: '800',
+  },
+  incidentSubTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 14,
+  },
+  incidentSubTabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+  },
+  incidentSubTabBtnActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  incidentSubTabBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  incidentSubTabBtnTextActive: {
+    color: '#0F172A',
     fontWeight: '800',
   },
   headerContentRow: {

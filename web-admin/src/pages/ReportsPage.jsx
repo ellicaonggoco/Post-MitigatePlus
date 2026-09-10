@@ -45,6 +45,18 @@ export default function ReportsPage() {
   const [resolutionRemarks, setResolutionRemarks] = useState('');
   const [submittingResolution, setSubmittingResolution] = useState(false);
 
+  // Dynamic Resolution Requirements State
+  const [resActionType, setResActionType] = useState('office_pickup');
+  const [resQuantity, setResQuantity] = useState(50);
+  const [resItemType, setResItemType] = useState('Family Food Packs');
+  const [resLocation, setResLocation] = useState('Manila City Hall Disaster Management Office (Room 102)');
+  const [resDispatchMethod, setResDispatchMethod] = useState('Staff Office Pickup');
+  const [resPersonnel, setResPersonnel] = useState('');
+  const [resBeneficiaryName, setResBeneficiaryName] = useState('');
+  const [resIdPresented, setResIdPresented] = useState('PhilSys National ID');
+  const [resEvacSite, setResEvacSite] = useState('Barangay 291 Covered Court');
+  const [resEvacueesCount, setResEvacueesCount] = useState(15);
+
   // Sync tab with URL search parameter
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -206,10 +218,69 @@ export default function ReportsPage() {
     }
   };
 
+  const handleOpenResolveModal = (inc) => {
+    setResolvingIncident(inc);
+    const cat = (inc.incidentType || '').toLowerCase();
+    if (cat.includes('shortage') || cat.includes('stock')) {
+      setResActionType('office_pickup');
+      setResQuantity(50);
+      setResItemType('Family Food Packs');
+      setResLocation('Manila City Hall Disaster Management Office (Room 102)');
+      setResDispatchMethod('Staff Office Pickup');
+      setResolutionRemarks('Kumuha na kayo dito sa City Hall Disaster Office ng karagdagang relief stocks dala ang gate pass / authorization voucher.');
+    } else if (cat.includes('lost') || cat.includes('pass') || cat.includes('qr') || cat.includes('duplicate') || cat.includes('unregistered')) {
+      setResActionType('manual_verify');
+      const citizenMatch = inc.notes?.match(/(?:resident|citizen|household|pangalan|name)[:\s]+([a-zA-Z\s]+)/i);
+      setResBeneficiaryName(citizenMatch ? citizenMatch[1].trim() : 'Verified Resident');
+      setResIdPresented('PhilSys National ID');
+      setResolutionRemarks('Na-verify ang pagkakakilanlan sa master database gamit ang Valid ID. Pinayagang kumuha gamit ang emergency manual clearance voucher.');
+    } else if (cat.includes('evac') || cat.includes('emergency') || cat.includes('hazard')) {
+      setResActionType('evac_deployed');
+      setResEvacSite(`Barangay ${inc.barangayCode || '291'} Covered Basketball Court`);
+      setResEvacueesCount(20);
+      setResPersonnel('MDRRMO Quick Response Alpha & Manila DRRM Logistics');
+      setResolutionRemarks('Ligtas nang nailipat ang mga apektadong pamilya sa evacuation post. Nakatalaga na ang relief rations, sleeping kits, at first aid responders.');
+    } else {
+      setResActionType('general_action');
+      setResolutionRemarks('Naaksyunan at naayos na ng LGU Command Center alinsunod sa standard emergency protocol.');
+    }
+  };
+
   const handleConfirmResolve = async () => {
     if (!resolvingIncident) return;
     setSubmittingResolution(true);
     try {
+      const cat = (resolvingIncident.incidentType || '').toLowerCase();
+      let compiledDirective = '';
+      const structuredDetails = {
+        actionType: resActionType,
+        quantity: Number(resQuantity) || 0,
+        itemType: resItemType,
+        sourceLocation: resLocation,
+        dispatchMethod: resDispatchMethod,
+        assignedPersonnel: resPersonnel,
+        beneficiaryName: resBeneficiaryName,
+        idPresented: resIdPresented,
+        evacSite: resEvacSite,
+        evacueesCount: Number(resEvacueesCount) || 0,
+      };
+
+      if (cat.includes('shortage') || cat.includes('stock')) {
+        if (resActionType === 'office_pickup') {
+          compiledDirective = `[KUMUHA SA OFFICE / WAREHOUSE] Kumuha ng ${resQuantity} ${resItemType} sa ${resLocation}. Paraan: ${resDispatchMethod}. Instruksyon: ${resolutionRemarks.trim()}`;
+        } else if (resActionType === 'truck_dispatch') {
+          compiledDirective = `[LOGISTICS TRUCK DISPATCHED] Nagpadala ng ${resQuantity} ${resItemType} mula ${resLocation}. Instruksyon: ${resolutionRemarks.trim()}`;
+        } else {
+          compiledDirective = `[BUFFER STOCK TRANSFER] Naglipat ng ${resQuantity} ${resItemType} mula sa kalapit na post. Instruksyon: ${resolutionRemarks.trim()}`;
+        }
+      } else if (cat.includes('lost') || cat.includes('pass') || cat.includes('qr') || cat.includes('duplicate') || cat.includes('unregistered')) {
+        compiledDirective = `[MANUAL VERIFICATION RESOLVED] Resident: ${resBeneficiaryName || 'Beneficiary'} (Verified via ${resIdPresented}). Emergency Pass Clearance naibigay. Instruksyon: ${resolutionRemarks.trim()}`;
+      } else if (cat.includes('evac') || cat.includes('emergency') || cat.includes('hazard')) {
+        compiledDirective = `[EVACUATION FACILITY ACTIVATED] Evac Center: ${resEvacSite} (${resEvacueesCount} families). Unit: ${resPersonnel || 'MDRRMO Rescue'}. Instruksyon: ${resolutionRemarks.trim()}`;
+      } else {
+        compiledDirective = `[LGU DIRECTIVE ISSUED] ${resolutionRemarks.trim() || 'Aksyon naisagawa at verified ng Command Center.'}`;
+      }
+
       const res = await fetch(`${API_BASE_URL}/incidents/${resolvingIncident._id}`, {
         method: 'PATCH',
         headers: {
@@ -218,16 +289,16 @@ export default function ReportsPage() {
         },
         body: JSON.stringify({
           status: 'resolved',
-          resolutionNotes: resolutionRemarks.trim() || 'Issue resolved and verified by LGU Command Center.',
+          resolutionNotes: compiledDirective,
+          resolutionDetails: structuredDetails,
         }),
       });
       if (res.ok) {
         const data = await res.json();
         setIncidents((prev) =>
-          prev.map((inc) => (inc._id === resolvingIncident._id ? (data.incident || { ...inc, status: 'resolved' }) : inc))
+          prev.map((inc) => (inc._id === resolvingIncident._id ? (data.incident || { ...inc, status: 'resolved', resolutionNotes: compiledDirective, resolutionDetails: structuredDetails }) : inc))
         );
         setResolvingIncident(null);
-        setResolutionRemarks('');
       }
     } catch (e) {
       console.error('Error resolving incident:', e);
@@ -1063,14 +1134,37 @@ export default function ReportsPage() {
                             {inc.resolutionNotes && (
                               <div style={{
                                 marginTop: 6,
-                                padding: '6px 10px',
+                                padding: '8px 10px',
                                 background: '#F0FDF4',
                                 border: '1px solid #BBF7D0',
                                 borderRadius: 6,
                                 fontSize: 11.5,
                                 color: '#166534',
                               }}>
-                                <strong>Resolution:</strong> {inc.resolutionNotes}
+                                <div style={{ fontWeight: 800, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <CheckCircle size={13} color="#059669" />
+                                  LGU Command Directive / Resolution:
+                                </div>
+                                <div style={{ lineHeight: 1.35 }}>{inc.resolutionNotes}</div>
+                                {inc.resolutionDetails && (inc.resolutionDetails.quantity > 0 || inc.resolutionDetails.evacSite || inc.resolutionDetails.beneficiaryName) && (
+                                  <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                    {inc.resolutionDetails.quantity > 0 && (
+                                      <span style={{ background: '#DCFCE7', color: '#14532D', padding: '2px 7px', borderRadius: 4, fontWeight: 700, fontSize: 10.5 }}>
+                                        {inc.resolutionDetails.quantity} {inc.resolutionDetails.itemType || 'Packs'}
+                                      </span>
+                                    )}
+                                    {inc.resolutionDetails.sourceLocation && (
+                                      <span style={{ background: '#DCFCE7', color: '#14532D', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
+                                        {inc.resolutionDetails.sourceLocation}
+                                      </span>
+                                    )}
+                                    {inc.resolutionDetails.evacSite && (
+                                      <span style={{ background: '#DCFCE7', color: '#14532D', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
+                                        Evac: {inc.resolutionDetails.evacSite} ({inc.resolutionDetails.evacueesCount} families)
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </td>
@@ -1108,10 +1202,7 @@ export default function ReportsPage() {
 
                               {(inc.status || 'open') !== 'resolved' && (
                                 <button
-                                  onClick={() => {
-                                    setResolvingIncident(inc);
-                                    setResolutionRemarks('');
-                                  }}
+                                  onClick={() => handleOpenResolveModal(inc)}
                                   className="clay-button-primary"
                                   style={{ padding: '5px 10px', fontSize: '11px', gap: 4 }}
                                   title="Mark as Resolved"
@@ -1148,65 +1239,395 @@ export default function ReportsPage() {
       {resolvingIncident && (
         <div style={{
           position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(3px)',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 100000,
-          padding: 20,
+          zIndex: 999999,
+          padding: '24px 16px',
+          overflowY: 'auto',
         }}>
           <div style={{
             background: '#FFFFFF',
-            borderRadius: 16,
-            maxWidth: 500,
+            borderRadius: 18,
+            maxWidth: 620,
             width: '100%',
-            padding: '24px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            padding: '26px',
+            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.5)',
             display: 'flex',
             flexDirection: 'column',
             gap: 16,
+            maxHeight: '90vh',
+            overflowY: 'auto',
           }}>
+            {/* Modal Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 8, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CheckCircle size={18} color="#059669" />
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle size={20} color="#059669" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>
+                  <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>
                     Resolve Field Incident Report
                   </h3>
-                  <span style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                     {resolvingIncident.incidentType} · Brgy {resolvingIncident.barangayCode || '291'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setResolvingIncident(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
             {/* Original report summary box */}
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
-                Field Officer Notes ({resolvingIncident.reportedBy?.name || 'Staff'}):
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '12px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Field Officer Report ({resolvingIncident.reportedBy?.name || 'Staff Scanner'})
+                </span>
+                <span style={{ fontSize: 11, color: '#64748B' }}>
+                  {new Date(resolvingIncident.createdAt).toLocaleString()}
+                </span>
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--ink)', lineHeight: 1.4 }}>
-                {resolvingIncident.notes}
+              <p style={{ margin: 0, fontSize: 13.5, color: 'var(--ink)', fontWeight: 600, lineHeight: 1.4 }}>
+                "{resolvingIncident.notes}"
               </p>
             </div>
+
+            {/* ── STOCK SHORTAGE / DAMAGED STOCK REQUIREMENTS ── */}
+            {((resolvingIncident.incidentType || '').toLowerCase().includes('shortage') || (resolvingIncident.incidentType || '').toLowerCase().includes('stock')) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
+                    Directiba / Paraan ng Resolusyon (Action Protocol) *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResActionType('office_pickup');
+                        setResDispatchMethod('Staff Office Pickup with Voucher');
+                        setResLocation('Manila City Hall Disaster Management Office (Room 102)');
+                        setResolutionRemarks('Kumuha na kayo dito sa City Hall Disaster Office ng karagdagang relief stocks dala ang authorization voucher.');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: resActionType === 'office_pickup' ? '2px solid #059669' : '1px solid #CBD5E1',
+                        background: resActionType === 'office_pickup' ? '#ECFDF5' : '#FFFFFF',
+                        color: resActionType === 'office_pickup' ? '#065F46' : 'var(--ink)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      🏢 Kumuha sa Office / Staging
+                      <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
+                        Staff will pickup shortage at LGU office
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResActionType('truck_dispatch');
+                        setResDispatchMethod('MDRRMO Delivery Truck En Route');
+                        setResLocation('Baseco Logistics Staging Warehouse');
+                        setResolutionRemarks('Nagpadala na ng emergency replenishment truck papunta sa inyong evacuation/distribution booth.');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: resActionType === 'truck_dispatch' ? '2px solid #059669' : '1px solid #CBD5E1',
+                        background: resActionType === 'truck_dispatch' ? '#ECFDF5' : '#FFFFFF',
+                        color: resActionType === 'truck_dispatch' ? '#065F46' : 'var(--ink)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      🚚 Ipadala via Delivery Truck
+                      <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
+                        Dispatch truck en route to site
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Ilan ang Kulang / Idadagdag (Quantity) *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={resQuantity}
+                      onChange={(e) => setResQuantity(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Uri ng Relief Item *
+                    </label>
+                    <select
+                      value={resItemType}
+                      onChange={(e) => setResItemType(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        background: '#FFF',
+                        outline: 'none',
+                      }}
+                    >
+                      <option value="Family Food Packs">Family Food Packs (FFP)</option>
+                      <option value="Drinking Water (10L Jugs)">Drinking Water (10L Jugs)</option>
+                      <option value="Hygiene & Sanitation Kits">Hygiene & Sanitation Kits</option>
+                      <option value="Infant / Baby Packs">Infant / Baby Packs</option>
+                      <option value="Emergency Rice Packs (10kg)">Emergency Rice Packs (10kg)</option>
+                      <option value="Medical & First Aid Supplies">Medical & First Aid Supplies</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                    Saan Kukunin o Mangagaling (Office / Warehouse Location) *
+                  </label>
+                  <select
+                    value={resLocation}
+                    onChange={(e) => setResLocation(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: 8,
+                      border: '1.5px solid #CBD5E1',
+                      fontSize: 13,
+                      background: '#FFF',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="Manila City Hall Disaster Management Office (Room 102)">Manila City Hall Disaster Management Office (Room 102)</option>
+                    <option value="Baseco Logistics Staging Warehouse">Baseco Logistics Staging Warehouse</option>
+                    <option value="Sta. Cruz Central Distribution Depot">Sta. Cruz Central Distribution Depot</option>
+                    <option value="Tondo District 1 Command Substation">Tondo District 1 Command Substation</option>
+                    <option value="Sampaloc DRRM Buffer Storage">Sampaloc DRRM Buffer Storage</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* ── LOST CITIZEN QR PASS / SUSPICIOUS CLAIM / UNREGISTERED ── */}
+            {((resolvingIncident.incidentType || '').toLowerCase().includes('lost') || (resolvingIncident.incidentType || '').toLowerCase().includes('pass') || (resolvingIncident.incidentType || '').toLowerCase().includes('qr') || (resolvingIncident.incidentType || '').toLowerCase().includes('duplicate') || (resolvingIncident.incidentType || '').toLowerCase().includes('unregistered')) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
+                    Verification & Re-Issuance Protocol *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResActionType('manual_verify');
+                        setResolutionRemarks('Na-verify ang pagkakakilanlan sa masterlist gamit ang Valid ID. Pinayagang kumuha gamit ang emergency manual clearance voucher.');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: resActionType === 'manual_verify' ? '2px solid #059669' : '1px solid #CBD5E1',
+                        background: resActionType === 'manual_verify' ? '#ECFDF5' : '#FFFFFF',
+                        color: resActionType === 'manual_verify' ? '#065F46' : 'var(--ink)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      🪪 Manual Masterlist Verification
+                      <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
+                        Verify with Gov ID & issue single-use pass
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResActionType('reissue_qr');
+                        setResolutionRemarks('Nai-renew at na-reprint ang opisyal na QR Pass sa barangay command terminal. Na-invalidate ang lumang nawawalang pass.');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: resActionType === 'reissue_qr' ? '2px solid #059669' : '1px solid #CBD5E1',
+                        background: resActionType === 'reissue_qr' ? '#ECFDF5' : '#FFFFFF',
+                        color: resActionType === 'reissue_qr' ? '#065F46' : 'var(--ink)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      🔄 Re-issue / Re-print QR Pass
+                      <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
+                        Renew QR security token & reprint card
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Pangalan ng Residente / Beneficiary *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Hal. Juan Dela Cruz"
+                      value={resBeneficiaryName}
+                      onChange={(e) => setResBeneficiaryName(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        fontWeight: 600,
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Valid ID na Ipinakita *
+                    </label>
+                    <select
+                      value={resIdPresented}
+                      onChange={(e) => setResIdPresented(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        background: '#FFF',
+                        outline: 'none',
+                      }}
+                    >
+                      <option value="PhilSys National ID">PhilSys National ID</option>
+                      <option value="COMELEC Voter's ID / Certification">COMELEC Voter's ID / Certification</option>
+                      <option value="Barangay Certificate of Indigency">Barangay Certificate of Indigency</option>
+                      <option value="Senior Citizen ID">Senior Citizen ID</option>
+                      <option value="PWD ID Card">PWD ID Card</option>
+                      <option value="Driver's License / UMID">Driver's License / UMID</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── EMERGENCY EVACUATION / SITE DISTURBANCE / SAFETY HAZARD ── */}
+            {((resolvingIncident.incidentType || '').toLowerCase().includes('evac') || (resolvingIncident.incidentType || '').toLowerCase().includes('emergency') || (resolvingIncident.incidentType || '').toLowerCase().includes('hazard') || (resolvingIncident.incidentType || '').toLowerCase().includes('crowd')) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Itinalagang Evacuation Center / Safe Post *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Hal. Brgy 291 Covered Basketball Court"
+                      value={resEvacSite}
+                      onChange={(e) => setResEvacSite(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                      Bilang ng Pamilyang Nailikas *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={resEvacueesCount}
+                      onChange={(e) => setResEvacueesCount(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 4 }}>
+                    Dispatched Units / Responders on Site *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Hal. MDRRMO Quick Response Alpha & BFP Manila"
+                    value={resPersonnel}
+                    onChange={(e) => setResPersonnel(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: 8,
+                      border: '1.5px solid #CBD5E1',
+                      fontSize: 13,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Resolution remarks input */}
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
-                Resolution Action & Remarks *
+                Opisyal na Direktiba / Mensahe para sa Field Staff *
               </label>
               <textarea
-                placeholder="Hal. Nagpadala ng karagdagang 50 relief packs mula sa Baseco staging warehouse..."
+                placeholder="Hal. Kumuha na kayo dito sa LGU Disaster Office ng 50 packs..."
                 value={resolutionRemarks}
                 onChange={(e) => setResolutionRemarks(e.target.value)}
                 rows={3}
@@ -1228,7 +1649,7 @@ export default function ReportsPage() {
               <button
                 onClick={() => setResolvingIncident(null)}
                 className="clay-button-secondary"
-                style={{ padding: '8px 16px', fontSize: 13 }}
+                style={{ padding: '9px 18px', fontSize: 13 }}
                 disabled={submittingResolution}
               >
                 Cancel
@@ -1236,7 +1657,7 @@ export default function ReportsPage() {
               <button
                 onClick={handleConfirmResolve}
                 className="clay-button-primary"
-                style={{ padding: '8px 18px', fontSize: 13, gap: 6, background: '#059669', borderColor: '#059669' }}
+                style={{ padding: '9px 20px', fontSize: 13, gap: 6, background: '#059669', borderColor: '#059669' }}
                 disabled={submittingResolution}
               >
                 {submittingResolution ? <RefreshCw size={14} className="spin" /> : <Check size={14} />}
