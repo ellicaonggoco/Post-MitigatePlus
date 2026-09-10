@@ -97,7 +97,11 @@ export default function NeumorphicInput({
               accessibilityHint="Double tap to toggle password visibility"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              {isPasswordHidden ? <EyeIcon size={20} color="#3D5070" /> : <EyeOffIcon size={20} color="#C8102E" />}
+              {isPasswordHidden ? (
+                <EyeIcon size={20} color="#0B1525" strokeWidth={2.4} />
+              ) : (
+                <EyeOffIcon size={20} color="#9E0B24" strokeWidth={2.4} />
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -242,10 +246,14 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     position: 'absolute',
-    right: 2,
-    top: 2,
-    width: 48,
-    height: 48,
+    right: 4,
+    top: 4,
+    bottom: 4,
+    width: 44,
+    borderRadius: 8,
+    backgroundColor: '#EDF1FB',
+    borderWidth: 1,
+    borderColor: '#D6DEFA',
     justifyContent: 'center',
     alignItems: 'center',
   },

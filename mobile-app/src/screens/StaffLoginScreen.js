@@ -141,14 +141,14 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: 6, top: 6, width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
+              style={{ position: 'absolute', right: 6, top: 6, width: 44, height: 44, borderRadius: 8, backgroundColor: '#EDF1FB', borderWidth: 1, borderColor: '#D6DEFA', alignItems: 'center', justifyContent: 'center' }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? "Itago ang password" : "Ipakita ang password"}
               accessibilityHint="Toggles password visibility"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              {showPassword ? <EyeOffIcon size={19} color="#1C3F94" /> : <EyeIcon size={19} color="#3D5070" />}
+              {showPassword ? <EyeOffIcon size={19} color="#9E0B24" strokeWidth={2.4} /> : <EyeIcon size={19} color="#0B1525" strokeWidth={2.4} />}
             </TouchableOpacity>
           </View>
 
