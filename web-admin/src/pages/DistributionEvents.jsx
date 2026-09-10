@@ -20,6 +20,7 @@ import {
   Send,
   X,
   Edit3,
+  Trash2,
   Globe,
   AlertTriangle,
   Scale,
@@ -175,10 +176,15 @@ export default function DistributionEvents() {
 
   const [toastMsg, setToastMsg] = useState('');
 
-  // State for Editing Announcement (Works for both Standalone and Event announcements)
+  // State for Editing Announcement / Event Details (Works for both Standalone and Event announcements)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingBody, setEditingBody] = useState('');
+  const [editingTeam, setEditingTeam] = useState('Field Team Alpha');
+  const [editingDate, setEditingDate] = useState('');
+  const [editingTime, setEditingTime] = useState('');
+  const [editingItems, setEditingItems] = useState('Family Food Pack');
+  const [editingHouseholds, setEditingHouseholds] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
 
   const MANILA_BARANGAYS = Array.from({ length: 905 }, (_, i) => ({
@@ -502,9 +508,12 @@ export default function DistributionEvents() {
     const evBrgy = ev.barangay || (ev.barangayCode ? `Barangay ${ev.barangayCode}` : ev.location || 'Barangay 291');
     const evDate = ev.date || ev.scheduledDate || 'Scheduled';
     const evTime = ev.time || ev.scheduledTime || '08:00 AM';
+    const evTeam = ev.assignedTeam || ev.staff || ev.staffAssigned || 'Field Team Alpha';
+    const evItems = ev.items || ev.itemType || 'Family Food Pack';
+    const evHH = ev.households || ev.targetHouseholds || 150;
     const currentMsg =
       ev.announcementMessage ||
-      `Good day to all residents of ${evBrgy}! A relief distribution of ${ev.items || ev.itemType || 'Family Food Pack'} is scheduled on ${evDate} at ${evTime} led by ${ev.assignedTeam || ev.staff || 'Field Team'}. Please prepare your Digital QR Relief Pass for quick verification and release.`;
+      `Good day to all residents of ${evBrgy}! A relief distribution of ${evItems} is scheduled on ${evDate} at ${evTime} led by ${evTeam}. Please prepare your Digital QR Relief Pass for quick verification and release.`;
     const defaultTitle = `Relief Distribution Broadcast - ${evBrgy}`;
     setEditingAnnouncement({
       isEvent: true,
@@ -514,15 +523,61 @@ export default function DistributionEvents() {
       barangay: evBrgy,
       date: evDate,
       time: evTime,
-      households: ev.households || ev.targetHouseholds || 150,
-      items: ev.items || ev.itemType || 'Family Food Pack',
+      households: evHH,
+      items: evItems,
+      assignedTeam: evTeam,
     });
     setEditingTitle(ev.title || defaultTitle);
     setEditingBody(currentMsg);
+    setEditingTeam(evTeam);
+    setEditingDate(evDate === 'Scheduled' ? '' : evDate);
+    setEditingTime(evTime);
+    setEditingItems(evItems);
+    setEditingHouseholds(String(evHH));
   };
 
   const handleOpenEditAnnouncement = (ev, e) => {
     handleOpenEditEventAnnouncement(ev, e);
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    setUpdateLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/distributions/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (res.ok) {
+        setEvents(prev => prev.filter(e => (e._id || e.id) !== eventId));
+        setToastMsg('Matagumpay na natanggal ang distribution event!');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || 'Hindi natanggal ang event.');
+      }
+    } catch (err) {
+      console.error('Delete event error:', err);
+      alert('Error sa pagtanggal ng distribution event.');
+    } finally {
+      setUpdateLoading(false);
+      setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+    }
+  };
+
+  const requestDeleteEvent = (ev, e) => {
+    if (e) e.stopPropagation();
+    const evBrgy = ev.barangay || (ev.barangayCode ? `Barangay ${ev.barangayCode}` : ev.location || 'Barangay 291');
+    const evId = ev._id || ev.id;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Tanggalin ang Distribution Event?',
+      message: `Sigurado ka bang nais mong tanggalin ang distribution event sa ${evBrgy}? Aalisin ito sa listahan, sa schedule ng mga field staff, at sa relief drive ng mga residente.`,
+      type: 'danger',
+      confirmText: 'Oo, Tanggalin ang Event',
+      onConfirm: () => handleDeleteEvent(evId),
+    });
   };
 
   const handleSaveAnnouncement = async () => {
@@ -555,9 +610,28 @@ export default function DistributionEvents() {
           alert('Could not update announcement.');
         }
       } else {
-        // 2. Event-Linked Announcement Update
+        // 2. Event-Linked Details & Announcement Update
         const evId = editingAnnouncement.id;
-        const res = await fetch(`${API_BASE_URL}/distributions/events/${evId}/announcement`, {
+        const res = await fetch(`${API_BASE_URL}/distributions/events/${evId}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            assignedTeam: editingTeam,
+            staffAssigned: editingTeam,
+            scheduledDate: editingDate || undefined,
+            scheduledTime: editingTime || undefined,
+            targetHouseholds: parseInt(editingHouseholds) || undefined,
+            itemType: editingItems,
+            title: editingTitle.trim(),
+            announcementMessage: editingBody.trim(),
+          }),
+        });
+
+        // Also update the linked announcement broadcast
+        await fetch(`${API_BASE_URL}/distributions/events/${evId}/announcement`, {
           method: 'PATCH',
           headers: {
             Authorization: 'Bearer ' + token,
@@ -567,18 +641,36 @@ export default function DistributionEvents() {
             announcementMessage: editingBody.trim(),
             title: editingTitle.trim(),
           }),
-        });
+        }).catch(() => {});
+
         if (res.ok) {
           setEvents(prev =>
             prev.map(e =>
-              (e._id || e.id) === evId ? { ...e, announcementMessage: editingBody.trim() } : e
+              (e._id || e.id) === evId
+                ? {
+                    ...e,
+                    assignedTeam: editingTeam,
+                    staff: editingTeam,
+                    staffAssigned: editingTeam,
+                    scheduledDate: editingDate || e.scheduledDate,
+                    date: editingDate || e.date,
+                    scheduledTime: editingTime || e.scheduledTime,
+                    time: editingTime || e.time,
+                    announcementMessage: editingBody.trim(),
+                    title: editingTitle.trim(),
+                    targetHouseholds: parseInt(editingHouseholds) || e.targetHouseholds,
+                    households: parseInt(editingHouseholds) || e.households,
+                    itemType: editingItems,
+                    items: editingItems,
+                  }
+                : e
             )
           );
           await fetchAnnouncements();
           setEditingAnnouncement(null);
-          setToastMsg('Distribution announcement updated and broadcast alert sent to mobile apps with "(Nai-edit)" indicator!');
+          setToastMsg('Distribution event details at naka-assign na team ay matagumpay na nai-update!');
         } else {
-          alert('Could not update event announcement.');
+          alert('Could not update event details.');
         }
       }
     } catch (err) {
@@ -1584,10 +1676,12 @@ export default function DistributionEvents() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 900, margin: 0, color: 'var(--ink)' }}>
-                    Edit Broadcast Announcement
+                    {editingAnnouncement.isEvent ? 'Edit Distribution Event & Team Assignment' : 'Edit Broadcast Announcement'}
                   </h3>
                   <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '2px 0 0' }}>
-                    I-update ang anunsyo. Awtomatikong magkakaroon ng <strong>"(Nai-edit)"</strong> indicator sa mobile app ng mga residente.
+                    {editingAnnouncement.isEvent
+                      ? 'I-update ang mga detalye ng event, iskedyul, at palitan kung sinong field team ang naka-assign.'
+                      : 'I-update ang anunsyo. Awtomatikong magkakaroon ng "(Nai-edit)" indicator sa mobile app ng mga residente.'}
                   </p>
                 </div>
               </div>
@@ -1609,10 +1703,13 @@ export default function DistributionEvents() {
                 {editingAnnouncement.isEvent && (
                   <>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <Calendar size={13} color="#1557B0" /> <strong>Petsa:</strong> {editingAnnouncement.date}
+                      <Calendar size={13} color="#1557B0" /> <strong>Petsa:</strong> {editingDate || editingAnnouncement.date}
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <Clock size={13} color="#1557B0" /> <strong>Oras:</strong> {editingAnnouncement.time}
+                      <Clock size={13} color="#1557B0" /> <strong>Oras:</strong> {editingTime || editingAnnouncement.time}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Truck size={13} color="#1557B0" /> <strong>Naka-assign:</strong> {editingTeam}
                     </span>
                   </>
                 )}
@@ -1621,6 +1718,198 @@ export default function DistributionEvents() {
                 </span>
               </div>
             </div>
+
+            {/* If Editing an Event: Show Assigned Team & Schedule Controls */}
+            {editingAnnouncement.isEvent && (
+              <>
+                {/* Field Team Assignment Selector & Workload Balancer */}
+                <div style={{ marginBottom: 16, background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: '12px', padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 800, color: '#1E3A8A', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Truck size={15} color="#2563EB" /> Naka-assign na Field Team (Assigned Team) *
+                    </label>
+                    <span style={{ fontSize: 11, color: '#158A64', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Scale size={13} color="#158A64" /> Workload Balancer Active
+                    </span>
+                  </div>
+
+                  <select
+                    value={editingTeam}
+                    onChange={e => {
+                      const newT = e.target.value;
+                      const oldT = editingTeam;
+                      setEditingTeam(newT);
+                      if (editingBody.includes(oldT)) {
+                        setEditingBody(editingBody.replace(oldT, newT));
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #93C5FD',
+                      fontSize: 13.5,
+                      fontWeight: 800,
+                      outline: 'none',
+                      background: '#FFFFFF',
+                      color: '#0F172A',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {FIELD_TEAMS.map(t => {
+                      const wl = getTeamWorkload(t);
+                      const label = wl.total === 0
+                        ? `${t}  —  0 Active Drives (Available / Recommended)`
+                        : `${t}  —  ${wl.total} Active (${wl.ongoing} ongoing, ${wl.scheduled} scheduled)`;
+                      return (
+                        <option key={t} value={t}>{label}</option>
+                      );
+                    })}
+                  </select>
+
+                  {/* Interactive Quick-Switch Team Chips */}
+                  <div style={{ marginTop: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>
+                      Quick-Select (I-click para ilipat agad ang assignment):
+                    </span>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {FIELD_TEAMS.map(t => {
+                        const wl = getTeamWorkload(t);
+                        const isSelected = editingTeam === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              const oldT = editingTeam;
+                              setEditingTeam(t);
+                              if (editingBody.includes(oldT)) {
+                                setEditingBody(editingBody.replace(oldT, t));
+                              }
+                            }}
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: isSelected ? 800 : 600,
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              border: isSelected ? '2px solid #2563EB' : '1px solid #CBD5E1',
+                              background: isSelected ? '#DBEAFE' : '#FFFFFF',
+                              color: isSelected ? '#1E40AF' : '#334155',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                            }}
+                          >
+                            {t} ({wl.total} active) {isSelected && <Check size={12} color="#1E40AF" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Schedule Inputs: Date & Time */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                      Nakatakdang Petsa (Date)
+                    </label>
+                    <input
+                      type="date"
+                      value={editingDate}
+                      onChange={e => setEditingDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        color: 'var(--ink)',
+                        boxSizing: 'border-box',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                      Oras (Time)
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTime}
+                      onChange={e => setEditingTime(e.target.value)}
+                      placeholder="08:00 AM"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        color: 'var(--ink)',
+                        boxSizing: 'border-box',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Package & Target Households */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                      Relief Package / Items
+                    </label>
+                    <input
+                      type="text"
+                      value={editingItems}
+                      onChange={e => setEditingItems(e.target.value)}
+                      placeholder="Family Food Pack"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        color: 'var(--ink)',
+                        boxSizing: 'border-box',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                      Target Households
+                    </label>
+                    <input
+                      type="number"
+                      value={editingHouseholds}
+                      onChange={e => setEditingHouseholds(e.target.value)}
+                      placeholder="150"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: 13,
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        color: 'var(--ink)',
+                        boxSizing: 'border-box',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Title Input */}
             <div style={{ marginBottom: 14 }}>
@@ -1655,7 +1944,7 @@ export default function DistributionEvents() {
               <textarea
                 value={editingBody}
                 onChange={e => setEditingBody(e.target.value)}
-                rows={5}
+                rows={4}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -1677,24 +1966,52 @@ export default function DistributionEvents() {
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                type="button"
-                onClick={() => setEditingAnnouncement(null)}
-                className="clay-button-ghost"
-                style={{ fontSize: 13, padding: '10px 18px', cursor: 'pointer' }}
-              >
-                Kanselahin
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveAnnouncement}
-                disabled={updateLoading}
-                className="clay-button-approve"
-                style={{ fontSize: 13, padding: '10px 22px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 800 }}
-              >
-                <Edit3 size={15} /> {updateLoading ? 'Sinesave...' : 'I-save at I-broadcast ang Na-edit na Anunsyo'}
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+              {editingAnnouncement.isEvent ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const evObj = { _id: editingAnnouncement.id, id: editingAnnouncement.id, barangay: editingAnnouncement.barangay };
+                    setEditingAnnouncement(null);
+                    requestDeleteEvent(evObj);
+                  }}
+                  style={{
+                    fontSize: 12.5,
+                    padding: '9px 16px',
+                    borderRadius: '8px',
+                    background: '#FEF2F2',
+                    color: '#DC2626',
+                    border: '1px solid #FECACA',
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Trash2 size={14} /> Tanggalin ang Event
+                </button>
+              ) : <div />}
+
+              <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingAnnouncement(null)}
+                  className="clay-button-ghost"
+                  style={{ fontSize: 13, padding: '10px 18px', cursor: 'pointer' }}
+                >
+                  Kanselahin
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAnnouncement}
+                  disabled={updateLoading}
+                  className="clay-button-approve"
+                  style={{ fontSize: 13, padding: '10px 22px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 800 }}
+                >
+                  <Check size={15} /> {updateLoading ? 'Sinesave...' : (editingAnnouncement.isEvent ? 'I-save ang mga Pagbabago' : 'I-save at I-broadcast ang Na-edit na Anunsyo')}
+                </button>
+              </div>
             </div>
           </div>
         </div>,
@@ -2481,11 +2798,56 @@ export default function DistributionEvents() {
                   {/* Event Actions */}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
                     {evStatus === 'Completed' ? (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '6px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid #BBF7D0', display: 'inline-flex', alignItems: 'center' }}>
-                        <CheckCircle size={13} style={{ marginRight: 4 }} /> Completed
-                      </span>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '6px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid #BBF7D0', display: 'inline-flex', alignItems: 'center' }}>
+                          <CheckCircle size={13} style={{ marginRight: 4 }} /> Completed
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenEditAnnouncement(ev, e)}
+                          title="I-edit ang Event at palitan ang naka-assign na Team"
+                          style={{
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '7px 12px',
+                            background: '#F1F5F9',
+                            color: '#1557B0',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <Edit3 size={13} /> Edit Event
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => requestDeleteEvent(ev, e)}
+                          title="Tanggalin ang Event"
+                          style={{
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '7px 12px',
+                            background: '#FEF2F2',
+                            color: '#DC2626',
+                            border: '1px solid #FECACA',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                        >
+                          <Trash2 size={13} /> Delete
+                        </button>
+                      </div>
                     ) : evStatus === 'Ongoing' ? (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: '#D97706', background: '#FFFBEB', padding: '6px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid #FCD34D', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                           <Truck size={13} color="#D97706" /> In-Progress
                         </span>
@@ -2508,9 +2870,52 @@ export default function DistributionEvents() {
                         >
                           <Check size={14} /> Mark Completed
                         </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenEditAnnouncement(ev, e)}
+                          title="I-edit ang Event at palitan ang naka-assign na Team"
+                          style={{
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '7px 12px',
+                            background: '#F1F5F9',
+                            color: '#1557B0',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <Edit3 size={13} /> Edit Event
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => requestDeleteEvent(ev, e)}
+                          title="Tanggalin ang Event"
+                          style={{
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '7px 12px',
+                            background: '#FEF2F2',
+                            color: '#DC2626',
+                            border: '1px solid #FECACA',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                        >
+                          <Trash2 size={13} /> Delete
+                        </button>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                         {evStatus === 'Scheduled' && (
                           <button
                             type="button"
@@ -2535,6 +2940,7 @@ export default function DistributionEvents() {
                         <button
                           type="button"
                           onClick={(e) => handleOpenEditAnnouncement(ev, e)}
+                          title="I-edit ang Event at palitan ang naka-assign na Team"
                           style={{
                             fontSize: 12,
                             display: 'inline-flex',
@@ -2549,7 +2955,30 @@ export default function DistributionEvents() {
                             fontWeight: 800,
                           }}
                         >
-                          <Edit3 size={13} /> Edit Announcement
+                          <Edit3 size={13} /> Edit Event
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => requestDeleteEvent(ev, e)}
+                          title="Tanggalin ang Event"
+                          style={{
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '7px 12px',
+                            background: '#FEF2F2',
+                            color: '#DC2626',
+                            border: '1px solid #FECACA',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                        >
+                          <Trash2 size={13} /> Delete
                         </button>
                       </div>
                     )}

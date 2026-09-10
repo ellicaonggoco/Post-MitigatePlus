@@ -71,14 +71,38 @@ router.get('/events', protect, async (req, res) => {
 });
 
 // @route   PATCH /api/distributions/events/:id
-// @desc    Update distribution event status
+// @desc    Update distribution event status or details (assigned team, schedule, etc.)
 router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
-    const { status, isActive } = req.body;
+    const {
+      status,
+      isActive,
+      assignedTeam,
+      staffAssigned,
+      scheduledDate,
+      scheduledTime,
+      targetHouseholds,
+      itemType,
+      location,
+      title,
+      announcementMessage,
+    } = req.body;
+
     const event = await DistributionEvent.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ message: 'Distribution event not found.' });
     }
+
+    if (assignedTeam || staffAssigned) {
+      event.assignedTeam = assignedTeam || staffAssigned;
+    }
+    if (scheduledDate !== undefined) event.scheduledDate = scheduledDate;
+    if (scheduledTime !== undefined) event.scheduledTime = scheduledTime;
+    if (targetHouseholds !== undefined) event.targetHouseholds = parseInt(targetHouseholds) || 0;
+    if (itemType !== undefined) event.itemType = itemType;
+    if (location !== undefined) event.location = location;
+    if (title !== undefined) event.title = title;
+    if (announcementMessage !== undefined) event.announcementMessage = announcementMessage;
 
     if (status === 'Completed' || isActive === false) {
       event.status = 'Completed';
@@ -91,21 +115,27 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
         event.openedAt = req.body.startedAt ? new Date(req.body.startedAt) : new Date();
       }
       event.closedAt = null;
+    } else if (status === 'Scheduled') {
+      event.status = 'Scheduled';
+      event.isActive = false;
+    } else if (status === 'Cancelled') {
+      event.status = 'Cancelled';
+      event.isActive = false;
     }
 
     await event.save();
 
-    // Log status update
+    // Log update
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: req.user.role,
-      action: 'UPDATE_EVENT_STATUS',
+      action: 'UPDATE_EVENT',
       targetType: 'DistributionEvent',
       targetId: event._id.toString(),
-      notes: `Event "${event.title}" status updated. isActive: ${event.isActive}`,
+      notes: `Event "${event.title}" updated. Assigned Team: ${event.assignedTeam}, Status: ${event.status}`,
     });
 
-    // Broadcast event status change to Web Admin and Residents in the Barangay
+    // Broadcast event update to Web Admin and Residents in the Barangay
     const io = req.app.get('io');
     if (io) {
       io.emit('distribution_event_updated', event);
@@ -114,7 +144,44 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
 
     res.json(event);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating event status', error: error.message });
+    res.status(500).json({ message: 'Error updating event', error: error.message });
+  }
+});
+
+// @route   DELETE /api/distributions/events/:id
+// @desc    Delete a distribution event (LGU Admin, SuperAdmin, Barangay Official)
+router.delete('/events/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const event = await DistributionEvent.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Distribution event not found.' });
+    }
+
+    const eventTitle = event.title;
+    const brgyCode = event.barangayCode;
+    const eventId = event._id.toString();
+
+    await DistributionEvent.findByIdAndDelete(req.params.id);
+
+    // Audit log
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'DELETE_EVENT',
+      targetType: 'DistributionEvent',
+      targetId: eventId,
+      notes: `Deleted distribution event "${eventTitle}" for Barangay ${brgyCode}`,
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('distribution_event_deleted', { eventId, barangayCode: brgyCode });
+      io.to(`barangay:${brgyCode}`).emit('distribution_event_deleted', { eventId, barangayCode: brgyCode });
+    }
+
+    res.json({ success: true, message: 'Distribution event deleted successfully.', eventId });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting distribution event', error: error.message });
   }
 });
 
