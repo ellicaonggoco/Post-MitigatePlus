@@ -135,6 +135,9 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             source={require('../../assets/logo_primary.png')}
             style={styles.brandLogoImg}
             resizeMode="contain"
+            accessible={true}
+            accessibilityRole="image"
+            accessibilityLabel={lang === 'tl' ? 'Logo ng MitigatePlus Lungsod ng Maynila' : 'MitigatePlus City Government of Manila Logo'}
           />
           <Text style={styles.brandCityTitle}>
             {lang === 'tl' ? 'Pamahalaang Lungsod ng Maynila' : 'City Government of Manila'}
@@ -188,7 +191,15 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             secureTextEntry
           />
 
-          <MotionPressable onPress={onNavigateForgot} style={styles.forgotPasswordUnderBtn} activeOpacity={0.75}>
+          <MotionPressable
+            onPress={onNavigateForgot}
+            style={styles.forgotPasswordUnderBtn}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Nakalimutan ang Password?' : 'Forgot Password?'}
+            accessibilityHint={lang === 'tl' ? 'Pindutin upang i-recover ang password' : 'Tap to recover your password'}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
             <Text style={styles.forgotText}>
               {lang === 'tl' ? 'Nakalimutan ang Password?' : 'Forgot Password?'}
             </Text>
@@ -199,6 +210,11 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={loading
+              ? (lang === 'tl' ? 'Pumapasok sa System...' : 'Signing in...')
+              : (lang === 'tl' ? 'Mag-Log In sa Account' : 'Sign In to Account')}
+            accessibilityState={{ busy: loading, disabled: loading }}
           >
             {loading ? (
               <View style={styles.loadingRow}>
@@ -225,6 +241,9 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             style={styles.registerActionBtn}
             onPress={onNavigateRegister}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Mag-rehistro ng Bagong Pamilya' : 'Register New Household'}
+            accessibilityHint={lang === 'tl' ? 'Pindutin upang gumawa ng bagong account' : 'Tap to create a new household account'}
           >
             <Text style={styles.registerActionBtnText}>
               {lang === 'tl' ? 'Mag-rehistro ng Bagong Pamilya' : 'Register New Household'}
@@ -321,9 +340,12 @@ const styles = StyleSheet.create({
   },
   forgotPasswordUnderBtn: {
     alignSelf: 'flex-end',
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
     marginTop: -4,
-    marginBottom: 16,
-    paddingVertical: 4,
+    marginBottom: 12,
   },
   forgotText: {
     fontSize: 12,
@@ -334,7 +356,8 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#C8102E',
     borderRadius: 12,
-    height: 48,
+    height: 52,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
@@ -389,7 +412,8 @@ const styles = StyleSheet.create({
   },
   registerActionBtn: {
     width: '100%',
-    height: 46,
+    height: 52,
+    minHeight: 52,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: '#C8102E',
@@ -412,9 +436,10 @@ const styles = StyleSheet.create({
     color: '#C8102E',
   },
   footerNote: {
-    fontSize: 10,
-    color: '#8A9BB8',
-    marginTop: 12,
+    fontSize: 11.5,
+    color: '#334155',
+    fontWeight: '500',
+    marginTop: 14,
     textAlign: 'center',
   },
 });

@@ -68,14 +68,14 @@ export default function NeumorphicInput({
             ref={inputRef}
             style={[
               styles.inputField,
-              isPassword && { paddingRight: 40 },
+              isPassword && { paddingRight: 48 },
               multiline && styles.inputMultiline,
               inputStyle,
             ]}
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
-            placeholderTextColor="#8A9BB8"
+            placeholderTextColor="#54657E"
             secureTextEntry={isPassword ? isPasswordHidden : false}
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize}
@@ -85,6 +85,8 @@ export default function NeumorphicInput({
             editable={true}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            accessibilityLabel={label || placeholder}
+            accessibilityHint={placeholder}
           />
 
           {isPassword && (
@@ -92,9 +94,12 @@ export default function NeumorphicInput({
               onPress={() => setIsPasswordHidden(!isPasswordHidden)}
               style={styles.eyeButton}
               activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={isPasswordHidden ? (label ? `Show ${label}` : 'Show password') : (label ? `Hide ${label}` : 'Hide password')}
+              accessibilityHint="Double tap to toggle password visibility"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              {isPasswordHidden ? <EyeIcon size={19} color="#3D5070" /> : <EyeOffIcon size={19} color="#C8102E" />}
+              {isPasswordHidden ? <EyeIcon size={20} color="#3D5070" /> : <EyeOffIcon size={20} color="#C8102E" />}
             </TouchableOpacity>
           )}
         </View>
@@ -165,7 +170,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#DDE4F0',
     paddingHorizontal: 14,
-    minHeight: 48, // 48px touch target
+    minHeight: 52, // Guarantees >= 48dp touch target across all screen densities
     justifyContent: 'center',
   },
   containerFocused: {
@@ -197,7 +202,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0B1525',
     fontWeight: '600',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    minHeight: 48,
     width: '100%',
     flex: 1,
   },
@@ -238,9 +244,10 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     position: 'absolute',
-    right: 12,
-    top: 14,
-    padding: 4,
+    right: 2,
+    top: 2,
+    width: 48,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
