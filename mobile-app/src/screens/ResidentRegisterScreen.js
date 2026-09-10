@@ -56,7 +56,7 @@ export const PHILIPPINE_GOVERNMENT_IDS = [
   'Student / School ID',
 ];
 
-function PasswordRulesBox({ password, lang, hasLowercase, hasUppercase, hasNumber, hasMinLength }) {
+function PasswordRulesBox({ password, lang = 'en', hasLowercase, hasUppercase, hasNumber, hasMinLength }) {
   if (password.length === 0) return null;
   return (
     <View style={styles.passwordRulesBox}>
@@ -445,10 +445,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         const codeReceived = data.otpCode || data.debugOtp || '';
         if (codeReceived) {
           setFallbackOtp(codeReceived);
-          setOtpDigits(String(codeReceived).slice(0, 6).split(''));
-        } else {
-          setOtpDigits(['', '', '', '', '', '']);
         }
+        setOtpDigits(['', '', '', '', '', '']);
         setShowOtpModal(true);
       } else {
         Alert.alert(
@@ -485,8 +483,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         const codeReceived = data.otpCode || data.debugOtp || '';
         if (codeReceived) {
           setFallbackOtp(codeReceived);
-          setOtpDigits(String(codeReceived).slice(0, 6).split(''));
         }
+        setOtpDigits(['', '', '', '', '', '']);
       } else {
         setOtpError(data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP.' : 'Failed to resend OTP.'));
       }
@@ -1434,39 +1432,6 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
             </View>
 
-            {fallbackOtp ? (
-              <View style={styles.demoOtpBox}>
-                <View style={styles.demoOtpHeader}>
-                  <Text style={styles.demoOtpTitle}>
-                    {lang === 'tl' ? 'SYSTEM VERIFICATION CODE' : 'SYSTEM VERIFICATION CODE'}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.autoFillBtn}
-                    onPress={() => {
-                      const digits = String(fallbackOtp).slice(0, 6).split('');
-                      setOtpDigits(digits);
-                      if (otpInputRefs.current[5]) {
-                        otpInputRefs.current[5]?.focus();
-                      }
-                    }}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityLabel={lang === 'tl' ? 'I-auto fill ang verification code' : 'Auto-fill verification code'}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.autoFillBtnText}>
-                      {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
-                <Text style={styles.demoOtpSubText}>
-                  {lang === 'tl'
-                    ? 'Gamitin ang opisyal na code na ito kung naantala ang SMS/Email verification.'
-                    : 'Use this official code if SMS or email delivery is delayed.'}
-                </Text>
-              </View>
-            ) : null}
 
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>
@@ -1572,11 +1537,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 onPress={() => setShowOtpModal(false)}
                 disabled={otpLoading}
                 accessibilityRole="button"
-                accessibilityLabel={lang === 'tl' ? 'Kanselahin ang OTP at Baguhin ang Numero' : 'Cancel OTP and Change Number'}
+                accessibilityLabel={lang === 'tl' ? 'Kanselahin ang OTP at Baguhin ang Email' : 'Cancel OTP and Change Email'}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text style={styles.cancelOtpBtnText}>
-                  {lang === 'tl' ? 'Kanselahin / Baguhin ang Numero' : 'Cancel / Change Number'}
+                  {lang === 'tl' ? 'Kanselahin / Baguhin ang Email' : 'Cancel / Change Email'}
                 </Text>
               </TouchableOpacity>
             </View>
