@@ -2238,6 +2238,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                           return (
                             <View
                               key={inc._id}
+                              accessible={false}
                               style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: 16,
@@ -2256,8 +2257,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     }),
                               }}
                             >
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8, flexWrap: 'wrap' }}>
+                              <View accessible={false} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <View accessible={false} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8, flexWrap: 'wrap' }}>
                                   <View style={{
                                     backgroundColor: '#EDF1FB',
                                     paddingHorizontal: 8,
@@ -2269,7 +2270,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     <Text
                                       accessible={true}
                                       accessibilityRole="text"
-                                      accessibilityLabel={`${inc.incidentType || 'Incident'} - Report #${reportNum}`}
+                                      accessibilityLabel={inc.incidentType || 'Incident'}
                                       style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}
                                     >
                                       {inc.incidentType}
@@ -2278,7 +2279,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   <Text
                                     accessible={true}
                                     accessibilityRole="text"
-                                    accessibilityLabel={`Brgy ${inc.barangayCode || dutyBrgy} - Report #${reportNum}`}
+                                    accessibilityLabel={`Brgy ${inc.barangayCode || dutyBrgy}`}
                                     style={{ fontSize: 11, color: '#0B1525', fontWeight: '700' }}
                                   >
                                     Brgy {inc.barangayCode || dutyBrgy}
@@ -2297,7 +2298,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   <Text
                                     accessible={true}
                                     accessibilityRole="text"
-                                    accessibilityLabel={`Status: ${statusLabel} - Report #${reportNum}`}
+                                    accessibilityLabel={statusLabel}
                                     style={{ fontSize: 10, fontWeight: '900', color: statusColor }}
                                   >
                                     {statusLabel}
@@ -2309,6 +2310,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               <Text
                                 accessible={true}
                                 accessibilityRole="text"
+                                accessibilityLabel={inc.notes || 'Notes'}
                                 style={{ fontSize: 13, color: '#0B1525', fontWeight: '600', marginBottom: 6, lineHeight: 18 }}
                               >
                                 {inc.notes}
@@ -2324,7 +2326,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
                               {/* Admin Directive & Resolution Box */}
                               {inc.resolutionNotes ? (
-                                <View style={{
+                                <View accessible={false} style={{
                                   marginTop: 8,
                                   backgroundColor: '#E6F6EF',
                                   borderRadius: 10,
@@ -2332,13 +2334,21 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: 'rgba(13,138,90,0.35)',
                                   padding: 10,
                                 }}>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                                  <View accessible={false} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
                                     <CheckCircleIcon size={14} color="#065F46" />
-                                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#065F46', letterSpacing: 0.3 }}>
+                                    <Text
+                                      accessible={true}
+                                      accessibilityRole="text"
+                                      style={{ fontSize: 11, fontWeight: '900', color: '#065F46', letterSpacing: 0.3 }}
+                                    >
                                       LGU COMMAND CENTER DIRECTIVE:
                                     </Text>
                                   </View>
-                                  <Text style={{ fontSize: 12, color: '#0B1525', fontWeight: '600', lineHeight: 17 }}>
+                                  <Text
+                                    accessible={true}
+                                    accessibilityRole="text"
+                                    style={{ fontSize: 12, color: '#0B1525', fontWeight: '600', lineHeight: 17 }}
+                                  >
                                     {inc.resolutionNotes}
                                   </Text>
                                   {(inc.resolutionDetails?.voucherCode || (inc.resolutionNotes && inc.resolutionNotes.includes('Voucher:'))) && (
@@ -2371,7 +2381,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   )}
                                 </View>
                               ) : isAck ? (
-                                <View style={{
+                                <View accessible={false} style={{
                                   marginTop: 8,
                                   backgroundColor: '#FBF5E4',
                                   borderRadius: 8,
@@ -2379,12 +2389,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: '#F0DFA0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#78350F' }}>
+                                  <Text
+                                    accessible={true}
+                                    accessibilityRole="text"
+                                    style={{ fontSize: 11, fontWeight: '700', color: '#78350F' }}
+                                  >
                                     In Progress: Acknowledged by Command Center. Action being dispatched.
                                   </Text>
                                 </View>
                               ) : (
-                                <View style={{
+                                <View accessible={false} style={{
                                   marginTop: 8,
                                   backgroundColor: '#F3F6FC',
                                   borderRadius: 8,
@@ -2392,7 +2406,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: '#DDE4F0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, color: '#0B1525', fontWeight: '600' }}>
+                                  <Text
+                                    accessible={true}
+                                    accessibilityRole="text"
+                                    style={{ fontSize: 11, color: '#0B1525', fontWeight: '600' }}
+                                  >
                                     Status: Pending review at LGU Manila Command Center.
                                   </Text>
                                 </View>
