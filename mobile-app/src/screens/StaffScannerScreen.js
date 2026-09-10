@@ -2231,7 +2231,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                           const isAck = inc.status === 'acknowledged';
                           const statusBg = isResolved ? '#E6F6EF' : isAck ? '#FBF5E4' : '#FEF0F2';
                           const statusBorder = isResolved ? 'rgba(13,138,90,0.35)' : isAck ? '#F0DFA0' : '#F5E0E3';
-                          const statusColor = isResolved ? '#047857' : isAck ? '#854D0E' : '#B91C1C';
+                          const statusColor = isResolved ? '#065F46' : isAck ? '#78350F' : '#991B1B';
                           const statusLabel = isResolved ? 'RESOLVED' : isAck ? 'IN PROGRESS' : 'OPEN';
                           const reportNum = startIndex + idx + 1;
 
@@ -2273,7 +2273,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     </Text>
                                   </View>
                                   <Text
-                                    style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}
+                                    style={{ fontSize: 11, color: '#0B1525', fontWeight: '700' }}
+                                    accessibilityLabel={`Barangay ${inc.barangayCode || dutyBrgy} for Report #${reportNum}`}
                                   >
                                     Brgy {inc.barangayCode || dutyBrgy}
                                   </Text>
@@ -2290,6 +2291,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 }}>
                                   <Text
                                     style={{ fontSize: 10, fontWeight: '900', color: statusColor }}
+                                    accessibilityLabel={`Status: ${statusLabel} for Report #${reportNum}`}
                                   >
                                     {statusLabel}
                                   </Text>
@@ -2297,11 +2299,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               </View>
 
                               {/* Officer notes */}
-                              <Text style={{ fontSize: 13, color: '#0B1525', fontWeight: '500', marginBottom: 6, lineHeight: 18 }}>
+                              <Text style={{ fontSize: 13, color: '#0B1525', fontWeight: '600', marginBottom: 6, lineHeight: 18 }}>
                                 {inc.notes}
                               </Text>
 
-                              <Text style={{ fontSize: 10.5, color: '#475569', marginBottom: 4 }}>
+                              <Text style={{ fontSize: 11, color: '#0B1525', fontWeight: '600', marginBottom: 4 }}>
                                 Logged: {new Date(inc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </Text>
 
@@ -2362,7 +2364,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: '#F0DFA0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#854D0E' }}>
+                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#78350F' }}>
                                     In Progress: Acknowledged by Command Center. Action being dispatched.
                                   </Text>
                                 </View>
@@ -2375,7 +2377,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   borderColor: '#DDE4F0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, color: '#3D5070' }}>
+                                  <Text style={{ fontSize: 11, color: '#0B1525', fontWeight: '600' }}>
                                     Status: Pending review at LGU Manila Command Center.
                                   </Text>
                                 </View>
@@ -3296,7 +3298,7 @@ const styles = StyleSheet.create({
   scrollInner: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 110,
+    paddingBottom: 150,
   },
   headerWrapper: {
     backgroundColor: '#071438',
