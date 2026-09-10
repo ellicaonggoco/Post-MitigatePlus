@@ -60,6 +60,8 @@ export default function SpecialRequestRelief() {
     vulnerabilityTypes: ['Senior Citizen'],
     severityLevel: 'Severe / Bedridden',
     notes: '',
+    assignedStaffId: '',
+    assignedStaffName: '',
   });
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -186,6 +188,27 @@ export default function SpecialRequestRelief() {
     }
   };
 
+  const openCreateModal = () => {
+    let initialStaffId = selectedStaffId;
+    let initialStaffName = assignStaffName;
+    if ((!initialStaffId || !initialStaffName) && staffList.length > 0) {
+      const sorted = [...staffList].sort((a, b) => {
+        const countA = getStaffActiveDeliveriesCount(a._id || a.id, a.name);
+        const countB = getStaffActiveDeliveriesCount(b._id || b.id, b.name);
+        return countA - countB;
+      });
+      initialStaffId = sorted[0]._id || sorted[0].id;
+      initialStaffName = `${sorted[0].name} (${sorted[0].teamName || 'Field Operations'})`;
+    }
+
+    setCreateModal(prev => ({
+      ...prev,
+      isOpen: true,
+      assignedStaffId: initialStaffId || '',
+      assignedStaffName: initialStaffName || '',
+    }));
+  };
+
   const handleCreateSpecialRequest = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!createModal.recipientName.trim()) {
@@ -204,26 +227,33 @@ export default function SpecialRequestRelief() {
     setCreateLoading(true);
     try {
       const bCode = isBarangay ? (user?.barangayCode || '291') : (createModal.barangayCode || user?.barangayCode || '291');
+      const payload = {
+        eventId: createModal.eventId || (activeEvents[0]?._id || null),
+        eventTitle: createModal.eventTitle || (activeEvents[0]?.title || ''),
+        householdId: createModal.selectedHouseholdId || null,
+        recipientName: createModal.recipientName.trim(),
+        recipientPhone: createModal.recipientPhone.trim(),
+        recipientAddress: createModal.recipientAddress.trim(),
+        barangay: bCode,
+        memberCount: parseInt(createModal.memberCount, 10) || 1,
+        vulnerabilityTypes: createModal.vulnerabilityTypes,
+        severityLevel: createModal.severityLevel,
+        itemType: 'Pangunahing Family Food & Disaster Relief Pack',
+        notes: createModal.notes.trim() || `Door-to-door emergency relief assistance requested by ${isLguAdmin ? 'LGU Admin' : 'Barangay Official'}.`,
+      };
+
+      if (isLguAdmin) {
+        payload.assignedStaffId = createModal.assignedStaffId || selectedStaffId || null;
+        payload.assignedStaffName = createModal.assignedStaffName || assignStaffName || '';
+      }
+
       const res = await fetch(API_BASE_URL + '/assistance-requests', {
         method: 'POST',
         headers: {
           Authorization: 'Bearer ' + token,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          eventId: createModal.eventId || (activeEvents[0]?._id || null),
-          eventTitle: createModal.eventTitle || (activeEvents[0]?.title || ''),
-          householdId: createModal.selectedHouseholdId || null,
-          recipientName: createModal.recipientName.trim(),
-          recipientPhone: createModal.recipientPhone.trim(),
-          recipientAddress: createModal.recipientAddress.trim(),
-          barangay: bCode,
-          memberCount: parseInt(createModal.memberCount, 10) || 1,
-          vulnerabilityTypes: createModal.vulnerabilityTypes,
-          severityLevel: createModal.severityLevel,
-          itemType: 'Pangunahing Family Food & Disaster Relief Pack',
-          notes: createModal.notes.trim() || 'Door-to-door emergency relief assistance requested by Barangay Official.',
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -240,9 +270,17 @@ export default function SpecialRequestRelief() {
           vulnerabilityTypes: ['Senior Citizen'],
           severityLevel: 'Severe / Bedridden',
           notes: '',
+          assignedStaffId: '',
+          assignedStaffName: '',
         });
         fetchAssistanceRequests();
-        alert('Special Relief Request successfully recorded and submitted to LGU Command Center for approval and staff dispatch!');
+        if (isLguAdmin) {
+          setActiveTab('DISPATCHED');
+          alert(`Special Relief Request matagumpay na nalikha at na-aprubahan! Naitalaga kay ${payload.assignedStaffName || 'Field Staff'} para sa agarang door-to-door delivery.`);
+        } else {
+          setActiveTab('PENDING');
+          alert('Special Relief Request matagumpay na naitala at naisumite sa LGU Command Center para sa pagsusuri at staff dispatch!');
+        }
       } else {
         const errData = await res.json().catch(() => ({}));
         alert(errData.message || 'Failed to submit special relief request.');
@@ -311,7 +349,7 @@ export default function SpecialRequestRelief() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             type="button"
-            onClick={() => setCreateModal(prev => ({ ...prev, isOpen: true }))}
+            onClick={openCreateModal}
             className="clay-button-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '9px 18px', fontWeight: 800 }}
           >
@@ -1240,7 +1278,7 @@ export default function SpecialRequestRelief() {
               </div>
 
               {/* Specific Reason & Notes */}
-              <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 18 }}>
                 <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
                   Specific On-Ground Condition / Reason for Delivery *
                 </label>
@@ -1252,6 +1290,166 @@ export default function SpecialRequestRelief() {
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, background: 'var(--card)', color: 'var(--ink)', resize: 'vertical', boxSizing: 'border-box' }}
                 />
               </div>
+
+              {/* LGU Admin Instant Staff Assignment & Auto-Approval */}
+              {isLguAdmin && (
+                <div style={{
+                  marginBottom: 20,
+                  padding: '16px',
+                  borderRadius: 12,
+                  background: '#EFF6FF',
+                  border: '1.5px solid #BFDBFE',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Truck size={18} color="#1D4ED8" />
+                      <label style={{ fontSize: 12, fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                        Italagang Field Staff Officer (Direct LGU Auto-Approval & Dispatch) *
+                      </label>
+                    </div>
+                    <span style={{ fontSize: 11, background: '#DBEAFE', color: '#1E40AF', fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>
+                      Auto-Approved
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: 11.5, color: '#3B82F6', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                    Bilang <strong>LGU Admin</strong>, ang paglikha ng request na ito ay <strong>awtomatikong maaaprubahan agad</strong> at direktang maipapadala sa mobile terminal ng itinalagang field officer para sa agarang door-to-door delivery.
+                  </p>
+
+                  <select
+                    value={createModal.assignedStaffId}
+                    onChange={e => {
+                      const sId = e.target.value;
+                      const found = staffList.find(s => (s._id || s.id) === sId);
+                      if (found) {
+                        setCreateModal(prev => ({
+                          ...prev,
+                          assignedStaffId: sId,
+                          assignedStaffName: `${found.name} (${found.teamName || 'Field Operations'})`,
+                        }));
+                      } else {
+                        setCreateModal(prev => ({
+                          ...prev,
+                          assignedStaffId: sId,
+                          assignedStaffName: '',
+                        }));
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      border: '1.5px solid #93C5FD',
+                      fontSize: 13,
+                      background: '#FFFFFF',
+                      color: '#1E40AF',
+                      fontWeight: 700,
+                      boxSizing: 'border-box',
+                      marginBottom: 10,
+                    }}
+                  >
+                    {staffList.length === 0 ? (
+                      <option value="">Field Officer Juan Santos (Team Alpha) - Default</option>
+                    ) : (
+                      staffList.map(s => {
+                        const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
+                        return (
+                          <option key={s._id || s.id} value={s._id || s.id}>
+                            {s.name} ({s.teamName || 'Field Operations'}) — {count === 0 ? 'Libre (0 aktibong delivery)' : `${count} aktibong delivery`}
+                          </option>
+                        );
+                      })
+                    )}
+                  </select>
+
+                  {staffList.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#1E40AF', marginBottom: 6 }}>
+                        Quick Select Available Staff (Naka-ayos ayon sa pinaka-konting delivery load):
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {[...staffList]
+                          .sort((a, b) => getStaffActiveDeliveriesCount(a._id || a.id, a.name) - getStaffActiveDeliveriesCount(b._id || b.id, b.name))
+                          .map(s => {
+                            const count = getStaffActiveDeliveriesCount(s._id || s.id, s.name);
+                            const isSelected = createModal.assignedStaffId === (s._id || s.id);
+                            const isFree = count === 0;
+                            return (
+                              <button
+                                key={s._id || s.id}
+                                type="button"
+                                onClick={() => {
+                                  setCreateModal(prev => ({
+                                    ...prev,
+                                    assignedStaffId: s._id || s.id,
+                                    assignedStaffName: `${s.name} (${s.teamName || 'Field Operations'})`,
+                                  }));
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  padding: '5px 9px',
+                                  borderRadius: 6,
+                                  border: isSelected ? '1.5px solid #1D4ED8' : '1px solid #CBD5E1',
+                                  background: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? 800 : 600,
+                                  color: isSelected ? '#1D4ED8' : '#475569',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.12s ease',
+                                }}
+                              >
+                                <span style={{
+                                  width: 7,
+                                  height: 7,
+                                  borderRadius: '50%',
+                                  backgroundColor: isFree ? '#10B981' : '#F59E0B',
+                                  display: 'inline-block',
+                                }} />
+                                <span>{s.name}</span>
+                                <span style={{
+                                  fontSize: 9.5,
+                                  padding: '1px 5px',
+                                  borderRadius: 999,
+                                  backgroundColor: isFree ? '#DCFCE7' : '#FEF3C7',
+                                  color: isFree ? '#15803D' : '#B45309',
+                                  fontWeight: 800,
+                                }}>
+                                  {count} active
+                                </span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Barangay Notice */}
+              {isBarangay && (
+                <div style={{
+                  marginBottom: 20,
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  background: '#FFFBEB',
+                  border: '1.5px solid #FDE68A',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                }}>
+                  <Clock size={18} color="#D97706" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: '#B45309' }}>
+                      Proseso ng Pag-apruba (Barangay Portal)
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#92400E', marginTop: 2, lineHeight: 1.4 }}>
+                      Ang kahilingang ito ay mapupunta muna sa <strong>Pending Queue</strong> para suriin ng <strong>LGU Admin Command Center</strong>. Ang LGU Admin ang magtatalaga ng Field Staff bago isagawa ang door-to-door delivery.
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                 <button
@@ -1268,7 +1466,11 @@ export default function SpecialRequestRelief() {
                   className="clay-button-primary"
                   style={{ fontSize: 13, padding: '10px 24px', cursor: 'pointer', fontWeight: 800 }}
                 >
-                  {createLoading ? 'Submitting Request...' : 'Submit & Queue Request'}
+                  {createLoading
+                    ? 'Submitting Request...'
+                    : isLguAdmin
+                    ? 'Approve & Dispatch Special Request'
+                    : 'Submit for LGU Approval'}
                 </button>
               </div>
             </form>

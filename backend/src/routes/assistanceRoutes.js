@@ -28,6 +28,8 @@ router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_sup
       vulnerabilityTypes,
       severityLevel,
       memberCount,
+      assignedStaffId,
+      assignedStaffName,
     } = req.body;
 
     let targetHousehold = null;
@@ -112,6 +114,48 @@ router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_sup
 
     const requestNotes = reason || notes || '';
 
+    // If created by LGU Admin, allow assigning staff immediately and auto-approve.
+    // If created by Barangay Official, it stays pending awaiting LGU review and dispatch.
+    const isLgu = ['lgu_admin', 'lgu_superadmin', 'lgu_super_admin'].includes(req.user.role);
+
+    let finalStaffId = null;
+    let finalStaffName = '';
+
+    if (isLgu) {
+      if (assignedStaffId && mongoose.Types.ObjectId.isValid(assignedStaffId)) {
+        const foundUser = await User.findById(assignedStaffId);
+        if (foundUser) {
+          finalStaffId = foundUser._id;
+          finalStaffName = assignedStaffName || foundUser.name;
+        }
+      }
+
+      if (!finalStaffId && assignedStaffName) {
+        const clean = assignedStaffName.replace(/Field Officer|Team Alpha|Team Bravo|Standby|\(|\)|\-/gi, '').trim();
+        if (clean) {
+          const matched = await User.findOne({
+            role: 'field_staff',
+            name: { $regex: clean, $options: 'i' },
+          });
+          if (matched) {
+            finalStaffId = matched._id;
+            finalStaffName = assignedStaffName || matched.name;
+          }
+        }
+      }
+
+      // Fallback: If still no field_staff user ID, pick any available field staff
+      if (!finalStaffId) {
+        const anyStaff = await User.findOne({ role: 'field_staff' });
+        if (anyStaff) {
+          finalStaffId = anyStaff._id;
+          finalStaffName = assignedStaffName || `${anyStaff.name} (${anyStaff.teamName || 'Field Operations'})`;
+        }
+      }
+    }
+
+    const initialStatus = isLgu ? 'approved' : 'pending';
+
     const request = await AssistanceRequest.create({
       householdId: targetHousehold ? targetHousehold._id : null,
       eventId: finalEventId,
@@ -126,9 +170,33 @@ router.post('/', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_sup
       itemType: requestedItem,
       packages: formattedPackages,
       notes: requestNotes,
-      status: 'pending',
+      status: initialStatus,
+      assignedStaff: isLgu ? finalStaffId : null,
+      assignedStaffName: isLgu ? (finalStaffName || (finalStaffId ? 'Assigned Field Staff' : 'Field Officer Juan Santos (Team Alpha)')) : '',
+      decidedBy: isLgu ? req.user._id : null,
+      decidedAt: isLgu ? new Date() : null,
       requestedBy: req.user.role === 'resident' ? req.user.name : `Official: ${req.user.name}`,
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      if (isLgu && finalStaffId) {
+        io.to(`staff:${finalStaffId}`).emit('new_delivery_task', {
+          requestId: request._id,
+          itemType: request.itemType,
+          assignedStaffName: request.assignedStaffName,
+        });
+        io.emit('assistance_request_assigned', {
+          requestId: request._id,
+          assignedStaff: finalStaffId,
+        });
+      }
+      io.emit('new_assistance_request', {
+        requestId: request._id,
+        barangayCode: request.barangayCode,
+        status: request.status,
+      });
+    }
 
     res.status(201).json(request);
   } catch (error) {
@@ -237,20 +305,20 @@ router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_adm
 //          city-wide for lgu_admin (same pattern as /households/pending)
 router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_staff'), async (req, res) => {
   try {
-    const householdFilter = {};
-    if (req.user.role === 'barangay_official' || req.user.role === 'field_staff') {
-      householdFilter.barangayCode = req.user.barangayCode;
-    } else if (req.query.barangayCode) {
-      householdFilter.barangayCode = req.query.barangayCode;
-    }
+    const isOfficialOrStaff = req.user.role === 'barangay_official' || req.user.role === 'field_staff';
+    const targetBrgy = isOfficialOrStaff ? req.user.barangayCode : req.query.barangayCode;
 
-    let householdIds = null;
-    if (Object.keys(householdFilter).length > 0) {
-      const households = await Household.find(householdFilter).select('_id');
-      householdIds = households.map(h => h._id);
+    let query = {};
+    if (targetBrgy) {
+      const households = await Household.find({ barangayCode: targetBrgy }).select('_id');
+      const householdIds = households.map(h => h._id);
+      query = {
+        $or: [
+          { householdId: { $in: householdIds } },
+          { barangayCode: targetBrgy },
+        ],
+      };
     }
-
-    const query = householdIds ? { householdId: { $in: householdIds } } : {};
 
     const requests = await AssistanceRequest.find(query)
       .populate({
