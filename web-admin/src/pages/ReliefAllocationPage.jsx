@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Package, ShieldAlert, Shield, Plus, Calculator, Info, CheckCircle2, Zap } from 'lucide-react';
 import { IconlyPackage } from '../components/Sidebar';
@@ -9,6 +10,7 @@ import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
 
 export default function ReliefAllocationPage() {
+  const navigate = useNavigate();
   const { token, user } = useContext(AuthContext);
   const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
 
@@ -346,6 +348,35 @@ export default function ReliefAllocationPage() {
         </div>
       </div>
 
+      {msg && (
+        <div style={{
+          padding: '12px 18px',
+          borderRadius: 'var(--radius-inner)',
+          background: msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') ? '#FEF2F2' : '#F0FDF4',
+          border: `1.5px solid ${msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') ? '#F87171' : '#86EFAC'}`,
+          color: msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') ? '#991B1B' : '#166534',
+          fontSize: '13px',
+          fontWeight: 600,
+          marginBottom: '22px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={18} color={msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') ? '#DC2626' : '#16A34A'} />
+            <span>{msg}</span>
+          </div>
+          <button
+            onClick={() => setMsg('')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '16px', color: 'inherit' }}
+            title="Dismiss"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       {!isSuperAdmin && (
         <div style={{
           background: '#EFF6FF',
@@ -367,11 +398,11 @@ export default function ReliefAllocationPage() {
             </div>
           </div>
           <button
-            onClick={() => window.location.href = '/distribution-events'}
+            onClick={() => navigate('/distribution-events')}
             className="clay-button-primary"
             style={{ fontSize: '12px', padding: '8px 14px', whiteSpace: 'nowrap' }}
           >
-            Pumunta sa Distribution Events →
+            Pumunta sa Distribution Events &rarr;
           </button>
         </div>
       )}
@@ -550,7 +581,7 @@ export default function ReliefAllocationPage() {
             </div>
             <button
               type="button"
-              onClick={() => window.location.href = '/distribution-events'}
+              onClick={() => navigate('/distribution-events')}
               className="clay-button-primary"
               style={{ fontSize: 12, padding: '7px 14px' }}
             >
