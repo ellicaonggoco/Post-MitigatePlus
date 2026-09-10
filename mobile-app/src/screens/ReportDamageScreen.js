@@ -11,43 +11,52 @@ import { TRANSLATIONS } from '../i18n/translations';
 import { MotionSeverityTile, MotionPressable } from '../components/motion';
 
 function SeveritySelectorTray({ severities, currentLevel, onSelect, lang = 'en' }) {
+  const rows = [];
+  for (let i = 0; i < severities.length; i += 2) {
+    rows.push(severities.slice(i, i + 2));
+  }
+
   return (
     <View style={styles.severityGrid}>
-      {severities.map((s) => {
-        const isSelected = currentLevel === s.level;
-        return (
-          <MotionPressable
-            key={s.level}
-            style={[
-              styles.severityTile,
-              isSelected && {
-                borderColor: s.color,
-                backgroundColor: s.badgeBg || '#EDF1FB',
-                borderWidth: 2,
-              },
-            ]}
-            onPress={() => onSelect(s.level)}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`${s.label}, ${s.sub}`}
-            accessibilityHint={lang === 'tl' ? `Piliin ang ${s.label} na antas ng pinsala` : `Select ${s.label} damage level`}
-          >
-            <View style={styles.severityHeaderRow}>
-              <View style={[styles.severityDot, { backgroundColor: s.color }]} />
-              {isSelected && (
-                <View style={[styles.severityCheckBadge, { backgroundColor: s.color }]}>
-                  <CheckIcon size={10} color="#FFFFFF" />
+      {rows.map((row, rIdx) => (
+        <View key={rIdx} style={styles.severityRow}>
+          {row.map((s) => {
+            const isSelected = currentLevel === s.level;
+            return (
+              <MotionPressable
+                key={s.level}
+                style={[
+                  styles.severityTile,
+                  isSelected && {
+                    borderColor: s.color,
+                    backgroundColor: s.badgeBg || '#EDF1FB',
+                    borderWidth: 2,
+                  },
+                ]}
+                onPress={() => onSelect(s.level)}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`${s.label}, ${s.sub}`}
+                accessibilityHint={lang === 'tl' ? `Piliin ang ${s.label} na antas ng pinsala` : `Select ${s.label} damage level`}
+              >
+                <View style={styles.severityHeaderRow}>
+                  <View style={[styles.severityDot, { backgroundColor: s.color }]} />
+                  {isSelected && (
+                    <View style={[styles.severityCheckBadge, { backgroundColor: s.color }]}>
+                      <CheckIcon size={10} color="#FFFFFF" />
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
-            <Text style={[styles.severityLabel, isSelected && { color: s.color, fontWeight: '800' }]}>
-              {s.label}
-            </Text>
-            <Text style={[styles.severitySub, isSelected && { color: s.color + 'DD' }]}>{s.sub}</Text>
-          </MotionPressable>
-        );
-      })}
+                <Text style={[styles.severityLabel, isSelected && { color: s.color, fontWeight: '800' }]}>
+                  {s.label}
+                </Text>
+                <Text style={[styles.severitySub, isSelected && { color: s.color + 'DD' }]}>{s.sub}</Text>
+              </MotionPressable>
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 }
@@ -400,7 +409,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[{ paddingBottom: 50 + keyboardHeight }]}
+        contentContainerStyle={[{ paddingBottom: 120 + keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
@@ -590,11 +599,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '600',
   },
-  severityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  severityGrid: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  severityRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   severityTile: {
     flex: 1,
-    minWidth: '47%',
-    minHeight: 72,
+    minHeight: 76,
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 18,

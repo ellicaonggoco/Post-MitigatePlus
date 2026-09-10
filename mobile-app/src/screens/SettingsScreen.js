@@ -808,7 +808,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: 75 + keyboardHeight }]}
+        contentContainerStyle={[styles.content, { paddingBottom: 120 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
