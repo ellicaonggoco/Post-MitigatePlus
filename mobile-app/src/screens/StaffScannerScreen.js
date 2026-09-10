@@ -2238,8 +2238,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                           return (
                             <View
                               key={inc._id}
-                              accessible={true}
-                              accessibilityLabel={`Incident Report #${reportNum}: ${inc.incidentType} in Barangay ${inc.barangayCode || dutyBrgy}, Status ${statusLabel}`}
                               style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: 16,
@@ -2270,14 +2268,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   }}>
                                     <Text
                                       style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}
-                                      accessibilityLabel={`Incident Type: ${inc.incidentType}, Report #${reportNum}`}
                                     >
                                       {inc.incidentType}
                                     </Text>
                                   </View>
                                   <Text
                                     style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}
-                                    accessibilityLabel={`Location: Barangay ${inc.barangayCode || dutyBrgy}, Report #${reportNum}`}
                                   >
                                     Brgy {inc.barangayCode || dutyBrgy}
                                   </Text>
@@ -2294,7 +2290,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 }}>
                                   <Text
                                     style={{ fontSize: 10, fontWeight: '900', color: statusColor }}
-                                    accessibilityLabel={`Status: ${statusLabel}, Report #${reportNum}`}
                                   >
                                     {statusLabel}
                                   </Text>
@@ -2321,8 +2316,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   padding: 10,
                                 }}>
                                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-                                    <CheckCircleIcon size={14} color="#0D8A5A" />
-                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#0D8A5A' }}>
+                                    <CheckCircleIcon size={14} color="#065F46" />
+                                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#065F46', letterSpacing: 0.3 }}>
                                       LGU COMMAND CENTER DIRECTIVE:
                                     </Text>
                                   </View>
@@ -2333,20 +2328,26 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     <TouchableOpacity
                                       onPress={() => setSelectedVoucherIncident(inc)}
                                       style={{
-                                        marginTop: 8,
+                                        marginTop: 10,
                                         backgroundColor: '#1C3F94',
-                                        borderRadius: 8,
-                                        paddingVertical: 7,
-                                        paddingHorizontal: 10,
+                                        borderRadius: 10,
+                                        paddingVertical: 13,
+                                        paddingHorizontal: 14,
+                                        minHeight: 48,
+                                        minWidth: 48,
                                         flexDirection: 'row',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: 6,
+                                        gap: 8,
                                       }}
                                       activeOpacity={0.85}
+                                      accessibilityRole="button"
+                                      accessibilityLabel="View Digital Gate Pass & Voucher"
+                                      accessibilityHint="Opens the digital gate pass and relief voucher modal"
+                                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                     >
-                                      <QrCodeIcon size={14} color="#FFFFFF" />
-                                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FFFFFF' }}>
+                                      <QrCodeIcon size={16} color="#FFFFFF" />
+                                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>
                                         View Digital Gate Pass & Voucher
                                       </Text>
                                     </TouchableOpacity>
@@ -3262,11 +3263,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     width: '100%',
                     backgroundColor: '#1C3F94',
                     borderRadius: 12,
-                    paddingVertical: 12,
+                    paddingVertical: 13,
+                    minHeight: 48,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                   activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close Gate Pass"
                 >
                   <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800' }}>
                     Close Gate Pass
