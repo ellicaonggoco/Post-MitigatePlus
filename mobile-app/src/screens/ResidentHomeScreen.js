@@ -95,6 +95,36 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [activeTab, setActiveTab] = useState('home');
   const [profilePhoto, setProfilePhoto] = useState(null);
 
+  const navigateToTab = (target) => {
+    if (!target) return;
+    const clean = String(target).toLowerCase().trim();
+    if (
+      clean === 'history' ||
+      clean === 'distribution' ||
+      clean === 'claim' ||
+      clean === 'claims' ||
+      clean === 'schedule' ||
+      clean === 'event' ||
+      clean === 'events'
+    ) {
+      setActiveTab('history');
+    } else if (
+      clean === 'assistance' ||
+      clean === 'request' ||
+      clean === 'requests' ||
+      clean === 'livelihood' ||
+      clean === 'cash-for-work'
+    ) {
+      setActiveTab('assistance');
+    } else if (clean === 'damage' || clean === 'report' || clean === 'reports') {
+      setActiveTab('damage');
+    } else if (clean === 'settings' || clean === 'profile') {
+      setActiveTab('settings');
+    } else {
+      setActiveTab('home');
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -929,12 +959,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           style={styles.annActionBtn}
                           onPress={() => {
                             handleOpenAnnouncement(ann);
-                            setActiveTab(ann.targetTab);
+                            navigateToTab(ann.targetTab);
                           }}
                           activeOpacity={0.85}
                         >
                           <Text style={styles.annActionBtnText}>
-                            {ann.targetTab === 'request'
+                            {ann.targetTab === 'request' || ann.targetTab === 'assistance'
                               ? (lang === 'tl' ? 'Humiling ng Ayuda' : 'Request Relief')
                               : ann.targetTab === 'damage'
                               ? (lang === 'tl' ? 'Mag-ulat ng Sira' : 'Report Damage')
@@ -983,7 +1013,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               </View>
             </View>
           </ScrollView>
-        ) : activeTab === 'assistance' ? (
+        ) : (activeTab === 'assistance' || activeTab === 'request') ? (
           <AssistanceRequestScreen
             token={token}
             lang={lang}
@@ -992,7 +1022,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             onBack={() => setActiveTab('home')}
             onSubmitSuccess={() => setActiveTab('home')}
           />
-        ) : activeTab === 'damage' ? (
+        ) : (activeTab === 'damage' || activeTab === 'report') ? (
           <ReportDamageScreen
             token={token}
             user={user}
@@ -1007,13 +1037,24 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               setActiveTab('home');
             }}
           />
-        ) : activeTab === 'history' ? (
+        ) : (activeTab === 'history' || activeTab === 'distribution' || activeTab === 'claim' || activeTab === 'claims' || activeTab === 'schedule') ? (
           <ResidentClaimsHistoryScreen
             token={token}
             user={user}
             household={householdData || household}
             lang={lang}
             onBack={() => setActiveTab('home')}
+          />
+        ) : activeTab === 'settings' ? (
+          <SettingsScreen
+            user={user}
+            onPhotoUpdated={(uri) => setProfilePhoto(uri)}
+            lang={lang}
+            onSelectLang={(code) => {
+              setLang(code);
+              if (onSelectLang) onSelectLang(code);
+            }}
+            onLogout={onLogout}
           />
         ) : (
           <SettingsScreen
@@ -1038,14 +1079,20 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
     { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
     { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#8A9BB8'} filled={false} /> },
-  ].map((item) => (
-    <AnimatedNavItem
-      key={item.key}
-      item={item}
-      isActive={activeTab === item.key}
-      onPress={() => setActiveTab(item.key)}
-    />
-  ))}
+  ].map((item) => {
+    const isTabActive = item.key === activeTab ||
+      (item.key === 'history' && (activeTab === 'distribution' || activeTab === 'claim' || activeTab === 'claims' || activeTab === 'schedule')) ||
+      (item.key === 'assistance' && activeTab === 'request') ||
+      (item.key === 'damage' && activeTab === 'report');
+    return (
+      <AnimatedNavItem
+        key={item.key}
+        item={item}
+        isActive={isTabActive}
+        onPress={() => setActiveTab(item.key)}
+      />
+    );
+  })}
   {/* Home indicator pill */}
   <View style={styles.homeIndicatorPill} />
 </View>
@@ -1367,12 +1414,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 onPress={() => {
                   const target = selectedAnnouncement.targetTab;
                   setSelectedAnnouncement(null);
-                  setActiveTab(target);
+                  navigateToTab(target);
                 }}
                 activeOpacity={0.85}
               >
                 <Text style={styles.annDetailActionBtnText}>
-                  {selectedAnnouncement.targetTab === 'request'
+                  {selectedAnnouncement.targetTab === 'request' || selectedAnnouncement.targetTab === 'assistance'
                     ? (lang === 'tl' ? 'Pumunta sa Livelihood' : 'Go to Livelihood')
                     : selectedAnnouncement.targetTab === 'damage'
                     ? (lang === 'tl' ? 'Pumunta sa Damage Report' : 'Go to Damage Report')
@@ -1425,7 +1472,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         ]}
         onNavigate={(targetTab) => {
           if (targetTab) {
-            setActiveTab(targetTab);
+            navigateToTab(targetTab);
             setShowNotifModal(false);
             setHasUnreadNotifs(false);
           }

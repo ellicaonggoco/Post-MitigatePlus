@@ -152,7 +152,7 @@ router.patch('/events/:id/announcement', protect, requireRole('barangay_official
         tag: 'UPDATED',
         edited: true,
         editedAt: new Date(),
-        targetTab: 'distribution',
+        targetTab: 'history',
         postedBy: req.user._id,
       });
     }
@@ -234,7 +234,7 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
         category: 'Relief Distribution',
         scope: 'barangay',
         tag: 'DISTRIBUTION',
-        targetTab: 'distribution',
+        targetTab: 'history',
         postedBy: req.user._id,
       });
 

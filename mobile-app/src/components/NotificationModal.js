@@ -44,18 +44,27 @@ export default function NotificationModal({
   const handleActionRoute = (targetTab) => {
     handleModalClose();
     if (targetTab && onNavigate) {
-      onNavigate(targetTab);
+      const clean = String(targetTab).toLowerCase().trim();
+      const destination = (clean === 'distribution' || clean === 'history' || clean === 'claim' || clean === 'claims' || clean === 'schedule')
+        ? 'history'
+        : (clean === 'request' || clean === 'assistance' || clean === 'livelihood')
+        ? 'assistance'
+        : (clean === 'damage' || clean === 'report')
+        ? 'damage'
+        : clean;
+      onNavigate(destination);
     }
   };
 
   const getActionLabel = (targetTab) => {
-    if (targetTab === 'damage') {
+    const clean = String(targetTab || '').toLowerCase().trim();
+    if (clean === 'damage' || clean === 'report') {
       return lang === 'tl' ? 'Pumunta sa Ulat ng Pinsala' : 'Go to Damage Report';
     }
-    if (targetTab === 'assistance' || targetTab === 'request') {
+    if (clean === 'assistance' || clean === 'request' || clean === 'livelihood') {
       return lang === 'tl' ? 'Pumunta sa Livelihood Program' : 'Go to Livelihood Program';
     }
-    if (targetTab === 'history') {
+    if (clean === 'history' || clean === 'distribution' || clean === 'claim' || clean === 'claims' || clean === 'schedule') {
       return lang === 'tl' ? 'Tingnan ang Talaan ng Ayuda' : 'View Claims History';
     }
     return lang === 'tl' ? 'Pumunta sa Serbisyo' : 'Proceed to Service';
