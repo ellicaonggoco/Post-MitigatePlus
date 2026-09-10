@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   roleSub: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     marginTop: 3,
     lineHeight: 16,
   },

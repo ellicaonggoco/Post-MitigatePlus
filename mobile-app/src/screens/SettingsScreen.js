@@ -130,8 +130,8 @@ function HouseholdProfileHeader({
                 <Text style={{ color: '#0D8A5A', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
               </View>
             ) : isNeedsInfo ? (
-              <View style={{ backgroundColor: '#EFF6FF', borderColor: 'rgba(29,78,216,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-                <Text style={{ color: '#1D4ED8', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Kailangan ng Impormasyon' : 'Needs Info'}</Text>
+              <View style={{ backgroundColor: '#EDF1FB', borderColor: 'rgba(29,78,216,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#1C3F94', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Kailangan ng Impormasyon' : 'Needs Info'}</Text>
               </View>
             ) : isRejected ? (
               <View style={{ backgroundColor: '#FEF2F2', borderColor: 'rgba(220,38,38,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
@@ -932,8 +932,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <Switch
               value={smsAlerts}
               onValueChange={setSmsAlerts}
-              trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={smsAlerts ? '#1C3F94' : '#F1F5F9'}
+              trackColor={{ false: '#DDE4F0', true: '#D6DEFA' }}
+              thumbColor={smsAlerts ? '#1C3F94' : '#F3F6FC'}
             />
           </View>
 
@@ -951,8 +951,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <Switch
               value={pushAlerts}
               onValueChange={setPushAlerts}
-              trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={pushAlerts ? '#1C3F94' : '#F1F5F9'}
+              trackColor={{ false: '#DDE4F0', true: '#D6DEFA' }}
+              thumbColor={pushAlerts ? '#1C3F94' : '#F3F6FC'}
             />
           </View>
         </View>
@@ -1340,12 +1340,12 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                       {isChecked ? (
                         <CheckIcon size={12} color={preset.color} />
                       ) : (
-                        <PlusIcon size={12} color="#64748B" />
+                        <PlusIcon size={12} color="#3D5070" />
                       )}
                       <Text
                         style={[
                           styles.condTagTextSmall,
-                          isChecked ? { color: preset.color, fontWeight: '800' } : { color: '#64748B' },
+                          isChecked ? { color: preset.color, fontWeight: '800' } : { color: '#3D5070' },
                         ]}
                       >
                         {preset.tag}
@@ -1381,11 +1381,11 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         <View style={styles.modalBackdrop}>
           <View style={styles.passwordModalCard}>
             <View style={styles.modalHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={[styles.rosterModalIconCircle, { backgroundColor: '#EFF6FF' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, paddingRight: 8 }}>
+                <View style={[styles.rosterModalIconCircle, { backgroundColor: '#EDF1FB' }]}>
                   <LockIcon size={18} color="#1C3F94" />
                 </View>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.modalMainTitle}>
                     {lang === 'tl' ? 'Palitan ang Password' : 'Change Password'}
                   </Text>
@@ -1396,8 +1396,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => setShowPasswordModal(false)}>
-                <CloseIcon size={18} color="#0F172A" />
+              <TouchableOpacity onPress={() => setShowPasswordModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+                <CloseIcon size={18} color="#0B1525" />
               </TouchableOpacity>
             </View>
 
@@ -1572,7 +1572,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   {showReasonDropdown ? (
                     <ChevronUpIcon size={18} color="#1C3F94" />
                   ) : (
-                    <ChevronDownIcon size={18} color="#64748B" />
+                    <ChevronDownIcon size={18} color="#3D5070" />
                   )}
                 </TouchableOpacity>
 
@@ -1714,7 +1714,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   onPress={handleResetToInitials}
                   activeOpacity={0.85}
                 >
-                  <View style={[styles.avatarOptionIconWell, { backgroundColor: '#F1F5F9' }]}>
+                  <View style={[styles.avatarOptionIconWell, { backgroundColor: '#F3F6FC' }]}>
                     <TrashIcon size={18} color="#DC2626" />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -1753,7 +1753,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#3D5070',
     letterSpacing: 0.8,
     marginBottom: 6,
     marginTop: 14,
@@ -1772,14 +1772,14 @@ const styles = StyleSheet.create({
   },
   avatarSection: { alignItems: 'center', gap: 4 },
   avatarContainer: { position: 'relative' },
-  avatarImage: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#BFDBFE' },
+  avatarImage: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#D6DEFA' },
   avatarPlaceholder: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1809,8 +1809,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   verifiedTagText: { fontSize: 9.5, fontWeight: '800', color: '#16A34A' },
-  profileSub: { fontSize: 11.5, color: '#64748B', marginTop: 2 },
-  profileContactText: { fontSize: 11, color: '#475569', fontWeight: '600', marginTop: 2 },
+  profileSub: { fontSize: 11.5, color: '#3D5070', marginTop: 2 },
+  profileContactText: { fontSize: 11, color: '#3D5070', fontWeight: '600', marginTop: 2 },
 
   // ── Roster Summary Card ──
   rosterSummaryCard: {
@@ -1828,11 +1828,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     flexShrink: 0,
   },
   rosterCardTitle: { fontSize: 13, fontWeight: FONT_WEIGHT.black, color: '#0F172A' },
@@ -1843,18 +1843,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   headcountBadgeText: { fontSize: 9.5, fontWeight: '800', color: '#0284C7' },
-  rosterCardSub: { fontSize: 10.5, color: '#64748B', marginTop: 1 },
+  rosterCardSub: { fontSize: 10.5, color: '#3D5070', marginTop: 1 },
   viewRosterBtn: {
     flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
   },
   viewRosterBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
 
@@ -1886,12 +1886,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   settingItemLabel: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
-  settingItemValue: { fontSize: 12, color: '#475569', marginTop: 2, fontWeight: '500' },
-  settingItemSub: { fontSize: 11, color: '#64748B', marginTop: 2, lineHeight: 15 },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 6 },
-  readOnlyBadge: { flexShrink: 0, backgroundColor: '#F1F5F9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  readOnlyText: { fontSize: 10, fontWeight: '700', color: '#64748B' },
-  editActionBtn: { flexShrink: 0, backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  settingItemValue: { fontSize: 12, color: '#3D5070', marginTop: 2, fontWeight: '500' },
+  settingItemSub: { fontSize: 11, color: '#3D5070', marginTop: 2, lineHeight: 15 },
+  divider: { height: 1, backgroundColor: '#F3F6FC', marginVertical: 6 },
+  readOnlyBadge: { flexShrink: 0, backgroundColor: '#F3F6FC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  readOnlyText: { fontSize: 10, fontWeight: '700', color: '#3D5070' },
+  editActionBtn: { flexShrink: 0, backgroundColor: '#EDF1FB', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   editActionText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   successInline: { fontSize: 11, color: '#16A34A', fontWeight: '700', marginTop: 4 },
   actionPillBtn: {
@@ -1899,9 +1899,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1944,9 +1944,9 @@ const styles = StyleSheet.create({
   // ── Language ──
   langRow: { flexDirection: 'row', gap: 10 },
   langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5 },
-  langBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#1C3F94' },
-  langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#CBD5E1' },
-  langText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
+  langBtnActive: { backgroundColor: '#EDF1FB', borderColor: '#1C3F94' },
+  langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#DDE4F0' },
+  langText: { fontSize: 13, fontWeight: '600', color: '#3D5070' },
   langTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.black },
 
   // ── Hotlines ──
@@ -1955,7 +1955,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -2000,7 +2000,7 @@ const styles = StyleSheet.create({
   logoutBtnText: { fontSize: 13.5, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
   trademarkCard: { alignItems: 'center', marginTop: 10, paddingBottom: 14, marginBottom: 4 },
   trademarkLogoImg: { width: 180, height: 40, marginBottom: 4 },
-  trademarkSub: { fontSize: 11, color: '#64748B', fontWeight: '600' },
+  trademarkSub: { fontSize: 11, color: '#3D5070', fontWeight: '600' },
 
   // ── Modal Styles ──
   modalBackdrop: {
@@ -2028,19 +2028,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
   },
   modalMainTitle: { fontSize: 16, fontWeight: FONT_WEIGHT.black, color: '#0F172A' },
-  modalMainSub: { fontSize: 11, color: '#64748B', marginTop: 1 },
+  modalMainSub: { fontSize: 11, color: '#3D5070', marginTop: 1 },
   modalCloseCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2050,15 +2050,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F6FC',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 10,
   },
   rosterMetricItem: { flex: 1, alignItems: 'center' },
-  rosterMetricDivider: { width: 1, height: 24, backgroundColor: '#CBD5E1' },
-  rosterMetricLabel: { fontSize: 8.5, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
+  rosterMetricDivider: { width: 1, height: 24, backgroundColor: '#DDE4F0' },
+  rosterMetricLabel: { fontSize: 8.5, fontWeight: '800', color: '#3D5070', letterSpacing: 0.5 },
   rosterMetricValue: { fontSize: 12, fontWeight: FONT_WEIGHT.black, color: '#0F172A', marginTop: 2 },
 
   addMemberFullBtn: {
@@ -2078,7 +2078,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     paddingVertical: 9,
     paddingHorizontal: 11,
     ...SHADOWS.card,
@@ -2092,9 +2092,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -2103,7 +2103,7 @@ const styles = StyleSheet.create({
   memberCardName: { fontSize: 12.5, fontWeight: '800', color: '#0F172A' },
   headTag: { backgroundColor: '#DCFCE7', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3 },
   headTagText: { fontSize: 8.5, fontWeight: '800', color: '#16A34A' },
-  memberCardRel: { fontSize: 10.5, color: '#64748B' },
+  memberCardRel: { fontSize: 10.5, color: '#3D5070' },
   activeConditionTagPill: {
     backgroundColor: '#F5F3FF',
     borderWidth: 1,
@@ -2118,12 +2118,12 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
   },
   memberEditBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
   },
   memberEditBtnText: { fontSize: 10.5, fontWeight: '800', color: '#1C3F94' },
   memberDeleteBtn: {
@@ -2147,7 +2147,7 @@ const styles = StyleSheet.create({
   condTagBtnInactive: {
     backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
   },
   condTagTextSmall: { fontSize: 10, fontWeight: '600' },
   modalDoneBtn: {
@@ -2177,14 +2177,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
   },
   relChoiceBtnActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderColor: '#1C3F94',
     borderWidth: 1.5,
   },
-  relChoiceText: { fontSize: 11, color: '#64748B', fontWeight: '600' },
+  relChoiceText: { fontSize: 11, color: '#3D5070', fontWeight: '600' },
   relChoiceTextActive: { color: '#1C3F94', fontWeight: '800' },
   saveMemberSubmitBtn: {
     backgroundColor: '#1C3F94',
@@ -2237,7 +2237,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
   },
-  avatarSheetSub: { fontSize: 11.5, color: '#64748B', marginBottom: 14 },
+  avatarSheetSub: { fontSize: 11.5, color: '#3D5070', marginBottom: 14 },
   avatarOptionList: { gap: 10 },
   avatarOptionBtn: {
     flexDirection: 'row',
@@ -2246,7 +2246,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F6FC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 12,
   },
   avatarOptionIconWell: {
@@ -2257,16 +2257,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarOptionTitle: { fontSize: 13, fontWeight: '800', color: '#0F172A' },
-  avatarOptionSub: { fontSize: 11, color: '#64748B', marginTop: 1 },
+  avatarOptionSub: { fontSize: 11, color: '#3D5070', marginTop: 1 },
   cancelSheetBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 14,
   },
-  cancelSheetBtnText: { fontSize: 13, fontWeight: '800', color: '#64748B' },
+  cancelSheetBtnText: { fontSize: 13, fontWeight: '800', color: '#3D5070' },
 
   // ── Secure QR Renewal Modal Styles ──
   securityNoticeCard: {
@@ -2307,7 +2307,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#F3F6FC',
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -2323,7 +2323,7 @@ const styles = StyleSheet.create({
   dropdownOptionsCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     marginTop: 4,
     overflow: 'hidden',
@@ -2336,10 +2336,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
   },
   dropdownOptionItemSelected: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
   },
   dropdownOptionText: {
     flex: 1,

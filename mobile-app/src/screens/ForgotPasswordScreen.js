@@ -282,18 +282,18 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
 
             {fallbackOtp ? (
               <View style={{
-                backgroundColor: '#EFF6FF',
-                borderColor: '#BFDBFE',
+                backgroundColor: '#EDF1FB',
+                borderColor: '#D6DEFA',
                 borderWidth: 1,
                 borderRadius: 8,
                 padding: 10,
                 marginBottom: 14,
                 alignItems: 'center',
               }}>
-                <Text style={{ fontSize: 11.5, color: '#1E40AF', fontWeight: '700' }}>
+                <Text style={{ fontSize: 11.5, color: '#1C3F94', fontWeight: '700' }}>
                   {lang === 'tl' ? 'Verification Code (SMS / System Backup):' : 'Verification Code (SMS / System Backup):'}
                 </Text>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: '#1E3A8A', letterSpacing: 4, marginTop: 4 }}>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#1C3F94', letterSpacing: 4, marginTop: 4 }}>
                   {fallbackOtp}
                 </Text>
               </View>
@@ -355,7 +355,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                 <Text style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: resendCooldown > 0 ? '#94A3B8' : '#C8102E',
+                  color: resendCooldown > 0 ? '#8A9BB8' : '#C8102E',
                 }}>
                   {resendCooldown > 0
                     ? (lang === 'tl' ? `Muling magpadala sa loob ng ${resendCooldown}s` : `Resend code in ${resendCooldown}s`)
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   },
   brandSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
   },
   cardPod: {
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   },
   cardSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 16,
     marginBottom: 16,
   },

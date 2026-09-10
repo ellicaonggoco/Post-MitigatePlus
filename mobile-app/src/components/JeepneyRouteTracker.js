@@ -25,12 +25,12 @@ function PhilippineJeepneyIcon({ color = '#F59E0B' }) {
       <Rect x="12" y="8" width="5" height="4" rx="1" fill="#FFFFFF" opacity="0.8" />
       <Rect x="19" y="8" width="5" height="4" rx="1" fill="#FFFFFF" opacity="0.8" />
       {/* Chrome Bumper */}
-      <Rect x="32" y="14" width="3" height="3" fill="#CBD5E1" />
+      <Rect x="32" y="14" width="3" height="3" fill="#DDE4F0" />
       {/* Wheels */}
       <Circle cx="8" cy="18" r="3.5" fill="#0F172A" />
-      <Circle cx="8" cy="18" r="1.5" fill="#CBD5E1" />
+      <Circle cx="8" cy="18" r="1.5" fill="#DDE4F0" />
       <Circle cx="26" cy="18" r="3.5" fill="#0F172A" />
-      <Circle cx="26" cy="18" r="1.5" fill="#CBD5E1" />
+      <Circle cx="26" cy="18" r="1.5" fill="#DDE4F0" />
     </Svg>
   );
 }
@@ -43,10 +43,10 @@ export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkM
 
   const theme = {
     card: darkMode ? '#0B1D4E' : '#FFFFFF',
-    border: darkMode ? 'rgba(255, 255, 255, 0.2)' : '#E2E8F0',
+    border: darkMode ? 'rgba(255, 255, 255, 0.2)' : '#DDE4F0',
     title: darkMode ? '#FFFFFF' : '#002BB8',
-    sub: darkMode ? '#93C5FD' : '#64748B',
-    lineBg: darkMode ? 'rgba(255, 255, 255, 0.2)' : '#E2E8F0',
+    sub: darkMode ? '#D6DEFA' : '#3D5070',
+    lineBg: darkMode ? 'rgba(255, 255, 255, 0.2)' : '#DDE4F0',
     labelCurrent: darkMode ? '#F59E0B' : '#002BB8',
   };
 
@@ -92,7 +92,7 @@ export default function JeepneyRouteTracker({ currentStage = 'ongoing', t, darkM
                 <Text
                   style={[
                     styles.stopLabel,
-                    { color: isCurrent ? theme.labelCurrent : darkMode ? '#94A3B8' : '#64748B' },
+                    { color: isCurrent ? theme.labelCurrent : darkMode ? '#8A9BB8' : '#3D5070' },
                     isCurrent && styles.stopLabelCurrent,
                   ]}
                   numberOfLines={1}
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   nodeDone: { backgroundColor: '#059669' },
   nodeCurrent: { backgroundColor: '#F59E0B', borderWidth: 2, borderColor: '#FFFFFF' },
-  nodeText: { fontSize: 10, color: '#64748B', fontWeight: 'bold' },
+  nodeText: { fontSize: 10, color: '#3D5070', fontWeight: 'bold' },
   nodeTextActive: { color: '#FFFFFF' },
   stopLabel: { fontSize: 9, textAlign: 'center' },
   stopLabelCurrent: { fontWeight: '800' },

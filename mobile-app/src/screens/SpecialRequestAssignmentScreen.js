@@ -272,7 +272,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
       <View style={styles.taskList}>
         {loading && tasks.length === 0 ? (
           <View style={styles.emptyStateCard}>
-            <ActivityIndicator color="#1E3A8A" size="small" />
+            <ActivityIndicator color="#1C3F94" size="small" />
             <Text style={[styles.emptyStateText, { marginTop: 10 }]}>
               {lang === 'tl' ? 'Kinakarga ang mga special requests...' : 'Loading special requests...'}
             </Text>
@@ -280,7 +280,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
         ) : filteredTasks.length === 0 ? (
           <View style={styles.emptyStateCard}>
             <View style={styles.emptyIconWell}>
-              <TruckIcon size={26} color="#94A3B8" />
+              <TruckIcon size={26} color="#8A9BB8" />
             </View>
             <Text style={styles.emptyStateTitle}>
               {filterTab === 'assigned'
@@ -338,7 +338,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                         styles.staffPillBadge,
                         isMyTask ? styles.myStaffPillActive : styles.otherStaffPill
                       ]}>
-                        <TruckIcon size={12} color={isMyTask ? '#047857' : '#1E40AF'} />
+                        <TruckIcon size={12} color={isMyTask ? '#0D8A5A' : '#1C3F94'} />
                         <Text style={[
                           styles.staffPillText,
                           isMyTask ? styles.myStaffPillTextActive : styles.otherStaffPillText
@@ -350,8 +350,8 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                       </View>
                       {item.assignedAt && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <CalendarIcon size={12} color="#64748B" />
-                          <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
+                          <CalendarIcon size={12} color="#3D5070" />
+                          <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>
                             {item.assignedAt}
                           </Text>
                         </View>
@@ -362,7 +362,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
 
                 {/* Location / Address Row */}
                 <View style={styles.metaRow}>
-                  <MapPinIcon size={14} color="#94A3B8" />
+                  <MapPinIcon size={14} color="#8A9BB8" />
                   <Text style={styles.metaText} numberOfLines={1}>
                     Brgy {item.barangay} • {item.address}
                   </Text>
@@ -376,9 +376,9 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
 
                 {/* Allocation Items Row */}
                 <View style={[styles.metaRow, { marginBottom: 14 }]}>
-                  <PackageIcon size={14} color="#94A3B8" />
+                  <PackageIcon size={14} color="#8A9BB8" />
                   <Text style={styles.metaText} numberOfLines={1}>
-                    Allocation: <Text style={{ color: '#1E3A8A', fontWeight: '800' }}>{item.items}</Text> ({item.members} members)
+                    Allocation: <Text style={{ color: '#1C3F94', fontWeight: '800' }}>{item.items}</Text> ({item.members} members)
                   </Text>
                 </View>
 
@@ -482,7 +482,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                         onPress={handlePickCamera}
                         activeOpacity={0.8}
                       >
-                        <CameraIcon size={22} color="#1E3A8A" />
+                        <CameraIcon size={22} color="#1C3F94" />
                         <Text style={styles.photoActionBtnText}>
                           {lang === 'tl' ? 'Buksan ang Camera' : 'Take Photo (Camera)'}
                         </Text>
@@ -493,7 +493,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                         onPress={handlePickLibrary}
                         activeOpacity={0.8}
                       >
-                        <ImageIcon size={22} color="#1E3A8A" />
+                        <ImageIcon size={22} color="#1C3F94" />
                         <Text style={styles.photoActionBtnText}>
                           {lang === 'tl' ? 'Mula sa Gallery' : 'Upload from Gallery'}
                         </Text>
@@ -509,7 +509,7 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                 <TextInput
                   style={styles.notesInput}
                   placeholder={lang === 'tl' ? 'Hal. Tinanggap ni Aling Remedios kasama ang apo...' : 'e.g. Received directly by beneficiary at doorstep...'}
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="#8A9BB8"
                   value={recipientNotes}
                   onChangeText={setRecipientNotes}
                   multiline
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   segmentText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#3D5070',
   },
   segmentTextActive: {
     color: '#FFFFFF',
@@ -754,9 +754,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   deliveredProofCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 12,
     padding: 12,
     marginTop: 4,
@@ -770,11 +770,11 @@ const styles = StyleSheet.create({
   deliveredLabelText: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#059669',
+    color: '#0D8A5A',
   },
   deliveredDateText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#8A9BB8',
   },
   deliveredThumbnail: {
     width: '100%',
@@ -782,11 +782,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#D6DEFA',
   },
   deliveredNotesText: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     fontStyle: 'italic',
   },
   emptyStateCard: {
@@ -796,13 +796,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   emptyIconWell: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -810,13 +810,13 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#0B1525',
     marginBottom: 4,
     textAlign: 'center',
   },
   emptyStateText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: 'rgba(11, 21, 37, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 18,
@@ -834,10 +834,12 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: '#1C3F94',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.20,
     shadowRadius: 20,
     elevation: 8,
   },
@@ -846,7 +848,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#DDE4F0',
     paddingBottom: 14,
     marginBottom: 12,
   },
@@ -854,31 +856,31 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#FBF5E4',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#F0DFA0',
   },
   modalKicker: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#B45309',
+    color: '#B8932A',
     letterSpacing: 0.8,
   },
   modalTitle: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#0B1525',
     marginTop: 2,
   },
   modalAddress: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
   },
   modalInstructions: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 16,
     marginBottom: 12,
   },
@@ -891,9 +893,9 @@ const styles = StyleSheet.create({
   },
   photoActionBtn: {
     flex: 1,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -903,44 +905,44 @@ const styles = StyleSheet.create({
   photoActionBtnText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#1E3A8A',
+    color: '#1C3F94',
   },
   photoPreviewBox: {
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#D6DEFA',
   },
   photoPreviewImg: {
     width: '100%',
     height: 160,
   },
   changePhotoBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingVertical: 8,
     alignItems: 'center',
   },
   changePhotoText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#475569',
+    color: '#3D5070',
   },
   notesLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#334155',
+    color: '#3D5070',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   notesInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     padding: 10,
     fontSize: 12,
-    color: '#0F172A',
+    color: '#0B1525',
     minHeight: 54,
     textAlignVertical: 'top',
     marginBottom: 14,
@@ -952,7 +954,7 @@ const styles = StyleSheet.create({
   },
   modalCancelBtn: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
@@ -961,18 +963,18 @@ const styles = StyleSheet.create({
   modalCancelBtnText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#3D5070',
   },
   modalConfirmBtn: {
     flex: 1.6,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 6,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#1C3F94',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -993,22 +995,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   myStaffPillActive: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
+    backgroundColor: '#E6F6EF',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   otherStaffPill: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
   },
   staffPillText: {
     fontSize: 11.5,
     fontWeight: '700',
   },
   myStaffPillTextActive: {
-    color: '#065F46',
+    color: '#0D8A5A',
     fontWeight: '800',
   },
   otherStaffPillText: {
-    color: '#1E40AF',
+    color: '#1C3F94',
   },
 });

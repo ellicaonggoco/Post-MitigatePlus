@@ -136,7 +136,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 <View style={{ flex: 1 }}>
                   <Text style={styles.claimType}>{item.type}</Text>
                   <View style={styles.dateRow}>
-                    <CalendarIcon size={11} color="#64748B" />
+                    <CalendarIcon size={11} color="#3D5070" />
                     <Text style={styles.claimDate}>{item.date}</Text>
                   </View>
                 </View>
@@ -171,8 +171,8 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
               </View>
 
               {/* Receipt Pill Action */}
-              <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderColor: '#F1F5F9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B' }}>
+              <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderColor: '#DDE4F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#3D5070' }}>
                   {item.receiptNumber}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -224,7 +224,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   <Text style={styles.receiptValueBold}>{selectedReceipt.familySize} {lang === 'tl' ? 'katao' : 'members'}</Text>
                 </View>
 
-                <View style={{ height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 }} />
+                <View style={{ height: 1, backgroundColor: '#DDE4F0', marginVertical: 4 }} />
 
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Uri ng Ayuda:' : 'Relief Item:'}</Text>
@@ -232,7 +232,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Dami na Na-release:' : 'Quantity Released:'}</Text>
-                  <Text style={[styles.receiptValueBold, { color: '#047857' }]}>{selectedReceipt.quantity} Pack(s)</Text>
+                  <Text style={[styles.receiptValueBold, { color: '#0D8A5A' }]}>{selectedReceipt.quantity} Pack(s)</Text>
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Lugar ng Distribusyon:' : 'Distribution Venue:'}</Text>
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 9999,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: { fontSize: 22, fontWeight: FONT_WEIGHT.black, color: '#172B4D', letterSpacing: -0.3 },
-  sub: { fontSize: 12, color: '#64748B', marginTop: 4, lineHeight: 17 },
+  sub: { fontSize: 12, color: '#3D5070', marginTop: 4, lineHeight: 17 },
   summaryCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     padding: 14,
     ...SHADOWS.sm,
   },
@@ -387,14 +387,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#E8F2FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
   },
   claimType: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#172B4D',
+    color: '#0B1525',
   },
   dateRow: {
     flexDirection: 'row',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   claimDate: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
   },
   statusTag: {
@@ -413,14 +413,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tagClaimed: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#E6F6EF',
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   tagPending: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#FBF5E4',
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#F0DFA0',
   },
   statusText: {
     fontSize: 10,
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   cardDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#DDE4F0',
     marginVertical: 10,
   },
   cardFooter: {
@@ -441,15 +441,15 @@ const styles = StyleSheet.create({
   },
   footerInfo: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
   },
   footerOfficer: {
     fontSize: 11,
-    color: '#475569',
+    color: '#3D5070',
   },
   receiptModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: 'rgba(11, 21, 37, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -461,10 +461,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    shadowColor: '#000',
+    borderColor: '#DDE4F0',
+    shadowColor: '#1C3F94',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.20,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -475,13 +475,13 @@ const styles = StyleSheet.create({
   receiptKicker: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#8A9BB8',
     letterSpacing: 0.8,
   },
   receiptTitle: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#1E293B',
+    color: '#0B1525',
     marginTop: 3,
   },
   receiptNumberText: {
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1C3F94',
     marginTop: 4,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   receiptDividerDashed: {
     height: 1,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderStyle: 'dashed',
     marginVertical: 12,
   },
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   },
   receiptLabel: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
     flex: 1,
   },
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   },
   receiptSecurityHint: {
     fontSize: 9,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     marginTop: 4,
     textAlign: 'center',
   },

@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   platformSub: {
     fontSize: 11.5,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     letterSpacing: 0.2,
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   footerAnchorText: {
     fontSize: 9.5,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#8A9BB8',
     letterSpacing: 1.2,
     textAlign: 'center',
   },

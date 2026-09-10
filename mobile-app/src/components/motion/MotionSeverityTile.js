@@ -54,7 +54,7 @@ export default function MotionSeverityTile({
 
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#E2E8F0', activeColor],
+    outputRange: ['#DDE4F0', activeColor],
   });
 
   return (

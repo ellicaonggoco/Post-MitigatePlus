@@ -75,7 +75,7 @@ export default function NeumorphicInput({
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#8A9BB8"
             secureTextEntry={isPassword ? isPasswordHidden : false}
             keyboardType={keyboardType}
             autoCapitalize={autoCapitalize}
@@ -94,7 +94,7 @@ export default function NeumorphicInput({
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              {isPasswordHidden ? <EyeIcon size={19} color="#64748B" /> : <EyeOffIcon size={19} color="#C8102E" />}
+              {isPasswordHidden ? <EyeIcon size={19} color="#3D5070" /> : <EyeOffIcon size={19} color="#C8102E" />}
             </TouchableOpacity>
           )}
         </View>
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 5,
     lineHeight: 16,
   },

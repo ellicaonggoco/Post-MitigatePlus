@@ -117,7 +117,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
             placeholder="Enter Username"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#8A9BB8"
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -129,7 +129,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••••••"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#8A9BB8"
               secureTextEntry={!showPassword}
             />
             <TouchableOpacity
@@ -137,7 +137,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
               style={{ position: 'absolute', right: 12, top: 14, padding: 4 }}
               activeOpacity={0.7}
             >
-              {showPassword ? <EyeOffIcon size={19} color="#1C3F94" /> : <EyeIcon size={19} color="#64748B" />}
+              {showPassword ? <EyeOffIcon size={19} color="#1C3F94" /> : <EyeIcon size={19} color="#3D5070" />}
             </TouchableOpacity>
           </View>
 
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 12, fontWeight: '800', color: '#0B1525', marginBottom: 6 },
   input: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,

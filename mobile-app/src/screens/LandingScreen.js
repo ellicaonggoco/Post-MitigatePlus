@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   splashTagline: {
     fontSize: 12,
-    color: '#93C5FD',
+    color: '#D6DEFA',
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 28,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 10,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
   },
   container: {
@@ -245,13 +245,13 @@ const styles = StyleSheet.create({
     height: 38,
   },
   kickerPill: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
   },
   kickerText: {
     fontSize: 9,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   heroDescription: {
     fontSize: 12,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 18,
   },
   featureGrid: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   featureItemSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 15,
   },
   ctaGroup: {
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   footerLegal: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#8A9BB8',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     fontSize: 12,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 18,
     marginBottom: 16,
   },

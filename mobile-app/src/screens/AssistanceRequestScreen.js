@@ -38,8 +38,8 @@ const JOB_CATEGORIES = [
     title: 'Debris and Mud Clearing',
     scope: 'Heavy Work',
     desc: 'Road clearing, mud shoveling, and storm debris removal across community streets.',
-    badgeColor: '#475569',
-    badgeBg: '#F1F5F9',
+    badgeColor: '#3D5070',
+    badgeBg: '#F3F6FC',
     IconComponent: ShovelIcon,
   },
   {
@@ -47,8 +47,8 @@ const JOB_CATEGORIES = [
     title: 'Drainage and Canal Declogging',
     scope: 'Heavy Work',
     desc: 'Clearing culverts, storm drains, and waterways to ensure rapid flood water recession.',
-    badgeColor: '#475569',
-    badgeBg: '#F1F5F9',
+    badgeColor: '#3D5070',
+    badgeBg: '#F3F6FC',
     IconComponent: BroomIcon,
   },
   {
@@ -56,8 +56,8 @@ const JOB_CATEGORIES = [
     title: 'Evacuation Center Sanitation',
     scope: 'Moderate Work',
     desc: 'Deep cleaning, disinfection, and facility maintenance in designated shelters.',
-    badgeColor: '#475569',
-    badgeBg: '#F1F5F9',
+    badgeColor: '#3D5070',
+    badgeBg: '#F3F6FC',
     IconComponent: SprayIcon,
   },
   {
@@ -65,8 +65,8 @@ const JOB_CATEGORIES = [
     title: 'Relief Logistics and Packing',
     scope: 'Light Work',
     desc: 'Assembling food packs, organizing warehouse supplies, and staging distribution lines.',
-    badgeColor: '#475569',
-    badgeBg: '#F1F5F9',
+    badgeColor: '#3D5070',
+    badgeBg: '#F3F6FC',
     IconComponent: BoxPackageIcon,
   },
   {
@@ -74,8 +74,8 @@ const JOB_CATEGORIES = [
     title: 'Carpentry and Facility Repair',
     scope: 'Skilled Work',
     desc: 'Restoring damaged roofs, partitions, handrails, and emergency community barriers.',
-    badgeColor: '#475569',
-    badgeBg: '#F1F5F9',
+    badgeColor: '#3D5070',
+    badgeBg: '#F3F6FC',
     IconComponent: HammerToolIcon,
   },
 ];
@@ -482,12 +482,12 @@ export default function AssistanceRequestScreen({
 
                       <View style={styles.sectionHeader}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <Text style={styles.sectionTitle}>
+                          <Text style={[styles.sectionTitle, { flex: 1, marginRight: 8 }]}>
                             {lang === 'tl' ? 'Pumili ng Uri ng Trabaho' : 'Select Preferred Work Category'}
                           </Text>
                           {availableJobCategories.length < JOB_CATEGORIES.length && (
-                            <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: '#BFDBFE' }}>
-                              <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1D4ED8' }}>
+                            <View style={{ backgroundColor: '#EDF1FB', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: '#D6DEFA', flexShrink: 0 }}>
+                              <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#1C3F94' }}>
                                 {lang === 'tl' ? 'Tugma sa Proyekto' : 'Project-Matched Scope'}
                               </Text>
                             </View>
@@ -516,8 +516,8 @@ export default function AssistanceRequestScreen({
                           >
                             <View style={styles.categoryHeaderRow}>
                               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                                <View style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: isSelected ? '#EFF6FF' : '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: isSelected ? '#1C3F94' : '#E2E8F0' }}>
-                                  <Icon size={20} color={isSelected ? '#1C3F94' : '#475569'} />
+                                <View style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: isSelected ? '#EDF1FB' : '#F3F6FC', justifyContent: 'center', alignItems: 'center', marginRight: 12, borderWidth: 1, borderColor: isSelected ? '#1C3F94' : '#DDE4F0' }}>
+                                  <Icon size={20} color={isSelected ? '#1C3F94' : '#3D5070'} />
                                 </View>
                                 <Text style={[styles.categoryTitle, isSelected && styles.categoryTitleSelected]}>
                                   {cat.title}
@@ -555,7 +555,7 @@ export default function AssistanceRequestScreen({
                               ? 'Maikling tala tungkol sa inyong karanasan o kakayahan (opsyonal)...'
                               : 'Brief note regarding relevant skills or experience (optional)...'
                           }
-                          placeholderTextColor="#94A3B8"
+                          placeholderTextColor="#8A9BB8"
                           value={experienceNotes}
                           onChangeText={setExperienceNotes}
                           multiline
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#475569',
+    color: '#3D5070',
     fontWeight: '500',
   },
 
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   },
   pendingTimestamp: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontWeight: '600',
   },
   pendingCardTitle: {
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
   },
   pendingCardSub: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 17,
     marginBottom: 12,
   },
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#F3F6FC',
   },
   metaRow: {
     flexDirection: 'row',
@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
   },
   metaValue: {
     fontSize: 11.5,
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   },
   activeWorksiteText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
   },
   activeCardTitle: {
@@ -896,16 +896,16 @@ const styles = StyleSheet.create({
   },
   activeCardSub: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 17,
     marginBottom: 14,
   },
   stepperContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 14,
   },
   stepperHeader: {
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
   dayCircleNum: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#3D5070',
   },
   dayCircleSub: {
     display: 'none',
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
   viewVoucherBtn: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 12,
     paddingVertical: 11,
     alignItems: 'center',
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   projectDesc: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     marginTop: 4,
     lineHeight: 17,
   },
@@ -1061,7 +1061,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F3F6FC',
   },
   specItem: {
     width: '50%',
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   specLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '500',
   },
   specValue: {
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 16,
     marginTop: 2,
   },
@@ -1100,11 +1100,11 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   categoryCardSelected: {
     borderColor: '#1C3F94',
-    backgroundColor: '#F8FAFF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1.5,
   },
   categoryHeaderRow: {
@@ -1116,7 +1116,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 13.5,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#0B1525',
     flex: 1,
   },
   categoryTitleSelected: {
@@ -1133,7 +1133,7 @@ const styles = StyleSheet.create({
   },
   categoryDesc: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 16,
   },
 
@@ -1143,7 +1143,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginTop: 8,
     marginBottom: 16,
   },
@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#D6DEFA',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -1170,17 +1170,17 @@ const styles = StyleSheet.create({
   checkboxText: {
     flex: 1,
     fontSize: 12,
-    color: '#334155',
+    color: '#3D5070',
     lineHeight: 17,
   },
   experienceInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 8,
     padding: 10,
     fontSize: 12.5,
-    color: '#0F172A',
+    color: '#0B1525',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     minHeight: 50,
     textAlignVertical: 'top',
   },
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1257,17 +1257,20 @@ const styles = StyleSheet.create({
   },
   voucherMetaLabel: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '500',
+    flex: 1,
+    marginRight: 8,
   },
   voucherMetaValue: {
     fontSize: 12,
-    color: '#0F172A',
+    color: '#0B1525',
     fontWeight: '700',
+    textAlign: 'right',
   },
   voucherDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     marginVertical: 8,
   },
   voucherTotalLabel: {
@@ -1286,7 +1289,7 @@ const styles = StyleSheet.create({
   },
   qrInstructions: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     marginTop: 10,
     lineHeight: 15,

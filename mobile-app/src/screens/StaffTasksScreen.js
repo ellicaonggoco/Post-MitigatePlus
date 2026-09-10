@@ -260,7 +260,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
       <View style={styles.eventList}>
         {loading && events.length === 0 ? (
           <View style={styles.emptyStateCard}>
-            <ActivityIndicator color="#1E3A8A" size="small" />
+            <ActivityIndicator color="#1C3F94" size="small" />
             <Text style={[styles.emptyStateText, { marginTop: 10 }]}>
               {lang === 'tl' ? 'Kinakarga ang mga distribution events...' : 'Loading distribution events...'}
             </Text>
@@ -268,7 +268,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
         ) : filteredEvents.length === 0 ? (
           <View style={styles.emptyStateCard}>
             <View style={styles.emptyIconWell}>
-              <PackageIcon size={24} color="#94A3B8" />
+              <PackageIcon size={24} color="#8A9BB8" />
             </View>
             <Text style={styles.emptyStateTitle}>
               {lang === 'tl' ? 'Walang relief events sa kategoryang ito' : 'No distribution events in this category'}
@@ -310,7 +310,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                     styles.teamPillBadge,
                     perm.isMyTeam ? styles.myTeamPillActive : styles.otherTeamPill
                   ]}>
-                    <TruckIcon size={12} color={perm.isMyTeam ? '#047857' : '#1E40AF'} />
+                    <TruckIcon size={12} color={perm.isMyTeam ? '#0D8A5A' : '#1C3F94'} />
                     <Text style={[
                       styles.teamPillText,
                       perm.isMyTeam ? styles.myTeamPillTextActive : styles.otherTeamPillText
@@ -322,8 +322,8 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                   </View>
                   {item.scheduledDate && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <CalendarIcon size={12} color="#64748B" />
-                      <Text style={{ fontSize: 11.5, color: '#64748B', fontWeight: '600' }}>
+                      <CalendarIcon size={12} color="#3D5070" />
+                      <Text style={{ fontSize: 11.5, color: '#3D5070', fontWeight: '600' }}>
                         {item.scheduledDate} {item.scheduledTime ? `• ${item.scheduledTime}` : ''}
                       </Text>
                     </View>
@@ -332,13 +332,13 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
 
                 {/* Location Row */}
                 <View style={styles.metaRow}>
-                  <MapPinIcon size={14} color="#94A3B8" />
+                  <MapPinIcon size={14} color="#8A9BB8" />
                   <Text style={styles.metaText} numberOfLines={1}>{item.venue || item.location}</Text>
                 </View>
 
                 {/* Allocation Row */}
                 <View style={[styles.metaRow, { marginBottom: 14 }]}>
-                  <PackageIcon size={14} color="#94A3B8" />
+                  <PackageIcon size={14} color="#8A9BB8" />
                   <Text style={styles.metaText} numberOfLines={1}>
                     Allocation: <Text style={{ color: '#334155', fontWeight: '600' }}>{item.allocatedItems || item.itemType}</Text>
                   </Text>
@@ -371,7 +371,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                         disabled={true}
                         activeOpacity={1}
                       >
-                        <LockIcon size={14} color="#94A3B8" />
+                        <LockIcon size={14} color="#8A9BB8" />
                         <Text style={styles.disabledStartBtnText}>
                           {lang === 'tl' ? `Nakatalaga sa ${item.assignedTeam || 'Ibang Team'}` : `Assigned to ${item.assignedTeam || 'Other Team'}`}
                         </Text>
@@ -387,7 +387,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                   <View style={{ gap: 8 }}>
                     {/* Ongoing Timestamp Badge */}
                     <View style={styles.ongoingTimeBadge}>
-                      <ClockIcon size={13} color="#1D4ED8" />
+                      <ClockIcon size={13} color="#1C3F94" />
                       <Text style={styles.ongoingTimeText}>
                         {lang === 'tl'
                           ? `Nagsimula: ${item.startTime || 'Kasalukuyang Aktibo'}`
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#DBEAFE',
     borderRadius: 20,
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   taskManagerPillText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#1D4ED8',
+    color: '#1C3F94',
     letterSpacing: 0.4,
   },
   pageTitle: {
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   segmentText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#3D5070',
   },
   segmentTextActive: {
     color: '#FFFFFF',
@@ -650,22 +650,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     paddingVertical: 13,
     borderRadius: 14,
     marginTop: 4,
   },
   disabledStartBtnText: {
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
   disabledLeaderHelperText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontWeight: '600',
     textAlign: 'center',
     paddingHorizontal: 8,
@@ -675,9 +675,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
   ongoingTimeText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#1E40AF',
+    color: '#1C3F94',
   },
   completeBtn: {
     backgroundColor: '#E6F6EF',
@@ -705,16 +705,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   leaderNoticeBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   leaderNoticeText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -745,13 +745,13 @@ const styles = StyleSheet.create({
   completedTimeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#059669',
+    color: '#0D8A5A',
   },
   emptyStateCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 30,
     alignItems: 'center',
     marginTop: 10,
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -768,13 +768,13 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#0B1525',
     marginBottom: 4,
     textAlign: 'center',
   },
   emptyStateText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -788,22 +788,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   myTeamPillActive: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
+    backgroundColor: '#E6F6EF',
+    borderColor: 'rgba(13,138,90,0.3)',
   },
   otherTeamPill: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
   },
   teamPillText: {
     fontSize: 11.5,
     fontWeight: '700',
   },
   myTeamPillTextActive: {
-    color: '#065F46',
+    color: '#0D8A5A',
     fontWeight: '800',
   },
   otherTeamPillText: {
-    color: '#1E40AF',
+    color: '#1C3F94',
   },
 });

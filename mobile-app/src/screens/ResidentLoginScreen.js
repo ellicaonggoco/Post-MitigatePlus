@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   brandSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   cardHeaderGroup: {
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
     paddingBottom: 12,
   },
   cardTitle: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   cardSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 3,
     lineHeight: 17,
   },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   registerCardTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#475569',
+    color: '#3D5070',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   footerNote: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     marginTop: 12,
     textAlign: 'center',
   },

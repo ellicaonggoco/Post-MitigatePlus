@@ -43,7 +43,7 @@ export default function MotionProgressTrack({ percentage = 65, height = 8, color
 const styles = StyleSheet.create({
   trackBg: {
     width: '100%',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     overflow: 'hidden',
   },
   trackFill: {

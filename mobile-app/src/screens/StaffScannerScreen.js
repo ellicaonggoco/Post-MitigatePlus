@@ -40,6 +40,7 @@ import {
   ChevronRightIcon,
   UsersIcon,
   BriefcaseOutlineIcon,
+  RefreshCwIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
 import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
@@ -1153,7 +1154,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 }}
                 activeOpacity={0.8}
               >
-                <PackageIcon size={16} color={scanMode === 'relief' ? '#FFFFFF' : '#64748B'} />
+                <PackageIcon size={16} color={scanMode === 'relief' ? '#FFFFFF' : '#3D5070'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'relief' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'Pamamahagi ng Ayuda' : 'Relief Goods'}
                 </Text>
@@ -1168,7 +1169,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 }}
                 activeOpacity={0.8}
               >
-                <ClockIcon size={16} color={scanMode === 'attendance' ? '#FFFFFF' : '#64748B'} />
+                <ClockIcon size={16} color={scanMode === 'attendance' ? '#FFFFFF' : '#3D5070'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'attendance' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'CFW Attendance' : 'CFW Attendance'}
                 </Text>
@@ -1342,7 +1343,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     {decodingPhoto ? (
                       <ActivityIndicator size="small" color="#C9A84C" />
                     ) : (
-                      <ImageIcon size={16} color="#CBD5E1" />
+                      <ImageIcon size={16} color="#DDE4F0" />
                     )}
                     <Text style={styles.secondaryActionText}>
                       {decodingPhoto
@@ -1421,7 +1422,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   ) : !permission?.granted ? (
                     <View style={styles.camPermBox}>
                       <View style={styles.camPermIconCircle}>
-                        <CameraIcon size={28} color="#94A3B8" />
+                        <CameraIcon size={28} color="#8A9BB8" />
                       </View>
                       <Text style={styles.camPermTitle}>
                         {lang === 'tl' ? 'Kailangan ng Camera Access' : 'Camera Permission Required'}
@@ -1505,7 +1506,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   value={manualCode}
                   onChangeText={setManualCode}
                   placeholder="MNL-291-ELLICA-2026"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="#8A9BB8"
                   autoCapitalize="characters"
                 />
                 <TouchableOpacity
@@ -1573,8 +1574,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       </Text>
                     </View>
                   </View>
-                  <View style={[styles.completionCountPill, { backgroundColor: '#EFF6FF', borderColor: 'rgba(37,99,235,0.3)', flexShrink: 0 }]}>
-                    <Text style={[styles.completionCountText, { color: '#1D4ED8' }]}>
+                  <View style={[styles.completionCountPill, { backgroundColor: '#EDF1FB', borderColor: '#D6DEFA', flexShrink: 0 }]}>
+                    <Text style={[styles.completionCountText, { color: '#1C3F94' }]}>
                       {workerAttendanceList.length} {lang === 'tl' ? 'Workers' : 'Workers'}
                     </Text>
                   </View>
@@ -1582,8 +1583,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
                 {loadingAttendanceList && workerAttendanceList.length === 0 ? (
                   <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                    <ActivityIndicator size="small" color="#1E3A8A" />
-                    <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                    <ActivityIndicator size="small" color="#1C3F94" />
+                    <Text style={{ marginTop: 8, fontSize: 12, color: '#3D5070', fontWeight: '600' }}>
                       {lang === 'tl' ? 'Kinakarga ang attendance records mula sa server...' : 'Loading worker attendance roster from cloud...'}
                     </Text>
                   </View>
@@ -1613,16 +1614,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 <Text style={styles.completionItemName} numberOfLines={1}>
                                   {item.workerName || item.applicantName || 'Resident Worker'}
                                 </Text>
-                                <View style={[styles.claimedPill, isOut ? { backgroundColor: '#EFF6FF' } : { backgroundColor: '#DCFCE7' }]}>
-                                  <CheckCircleIcon size={11} color={isOut ? '#2563EB' : '#059669'} />
-                                  <Text style={[styles.claimedPillText, isOut ? { color: '#1D4ED8' } : { color: '#15803D' }]}>
+                                <View style={[styles.claimedPill, isOut ? { backgroundColor: '#EDF1FB' } : { backgroundColor: '#E6F6EF' }]}>
+                                  <CheckCircleIcon size={11} color={isOut ? '#1C3F94' : '#0D8A5A'} />
+                                  <Text style={[styles.claimedPillText, isOut ? { color: '#1C3F94' } : { color: '#0D8A5A' }]}>
                                     {isOut ? `COMPLETED (Day ${item.dayNumber || 1})` : `TIME-IN (Day ${item.dayNumber || 1})`}
                                   </Text>
                                 </View>
                               </View>
 
                               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                                <MapPinIcon size={11} color="#64748B" />
+                                <MapPinIcon size={11} color="#3D5070" />
                                 <Text style={styles.completionItemAddr} numberOfLines={1}>
                                   {item.category || 'Rehabilitation Duty'} • Brgy {item.barangayCode || dutyBrgy}
                                 </Text>
@@ -1633,15 +1634,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   {item.payoutVoucherCode || 'CFW-PASS'}
                                 </Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                  <ClockIcon size={11} color="#059669" />
+                                  <ClockIcon size={11} color="#0D8A5A" />
                                   <Text style={styles.completionTime}>
                                     In: {timeInStr}
                                   </Text>
                                 </View>
                                 {timeOutStr && (
                                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                    <ClockIcon size={11} color="#2563EB" />
-                                    <Text style={[styles.completionTime, { color: '#2563EB' }]}>
+                                    <ClockIcon size={11} color="#1C3F94" />
+                                    <Text style={[styles.completionTime, { color: '#1C3F94' }]}>
                                       Out: {timeOutStr}
                                     </Text>
                                   </View>
@@ -1650,11 +1651,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             </View>
 
                             <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-                              <View style={{ backgroundColor: '#F8FAFC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#1E293B' }}>
+                              <View style={{ backgroundColor: '#F3F6FC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#DDE4F0', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#0B1525' }}>
                                   Day {item.dayNumber || 1}/{item.durationDays || 10}
                                 </Text>
-                                <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#059669', marginTop: 1 }}>
+                                <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#0D8A5A', marginTop: 1 }}>
                                   PHP {item.dailyWageRate || 500}/day
                                 </Text>
                               </View>
@@ -1672,7 +1673,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             disabled={attendancePage === 1}
                             activeOpacity={0.8}
                           >
-                            <ChevronLeftIcon size={16} color={attendancePage === 1 ? '#CBD5E1' : '#1C3F94'} />
+                            <ChevronLeftIcon size={16} color={attendancePage === 1 ? '#DDE4F0' : '#1C3F94'} />
                             <Text style={[styles.paginationBtnText, attendancePage === 1 && styles.paginationBtnTextDisabled]}>
                               {lang === 'tl' ? 'Nakaraan' : 'Prev'}
                             </Text>
@@ -1693,7 +1694,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             <Text style={[styles.paginationBtnText, attendancePage === totalPages && styles.paginationBtnTextDisabled]}>
                               {lang === 'tl' ? 'Susunod' : 'Next'}
                             </Text>
-                            <ChevronRightIcon size={16} color={attendancePage === totalPages ? '#CBD5E1' : '#1C3F94'} />
+                            <ChevronRightIcon size={16} color={attendancePage === totalPages ? '#DDE4F0' : '#1C3F94'} />
                           </TouchableOpacity>
                         </View>
                       )}
@@ -1726,8 +1727,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
                 {loadingCompletedScans ? (
                   <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                    <ActivityIndicator size="small" color="#1E3A8A" />
-                    <Text style={{ marginTop: 8, fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                    <ActivityIndicator size="small" color="#1C3F94" />
+                    <Text style={{ marginTop: 8, fontSize: 12, color: '#3D5070', fontWeight: '600' }}>
                       {lang === 'tl' ? 'Kinakarga ang mga naipamahagi mula sa server...' : 'Loading distribution roster from cloud...'}
                     </Text>
                   </View>
@@ -1757,7 +1758,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               </View>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                              <MapPinIcon size={11} color="#64748B" />
+                              <MapPinIcon size={11} color="#3D5070" />
                               <Text style={styles.completionItemAddr} numberOfLines={1}>
                                 {item.householdAddress || 'Manila City'} • Brgy {item.barangayCode || dutyBrgy}
                               </Text>
@@ -1767,7 +1768,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 {item.receiptNumber}
                               </Text>
                               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                                <ClockIcon size={11} color="#94A3B8" />
+                                <ClockIcon size={11} color="#8A9BB8" />
                                 <Text style={styles.completionTime}>
                                   {new Date(item.releasedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
@@ -1796,7 +1797,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             disabled={rosterPage === 1}
                             activeOpacity={0.8}
                           >
-                            <ChevronLeftIcon size={16} color={rosterPage === 1 ? '#CBD5E1' : '#1C3F94'} />
+                            <ChevronLeftIcon size={16} color={rosterPage === 1 ? '#DDE4F0' : '#1C3F94'} />
                             <Text style={[styles.paginationBtnText, rosterPage === 1 && styles.paginationBtnTextDisabled]}>
                               {lang === 'tl' ? 'Nakaraan' : 'Prev'}
                             </Text>
@@ -1817,7 +1818,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             <Text style={[styles.paginationBtnText, rosterPage === totalPages && styles.paginationBtnTextDisabled]}>
                               {lang === 'tl' ? 'Susunod' : 'Next'}
                             </Text>
-                            <ChevronRightIcon size={16} color={rosterPage === totalPages ? '#CBD5E1' : '#1C3F94'} />
+                            <ChevronRightIcon size={16} color={rosterPage === totalPages ? '#DDE4F0' : '#1C3F94'} />
                           </TouchableOpacity>
                         </View>
                       )}
@@ -1882,26 +1883,26 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   {
                     key: 'Stock Shortage',
                     sub: 'Relief packs running low',
-                    dotColor: '#D97706',
-                    activeBg: '#FEFCE8',
-                    activeBorder: '#FDE047',
-                    activeTextColor: '#92400E',
+                    dotColor: '#B8932A',
+                    activeBg: '#FBF5E4',
+                    activeBorder: '#F0DFA0',
+                    activeTextColor: '#B8932A',
                   },
                   {
                     key: 'Lost Citizen QR Pass',
                     sub: 'Beneficiary lost or damaged QR pass',
-                    dotColor: '#2563EB',
-                    activeBg: '#EFF6FF',
-                    activeBorder: '#3B82F6',
-                    activeTextColor: '#1D4ED8',
+                    dotColor: '#1C3F94',
+                    activeBg: '#EDF1FB',
+                    activeBorder: '#D6DEFA',
+                    activeTextColor: '#1C3F94',
                   },
                   {
                     key: 'Emergency Evacuation',
                     sub: 'Unplanned evacuation or site incident',
-                    dotColor: '#DC2626',
-                    activeBg: '#FEF2F2',
-                    activeBorder: '#EF4444',
-                    activeTextColor: '#B91C1C',
+                    dotColor: '#C8102E',
+                    activeBg: '#FEF0F2',
+                    activeBorder: '#F5E0E3',
+                    activeTextColor: '#C8102E',
                   },
                 ].map((cat) => {
                   const isSelected = incidentType === cat.key;
@@ -1936,7 +1937,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <TextInput
                   style={styles.textArea}
                   placeholder="Describe field conditions or incident at distribution site..."
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="#8A9BB8"
                   value={incidentNotes}
                   onChangeText={setIncidentNotes}
                   multiline
@@ -1959,20 +1960,35 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               /* Incident History List with Pagination */
               <View style={styles.formCard}>
                 <View style={styles.goldAccentLine} />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                  <View style={{ flex: 1, marginRight: 10 }}>
                     <Text style={styles.formTitle}>Field Incident Logs</Text>
-                    <Text style={styles.formSub}>Real-time status and directives from LGU Admin</Text>
+                    <Text style={[styles.formSub, { marginBottom: 0 }]}>Real-time status and directives from LGU Admin</Text>
                   </View>
                   <TouchableOpacity
                     onPress={fetchMyIncidents}
-                    style={{ paddingVertical: 5, paddingHorizontal: 10, backgroundColor: '#F1F5F9', borderRadius: 8 }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      paddingVertical: 6,
+                      paddingHorizontal: 12,
+                      backgroundColor: '#EDF1FB',
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: '#D6DEFA',
+                      flexShrink: 0,
+                      alignSelf: 'flex-start',
+                    }}
                     activeOpacity={0.7}
                   >
                     {loadingMyIncidents ? (
                       <ActivityIndicator size="small" color="#1C3F94" />
                     ) : (
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#1C3F94' }}>Refresh</Text>
+                      <>
+                        <RefreshCwIcon size={12} color="#1C3F94" />
+                        <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#1C3F94' }}>Refresh</Text>
+                      </>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1980,15 +1996,15 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {loadingMyIncidents && myIncidentsList.length === 0 ? (
                   <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                     <ActivityIndicator size="large" color="#1C3F94" />
-                    <Text style={{ marginTop: 10, fontSize: 13, color: '#64748B' }}>Loading incident reports...</Text>
+                    <Text style={{ marginTop: 10, fontSize: 13, color: '#3D5070', fontWeight: '500' }}>Loading incident reports...</Text>
                   </View>
                 ) : myIncidentsList.length === 0 ? (
-                  <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
-                    <AlertTriangleIcon size={36} color="#94A3B8" />
-                    <Text style={{ marginTop: 10, fontSize: 14, fontWeight: '700', color: '#334155' }}>
+                  <View style={{ paddingVertical: 36, alignItems: 'center', justifyContent: 'center' }}>
+                    <AlertTriangleIcon size={36} color="#8A9BB8" />
+                    <Text style={{ marginTop: 10, fontSize: 15, fontWeight: '800', color: '#0B1525' }}>
                       No Incidents Logged Yet
                     </Text>
-                    <Text style={{ fontSize: 12, color: '#64748B', textAlign: 'center', marginTop: 4, maxWidth: 260 }}>
+                    <Text style={{ fontSize: 12.5, color: '#3D5070', textAlign: 'center', marginTop: 4, maxWidth: 280, lineHeight: 18 }}>
                       Reports you submit from the field will appear here along with admin resolution directives.
                     </Text>
                   </View>
@@ -2004,9 +2020,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                         {paginated.map((inc) => {
                           const isResolved = inc.status === 'resolved';
                           const isAck = inc.status === 'acknowledged';
-                          const statusBg = isResolved ? '#ECFDF5' : isAck ? '#FFFBEB' : '#FEF2F2';
-                          const statusBorder = isResolved ? '#A7F3D0' : isAck ? '#FDE68A' : '#FCA5A5';
-                          const statusColor = isResolved ? '#059669' : isAck ? '#D97706' : '#DC2626';
+                          const statusBg = isResolved ? '#E6F6EF' : isAck ? '#FBF5E4' : '#FEF0F2';
+                          const statusBorder = isResolved ? 'rgba(13,138,90,0.35)' : isAck ? '#F0DFA0' : '#F5E0E3';
+                          const statusColor = isResolved ? '#0D8A5A' : isAck ? '#B8932A' : '#C8102E';
                           const statusLabel = isResolved ? 'RESOLVED' : isAck ? 'IN PROGRESS' : 'OPEN';
 
                           return (
@@ -2014,33 +2030,37 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               key={inc._id}
                               style={{
                                 backgroundColor: '#FFFFFF',
-                                borderRadius: 12,
+                                borderRadius: 16,
                                 borderWidth: 1,
-                                borderColor: '#E2E8F0',
+                                borderColor: '#DDE4F0',
                                 padding: 14,
                                 marginBottom: 12,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.05,
-                                shadowRadius: 6,
-                                elevation: 1,
+                                ...(Platform.OS === 'web'
+                                  ? { boxShadow: '0 1px 3px rgba(11,21,80,0.05), 0 6px 16px rgba(28,63,148,0.07)' }
+                                  : {
+                                      shadowColor: '#1C3F94',
+                                      shadowOffset: { width: 0, height: 2 },
+                                      shadowOpacity: 0.08,
+                                      shadowRadius: 8,
+                                      elevation: 2,
+                                    }),
                               }}
                             >
                               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 8, flexWrap: 'wrap' }}>
                                   <View style={{
-                                    backgroundColor: '#EFF6FF',
+                                    backgroundColor: '#EDF1FB',
                                     paddingHorizontal: 8,
-                                    paddingVertical: 3,
+                                    paddingVertical: 3.5,
                                     borderRadius: 6,
                                     borderWidth: 1,
-                                    borderColor: '#BFDBFE',
+                                    borderColor: '#D6DEFA',
                                   }}>
-                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#1D4ED8' }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}>
                                       {inc.incidentType}
                                     </Text>
                                   </View>
-                                  <Text style={{ fontSize: 10.5, color: '#64748B' }}>
+                                  <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>
                                     Brgy {inc.barangayCode || dutyBrgy}
                                   </Text>
                                 </View>
@@ -2049,9 +2069,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   backgroundColor: statusBg,
                                   borderColor: statusBorder,
                                   borderWidth: 1,
-                                  paddingHorizontal: 7,
-                                  paddingVertical: 2,
-                                  borderRadius: 4,
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 3,
+                                  borderRadius: 6,
+                                  flexShrink: 0,
                                 }}>
                                   <Text style={{ fontSize: 10, fontWeight: '900', color: statusColor }}>
                                     {statusLabel}
@@ -2060,11 +2081,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               </View>
 
                               {/* Officer notes */}
-                              <Text style={{ fontSize: 13, color: '#1E293B', fontWeight: '500', marginBottom: 6 }}>
+                              <Text style={{ fontSize: 13, color: '#0B1525', fontWeight: '500', marginBottom: 6, lineHeight: 18 }}>
                                 {inc.notes}
                               </Text>
 
-                              <Text style={{ fontSize: 10.5, color: '#94A3B8', marginBottom: 4 }}>
+                              <Text style={{ fontSize: 10.5, color: '#8A9BB8', marginBottom: 4 }}>
                                 Logged: {new Date(inc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </Text>
 
@@ -2072,19 +2093,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               {inc.resolutionNotes ? (
                                 <View style={{
                                   marginTop: 8,
-                                  backgroundColor: '#F0FDF4',
-                                  borderRadius: 8,
+                                  backgroundColor: '#E6F6EF',
+                                  borderRadius: 10,
                                   borderWidth: 1,
-                                  borderColor: '#BBF7D0',
+                                  borderColor: 'rgba(13,138,90,0.35)',
                                   padding: 10,
                                 }}>
                                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-                                    <CheckCircleIcon size={14} color="#059669" />
-                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#166534' }}>
+                                    <CheckCircleIcon size={14} color="#0D8A5A" />
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#0D8A5A' }}>
                                       LGU COMMAND CENTER DIRECTIVE:
                                     </Text>
                                   </View>
-                                  <Text style={{ fontSize: 12, color: '#14532D', fontWeight: '600', lineHeight: 17 }}>
+                                  <Text style={{ fontSize: 12, color: '#0B1525', fontWeight: '600', lineHeight: 17 }}>
                                     {inc.resolutionNotes}
                                   </Text>
                                   {(inc.resolutionDetails?.voucherCode || (inc.resolutionNotes && inc.resolutionNotes.includes('Voucher:'))) && (
@@ -2113,26 +2134,26 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               ) : isAck ? (
                                 <View style={{
                                   marginTop: 8,
-                                  backgroundColor: '#FFFBEB',
+                                  backgroundColor: '#FBF5E4',
                                   borderRadius: 8,
                                   borderWidth: 1,
-                                  borderColor: '#FDE68A',
+                                  borderColor: '#F0DFA0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>
+                                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#B8932A' }}>
                                     In Progress: Acknowledged by Command Center. Action being dispatched.
                                   </Text>
                                 </View>
                               ) : (
                                 <View style={{
                                   marginTop: 8,
-                                  backgroundColor: '#F8FAFC',
+                                  backgroundColor: '#F3F6FC',
                                   borderRadius: 8,
                                   borderWidth: 1,
-                                  borderColor: '#E2E8F0',
+                                  borderColor: '#DDE4F0',
                                   padding: 8,
                                 }}>
-                                  <Text style={{ fontSize: 11, color: '#64748B' }}>
+                                  <Text style={{ fontSize: 11, color: '#3D5070' }}>
                                     Status: Pending review at LGU Manila Command Center.
                                   </Text>
                                 </View>
@@ -2150,7 +2171,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                             marginTop: 10,
                             paddingTop: 10,
                             borderTopWidth: 1,
-                            borderTopColor: '#E2E8F0',
+                            borderTopColor: '#DDE4F0',
                           }}>
                             <TouchableOpacity
                               onPress={() => setIncidentHistoryPage(p => Math.max(1, p - 1))}
@@ -2162,16 +2183,16 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 paddingVertical: 6,
                                 paddingHorizontal: 12,
                                 borderRadius: 8,
-                                backgroundColor: safePage === 1 ? '#F1F5F9' : '#1C3F94',
+                                backgroundColor: safePage === 1 ? '#F3F6FC' : '#1C3F94',
                               }}
                             >
-                              <ChevronLeftIcon size={14} color={safePage === 1 ? '#94A3B8' : '#FFFFFF'} />
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === 1 ? '#94A3B8' : '#FFFFFF' }}>
+                              <ChevronLeftIcon size={14} color={safePage === 1 ? '#8A9BB8' : '#FFFFFF'} />
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === 1 ? '#8A9BB8' : '#FFFFFF' }}>
                                 Prev
                               </Text>
                             </TouchableOpacity>
 
-                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#3D5070' }}>
                               Page {safePage} of {totalPages}
                             </Text>
 
@@ -2185,13 +2206,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 paddingVertical: 6,
                                 paddingHorizontal: 12,
                                 borderRadius: 8,
-                                backgroundColor: safePage === totalPages ? '#F1F5F9' : '#1C3F94',
+                                backgroundColor: safePage === totalPages ? '#F3F6FC' : '#1C3F94',
                               }}
                             >
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === totalPages ? '#94A3B8' : '#FFFFFF' }}>
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: safePage === totalPages ? '#8A9BB8' : '#FFFFFF' }}>
                                 Next
                               </Text>
-                              <ChevronRightIcon size={14} color={safePage === totalPages ? '#94A3B8' : '#FFFFFF'} />
+                              <ChevronRightIcon size={14} color={safePage === totalPages ? '#8A9BB8' : '#FFFFFF'} />
                             </TouchableOpacity>
                           </View>
                         )}
@@ -2268,14 +2289,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     {currentUser?.staffDesignation === 'team_leader' ? 'Field Distribution Leader' : 'Field Operations Officer'}
                   </Text>
                   <View style={{
-                    backgroundColor: '#EFF6FF',
+                    backgroundColor: '#EDF1FB',
                     paddingHorizontal: 7,
                     paddingVertical: 2,
                     borderRadius: 4,
                     borderWidth: 1,
-                    borderColor: '#BFDBFE',
+                    borderColor: '#D6DEFA',
                   }}>
-                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1D4ED8' }}>LGU ASSIGNED</Text>
+                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1C3F94' }}>LGU ASSIGNED</Text>
                   </View>
                 </View>
               </View>
@@ -2287,14 +2308,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     {currentUser?.teamName || 'Field Team Bravo'}
                   </Text>
                   <View style={{
-                    backgroundColor: '#EFF6FF',
+                    backgroundColor: '#EDF1FB',
                     paddingHorizontal: 7,
                     paddingVertical: 2,
                     borderRadius: 4,
                     borderWidth: 1,
-                    borderColor: '#BFDBFE',
+                    borderColor: '#D6DEFA',
                   }}>
-                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1D4ED8' }}>ADMIN ONLY</Text>
+                    <Text style={{ fontSize: 9.5, fontWeight: '800', color: '#1C3F94' }}>ADMIN ONLY</Text>
                   </View>
                 </View>
               </View>
@@ -2320,7 +2341,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution')}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
-                <MapPinIcon size={12} color="#93C5FD" />
+                <MapPinIcon size={12} color="#D6DEFA" />
                 <Text style={styles.activeDriveSub}>
                   {selectedEvent?.venue || selectedEvent?.location || 'Barangay 291'} • {selectedEvent?.itemType || 'All-in-One Family Food Pack'}
                 </Text>
@@ -2401,7 +2422,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     style={styles.popupCloseBtn}
                     activeOpacity={0.8}
                   >
-                    <CloseIcon size={18} color="#64748B" />
+                    <CloseIcon size={18} color="#3D5070" />
                   </TouchableOpacity>
                 </View>
 
@@ -2411,13 +2432,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     <View style={{ flex: 1, paddingRight: 8 }}>
                       <Text style={styles.popupHhName}>{scanResult.household.name}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                        <MapPinIcon size={12} color="#64748B" />
+                        <MapPinIcon size={12} color="#3D5070" />
                         <Text style={styles.popupHhAddress}>
                           {scanResult.household.address}
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                        <UsersIcon size={12} color="#64748B" />
+                        <UsersIcon size={12} color="#3D5070" />
                         <Text style={styles.popupHhMeta}>
                           {scanResult.household.familyHeadcount} {lang === 'tl' ? 'Miyembro ng Pamilya' : 'Household Members'} • Brgy {scanResult.household.barangayCode || dutyBrgy}
                         </Text>
@@ -2456,7 +2477,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <TouchableOpacity
                   style={[
                     styles.releaseBtn,
-                    (!isHouseholdVerified || releasing) && { opacity: 0.5, backgroundColor: '#64748B' },
+                    (!isHouseholdVerified || releasing) && { opacity: 0.5, backgroundColor: '#3D5070' },
                     { marginTop: 16 }
                   ]}
                   onPress={handleConfirmRelease}
@@ -2578,7 +2599,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       <Text style={[styles.receiptTableCell, { flex: 2, fontWeight: '700' }]}>
                         {receiptModalData.itemType || selectedEvent?.itemType || 'All-in-One Family Food Pack'}
                       </Text>
-                      <Text style={[styles.receiptTableCell, { flex: 1, textAlign: 'right', fontWeight: '900', color: '#1E3A8A' }]}>
+                      <Text style={[styles.receiptTableCell, { flex: 1, textAlign: 'right', fontWeight: '900', color: '#1C3F94' }]}>
                         {receiptModalData.totalPacks || 1} Pack(s)
                       </Text>
                     </View>
@@ -2691,7 +2712,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   style={styles.popupCloseBtn}
                   activeOpacity={0.8}
                 >
-                  <CloseIcon size={18} color="#64748B" />
+                  <CloseIcon size={18} color="#3D5070" />
                 </TouchableOpacity>
               </View>
 
@@ -2699,13 +2720,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.popupBeneficiaryBox}>
                 <Text style={styles.popupHhName}>{attendanceResult.applicantName}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <BriefcaseOutlineIcon size={13} color="#64748B" />
+                  <BriefcaseOutlineIcon size={13} color="#3D5070" />
                   <Text style={styles.popupHhAddress}>
                     {attendanceResult.selectedCategory}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <MapPinIcon size={13} color="#64748B" />
+                  <MapPinIcon size={13} color="#3D5070" />
                   <Text style={styles.popupHhMeta}>
                     {'Barangay ' + (attendanceResult.barangayCode || dutyBrgy) + ' Worksite'}
                   </Text>
@@ -2714,19 +2735,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {/* Duty & Progress Stats */}
                 <View style={{ marginTop: 12, padding: 12, borderRadius: 8, backgroundColor: attendanceResult.actionType === 'TIME_IN' ? '#F0FDF4' : '#F0F9FF', borderWidth: 1, borderColor: attendanceResult.actionType === 'TIME_IN' ? '#BBF7D0' : '#BAE6FD' }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Timestamp:</Text>
+                    <Text style={{ fontSize: 12, color: '#3D5070', fontWeight: '600' }}>Timestamp:</Text>
                     <Text style={{ fontSize: 12, color: '#0F172A', fontWeight: '700' }}>{attendanceResult.date + ' · ' + attendanceResult.time}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Attendance Progress:</Text>
-                    <Text style={{ fontSize: 12, color: attendanceResult.actionType === 'TIME_IN' ? '#15803D' : '#0369A1', fontWeight: '800' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 12, color: '#3D5070', fontWeight: '600', flex: 1, marginRight: 8 }}>Attendance Progress:</Text>
+                    <Text style={{ fontSize: 12, color: attendanceResult.actionType === 'TIME_IN' ? '#0D8A5A' : '#1C3F94', fontWeight: '800', textAlign: 'right' }}>
                       {attendanceResult.actionType === 'TIME_IN'
                         ? ('Day ' + attendanceResult.dayNumber + ' (In Progress)')
                         : ('Day ' + attendanceResult.totalDaysWorked + ' of ' + attendanceResult.durationDays + ' Completed')}
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Accumulated Earnings:</Text>
+                    <Text style={{ fontSize: 12, color: '#3D5070', fontWeight: '600' }}>Accumulated Earnings:</Text>
                     <Text style={{ fontSize: 13, color: '#15803D', fontWeight: '900' }}>
                       {'PHP ' + Number(attendanceResult.totalPayoutEarned || 0).toLocaleString() + '.00'}
                     </Text>
@@ -2807,7 +2828,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               )}
               <View style={styles.duplicateInfoRow}>
                 <Text style={styles.duplicateInfoLabel}>QR Pass Reference:</Text>
-                <Text style={[styles.duplicateInfoVal, { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', color: '#1E3A8A' }]}>
+                <Text style={[styles.duplicateInfoVal, { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', color: '#1C3F94' }]}>
                   {duplicateData?.qrCode || manualCode || 'SCANNED PASS'}
                 </Text>
               </View>
@@ -2868,14 +2889,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: 20,
+                borderWidth: 1,
+                borderColor: '#DDE4F0',
                 width: '100%',
                 maxWidth: 380,
                 padding: 20,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.25,
-                shadowRadius: 20,
-                elevation: 10,
+                ...(Platform.OS === 'web'
+                  ? { boxShadow: '0 20px 40px rgba(28,63,148,0.20)' }
+                  : {
+                      shadowColor: '#1C3F94',
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 0.20,
+                      shadowRadius: 20,
+                      elevation: 10,
+                    }),
                 alignItems: 'center',
               }}>
                 {/* Gold Top Accent Line */}
@@ -2884,7 +2911,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   top: 0,
                   left: 20,
                   right: 20,
-                  height: 3,
+                  height: 3.5,
                   backgroundColor: '#C9A84C',
                   borderTopLeftRadius: 10,
                   borderTopRightRadius: 10,
@@ -2895,7 +2922,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   LGU Manila MDRRMO • Official Gate Pass
                 </Text>
 
-                <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', marginTop: 2, textAlign: 'center' }}>
+                <Text style={{ fontSize: 16.5, fontWeight: '900', color: '#0B1525', marginTop: 2, textAlign: 'center' }}>
                   Emergency Stock Release Voucher
                 </Text>
 
@@ -2903,10 +2930,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <View style={{
                   marginTop: 14,
                   padding: 12,
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: '#F3F6FC',
                   borderRadius: 14,
                   borderWidth: 1.5,
-                  borderColor: '#CBD5E1',
+                  borderColor: '#D6DEFA',
                   alignItems: 'center',
                 }}>
                   <QRCodeVisual value={vCode} size={150} lang={lang} isCompact />
@@ -2919,35 +2946,37 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <View style={{
                   width: '100%',
                   marginTop: 14,
-                  backgroundColor: '#F1F5F9',
-                  borderRadius: 10,
-                  padding: 10,
-                  gap: 6,
+                  backgroundColor: '#F3F6FC',
+                  borderWidth: 1,
+                  borderColor: '#DDE4F0',
+                  borderRadius: 12,
+                  padding: 12,
+                  gap: 7,
                 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Collector:</Text>
-                    <Text style={{ fontSize: 11, color: '#0F172A', fontWeight: '700' }}>
+                    <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>Collector:</Text>
+                    <Text style={{ fontSize: 11.5, color: '#0B1525', fontWeight: '700' }}>
                       {selectedVoucherIncident.reportedBy?.name || officerName}
                     </Text>
                   </View>
 
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Authorized Item:</Text>
-                    <Text style={{ fontSize: 11, color: '#0F172A', fontWeight: '700' }}>
+                    <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>Authorized Item:</Text>
+                    <Text style={{ fontSize: 11.5, color: '#0B1525', fontWeight: '700' }}>
                       {details.itemType || 'Family Food Packs'}
                     </Text>
                   </View>
 
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Approved Quantity:</Text>
-                    <Text style={{ fontSize: 12, color: '#059669', fontWeight: '900' }}>
+                    <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>Approved Quantity:</Text>
+                    <Text style={{ fontSize: 12, color: '#0D8A5A', fontWeight: '900' }}>
                       {details.quantity || 50} Packs / Units
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Pickup Location:</Text>
-                    <Text style={{ fontSize: 10.5, color: '#1C3F94', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, color: '#3D5070', fontWeight: '600' }}>Pickup Location:</Text>
+                    <Text style={{ fontSize: 11, color: '#1C3F94', fontWeight: '700', flex: 1, textAlign: 'right', marginLeft: 8 }}>
                       {details.sourceLocation || 'City Hall Disaster Office'}
                     </Text>
                   </View>
@@ -2956,14 +2985,14 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {/* Instruction note */}
                 <View style={{
                   marginTop: 10,
-                  padding: 8,
-                  backgroundColor: '#ECFDF5',
-                  borderRadius: 8,
-                  borderLeftWidth: 3,
-                  borderLeftColor: '#059669',
+                  padding: 10,
+                  backgroundColor: '#E6F6EF',
+                  borderRadius: 10,
+                  borderLeftWidth: 3.5,
+                  borderLeftColor: '#0D8A5A',
                   width: '100%',
                 }}>
-                  <Text style={{ fontSize: 11, color: '#14532D', lineHeight: 15 }}>
+                  <Text style={{ fontSize: 11, color: '#0B1525', lineHeight: 16 }}>
                     Ipakita ang digital voucher na ito sa Warehouse Custodian o City Hall Guard upang ma-claim ang stocks.
                   </Text>
                 </View>
@@ -2975,8 +3004,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     marginTop: 14,
                     width: '100%',
                     backgroundColor: '#1C3F94',
-                    borderRadius: 10,
-                    paddingVertical: 10,
+                    borderRadius: 12,
+                    paddingVertical: 12,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -3040,18 +3069,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
   },
   designationToggleBtnActive: {
-    backgroundColor: '#1E3A8A',
-    borderColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
+    borderColor: '#1C3F94',
   },
   designationToggleText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: '#3D5070',
   },
   designationToggleTextActive: {
     color: '#FFFFFF',
@@ -3061,28 +3090,30 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 4,
   },
   teamSelectBtnActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#3B82F6',
+    backgroundColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
   },
   teamSelectBtnText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#475569',
+    color: '#3D5070',
   },
   teamSelectBtnTextActive: {
-    color: '#1D4ED8',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   incidentSubTabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
-    borderRadius: 12,
+    backgroundColor: '#EDF1FB',
+    borderWidth: 1,
+    borderColor: '#D6DEFA',
+    borderRadius: 14,
     padding: 3,
     marginBottom: 14,
   },
@@ -3091,23 +3122,27 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 11,
   },
   incidentSubTabBtnActive: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(28,63,148,0.12)' }
+      : {
+          shadowColor: '#1C3F94',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.12,
+          shadowRadius: 4,
+          elevation: 3,
+        }),
   },
   incidentSubTabBtnText: {
     fontSize: 12.5,
-    fontWeight: '700',
-    color: '#64748B',
+    fontWeight: '600',
+    color: '#3D5070',
   },
   incidentSubTabBtnTextActive: {
-    color: '#0F172A',
+    color: '#1C3F94',
     fontWeight: '800',
   },
   headerContentRow: {
@@ -3212,7 +3247,7 @@ const styles = StyleSheet.create({
   scanModeTabText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#3D5070',
   },
   scanModeTabTextActive: {
     color: '#FFFFFF',
@@ -3303,12 +3338,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingHorizontal: 8,
     paddingVertical: 4.5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   driveMetaBadgeText: {
     fontSize: 11.5,
@@ -3406,7 +3441,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   scannerGuidanceText: {
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontSize: 12.5,
     fontWeight: '500',
     lineHeight: 18,
@@ -3484,7 +3519,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6CA65',
   },
   secondaryActionText: {
-    color: '#CBD5E1',
+    color: '#DDE4F0',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -3535,7 +3570,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   scanModalSub: {
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontSize: 11.5,
     fontWeight: '600',
     marginTop: 2,
@@ -3576,14 +3611,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   webLensTitle: {
-    color: '#F8FAFC',
+    color: '#F3F6FC',
     fontSize: 13.5,
     fontWeight: '800',
     letterSpacing: 0.2,
     marginBottom: 4,
   },
   webLensSub: {
-    color: '#64748B',
+    color: '#3D5070',
     fontSize: 11.5,
     textAlign: 'center',
     maxWidth: 240,
@@ -3605,7 +3640,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   camPermTitle: {
-    color: '#F8FAFC',
+    color: '#F3F6FC',
     fontSize: 13.5,
     fontWeight: '700',
     textAlign: 'center',
@@ -3740,7 +3775,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   paginationBtn: {
     flexDirection: 'row',
@@ -3749,13 +3784,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
   },
   paginationBtnDisabled: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#F3F6FC',
+    borderColor: '#DDE4F0',
   },
   paginationBtnText: {
     fontSize: 13,
@@ -3763,18 +3798,18 @@ const styles = StyleSheet.create({
     color: '#1C3F94',
   },
   paginationBtnTextDisabled: {
-    color: '#94A3B8',
+    color: '#8A9BB8',
   },
   paginationPageIndicator: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
   },
   paginationPageText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: '#3D5070',
   },
 
   // 3. Manual Code Entry Card (White Card with left gold bar and monospace input)
@@ -3820,7 +3855,7 @@ const styles = StyleSheet.create({
   },
   codeInput: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
     borderColor: '#DDE4F0',
     borderRadius: 12,
@@ -3911,7 +3946,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 14,
   },
   resultName: {
@@ -3956,13 +3991,13 @@ const styles = StyleSheet.create({
   },
   resultMeta: {
     fontSize: 12,
-    color: '#475569',
+    color: '#3D5070',
     marginTop: 4,
   },
   entitlementTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     marginTop: 10,
   },
   entitlementText: {
@@ -4019,28 +4054,28 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   formTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#0B1525',
     marginBottom: 4,
   },
   formSub: {
     fontSize: 12.5,
-    color: '#64748B',
+    color: '#3D5070',
     lineHeight: 18,
     marginBottom: 16,
   },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#475569',
+    color: '#3D5070',
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   categoryCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -4056,11 +4091,11 @@ const styles = StyleSheet.create({
   catTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#0B1525',
   },
   catSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
   },
   checkCircle: {
@@ -4071,14 +4106,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textArea: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 12,
     padding: 12,
     minHeight: 110,
     fontSize: 13,
-    color: '#0F172A',
+    color: '#0B1525',
     textAlignVertical: 'top',
   },
   redSubmitBtn: {
@@ -4154,15 +4189,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   fieldLeaderBadge: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 20,
   },
   fieldLeaderText: {
-    color: '#1D4ED8',
+    color: '#1C3F94',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -4173,9 +4208,9 @@ const styles = StyleSheet.create({
   },
   statGridCard: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -4183,7 +4218,7 @@ const styles = StyleSheet.create({
   statGridLabel: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#3D5070',
   },
   statGridVal: {
     fontSize: 22,
@@ -4194,7 +4229,7 @@ const styles = StyleSheet.create({
   sectionHeaderTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#475569',
+    color: '#3D5070',
     marginBottom: 8,
     marginTop: 6,
   },
@@ -4220,7 +4255,7 @@ const styles = StyleSheet.create({
   },
   dutyInfoKicker: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontWeight: '600',
     marginBottom: 2,
   },
@@ -4231,7 +4266,7 @@ const styles = StyleSheet.create({
   },
   dutyDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     marginVertical: 8,
   },
   activeDrivePreviewCard: {
@@ -4239,7 +4274,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1E3A8A',
+    borderColor: '#1C3F94',
     marginBottom: 14,
   },
   activeDriveKicker: {
@@ -4256,7 +4291,7 @@ const styles = StyleSheet.create({
   },
   activeDriveSub: {
     fontSize: 11.5,
-    color: '#93C5FD',
+    color: '#D6DEFA',
   },
   logoutBtnFull: {
     backgroundColor: '#FEF2F2',
@@ -4278,7 +4313,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: '#DDE4F0',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -4314,7 +4349,7 @@ const styles = StyleSheet.create({
   navTabLabel: {
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: '#8A9BB8',
     marginTop: 2,
   },
   navTabLabelActive: {
@@ -4347,7 +4382,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 20px 40px rgba(15, 23, 42, 0.25)' }
       : {
@@ -4365,79 +4400,79 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#DDE4F0',
   },
   popupIconCircle: {
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     alignItems: 'center',
     justifyContent: 'center',
   },
   popupTitle: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#0B1525',
   },
   popupSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 1,
   },
   popupCloseBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   popupBeneficiaryBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   popupHhName: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#0B1525',
   },
   popupHhAddress: {
     fontSize: 12.5,
-    color: '#334155',
+    color: '#3D5070',
     fontWeight: '600',
     marginTop: 4,
   },
   popupHhMeta: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#8A9BB8',
     marginTop: 3,
   },
   popupQuotaBox: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     marginTop: 12,
   },
   popupQuotaText: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#1E3A8A',
+    color: '#1C3F94',
   },
   cancelBtn: {
     marginTop: 10,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     borderRadius: 12,
   },
   cancelBtnText: {
-    color: '#475569',
+    color: '#3D5070',
     fontWeight: '700',
     fontSize: 13,
   },
@@ -4450,7 +4485,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 390,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     position: 'relative',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }
@@ -4464,7 +4499,7 @@ const styles = StyleSheet.create({
   },
   receiptTopBorder: {
     height: 4,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     borderRadius: 2,
     marginBottom: 14,
   },
@@ -4475,7 +4510,7 @@ const styles = StyleSheet.create({
   receiptGovText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#3D5070',
     letterSpacing: 1.2,
   },
   receiptCityText: {
@@ -4488,7 +4523,7 @@ const styles = StyleSheet.create({
   receiptDeptText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     letterSpacing: 0.3,
     marginTop: 1,
     textAlign: 'center',
@@ -4496,7 +4531,7 @@ const styles = StyleSheet.create({
   receiptDividerDashed: {
     width: '100%',
     borderBottomWidth: 1,
-    borderBottomColor: '#CBD5E1',
+    borderBottomColor: '#DDE4F0',
     borderStyle: 'dashed',
     marginVertical: 10,
   },
@@ -4509,7 +4544,7 @@ const styles = StyleSheet.create({
   receiptSubTitle: {
     fontSize: 9.5,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#3D5070',
     letterSpacing: 0.5,
     marginTop: 1,
   },
@@ -4533,9 +4568,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   receiptCodeBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -4545,13 +4580,13 @@ const styles = StyleSheet.create({
   receiptCodeLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#3D5070',
     letterSpacing: 0.8,
   },
   receiptCodeValue: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     letterSpacing: 1,
     marginTop: 2,
@@ -4562,7 +4597,7 @@ const styles = StyleSheet.create({
   receiptSectionTitle: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
@@ -4574,7 +4609,7 @@ const styles = StyleSheet.create({
   },
   receiptFieldLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
     flex: 1,
   },
@@ -4587,22 +4622,22 @@ const styles = StyleSheet.create({
   },
   receiptTable: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 8,
     overflow: 'hidden',
   },
   receiptTableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#DDE4F0',
   },
   receiptTableCol: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#475569',
+    color: '#3D5070',
     letterSpacing: 0.5,
   },
   receiptTableRow: {
@@ -4613,7 +4648,7 @@ const styles = StyleSheet.create({
   },
   receiptTableCell: {
     fontSize: 11.5,
-    color: '#0F172A',
+    color: '#0B1525',
   },
   receiptBarcodeSimulation: {
     alignItems: 'center',
@@ -4622,18 +4657,18 @@ const styles = StyleSheet.create({
   },
   receiptBarcodeText: {
     fontSize: 9,
-    color: '#64748B',
+    color: '#8A9BB8',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     marginTop: 3,
     letterSpacing: 1.5,
   },
   receiptBottomBorder: {
     height: 2,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#DDE4F0',
     marginBottom: 14,
   },
   receiptDoneBtn: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#1C3F94',
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: 'center',
@@ -4668,7 +4703,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#DDE4F0',
   },
   completionIconBadge: {
     width: 34,
@@ -4710,14 +4745,14 @@ const styles = StyleSheet.create({
   },
   emptyCompletionText: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
   },
   completionItem: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
@@ -4727,26 +4762,26 @@ const styles = StyleSheet.create({
   completionItemName: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#0B1525',
   },
   completionItemAddr: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     marginTop: 2,
   },
   completionReceiptCode: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   completionTime: {
     fontSize: 10,
-    color: '#64748B',
+    color: '#8A9BB8',
     fontWeight: '600',
   },
   claimedPill: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#E6F6EF',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -4754,12 +4789,12 @@ const styles = StyleSheet.create({
   claimedPillText: {
     fontSize: 9,
     fontWeight: '900',
-    color: '#15803D',
+    color: '#0D8A5A',
   },
   viewReceiptBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -4769,7 +4804,7 @@ const styles = StyleSheet.create({
   viewReceiptBtnText: {
     fontSize: 11.5,
     fontWeight: '800',
-    color: '#1E3A8A',
+    color: '#1C3F94',
   },
 
   // Duplicate Claim Warning Pop-up Modal Styles
@@ -4783,9 +4818,9 @@ const styles = StyleSheet.create({
     borderColor: '#FECACA',
     alignItems: 'center',
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 20px 40px rgba(220, 38, 38, 0.22)' }
+      ? { boxShadow: '0 20px 40px rgba(200, 16, 46, 0.22)' }
       : {
-          shadowColor: '#DC2626',
+          shadowColor: '#C8102E',
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.25,
           shadowRadius: 15,
@@ -4795,7 +4830,7 @@ const styles = StyleSheet.create({
   duplicateTopBorder: {
     width: '100%',
     height: 4,
-    backgroundColor: '#DC2626',
+    backgroundColor: '#C8102E',
     borderRadius: 2,
     marginBottom: 16,
   },
@@ -4803,9 +4838,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FEF0F2',
     borderWidth: 2,
-    borderColor: '#FCA5A5',
+    borderColor: '#F5E0E3',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -4813,13 +4848,13 @@ const styles = StyleSheet.create({
   duplicatePopupTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#DC2626',
+    color: '#C8102E',
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   duplicatePopupSub: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 4,
@@ -4827,11 +4862,11 @@ const styles = StyleSheet.create({
   },
   duplicateDetailsBox: {
     width: '100%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 12,
   },
   duplicateInfoRow: {
@@ -4842,34 +4877,34 @@ const styles = StyleSheet.create({
   },
   duplicateInfoLabel: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
     flex: 1,
   },
   duplicateInfoVal: {
     fontSize: 12,
-    color: '#0F172A',
+    color: '#0B1525',
     fontWeight: '700',
     flex: 1.4,
     textAlign: 'right',
   },
   duplicateNoticeBanner: {
     width: '100%',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FEF0F2',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#F5E0E3',
     marginBottom: 16,
   },
   duplicateNoticeText: {
     fontSize: 11.5,
-    color: '#991B1B',
+    color: '#6E071A',
     lineHeight: 17,
   },
   duplicateActionBtn: {
     width: '100%',
-    backgroundColor: '#DC2626',
+    backgroundColor: '#C8102E',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -4886,11 +4921,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     borderRadius: 10,
   },
   duplicateCloseBtnText: {
-    color: '#475569',
+    color: '#3D5070',
     fontSize: 12.5,
     fontWeight: '700',
   },

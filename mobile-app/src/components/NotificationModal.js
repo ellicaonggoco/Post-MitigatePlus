@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
     overflow: 'hidden',
     zIndex: 10,
     ...SHADOWS.lg,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#D9E2EC',
+    borderBottomColor: '#DDE4F0',
     backgroundColor: '#FFFFFF',
   },
   popoverTitle: {
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#D9E2EC',
+    borderColor: '#DDE4F0',
   },
   scrollView: {
     maxHeight: 460,
@@ -284,21 +284,21 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#3D5070',
   },
   notifItem: {
     padding: 14,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderLeftWidth: 4,
     borderLeftColor: '#1C3F94',
     marginBottom: 8,
   },
   notifItemUnread: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#CBD5E1',
+    backgroundColor: '#F3F6FC',
+    borderColor: '#DDE4F0',
   },
   notifTopRow: {
     flexDirection: 'row',
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   typeNormal: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
   },
   typeUrgent: {
     backgroundColor: '#FEE2E2',
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   notifTime: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#8A9BB8',
     fontWeight: '500',
   },
   notifTitle: {
@@ -335,14 +335,14 @@ const styles = StyleSheet.create({
   },
   notifBody: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 18,
   },
   tapToReadRow: {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F3F6FC',
   },
   tapToReadText: {
     fontSize: 11.5,
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderBottomColor: '#DDE4F0',
+    backgroundColor: '#F3F6FC',
   },
   backBtnPill: {
     flexDirection: 'row',
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     gap: 8,
     ...SHADOWS.pill,
   },
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.sm,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   detailTime: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '500',
   },
   detailTitle: {
@@ -428,18 +428,18 @@ const styles = StyleSheet.create({
   issuerBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     marginBottom: 14,
   },
   issuerLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#3D5070',
     marginRight: 4,
   },
   issuerName: {

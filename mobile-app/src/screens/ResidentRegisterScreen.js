@@ -771,7 +771,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   <Text style={styles.dropdownSelectedText} numberOfLines={1}>
                     {idType}
                   </Text>
-                  <ChevronDownIcon size={16} color="#64748B" />
+                  <ChevronDownIcon size={16} color="#3D5070" />
                 </TouchableOpacity>
               </View>
 
@@ -822,7 +822,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Kumuha sa Camera' : 'Take with Camera'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.idGalleryBtn} onPress={handlePickIdFromLibrary} activeOpacity={0.85}>
-                      <ImageIcon size={20} color="#475569" />
+                      <ImageIcon size={20} color="#3D5070" />
                       <Text style={styles.idBtnMainText}>{lang === 'tl' ? 'Pumili sa Gallery' : 'Choose from Gallery'}</Text>
                     </TouchableOpacity>
                   </View>
@@ -877,7 +877,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   {showBrgyList ? (
                     <ChevronUpIcon size={16} color="#1C3F94" />
                   ) : (
-                    <ChevronDownIcon size={16} color="#64748B" />
+                    <ChevronDownIcon size={16} color="#3D5070" />
                   )}
                 </TouchableOpacity>
 
@@ -888,14 +888,14 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <TextInput
                         style={styles.brgySearchInput}
                         placeholder={lang === 'tl' ? 'I-type ang barangay number o distrito (hal. 291)...' : 'Type barangay number or district (e.g. 291)...'}
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="#8A9BB8"
                         value={brgySearch}
                         onChangeText={setBrgySearch}
                         autoFocus
                       />
                       {brgySearch.length > 0 && (
                         <TouchableOpacity onPress={() => setBrgySearch('')}>
-                          <CloseIcon size={14} color="#64748B" />
+                          <CloseIcon size={14} color="#3D5070" />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -1093,7 +1093,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   : 'Terms of Service & Data Privacy'}
               </Text>
               <TouchableOpacity onPress={() => setShowTermsModal(false)}>
-                <CloseIcon size={18} color="#475569" />
+                <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
 
@@ -1163,11 +1163,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         <View style={styles.modalOverlay}>
           <View style={styles.idModalBox}>
             <View style={styles.idModalHeader}>
-              <Text style={styles.idModalTitle}>
+              <Text style={[styles.idModalTitle, { flex: 1, paddingRight: 8 }]}>
                 {lang === 'tl' ? 'Pumili ng Uri ng Valid ID' : 'Select Valid ID Type'}
               </Text>
-              <TouchableOpacity onPress={() => setShowIdTypeModal(false)}>
-                <CloseIcon size={18} color="#475569" />
+              <TouchableOpacity onPress={() => setShowIdTypeModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+                <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 360 }}>
@@ -1204,11 +1204,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         >
           <View style={[styles.addMemberModalBox, { maxHeight: hp(78) }]}>
             <View style={styles.idModalHeader}>
-              <Text style={styles.idModalTitle}>
+              <Text style={[styles.idModalTitle, { flex: 1, paddingRight: 8 }]}>
                 {lang === 'tl' ? 'Magdagdag ng Miyembro ng Pamilya' : 'Add Household Member'}
               </Text>
-              <TouchableOpacity onPress={() => setShowAddMemberModal(false)}>
-                <CloseIcon size={18} color="#475569" />
+              <TouchableOpacity onPress={() => setShowAddMemberModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+                <CloseIcon size={18} color="#3D5070" />
               </TouchableOpacity>
             </View>
 
@@ -1569,7 +1569,7 @@ const styles = StyleSheet.create({
   },
   cardHeaderGroup: {
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
     paddingBottom: 12,
     marginBottom: 16,
   },
@@ -1580,7 +1580,7 @@ const styles = StyleSheet.create({
   },
   cardSub: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -1597,7 +1597,7 @@ const styles = StyleSheet.create({
   dropdownSelectorBtn: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -1655,9 +1655,9 @@ const styles = StyleSheet.create({
   brgySearchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#DDE4F0',
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 8,
@@ -1676,7 +1676,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -1699,9 +1699,9 @@ const styles = StyleSheet.create({
   },
   metricPill: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 8,
     paddingVertical: 6,
     alignItems: 'center',
@@ -1709,7 +1709,7 @@ const styles = StyleSheet.create({
   metricPillLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#64748B',
+    color: '#3D5070',
   },
   metricPillValue: {
     fontSize: 15,
@@ -1728,8 +1728,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#0B1525',
+    flex: 1,
+    marginRight: 8,
   },
   addMemberBtn: {
+    flexShrink: 0,
     backgroundColor: '#FEF0F2',
     borderWidth: 1,
     borderColor: '#FECDD3',
@@ -1747,9 +1750,9 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   memberCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 8,
     padding: 10,
   },
@@ -1765,7 +1768,7 @@ const styles = StyleSheet.create({
   },
   memberRelText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
   },
   deleteMemberBtn: {
     padding: 6,
@@ -1817,7 +1820,7 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1829,7 +1832,7 @@ const styles = StyleSheet.create({
   },
   certText: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     flex: 1,
     lineHeight: 16,
   },
@@ -1877,16 +1880,16 @@ const styles = StyleSheet.create({
   },
   idUploadSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
     marginBottom: 8,
   },
   idPreviewContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     padding: 8,
     gap: 10,
@@ -1906,7 +1909,7 @@ const styles = StyleSheet.create({
   },
   idPreviewFileName: {
     fontSize: 10.5,
-    color: '#64748B',
+    color: '#3D5070',
   },
   idRemoveBtn: {
     flexDirection: 'row',
@@ -1941,9 +1944,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 10,
     paddingVertical: 12,
   },
@@ -1953,9 +1956,9 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   passwordRulesBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
@@ -1963,7 +1966,7 @@ const styles = StyleSheet.create({
   passwordRulesTitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#475569',
+    color: '#3D5070',
     marginBottom: 6,
   },
   ruleItem: {
@@ -1989,7 +1992,7 @@ const styles = StyleSheet.create({
     color: '#059669',
   },
   ruleTextInvalid: {
-    color: '#64748B',
+    color: '#3D5070',
   },
   modalOverlay: {
     flex: 1,
@@ -2011,7 +2014,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#DDE4F0',
     paddingBottom: 12,
     marginBottom: 10,
   },
@@ -2027,10 +2030,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
   },
   idOptionRowActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderRadius: 8,
   },
   idOptionText: {
@@ -2054,7 +2057,7 @@ const styles = StyleSheet.create({
   inputSectionLabel: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#475569',
+    color: '#3D5070',
     letterSpacing: 0.5,
     marginTop: 8,
     marginBottom: 6,
@@ -2067,9 +2070,9 @@ const styles = StyleSheet.create({
   },
   conditionChip: {
     width: '48%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: 8,
     padding: 8,
   },
@@ -2088,7 +2091,7 @@ const styles = StyleSheet.create({
   },
   conditionChipSub: {
     fontSize: 9.5,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
   },
   infantNoticeBox: {
@@ -2117,9 +2120,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   relChip: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#DDE4F0',
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -2131,7 +2134,7 @@ const styles = StyleSheet.create({
   relChipText: {
     fontSize: 11.5,
     fontWeight: '600',
-    color: '#475569',
+    color: '#3D5070',
   },
   relChipTextActive: {
     color: '#FFFFFF',
@@ -2139,7 +2142,7 @@ const styles = StyleSheet.create({
   },
   cancelAddBtn: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -2147,7 +2150,7 @@ const styles = StyleSheet.create({
   cancelAddBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#475569',
+    color: '#3D5070',
   },
   confirmAddBtn: {
     flex: 2,
@@ -2227,7 +2230,7 @@ const styles = StyleSheet.create({
   },
   otpModalSub: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 10,
@@ -2288,8 +2291,8 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: '#DDE4F0',
+    backgroundColor: '#F3F6FC',
     fontSize: 22,
     fontWeight: '800',
     color: '#0F172A',
@@ -2327,7 +2330,7 @@ const styles = StyleSheet.create({
   },
   otpTimerText: {
     fontSize: 12.5,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
   },
   otpResendActiveText: {
@@ -2365,7 +2368,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelOtpBtnText: {
-    color: '#64748B',
+    color: '#3D5070',
     fontSize: 13,
     fontWeight: '700',
   },

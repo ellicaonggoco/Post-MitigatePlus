@@ -608,8 +608,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
                 <View style={styles.metricGridCardGlass}>
                   <Text style={styles.metricGridLabelGlass}>{t.reliefQuotaLabel}</Text>
-                  <Text style={[styles.metricGridValueWhite, { color: '#93C5FD' }]}>{basePacks}x Base</Text>
-                  <Text style={[styles.metricGridSubGlass, { color: '#BFDBFE' }]}>{topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit}` : t.basePackUnit}</Text>
+                  <Text style={[styles.metricGridValueWhite, { color: '#D6DEFA' }]}>{basePacks}x Base</Text>
+                  <Text style={[styles.metricGridSubGlass, { color: '#D6DEFA' }]}>{topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit}` : t.basePackUnit}</Text>
                 </View>
               </View>
 
@@ -700,7 +700,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     </Text>
                     {activeEvent && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                        <MapPinIcon size={12} color="#475569" />
+                        <MapPinIcon size={12} color="#3D5070" />
                         <Text style={styles.claimedEventLocation}>
                           {activeEvent.location || `Barangay ${brgyCode} Covered Court`}
                         </Text>
@@ -738,7 +738,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 /* Stage 3: Allocated State (No active distribution event yet -> QR on Standby) */
                 <View style={styles.standbyReliefFrame}>
                   <View style={styles.standbyIconWell}>
-                    <ClockIcon size={32} color="#1E40AF" />
+                    <ClockIcon size={32} color="#1C3F94" />
                   </View>
                   <Text style={styles.standbyTitle}>
                     {lang === 'tl' ? 'NAKA-STANDBY ANG QR RELIEF PASS' : 'RELIEF QR PASS ON STANDBY'}
@@ -890,10 +890,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 {unreadCount > 0 && (
                   <TouchableOpacity
                     onPress={handleMarkAllAsRead}
-                    style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE' }}
+                    style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#EDF1FB', borderWidth: 1, borderColor: '#D6DEFA' }}
                     activeOpacity={0.8}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1C3F94' }}>
                       {lang === 'tl' ? 'Basahin Lahat' : 'Mark all read'}
                     </Text>
                   </TouchableOpacity>
@@ -919,8 +919,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         ann.isUrgent && styles.announcementCardUrgent,
                         isUnread && {
                           borderLeftWidth: 4,
-                          borderLeftColor: ann.isUrgent ? '#DC2626' : '#1C3F94',
-                          backgroundColor: '#F8FAFC',
+                          borderLeftColor: ann.isUrgent ? '#C8102E' : '#1C3F94',
+                          backgroundColor: '#F3F6FC',
                         },
                       ]}
                       onPress={() => handleOpenAnnouncement(ann)}
@@ -929,22 +929,22 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       <View style={styles.annTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           {isUnread && (
-                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#DC2626' : '#1C3F94' }} />
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ann.isUrgent ? '#C8102E' : '#1C3F94' }} />
                           )}
                           <View style={styles.annTagBadge}>
                             <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
                           </View>
                           {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF3C7', borderColor: '#FCD34D', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
-                              <EditIcon size={9} color="#B45309" />
-                              <Text style={[styles.annTagText, { color: '#B45309', fontWeight: '800' }]}>
+                            <View style={[styles.annTagBadge, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
+                              <EditIcon size={9} color="#B8932A" />
+                              <Text style={[styles.annTagText, { color: '#B8932A', fontWeight: '800' }]}>
                                 {lang === 'tl' ? 'Nai-edit' : 'Edited'}
                               </Text>
                             </View>
                           ) : null}
                           {isUnread && (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
-                              <Text style={[styles.annTagText, { color: '#1D4ED8', fontWeight: '800', fontSize: 9 }]}>
+                            <View style={[styles.annTagBadge, { backgroundColor: '#EDF1FB', borderColor: '#D6DEFA' }]}>
+                              <Text style={[styles.annTagText, { color: '#1C3F94', fontWeight: '800', fontSize: 9 }]}>
                                 {lang === 'tl' ? 'BAGO' : 'NEW'}
                               </Text>
                             </View>
@@ -1125,7 +1125,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 onPress={() => setShowQRModal(false)}
                 activeOpacity={0.8}
               >
-                <CloseIcon size={16} color="#64748B" strokeWidth={2.4} />
+                <CloseIcon size={16} color="#3D5070" strokeWidth={2.4} />
               </TouchableOpacity>
             </View>
 
@@ -1182,8 +1182,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       </View>
                       <View style={styles.modalPassMetricCard}>
                         <Text style={styles.modalPassMetricLabel}>{t.reliefQuotaLabel || 'RIGHT-SIZED'}</Text>
-                        <Text style={[styles.modalPassMetricValue, { color: '#93C5FD' }]}>{basePacks}x Base</Text>
-                        <Text style={[styles.modalPassMetricSub, { color: '#BFDBFE' }]} numberOfLines={1}>
+                        <Text style={[styles.modalPassMetricValue, { color: '#D6DEFA' }]}>{basePacks}x Base</Text>
+                        <Text style={[styles.modalPassMetricSub, { color: '#D6DEFA' }]} numberOfLines={1}>
                           {topUpUnits > 0 ? `+${topUpUnits} ${t.topUpUnit || 'Top-Up'}` : (t.basePackUnit || 'Base Pack')}
                         </Text>
                       </View>
@@ -1533,7 +1533,7 @@ const styles = StyleSheet.create({
   },
   verifInfoDesc: {
     fontSize: 12.5,
-    color: '#475569',
+    color: '#3D5070',
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 18,
@@ -1581,7 +1581,7 @@ avatarGoldRing: {
   borderRadius: 21,
   borderWidth: 2,
   borderColor: '#C9A84C',
-  backgroundColor: '#1E3A8A',
+  backgroundColor: '#1C3F94',
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
@@ -1800,7 +1800,7 @@ verifCheckCirclePending: {
     letterSpacing: -0.3,
   },
   entitlementMembersBadge: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#DBEAFE',
     paddingHorizontal: 12,
@@ -1830,7 +1830,7 @@ verifCheckCirclePending: {
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
   },
   entitlementItemDot: {
     width: 8,
@@ -1844,7 +1844,7 @@ verifCheckCirclePending: {
   },
   entitlementItemDesc: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     marginTop: 2,
     lineHeight: 14,
   },
@@ -2024,7 +2024,7 @@ verifCheckCirclePending: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 14,
     marginBottom: 12,
     ...SHADOWS.card,
@@ -2033,7 +2033,7 @@ verifCheckCirclePending: {
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#DBEAFE',
     alignItems: 'center',
@@ -2049,7 +2049,7 @@ verifCheckCirclePending: {
   },
   actionTileSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '500',
     lineHeight: 15,
   },
@@ -2111,7 +2111,7 @@ verifCheckCirclePending: {
     marginBottom: 6,
   },
   annTagBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
@@ -2124,7 +2124,7 @@ verifCheckCirclePending: {
   },
   annTime: {
     fontSize: 10.5,
-    color: '#64748B',
+    color: '#3D5070',
   },
   annTitle: {
     fontSize: 13.5,
@@ -2134,7 +2134,7 @@ verifCheckCirclePending: {
   },
   annBody: {
     fontSize: 11.5,
-    color: '#475569',
+    color: '#3D5070',
     lineHeight: 16,
     marginBottom: 10,
   },
@@ -2143,7 +2143,7 @@ verifCheckCirclePending: {
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F3F6FC',
     paddingTop: 8,
   },
   annAuthorRow: {
@@ -2154,7 +2154,7 @@ verifCheckCirclePending: {
   annAuthorText: {
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#64748B',
+    color: '#3D5070',
   },
   annActionBtn: {
     backgroundColor: '#1C3F94',
@@ -2188,7 +2188,7 @@ verifCheckCirclePending: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2205,7 +2205,7 @@ verifCheckCirclePending: {
     alignItems: 'center',
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
   },
   annDetailMetaText: {
     fontSize: 11,
@@ -2214,7 +2214,7 @@ verifCheckCirclePending: {
   },
   annDetailTimeText: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#3D5070',
     fontWeight: '600',
   },
   annDetailBodyText: {
@@ -2342,19 +2342,19 @@ navIconPillInactive: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F3F6FC',
     backgroundColor: '#FFFFFF',
   },
   modalBackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
   modalBackBtnText: {
     fontSize: 12,
@@ -2364,16 +2364,19 @@ navIconPillInactive: {
   modalTopBarTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#0B1525',
     letterSpacing: 0.3,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 8,
   },
   modalCircularCloseBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F3F6FC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2714,7 +2717,7 @@ navIconPillInactive: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     padding: 12,
     marginBottom: 10,
     gap: 10,
@@ -2754,7 +2757,7 @@ navIconPillInactive: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     padding: 14,
     marginBottom: 16,
     ...SHADOWS.sm,
@@ -2926,24 +2929,24 @@ navIconPillInactive: {
     width: '100%',
     marginVertical: 8,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     ...(Platform.OS === 'web' ? { boxShadow: '0 4px 16px rgba(30, 64, 175, 0.08)' } : {}),
   },
   standbyIconWell: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#93C5FD',
+    borderColor: '#D6DEFA',
   },
   standbyTitle: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#1E3A8A',
+    color: '#1C3F94',
     textAlign: 'center',
     letterSpacing: 0.3,
     marginBottom: 6,

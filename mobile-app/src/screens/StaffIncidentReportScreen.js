@@ -142,7 +142,7 @@ export default function StaffIncidentReportScreen({ token }) {
                 {isSelected ? (
                   <RadioCheckedIcon size={16} color="#1C3F94" />
                 ) : (
-                  <RadioUncheckedIcon size={16} color="#94A3B8" />
+                  <RadioUncheckedIcon size={16} color="#8A9BB8" />
                 )}
                 <Text style={[styles.typeOptionText, isSelected && styles.typeOptionTextActive]}>
                   {type}
@@ -181,7 +181,7 @@ export default function StaffIncidentReportScreen({ token }) {
         {/* Photo Evidence */}
         <Text style={[styles.label, { marginTop: 12 }]}>Photo Evidence (Optional):</Text>
         <TouchableOpacity style={styles.photoBtn} onPress={handlePickPhoto} activeOpacity={0.8}>
-          <CameraIcon size={16} color="#1D4ED8" />
+          <CameraIcon size={16} color="#1C3F94" />
           <Text style={styles.photoBtnText}>{photoUri ? 'Change Photo' : 'Attach Photo Evidence'}</Text>
         </TouchableOpacity>
         {photoUri ? (
@@ -205,35 +205,35 @@ export default function StaffIncidentReportScreen({ token }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F6FB' },
+  container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: { padding: SPACING.base, paddingTop: 48, paddingBottom: SPACING.xxxl + 40 },
-  title: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0F172A', marginBottom: 4 },
-  sub: { fontSize: 12, color: '#64748B', lineHeight: 17, marginBottom: SPACING.base },
-  card: { backgroundColor: '#FFFFFF', borderRadius: RADIUS.card, padding: SPACING.lg, borderWidth: 1, borderColor: '#E2E8F0' },
-  label: { fontSize: 13, fontWeight: FONT_WEIGHT.bold, color: '#0F172A', marginBottom: 6 },
+  title: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0B1525', marginBottom: 4 },
+  sub: { fontSize: 12, color: '#3D5070', lineHeight: 17, marginBottom: SPACING.base },
+  card: { backgroundColor: '#FFFFFF', borderRadius: RADIUS.card, padding: SPACING.lg, borderWidth: 1, borderColor: '#DDE4F0' },
+  label: { fontSize: 13, fontWeight: FONT_WEIGHT.bold, color: '#0B1525', marginBottom: 6 },
   typeOption: {
     padding: 10,
     borderRadius: RADIUS.inner,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderColor: '#DDE4F0',
+    backgroundColor: '#F3F6FC',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
   typeOptionActive: {
     borderColor: '#1C3F94',
-    backgroundColor: '#E0F2FE',
+    backgroundColor: '#EDF1FB',
   },
-  typeOptionText: { fontSize: 12, fontWeight: '600', color: '#475569' },
+  typeOptionText: { fontSize: 12, fontWeight: '600', color: '#3D5070' },
   typeOptionTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.bold },
   input: {
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
     borderRadius: RADIUS.inner,
     padding: 12,
     fontSize: 13,
-    color: '#0F172A',
+    color: '#0B1525',
     marginBottom: 16,
     backgroundColor: '#FFFFFF',
   },
@@ -261,10 +261,10 @@ const styles = StyleSheet.create({
   gpsIcon: { fontSize: 16 },
   gpsText: { fontSize: 12, color: '#166534', fontWeight: '600', flex: 1 },
   photoBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EDF1FB',
     borderRadius: RADIUS.inner,
     borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+    borderColor: '#D6DEFA',
     paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     ...SHADOWS.sm,
   },
-  photoBtnText: { fontSize: 13, color: '#1D4ED8', fontWeight: '700' },
+  photoBtnText: { fontSize: 13, color: '#1C3F94', fontWeight: '700' },
   photoPreview: {
     width: '100%',
     height: 160,
     borderRadius: RADIUS.inner,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#DDE4F0',
   },
 });
