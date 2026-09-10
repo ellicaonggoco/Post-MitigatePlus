@@ -1501,7 +1501,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       onPress={() => setTorchOn(prev => !prev)}
                       activeOpacity={0.85}
                       accessibilityRole="button"
-                      accessibilityLabel={torchOn ? 'Turn Flashlight Off' : 'Turn Flashlight On'}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <ZapIcon size={16} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
@@ -1517,7 +1516,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     activeOpacity={0.8}
                     disabled={decodingPhoto}
                     accessibilityRole="button"
-                    accessibilityLabel={lang === 'tl' ? 'Mag-upload ng imahe mula sa gallery' : 'Upload Image from Gallery'}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     {decodingPhoto ? (
@@ -1694,7 +1692,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   value={manualCode}
                   onChangeText={setManualCode}
                   placeholder="MNL-291-ELLICA-2026"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#334155"
                   autoCapitalize="characters"
                 />
                 <TouchableOpacity
@@ -1703,7 +1701,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   disabled={loading}
                   activeOpacity={0.88}
                   accessibilityRole="button"
-                  accessibilityLabel="Verify manual code"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <LinearGradient
@@ -4020,6 +4017,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
+    minHeight: 48,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     paddingVertical: 13,
     borderRadius: 14,
@@ -4132,6 +4130,7 @@ const styles = StyleSheet.create({
   },
   codeInput: {
     flex: 1,
+    minHeight: 48,
     backgroundColor: '#F3F6FC',
     borderWidth: 1,
     borderColor: '#DDE4F0',
@@ -4145,6 +4144,8 @@ const styles = StyleSheet.create({
   },
   verifyBtnWrapper: {
     borderRadius: 12,
+    minHeight: 48,
+    minWidth: 48,
     overflow: 'hidden',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 4px 14px rgba(28, 63, 148, 0.32)' }
@@ -4159,6 +4160,8 @@ const styles = StyleSheet.create({
   verifyBtnGradient: {
     paddingHorizontal: 20,
     paddingVertical: 13,
+    minHeight: 48,
+    minWidth: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
