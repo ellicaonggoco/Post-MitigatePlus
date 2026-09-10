@@ -127,7 +127,6 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             placeholderTextColor="#54657E"
             keyboardType="email-address"
             autoCapitalize="none"
-            accessibilityLabel="Field Staff Email o Username"
           />
 
           <Text style={[styles.label, { marginTop: 14 }]}>Password ng Kawani:</Text>
@@ -139,7 +138,6 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
               placeholder="••••••••••••"
               placeholderTextColor="#54657E"
               secureTextEntry={!showPassword}
-              accessibilityLabel="Password ng Kawani"
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}

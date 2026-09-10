@@ -85,8 +85,6 @@ export default function NeumorphicInput({
             editable={true}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            accessibilityLabel={label || placeholder}
-            accessibilityHint={placeholder}
           />
 
           {isPassword && (

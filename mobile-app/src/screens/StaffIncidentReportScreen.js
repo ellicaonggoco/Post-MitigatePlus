@@ -163,7 +163,6 @@ export default function StaffIncidentReportScreen({ token }) {
           style={styles.input}
           placeholder="e.g. 291"
           placeholderTextColor="#54657E"
-          accessibilityLabel="Barangay Code"
         />
 
         <Text style={styles.label}>Incident Details & Action Taken:</Text>
@@ -175,7 +174,6 @@ export default function StaffIncidentReportScreen({ token }) {
           style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
           placeholder="Describe what happened on-ground and any actions taken..."
           placeholderTextColor="#54657E"
-          accessibilityLabel="Incident Details and Action Taken"
         />
 
         {/* GPS Location Card */}

@@ -1696,7 +1696,6 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   placeholder="MNL-291-ELLICA-2026"
                   placeholderTextColor="#64748B"
                   autoCapitalize="characters"
-                  accessibilityLabel="Manual QR Code Entry Input"
                 />
                 <TouchableOpacity
                   style={styles.verifyBtnWrapper}

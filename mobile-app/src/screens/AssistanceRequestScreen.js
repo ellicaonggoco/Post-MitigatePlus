@@ -681,11 +681,6 @@ export default function AssistanceRequestScreen({
                               : 'Brief note regarding relevant skills or experience (optional)...'
                           }
                           placeholderTextColor="#54657E"
-                          accessibilityLabel={
-                            lang === 'tl'
-                              ? 'Maikling tala tungkol sa inyong karanasan o kakayahan'
-                              : 'Brief note regarding relevant skills or experience'
-                          }
                           value={experienceNotes}
                           onChangeText={setExperienceNotes}
                           multiline

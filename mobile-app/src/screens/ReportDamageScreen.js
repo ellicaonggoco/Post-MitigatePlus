@@ -10,7 +10,7 @@ import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionSeverityTile, MotionPressable } from '../components/motion';
 
-function SeveritySelectorTray({ severities, currentLevel, onSelect }) {
+function SeveritySelectorTray({ severities, currentLevel, onSelect, lang = 'en' }) {
   return (
     <View style={styles.severityGrid}>
       {severities.map((s) => {
@@ -445,7 +445,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
           </View>
-          <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} />
+          <SeveritySelectorTray severities={severities} currentLevel={damageLevel} onSelect={setDamageLevel} lang={lang} />
 
           {/* Verified Registered Household Location */}
           <View style={styles.autoLocationCard}>

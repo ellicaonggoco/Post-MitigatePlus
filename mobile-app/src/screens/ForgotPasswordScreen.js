@@ -67,11 +67,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        if (data.otpCode || data.debugOtp) {
-          const codeReceived = String(data.otpCode || data.debugOtp);
-          setFallbackOtp(codeReceived);
-          setOtpCode(codeReceived.slice(0, 6).split(''));
-        }
+        setOtpCode(['', '', '', '', '', '']);
         setResendCooldown(60);
         setStage(2);
       } else {
@@ -302,52 +298,6 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               )}
             </Text>
 
-            {fallbackOtp ? (
-              <View style={{
-                backgroundColor: '#EDF1FB',
-                borderColor: '#D6DEFA',
-                borderWidth: 1,
-                borderRadius: 12,
-                padding: 12,
-                marginBottom: 14,
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <Text style={{ fontSize: 11, color: '#1C3F94', fontWeight: '800' }}>
-                    {lang === 'tl' ? 'SYSTEM VERIFICATION CODE' : 'SYSTEM VERIFICATION CODE'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      const digits = String(fallbackOtp).slice(0, 6).split('');
-                      setOtpCode(digits);
-                    }}
-                    style={{
-                      backgroundColor: '#1C3F94',
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      minHeight: 36,
-                      borderRadius: 6,
-                    }}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityLabel={lang === 'tl' ? 'I-auto fill ang verification code' : 'Auto-fill verification code'}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
-                      {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={{ fontSize: 22, fontWeight: '900', color: '#1C3F94', letterSpacing: 4, textAlign: 'center', marginVertical: 4 }}>
-                  {fallbackOtp}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#3D5070', textAlign: 'center' }}>
-                  {lang === 'tl'
-                    ? 'Gamitin ang verification code na ito kung naantala ang SMS/Email.'
-                    : 'Use this verification code if SMS or email delivery is delayed.'}
-                </Text>
-              </View>
-            ) : null}
-
             <View style={styles.otpGrid}>
               {otpCode.map((digit, i) => (
                 <TextInput
@@ -371,7 +321,6 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                   keyboardType="numeric"
                   maxLength={1}
                   textAlign="center"
-                  accessibilityLabel={lang === 'tl' ? `Numero ${i + 1} ng 6-digit code` : `Digit ${i + 1} of 6`}
                 />
               ))}
             </View>

@@ -917,7 +917,6 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                         value={brgySearch}
                         onChangeText={setBrgySearch}
                         autoFocus
-                        accessibilityLabel={lang === 'tl' ? 'Maghanap ng Barangay' : 'Search Barangay'}
                       />
                       {brgySearch.length > 0 && (
                         <TouchableOpacity
@@ -1475,7 +1474,6 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   maxLength={6}
                   textAlign="center"
                   selectTextOnFocus
-                  accessibilityLabel={lang === 'tl' ? `Numero ${idx + 1} ng 6-digit code` : `Digit ${idx + 1} of 6`}
                 />
               ))}
             </View>
