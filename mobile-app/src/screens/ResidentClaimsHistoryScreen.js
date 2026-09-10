@@ -71,11 +71,11 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
           <TouchableOpacity
             onPress={onBack}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              minWidth: 44,
-              minHeight: 44,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              minWidth: 48,
+              minHeight: 48,
               backgroundColor: 'rgba(255,255,255,0.15)',
               alignItems: 'center',
               justifyContent: 'center',
@@ -93,11 +93,11 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
           <View style={{flex: 1, alignItems: 'center'}}>
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Claims History</Text>
           </View>
-          <View style={{width: 44}} />
+          <View style={{width: 48}} />
         </View>
         <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
           <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 }}>Distribution & Claims</Text>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
         </View>
       </LinearGradient>
 
@@ -112,13 +112,13 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>AUDIT</Text>
-          <Text style={[styles.summaryValue, { color: '#047857' }]}>100%</Text>
+          <Text style={[styles.summaryValue, { color: '#065F46' }]}>100%</Text>
           <Text style={styles.summarySub}>Verified</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>SECURITY</Text>
-          <Text style={[styles.summaryValue, { color: '#B8932A', fontSize: 22 }]}>QR</Text>
+          <Text style={[styles.summaryValue, { color: '#78350F', fontSize: 22, fontWeight: '900' }]}>QR</Text>
           <Text style={styles.summarySub}>Token Match</Text>
         </View>
       </View>
@@ -135,7 +135,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1525', textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
             No Records Yet
           </Text>
-          <Text style={{ fontSize: 14, color: '#5A6E8C', textAlign: 'center', maxWidth: 280, lineHeight: 21 }}>
+          <Text style={{ fontSize: 14, color: '#334155', textAlign: 'center', maxWidth: 280, lineHeight: 21 }}>
             Records appear here once your QR Pass is scanned at a distribution site.
           </Text>
         </View>
