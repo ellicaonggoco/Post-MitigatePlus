@@ -83,7 +83,7 @@ router.post('/send-otp', async (req, res) => {
       const existingUser = await findExistingUserWithIdentifier(key);
       if (existingUser) {
         return res.status(400).json({
-          message: 'Ang numero na ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan kada mobile number.'
+          message: 'Ang email o numerong ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan.'
         });
       }
     }
@@ -361,7 +361,7 @@ router.post('/register', async (req, res) => {
     const existingUser = await findExistingUserWithIdentifier(emailOrPhone);
     if (existingUser) {
       return res.status(400).json({
-        message: 'Ang phone number na ito ay rehistrado na sa sistema. Bawal magkaparehas ang number ng kahit sinong user.'
+        message: 'Ang email address o numerong ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan.'
       });
     }
 
@@ -376,9 +376,12 @@ router.post('/register', async (req, res) => {
     });
     const hasOverlap = overlapHouseholds.length > 0;
 
+    const isEmailInput = String(emailOrPhone).includes('@');
     const user = await User.create({
       name,
       emailOrPhone: emailOrPhone.trim().toLowerCase(),
+      email: isEmailInput ? emailOrPhone.trim().toLowerCase() : null,
+      contactNum: !isEmailInput ? emailOrPhone.trim() : null,
       passwordHash: password,
       role: 'resident',
       barangayCode,

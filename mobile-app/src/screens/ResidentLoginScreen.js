@@ -51,7 +51,9 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   const handleLogin = async () => {
     const errs = {};
     if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = lang === 'tl' ? 'Ilagay ang Phone Number o Email' : 'Please enter Phone Number or Email';
+      errs.emailOrPhone = lang === 'tl' ? 'Ilagay ang inyong Email Address' : 'Please enter your Email Address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrPhone.trim()) && !/^09\d{9}$/.test(emailOrPhone.trim().replace(/[\s-+]/g, ''))) {
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email address' : 'Please enter a valid email address';
     }
     if (!password) {
       errs.password = lang === 'tl' ? 'Ilagay ang Password' : 'Please enter Password';
@@ -80,10 +82,10 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
         if (msg.includes('password')) {
           setErrors({ password: lang === 'tl' ? 'Maling Password' : 'Wrong Password' });
         } else if (msg.includes('not found') || msg.includes('user') || msg.includes('account')) {
-          setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Account' : 'Account Not Found' });
+          setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Email Account' : 'Email Account Not Found' });
         } else {
           setErrors({
-            emailOrPhone: lang === 'tl' ? 'Maling Phone o Email' : 'Wrong Phone or Email',
+            emailOrPhone: lang === 'tl' ? 'Maling Email o Password' : 'Wrong Email or Password',
             password: lang === 'tl' ? 'Maling Password' : 'Wrong Password',
           });
         }
@@ -99,10 +101,10 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
       } else if (errMsg.includes('password')) {
         setErrors({ password: lang === 'tl' ? 'Maling Password' : 'Wrong Password' });
       } else if (errMsg.includes('not found') || errMsg.includes('user') || errMsg.includes('account')) {
-        setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Account' : 'Account Not Found' });
+        setErrors({ emailOrPhone: lang === 'tl' ? 'Hindi nahanap ang Email Account' : 'Email Account Not Found' });
       } else {
         setErrors({
-          emailOrPhone: lang === 'tl' ? 'Maling Phone o Email' : 'Wrong Phone or Email',
+          emailOrPhone: lang === 'tl' ? 'Maling Email o Password' : 'Wrong Email or Password',
           password: lang === 'tl' ? 'Maling Password' : 'Wrong Password',
         });
       }
@@ -150,8 +152,8 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </Text>
             <Text style={styles.cardSub}>
               {lang === 'tl'
-                ? 'Gamitin ang inyong rehistradong mobile number at password upang ma-access ang inyong account.'
-                : 'Use your registered mobile number and password to access your account.'}
+                ? 'Gamitin ang inyong rehistradong email address at password upang ma-access ang inyong account.'
+                : 'Use your registered email address and password to access your account.'}
             </Text>
           </View>
 
@@ -163,15 +165,15 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             </View>
           ) : null}
 
-          {/* Standard Phone Number Input */}
+          {/* Required Email Address Input */}
           <NeumorphicInput
-            label={lang === 'tl' ? 'Phone Number' : 'Phone Number'}
+            label={lang === 'tl' ? 'Email Address' : 'Email Address'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder={lang === 'tl' ? 'Ilagay ang Phone Number (09XXXXXXXXX)' : 'Enter Phone Number (09XXXXXXXXX)'}
+            placeholder={lang === 'tl' ? 'Ilagay ang Email Address (hal. resident@gmail.com)' : 'Enter Email Address (e.g. resident@gmail.com)'}
             errorText={errors.emailOrPhone}
             required
-            keyboardType="default"
+            keyboardType="email-address"
             autoCapitalize="none"
           />
 

@@ -52,8 +52,8 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
     if (!identifier.trim()) {
       setErrors({
         identifier: lang === 'tl'
-          ? 'Pakilagay ang inyong 11-digit mobile number o email.'
-          : 'Please enter your 11-digit mobile number or email.',
+          ? 'Pakilagay ang inyong rehistradong email address.'
+          : 'Please enter your registered email address.',
       });
       return;
     }
@@ -237,12 +237,12 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
             </Text>
             <Text style={styles.cardSub}>
               {lang === 'tl'
-                ? 'Ilagay ang inyong rehistradong Email Address o Mobile Number upang makatanggap ng 6-digit verification code.'
-                : 'Enter your registered Email Address or Mobile Number to receive a 6-digit verification code.'}
+                ? 'Ilagay ang inyong rehistradong Email Address upang makatanggap ng 6-digit verification code.'
+                : 'Enter your registered Email Address to receive a 6-digit verification code.'}
             </Text>
 
             <NeumorphicInput
-              label={lang === 'tl' ? 'Rehistradong Email o Mobile Number' : 'Registered Email or Mobile Number'}
+              label={lang === 'tl' ? 'Rehistradong Email Address' : 'Registered Email Address'}
               value={identifier}
               onChangeText={(txt) => {
                 setIdentifier(txt);

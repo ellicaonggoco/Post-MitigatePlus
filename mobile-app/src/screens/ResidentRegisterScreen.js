@@ -322,22 +322,11 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     if (!headAge.trim() || isNaN(parsedHeadAge) || parsedHeadAge < 18 || parsedHeadAge > 120) {
       errs.headAge = lang === 'tl' ? 'Pakilagay ang wastong edad ng Punong-Pamilya (18-120 taon).' : 'Please enter valid head of household age (18-120).';
     }
-    const cleanNumber = emailOrPhone.trim().replace(/[\s-+]/g, '');
-    const isEmail = emailOrPhone.trim().includes('@');
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrPhone.trim());
     if (!emailOrPhone.trim()) {
-      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang 11-digit mobile number (09XXXXXXXXX) o email address.' : 'Please enter 11-digit mobile number (09XXXXXXXXX) or email address.';
-    } else if (isEmail) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrPhone.trim())) {
-        errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email (hal. name@gmail.com).' : 'Please enter a valid email address.';
-      }
-    } else if (cleanNumber.startsWith('63') && cleanNumber.length === 12) {
-      // valid 639XXXXXXXXX
-    } else if (cleanNumber.startsWith('09') && cleanNumber.length === 11) {
-      // valid 09XXXXXXXXX
-    } else {
-      errs.emailOrPhone = lang === 'tl'
-        ? 'Dapat magsimula sa 09 ang 11-digit mobile number (09XXXXXXXXX) o maglagay ng valid email.'
-        : 'Please enter a valid 11-digit mobile number starting with 09 (e.g. 09XXXXXXXXX) or email.';
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang inyong Email Address para sa OTP verification.' : 'Please enter your Email Address for OTP verification.';
+    } else if (!isEmail) {
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email address (hal. juan.delacruz@gmail.com).' : 'Please enter a valid email address (e.g. resident@gmail.com).';
     }
     if (!password || !isPasswordValid) {
       errs.password = lang === 'tl' ? 'Pakisunod ang checklist sa password.' : 'Please fulfill all password requirements.';
@@ -464,7 +453,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       } else {
         Alert.alert(
           lang === 'tl' ? 'Hindi Maipadala ang OTP' : 'OTP Dispatch Failed',
-          data.message || (lang === 'tl' ? 'Hindi maipadala ang verification code. Pakisuri ang inyong numero.' : 'Could not send verification OTP. Please check your phone number.')
+          data.message || (lang === 'tl' ? 'Hindi maipadala ang verification code. Pakisuri ang inyong email address.' : 'Could not send verification OTP. Please check your email address.')
         );
       }
     } catch (err) {
@@ -575,8 +564,8 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
         Alert.alert(
           lang === 'tl' ? ' Rehistrasyon Naisumite!' : ' Registration Submitted!',
           lang === 'tl'
-            ? 'Na-verify na ang inyong mobile number! Ang inyong aplikasyon ay nakabinbin sa Verification Queue ng Barangay para sa opisyal na pagsusuri.'
-            : 'Your mobile number is verified! Your application is now in the Barangay Verification Queue awaiting official review.'
+            ? 'Na-verify na ang inyong email address! Ang inyong aplikasyon ay nakabinbin sa Verification Queue ng Barangay para sa opisyal na pagsusuri.'
+            : 'Your email address is verified! Your application is now in the Barangay Verification Queue awaiting official review.'
         );
         onRegisterSuccess({
           token: res.token,
@@ -722,15 +711,15 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </View>
 
               <NeumorphicInput
-                label={lang === 'tl' ? '11-Digit Mobile Number (o Email)' : '11-Digit Mobile Number (or Email)'}
+                label={lang === 'tl' ? 'Email Address (Dito ipapadala ang OTP verification) *' : 'Email Address (For OTP verification) *'}
                 value={emailOrPhone}
                 onChangeText={(val) => {
                   setEmailOrPhone(val);
                 }}
-                placeholder="09XXXXXXXXX o youremail@gmail.com"
+                placeholder={lang === 'tl' ? 'hal. juan.delacruz@gmail.com' : 'e.g. juan.delacruz@gmail.com'}
                 errorText={errors.emailOrPhone}
                 required
-                keyboardType="default"
+                keyboardType="email-address"
                 autoCapitalize="none"
               />
 
@@ -1337,12 +1326,12 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 <ShieldCheckIcon size={26} color="#1C3F94" />
               </View>
               <Text style={styles.otpModalTitle}>
-                {lang === 'tl' ? 'Kumpirmasyon ng Mobile Number' : 'Mobile Number OTP Verification'}
+                {lang === 'tl' ? 'Kumpirmasyon ng Email Address' : 'Email Address OTP Verification'}
               </Text>
               <Text style={styles.otpModalSub}>
                 {lang === 'tl'
-                  ? 'Ipinadala ang 6-digit verification code sa iyong mobile number: '
-                  : 'We sent a 6-digit verification code to: '}
+                  ? 'Ipinadala ang 6-digit verification code sa iyong email address: '
+                  : 'We sent a 6-digit verification code to your email address: '}
                 <Text style={{ fontWeight: '800', color: '#1C3F94' }}>{emailOrPhone}</Text>
               </Text>
             </View>
