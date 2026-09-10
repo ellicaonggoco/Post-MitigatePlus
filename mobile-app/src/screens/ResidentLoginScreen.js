@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as LocalAuthentication from 'expo-local-authentication';
 import { loginUser } from '../services/api';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { ShieldCheckIcon, UsersIcon, ArrowRightIcon, FingerprintIcon } from '../components/AppIcons';
+import { ShieldCheckIcon, UsersIcon, ArrowRightIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 import { MotionPressable } from '../components/motion';
 
@@ -13,25 +12,8 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
   const scrollRef = useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  // Check biometric availability on mount without auto-prompting dialog over splash
-  useEffect(() => {
-    (async () => {
-      try {
-        const compatible = await LocalAuthentication.hasHardwareAsync();
-        const enrolled = await LocalAuthentication.isEnrolledAsync();
-        const savedSession = await AsyncStorage.getItem('mitigateplus_session');
-        if (compatible && enrolled && savedSession) {
-          setBiometricAvailable(true);
-        }
-      } catch {
-        // Biometric unavailable - fall through to password login
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -229,34 +211,6 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
               </Text>
             )}
           </MotionPressable>
-
-          {biometricAvailable && (
-            <TouchableOpacity
-              style={styles.biometricBtn}
-              activeOpacity={0.8}
-              onPress={async () => {
-                try {
-                  const result = await LocalAuthentication.authenticateAsync({
-                    promptMessage: lang === 'tl' ? 'I-verify ang inyong pagkakakilanlan' : 'Use biometrics to sign in',
-                    cancelLabel: lang === 'tl' ? 'Kanselahin' : 'Cancel',
-                    disableDeviceFallback: false,
-                  });
-                  if (result.success) {
-                    const savedSession = await AsyncStorage.getItem('mitigateplus_session');
-                    if (savedSession) {
-                      const session = JSON.parse(savedSession);
-                      if (session?.token) onLoginSuccess(session);
-                    }
-                  }
-                } catch { /* silently fail */ }
-              }}
-            >
-              <FingerprintIcon size={18} color="#C8102E" />
-              <Text style={styles.biometricBtnText}>
-                {lang === 'tl' ? 'Mag-login gamit ang Fingerprint / Face ID' : 'Sign in with Fingerprint / Face ID'}
-              </Text>
-            </TouchableOpacity>
-          )}
 
         </View>
 
@@ -460,32 +414,5 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 12,
     textAlign: 'center',
-  },
-  biometricBtn: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FECDD3',
-    backgroundColor: '#FEF0F2',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
-    } : {
-      shadowColor: '#C8102E',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 1,
-    }),
-  },
-  biometricBtnText: {
-    fontSize: 12.5,
-    fontWeight: '700',
-    color: '#C8102E',
   },
 });

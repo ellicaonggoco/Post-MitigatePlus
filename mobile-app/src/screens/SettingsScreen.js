@@ -214,7 +214,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // System & Preferences State
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -842,27 +841,6 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 {lang === 'tl' ? 'Palitan ang Password' : 'Change Password'}
               </Text>
             </TouchableOpacity>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.settingRowItem}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.settingItemLabel}>
-                {lang === 'tl' ? 'Biometric Quick Unlock' : 'Biometric Quick Unlock'}
-              </Text>
-              <Text style={styles.settingItemSub}>
-                {lang === 'tl'
-                  ? 'Gamitin ang Fingerprint o Face ID sa pag-login'
-                  : 'Fast fingerprint or Face ID sign in'}
-              </Text>
-            </View>
-            <Switch
-              value={biometricEnabled}
-              onValueChange={setBiometricEnabled}
-              trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={biometricEnabled ? '#1C3F94' : '#F1F5F9'}
-            />
           </View>
 
           <View style={styles.divider} />
