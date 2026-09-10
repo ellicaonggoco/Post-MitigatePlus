@@ -67,7 +67,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        if (data.otpCode || data.debugOtp) setFallbackOtp(data.otpCode || data.debugOtp);
+        if (data.otpCode || data.debugOtp) {
+          const codeReceived = String(data.otpCode || data.debugOtp);
+          setFallbackOtp(codeReceived);
+          setOtpCode(codeReceived.slice(0, 6).split(''));
+        }
         setResendCooldown(60);
         setStage(2);
       } else {
@@ -285,16 +289,39 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                 backgroundColor: '#EDF1FB',
                 borderColor: '#D6DEFA',
                 borderWidth: 1,
-                borderRadius: 8,
-                padding: 10,
+                borderRadius: 12,
+                padding: 12,
                 marginBottom: 14,
-                alignItems: 'center',
               }}>
-                <Text style={{ fontSize: 11.5, color: '#1C3F94', fontWeight: '700' }}>
-                  {lang === 'tl' ? 'Verification Code (SMS / System Backup):' : 'Verification Code (SMS / System Backup):'}
-                </Text>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: '#1C3F94', letterSpacing: 4, marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 11, color: '#1C3F94', fontWeight: '800' }}>
+                    {lang === 'tl' ? 'SYSTEM VERIFICATION CODE' : 'SYSTEM VERIFICATION CODE'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const digits = String(fallbackOtp).slice(0, 6).split('');
+                      setOtpCode(digits);
+                    }}
+                    style={{
+                      backgroundColor: '#1C3F94',
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 6,
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF' }}>
+                      {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={{ fontSize: 22, fontWeight: '900', color: '#1C3F94', letterSpacing: 4, textAlign: 'center', marginVertical: 4 }}>
                   {fallbackOtp}
+                </Text>
+                <Text style={{ fontSize: 10.5, color: '#3D5070', textAlign: 'center' }}>
+                  {lang === 'tl'
+                    ? 'Gamitin ang verification code na ito kung naantala ang SMS/Email.'
+                    : 'Use this verification code if SMS or email delivery is delayed.'}
                 </Text>
               </View>
             ) : null}

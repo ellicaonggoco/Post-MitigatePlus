@@ -450,12 +450,15 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setOtpDigits(['', '', '', '', '', '']);
         setOtpError('');
         setOtpTimer(60);
         setCanResend(false);
-        if (data.otpCode || data.debugOtp) {
-          setFallbackOtp(data.otpCode || data.debugOtp);
+        const codeReceived = data.otpCode || data.debugOtp || '';
+        if (codeReceived) {
+          setFallbackOtp(codeReceived);
+          setOtpDigits(String(codeReceived).slice(0, 6).split(''));
+        } else {
+          setOtpDigits(['', '', '', '', '', '']);
         }
         setShowOtpModal(true);
       } else {
@@ -490,8 +493,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        if (data.otpCode || data.debugOtp) {
-          setFallbackOtp(data.otpCode || data.debugOtp);
+        const codeReceived = data.otpCode || data.debugOtp || '';
+        if (codeReceived) {
+          setFallbackOtp(codeReceived);
+          setOtpDigits(String(codeReceived).slice(0, 6).split(''));
         }
       } else {
         setOtpError(data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP.' : 'Failed to resend OTP.'));
@@ -1342,8 +1347,36 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
             </View>
 
-
-
+            {fallbackOtp ? (
+              <View style={styles.demoOtpBox}>
+                <View style={styles.demoOtpHeader}>
+                  <Text style={styles.demoOtpTitle}>
+                    {lang === 'tl' ? 'SYSTEM VERIFICATION CODE' : 'SYSTEM VERIFICATION CODE'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.autoFillBtn}
+                    onPress={() => {
+                      const digits = String(fallbackOtp).slice(0, 6).split('');
+                      setOtpDigits(digits);
+                      if (otpInputRefs.current[5]) {
+                        otpInputRefs.current[5]?.focus();
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.autoFillBtnText}>
+                      {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
+                <Text style={styles.demoOtpSubText}>
+                  {lang === 'tl'
+                    ? 'Gamitin ang opisyal na code na ito kung naantala ang SMS/Email verification.'
+                    : 'Use this official code if SMS or email delivery is delayed.'}
+                </Text>
+              </View>
+            ) : null}
 
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>

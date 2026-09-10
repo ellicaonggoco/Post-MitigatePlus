@@ -44,11 +44,11 @@ const sendSMS = async (recipientNumber, message) => {
       console.log(`[SMS SENT] Successfully dispatched to ${recipientNumber}:`, data);
       return { success: true, mode: 'live', data };
     } else {
-      console.error(`[SMS ERROR] Semaphore API error:`, data);
+      console.warn(`[SMS PENDING/BALANCE NOTICE] Semaphore error for ${recipientNumber}:`, data);
       return { success: false, mode: 'live', error: data };
     }
   } catch (error) {
-    console.error(`[SMS EXCEPTION] Failed to send SMS via Semaphore:`, error.message);
+    console.warn(`[SMS EXCEPTION] Failed to dispatch SMS to ${recipientNumber}:`, error.message);
     return { success: false, mode: 'live', error: error.message };
   }
 };
