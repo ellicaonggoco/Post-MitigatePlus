@@ -2267,14 +2267,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                     borderColor: '#D6DEFA',
                                   }}>
                                     <Text
+                                      accessible={true}
+                                      accessibilityRole="text"
+                                      accessibilityLabel={`${inc.incidentType || 'Incident'} - Report #${reportNum}`}
                                       style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}
                                     >
                                       {inc.incidentType}
                                     </Text>
                                   </View>
                                   <Text
+                                    accessible={true}
+                                    accessibilityRole="text"
+                                    accessibilityLabel={`Brgy ${inc.barangayCode || dutyBrgy} - Report #${reportNum}`}
                                     style={{ fontSize: 11, color: '#0B1525', fontWeight: '700' }}
-                                    accessibilityLabel={`Barangay ${inc.barangayCode || dutyBrgy} for Report #${reportNum}`}
                                   >
                                     Brgy {inc.barangayCode || dutyBrgy}
                                   </Text>
@@ -2290,8 +2295,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                   flexShrink: 0,
                                 }}>
                                   <Text
+                                    accessible={true}
+                                    accessibilityRole="text"
+                                    accessibilityLabel={`Status: ${statusLabel} - Report #${reportNum}`}
                                     style={{ fontSize: 10, fontWeight: '900', color: statusColor }}
-                                    accessibilityLabel={`Status: ${statusLabel} for Report #${reportNum}`}
                                   >
                                     {statusLabel}
                                   </Text>
@@ -2299,11 +2306,19 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                               </View>
 
                               {/* Officer notes */}
-                              <Text style={{ fontSize: 13, color: '#0B1525', fontWeight: '600', marginBottom: 6, lineHeight: 18 }}>
+                              <Text
+                                accessible={true}
+                                accessibilityRole="text"
+                                style={{ fontSize: 13, color: '#0B1525', fontWeight: '600', marginBottom: 6, lineHeight: 18 }}
+                              >
                                 {inc.notes}
                               </Text>
 
-                              <Text style={{ fontSize: 11, color: '#0B1525', fontWeight: '600', marginBottom: 4 }}>
+                              <Text
+                                accessible={true}
+                                accessibilityRole="text"
+                                style={{ fontSize: 11, color: '#0B1525', fontWeight: '600', marginBottom: 4 }}
+                              >
                                 Logged: {new Date(inc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </Text>
 
