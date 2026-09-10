@@ -9,7 +9,7 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -154,6 +154,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [checkingActiveEvent, setCheckingActiveEvent] = useState(false);
   const lastBackPressRef = useRef(0);
 
   // Hardware Back Press Navigation for Resident App
@@ -329,6 +330,49 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     } finally {
       setRefreshing(false);
       setLoadingProfile(false);
+    }
+  };
+
+  const handleCheckActiveEvent = async () => {
+    if (!token || checkingActiveEvent) return;
+    setCheckingActiveEvent(true);
+    try {
+      const profile = await fetchHouseholdProfile(token);
+      if (profile?.household) {
+        setHouseholdData(profile.household);
+        if (profile.household.inAppNotifications) {
+          setInAppNotifs(profile.household.inAppNotifications);
+        }
+      }
+
+      const brgy = profile?.household?.barangayCode || user?.barangayCode || '291';
+      const isEventActive = !!(profile?.household?.hasActiveEvent && profile?.household?.activeEvent);
+
+      if (isEventActive) {
+        Alert.alert(
+          lang === 'tl' ? 'Bukas Na Ang Pamamahagi!' : 'Relief Event is Active!',
+          lang === 'tl'
+            ? `Aktibo na ang pamamahagi ng relief sa ${profile.household.activeEvent.location || `Barangay ${brgy} Covered Court`}. Na-unlock na ang inyong scannable QR Pass!`
+            : `Relief distribution is now active at ${profile.household.activeEvent.location || `Barangay ${brgy} Covered Court`}. Your scannable QR Pass has been unlocked!`
+        );
+      } else {
+        Alert.alert(
+          lang === 'tl' ? 'Naka-Standby Pa ang Pamamahagi' : 'Distribution on Standby',
+          lang === 'tl'
+            ? `Wala pang binubuksang aktibong pamamahagi ng ayuda sa Barangay ${brgy}.\n\nAwtomatikong lalabas at magiging aktibo ang inyong QR Pass sa oras na buksan ng LGU ang opisyal na distribution event sa inyong barangay.`
+            : `There is currently no ongoing relief distribution in Barangay ${brgy}.\n\nYour scannable QR Pass will automatically unlock once the LGU officially opens the distribution event for your barangay.`
+        );
+      }
+    } catch (err) {
+      console.warn('Check active event error:', err);
+      Alert.alert(
+        lang === 'tl' ? 'Paalala sa Koneksyon' : 'Connection Notice',
+        lang === 'tl'
+          ? 'Hindi makakonekta sa LGU server. Pakisubukang muli.'
+          : 'Could not connect to the LGU server. Please try again.'
+      );
+    } finally {
+      setCheckingActiveEvent(false);
     }
   };
 
@@ -836,19 +880,30 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </View>
 
                   <TouchableOpacity
-                    style={styles.standbyRefreshBtn}
-                    onPress={() => refreshData(true)}
+                    style={[styles.standbyRefreshBtn, checkingActiveEvent && { opacity: 0.8 }]}
+                    onPress={handleCheckActiveEvent}
+                    disabled={checkingActiveEvent}
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     accessibilityLabel={lang === 'tl' ? 'I-check kung may Binuksang Event' : 'Check for Active Event'}
-                    accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang tingnan kung may aktibong pamamahagi ng ayuda' : 'Double tap to check for active relief events'}
+                    accessibilityHint={lang === 'tl' ? 'Pindutin upang tingnan kung may aktibong pamamahagi ng ayuda' : 'Double tap to check for active relief events'}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={styles.standbyRefreshBtnText}>
-                      {loadingProfile
-                        ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
-                        : (lang === 'tl' ? 'I-check kung may Binuksang Event' : 'Check for Active Event')}
-                    </Text>
+                    {checkingActiveEvent ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                        <Text style={styles.standbyRefreshBtnText}>
+                          {lang === 'tl' ? 'Sinusuri ang server...' : 'Checking with server...'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <RefreshCwIcon size={16} color="#FFFFFF" />
+                        <Text style={styles.standbyRefreshBtnText}>
+                          {lang === 'tl' ? 'I-check kung may Binuksang Event' : 'Check for Active Event'}
+                        </Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
