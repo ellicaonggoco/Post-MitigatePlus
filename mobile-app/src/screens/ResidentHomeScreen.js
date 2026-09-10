@@ -10,13 +10,13 @@ import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
 import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon } from '../components/AppIcons';
-import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
+import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
 import { fetchAnnouncements, fetchHouseholdProfile } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
 
-const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : (Platform.OS === 'ios' ? 44 : 0);
+const STATUSBAR_INSET = getStatusBarHeight();
 
 
 function formatCapitalizeWords(str) {
@@ -412,6 +412,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        style={activeTab === 'settings' ? 'dark' : 'light'}
+        translucent
+        backgroundColor="transparent"
+      />
+      {/* Dynamic Top Frosted Bar when on Settings tab to blur scrolled content under status bar */}
+      {activeTab === 'settings' && <TopStatusBarBlur />}
+
       {/* 1. App Header (Avatar + Location + Notifications Bell) - Only on Dashboard */}
       {activeTab === 'home' && (
   <LinearGradient
@@ -1503,6 +1511,8 @@ const styles = StyleSheet.create({
   },
   // Hero header styles
 topHeader: {
+  paddingTop: Math.max(StatusBar.currentHeight || 0, 38) + 6,
+  paddingBottom: 4,
   flexShrink: 0,
   position: 'relative',
   overflow: 'hidden',
@@ -1515,7 +1525,7 @@ profileRow: {
   flexDirection: 'row',
   alignItems: 'center',
   paddingHorizontal: 16,
-  paddingVertical: 8,
+  paddingVertical: 6,
   gap: 10,
 },
 avatarGoldRing: {
@@ -1607,101 +1617,101 @@ verifCheckCirclePending: {
   },
   scrollContent: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: 12,
-    paddingBottom: 45,
+    paddingTop: 8,
+    paddingBottom: 75,
   },
   qrHeroCardGradient: {
-    borderRadius: 22,
+    borderRadius: 18,
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.18)',
     borderTopColor: '#C9A84C',
-    borderTopWidth: 3,
+    borderTopWidth: 2.5,
     borderBottomColor: '#C9A84C',
-    borderBottomWidth: 2.5,
-    padding: 18,
-    marginBottom: 16,
+    borderBottomWidth: 2,
+    padding: 13,
+    marginBottom: 10,
     ...(Platform.OS === 'web' ? {
-      boxShadow: '0 12px 32px rgba(11, 29, 78, 0.22), 0 4px 12px rgba(11, 29, 78, 0.12)',
+      boxShadow: '0 10px 24px rgba(11, 29, 78, 0.18), 0 3px 8px rgba(11, 29, 78, 0.10)',
     } : {
       shadowColor: '#0B1D4E',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.20,
-      shadowRadius: 18,
-      elevation: 8,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.16,
+      shadowRadius: 14,
+      elevation: 6,
     }),
   },
   qrHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   qrKickerText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#C9A84C',
     letterSpacing: 0.8,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   qrTitleWhite: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
   qrSubTextWhite: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: 'rgba(255, 255, 255, 0.65)',
-    marginTop: 3,
+    marginTop: 2,
     fontWeight: '500',
   },
   expandQRBtnGlass: {
     backgroundColor: 'rgba(255, 255, 255, 0.16)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   expandQRTextWhite: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   metricsGridRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-    marginBottom: 16,
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 10,
   },
   metricGridCardGlass: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.09)',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.16)',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
     alignItems: 'flex-start',
   },
   metricGridLabelGlass: {
-    fontSize: 8.5,
+    fontSize: 8,
     fontWeight: '800',
     color: 'rgba(255, 255, 255, 0.5)',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   metricGridValueWhite: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: '#FFFFFF',
-    marginTop: 3,
+    marginTop: 2,
   },
   metricGridSubGlass: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: 'rgba(255, 255, 255, 0.65)',
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: 1,
   },
   qrInteractiveFrameWhite: {
     alignItems: 'center',

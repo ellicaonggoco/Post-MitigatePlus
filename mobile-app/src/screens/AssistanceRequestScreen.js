@@ -270,7 +270,7 @@ export default function AssistanceRequestScreen({
         {/* HEADER GRADIENT WITH CIVIC LIVELIHOOD BRANDING */}
         <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <View style={{ height: 3, backgroundColor: '#C9A84C' }} />
-          <View style={{ height: Platform.OS === 'web' ? 0 : RESPONSIVE.topSafe }} />
+          <View style={{ height: Platform.OS === 'web' ? 0 : RESPONSIVE.topSafe + 4 }} />
           
           <View style={styles.navHeaderRow}>
             {onBack && (

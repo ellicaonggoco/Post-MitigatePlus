@@ -25,6 +25,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -47,7 +48,7 @@ import {
   ChevronUpIcon,
 } from '../components/AppIcons';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
+import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionPressable } from '../components/motion';
 import { API_BASE_URL } from '../config';
@@ -727,10 +728,11 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <TopStatusBarBlur />
       <ScrollView
         ref={scrollRef}
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: 100 + keyboardHeight }]}
+        contentContainerStyle={[styles.content, { paddingBottom: 75 + keyboardHeight }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -1723,16 +1725,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
-    paddingTop: RESPONSIVE.topSafe + 8,
-    paddingBottom: 24,
+    paddingTop: Math.max(StatusBar.currentHeight || 0, 38) + 12,
+    paddingBottom: 20,
   },
   sectionLabel: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: '800',
     color: '#64748B',
     letterSpacing: 0.8,
-    marginBottom: 8,
-    marginTop: 18,
+    marginBottom: 6,
+    marginTop: 14,
     textTransform: 'uppercase',
   },
   profileHeaderCard: {
@@ -1740,10 +1742,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#D9E2EC',
-    padding: 16,
+    padding: 13,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     ...SHADOWS.card,
   },
   avatarSection: { alignItems: 'center', gap: 4 },
@@ -1926,39 +1928,39 @@ const styles = StyleSheet.create({
   langTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.black },
 
   // ── Hotlines ──
-  hotlineList: { gap: 8 },
+  hotlineList: { gap: 6 },
   hotlineCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 12,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
     ...SHADOWS.card,
   },
   phoneIconWell: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 9,
   },
-  hotlineName: { fontSize: 12.5, fontWeight: '700', color: '#0F172A' },
-  hotlineTag: { fontSize: 10, color: '#DC2626', fontWeight: '700', marginTop: 1 },
-  hotlineNumberText: { fontSize: 12, fontWeight: '800', color: '#1E293B', marginTop: 2 },
+  hotlineName: { fontSize: 12, fontWeight: '700', color: '#0F172A' },
+  hotlineTag: { fontSize: 9.5, color: '#DC2626', fontWeight: '700', marginTop: 1 },
+  hotlineNumberText: { fontSize: 11.5, fontWeight: '800', color: '#1E293B', marginTop: 2 },
   hotlineCallBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#DC2626',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 6,
   },
-  hotlineCallBtnText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
+  hotlineCallBtnText: { color: '#FFFFFF', fontSize: 10.5, fontWeight: '800' },
 
   // ── Logout ──
   logoutBtn: {
@@ -1966,17 +1968,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FCA5A5',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 18,
-    marginBottom: 6,
+    marginTop: 12,
+    marginBottom: 4,
     ...SHADOWS.sm,
   },
-  logoutBtnText: { fontSize: 14, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
-  trademarkCard: { alignItems: 'center', marginTop: 14, paddingBottom: 36, marginBottom: 8 },
-  trademarkLogoImg: { width: 200, height: 44, marginBottom: 6 },
-  trademarkSub: { fontSize: 11.5, color: '#64748B', fontWeight: '600' },
+  logoutBtnText: { fontSize: 13.5, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
+  trademarkCard: { alignItems: 'center', marginTop: 10, paddingBottom: 14, marginBottom: 4 },
+  trademarkLogoImg: { width: 180, height: 40, marginBottom: 4 },
+  trademarkSub: { fontSize: 11, color: '#64748B', fontWeight: '600' },
 
   // ── Modal Styles ──
   modalBackdrop: {

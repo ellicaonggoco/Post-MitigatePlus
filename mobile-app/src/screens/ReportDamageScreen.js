@@ -358,7 +358,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       >
         <LinearGradient colors={['#6E071A', '#C8102E', '#9E0B24']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
           <View style={{height: 3, backgroundColor: '#C9A84C'}} />
-          <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe }} />
+          <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe + 4 }} />
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
             <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'}}>
               <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />

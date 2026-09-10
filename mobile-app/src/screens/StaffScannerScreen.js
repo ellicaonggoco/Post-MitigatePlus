@@ -906,6 +906,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
 
   return (
     <View style={styles.container}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       {/* 1. App Header: Royal Navy Authority Header with LinearGradient + Gold Accent Rule */}
       <LinearGradient
         colors={['#0B1D4E', '#12296A', '#1C3F94']}
@@ -2055,6 +2056,8 @@ const styles = StyleSheet.create({
   },
   // Top Header: Royal Navy (LinearGradient handles the bg color)
   topHeader: {
+    paddingTop: Math.max(StatusBar.currentHeight || 0, 38) + 6,
+    paddingBottom: 4,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -2066,7 +2069,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
     gap: 12,
   },
   headerKicker: {

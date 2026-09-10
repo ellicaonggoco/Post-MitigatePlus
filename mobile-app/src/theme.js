@@ -1,4 +1,5 @@
-import { Dimensions, PixelRatio, Platform, StatusBar } from 'react-native';
+import React from 'react';
+import { Dimensions, PixelRatio, Platform, StatusBar, View, StyleSheet } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BASE_WIDTH = 375;
@@ -30,12 +31,36 @@ export const moderateScale = (size, factor = 0.5) => Math.round(size + (scale(si
 
 export const getStatusBarHeight = () => {
   if (Platform.OS === 'web') return 0;
-  if (Platform.OS === 'android') return StatusBar.currentHeight || 24;
+  if (Platform.OS === 'android') {
+    // Dynamic status bar height: Android punch holes, teardrop cutouts, and status bars range from 34px to 48px.
+    // Ensure a safe baseline of at least 38px on modern Android devices.
+    return Math.max(StatusBar.currentHeight || 0, 38);
+  }
   if (Platform.OS === 'ios') return (SCREEN_HEIGHT >= 812 || SCREEN_WIDTH >= 812) ? 44 : 20;
   return 0;
 };
 
 export const STATUSBAR_INSET = getStatusBarHeight();
+
+export const TopStatusBarBlur = ({ backgroundColor = 'rgba(243, 246, 252, 0.96)', borderBottom = true }) => {
+  const topSafe = getStatusBarHeight();
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: topSafe,
+        backgroundColor,
+        borderBottomWidth: borderBottom ? StyleSheet.hairlineWidth : 0,
+        borderBottomColor: 'rgba(203, 213, 225, 0.6)',
+        zIndex: 9999,
+      }}
+    />
+  );
+};
 
 export const RESPONSIVE = {
   padding: SCREEN_WIDTH < 360 ? 12 : SCREEN_WIDTH < 420 ? 14 : 16,
