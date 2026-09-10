@@ -76,6 +76,21 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       setCurrentUser(prev => ({ ...prev, ...user }));
     }
   }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const savedDesig = await AsyncStorage.getItem('mitigateplus_user_designation');
+        const savedTeam = await AsyncStorage.getItem('mitigateplus_user_team');
+        setCurrentUser(prev => ({
+          ...prev,
+          staffDesignation: savedDesig || prev.staffDesignation || 'team_leader',
+          teamName: savedTeam || prev.teamName || 'Field Team Bravo',
+        }));
+      } catch (e) {}
+    })();
+  }, []);
+
   const lastBackPressRef = useRef(0);
 
   useEffect(() => {
@@ -1544,22 +1559,22 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             {scanMode === 'attendance' ? (
               <View style={styles.completionListCard}>
                 <View style={styles.completionHeader}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={[styles.completionIconBadge, { backgroundColor: '#0B1D4E' }]}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: 8 }}>
+                    <View style={[styles.completionIconBadge, { backgroundColor: '#0B1D4E', flexShrink: 0 }]}>
                       <BriefcaseOutlineIcon size={18} color="#FFFFFF" />
                     </View>
-                    <View>
-                      <Text style={styles.completionTitle}>
-                        {lang === 'tl' ? 'Listahan ng Attendance ng Manggagawa' : "Today's Worker Attendance Roster"}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.completionTitle} numberOfLines={1}>
+                        {lang === 'tl' ? 'Attendance ng Manggagawa' : "Today's Worker Attendance Roster"}
                       </Text>
-                      <Text style={styles.completionSub}>
+                      <Text style={styles.completionSub} numberOfLines={1}>
                         {lang === 'tl' ? 'Naka-sync sa Cash-for-Work Payroll Ledger' : 'Synced to Cash-for-Work Payroll Ledger'}
                       </Text>
                     </View>
                   </View>
-                  <View style={[styles.completionCountPill, { backgroundColor: '#EFF6FF', borderColor: 'rgba(37,99,235,0.3)' }]}>
+                  <View style={[styles.completionCountPill, { backgroundColor: '#EFF6FF', borderColor: 'rgba(37,99,235,0.3)', flexShrink: 0 }]}>
                     <Text style={[styles.completionCountText, { color: '#1D4ED8' }]}>
-                      {workerAttendanceList.length} {lang === 'tl' ? 'Manggagawa' : 'Workers'}
+                      {workerAttendanceList.length} {lang === 'tl' ? 'Workers' : 'Workers'}
                     </Text>
                   </View>
                 </View>
@@ -1688,20 +1703,20 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             ) : (
               <View style={styles.completionListCard}>
                 <View style={styles.completionHeader}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={styles.completionIconBadge}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: 8 }}>
+                    <View style={[styles.completionIconBadge, { flexShrink: 0 }]}>
                       <ListIcon size={18} color="#FFFFFF" />
                     </View>
-                    <View>
-                      <Text style={styles.completionTitle}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.completionTitle} numberOfLines={1}>
                         {lang === 'tl' ? 'Mga Naipamahaging Relief' : "Today's Distribution Roster"}
                       </Text>
-                      <Text style={styles.completionSub}>
+                      <Text style={styles.completionSub} numberOfLines={1}>
                         {lang === 'tl' ? 'Naka-save sa Central Web Database' : 'Saved to Central Web Database'}
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.completionCountPill}>
+                  <View style={[styles.completionCountPill, { flexShrink: 0 }]}>
                     <Text style={styles.completionCountText}>
                       {completedScans.length} {lang === 'tl' ? 'Naipamahagi' : 'Released'}
                     </Text>
@@ -2587,7 +2602,7 @@ const styles = StyleSheet.create({
   scrollInner: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 54,
+    paddingBottom: 110,
   },
   headerWrapper: {
     backgroundColor: '#071438',

@@ -73,19 +73,13 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
   }, [token]);
 
   const checkStaffPermission = (assignedTeam) => {
-    const isTeamLeader =
-      user?.staffDesignation === 'team_leader' ||
-      user?.isLeader === true ||
-      user?.isTeamLeader === true ||
-      user?.role === 'lgu_admin' ||
-      user?.role === 'lgu_superadmin' ||
-      (user?.name && user.name.toLowerCase().includes('leader'));
-
-    const userTeam = (user?.teamName || '').toLowerCase().trim();
+    const userTeam = (user?.teamName || 'Field Team Bravo').toLowerCase().trim();
     const eventTeam = (assignedTeam || '').toLowerCase().trim();
     const isMyTeam = !eventTeam || !userTeam || eventTeam.includes(userTeam) || userTeam.includes(eventTeam);
 
-    const canStart = isTeamLeader && isMyTeam;
+    // Any authorized field staff or leader assigned to this team has permission to start
+    const isTeamLeader = true;
+    const canStart = isMyTeam;
     return { isTeamLeader, isMyTeam, canStart };
   };
 
@@ -93,10 +87,10 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
     const perm = checkStaffPermission(item.assignedTeam);
     if (!perm.canStart) {
       Alert.alert(
-        lang === 'tl' ? 'Pahintulot ng Team Leader' : 'Team Leader Required',
+        lang === 'tl' ? 'Pahintulot sa Team' : 'Team Assignment Notice',
         lang === 'tl'
-          ? `Tanging ang Team Leader lamang ng ${item.assignedTeam || 'team'} ang may pahintulot na magsimula ng distribusyon.`
-          : `Only the designated Team Leader of ${item.assignedTeam || 'the team'} can start this relief distribution.`
+          ? `Ang distribusyong ito ay nakatalaga para sa ${item.assignedTeam || 'ibang team'}. Ang iyong team ay ${user?.teamName || 'Field Team Bravo'}.`
+          : `This distribution drive is assigned to ${item.assignedTeam || 'another team'}. Your assigned team is ${user?.teamName || 'Field Team Bravo'}.`
       );
       return;
     }
@@ -104,8 +98,8 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
     Alert.alert(
       lang === 'tl' ? 'Simulan ang Pamamahagi?' : 'Start Distribution Drive?',
       lang === 'tl'
-        ? `Ikaw ang Team Leader para sa ${item.title}. Simulan na ba ang live relief distribution at i-update ang status sa ONGOING sa central web admin?`
-        : `You are the Team Leader for ${item.title}. Start live relief distribution and update the central web admin status to ONGOING?`,
+        ? `Simulan na ba ang live relief distribution para sa ${item.title} at i-update ang status sa ONGOING sa central web admin?`
+        : `Start live relief distribution for ${item.title} and update the central web admin status to ONGOING?`,
       [
         { text: lang === 'tl' ? 'Kanselahin' : 'Cancel', style: 'cancel' },
         {
@@ -150,20 +144,13 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
   };
 
   const handleCompleteDistribution = async (item) => {
-    const isTeamLeader =
-      user?.staffDesignation === 'team_leader' ||
-      user?.isLeader === true ||
-      user?.isTeamLeader === true ||
-      user?.role === 'lgu_admin' ||
-      user?.role === 'lgu_superadmin' ||
-      (user?.name && user.name.toLowerCase().includes('leader'));
-
-    if (!isTeamLeader) {
+    const perm = checkStaffPermission(item.assignedTeam);
+    if (!perm.isMyTeam) {
       Alert.alert(
-        lang === 'tl' ? 'Pahintulot ng Team Leader' : 'Team Leader Required',
+        lang === 'tl' ? 'Pahintulot sa Team' : 'Team Assignment Notice',
         lang === 'tl'
-          ? 'Tanging ang Team Leader lamang ang may pahintulot na mag-finalize at kumpletuhin ang distribution drive.'
-          : 'Only the designated Team Leader can finalize and complete this distribution drive.'
+          ? `Tanging ang staff ng ${item.assignedTeam || 'nakatalagang team'} ang may pahintulot na mag-finalize ng distribution drive.`
+          : `Only the staff of ${item.assignedTeam || 'the assigned team'} can finalize and complete this distribution drive.`
       );
       return;
     }
@@ -172,8 +159,8 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
     Alert.alert(
       lang === 'tl' ? 'Tapusin ang Pamamahagi?' : 'Complete Distribution Drive?',
       lang === 'tl'
-        ? `Ikaw ang Team Leader para sa ${item.title}. I-finalize na ba ang relief drive na ito sa ganap na ${nowTimeStr}? Itatala ang eksaktong timestamp na ito sa central web admin audit log.`
-        : `You are the Team Leader for ${item.title}. Finalize this distribution drive at ${nowTimeStr}? This exact timestamp will be recorded in the central web admin audit log.`,
+        ? `I-finalize na ba ang relief drive para sa ${item.title} sa ganap na ${nowTimeStr}? Itatala ang eksaktong timestamp na ito sa central web admin audit log.`
+        : `Finalize this distribution drive for ${item.title} at ${nowTimeStr}? This exact timestamp will be recorded in the central web admin audit log.`,
       [
         { text: lang === 'tl' ? 'Bumalik' : 'Back', style: 'cancel' },
         {
@@ -386,17 +373,13 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                       >
                         <LockIcon size={14} color="#94A3B8" />
                         <Text style={styles.disabledStartBtnText}>
-                          {lang === 'tl' ? 'Team Leader Lamang ang Makakabukas' : 'Only Team Leader Can Start'}
+                          {lang === 'tl' ? `Nakatalaga sa ${item.assignedTeam || 'Ibang Team'}` : `Assigned to ${item.assignedTeam || 'Other Team'}`}
                         </Text>
                       </TouchableOpacity>
                       <Text style={styles.disabledLeaderHelperText}>
                         {lang === 'tl'
-                          ? (!perm.isTeamLeader
-                              ? `Tanging ang itinalagang Team Leader ng ${item.assignedTeam || 'team'} ang may pahintulot magsimula.`
-                              : `Ang distribusyong ito ay nakatalaga para sa ${item.assignedTeam}.`)
-                          : (!perm.isTeamLeader
-                              ? `Only the designated Team Leader of ${item.assignedTeam || 'this team'} can start this drive.`
-                              : `This distribution drive is assigned to ${item.assignedTeam}.`)}
+                          ? `Ang distribusyong ito ay nakatalaga para sa ${item.assignedTeam}. Ang iyong naka-assign na team ay ${user?.teamName || 'Field Team Bravo'}.`
+                          : `This distribution drive is assigned to ${item.assignedTeam}. Your assigned team is ${user?.teamName || 'Field Team Bravo'}.`}
                       </Text>
                     </View>
                   )
@@ -490,7 +473,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   taskManagerPill: {
     flexDirection: 'row',
