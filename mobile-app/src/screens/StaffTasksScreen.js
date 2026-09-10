@@ -143,9 +143,6 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
               startTime: nowTimeStr,
             } : e));
             setFilterTab('ongoing');
-            if (onSelectScanEvent) {
-              onSelectScanEvent({ ...item, status: 'ongoing', isActive: true, openedAt: nowIso, startTime: nowTimeStr });
-            }
           },
         },
       ]
