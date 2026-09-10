@@ -2023,6 +2023,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 ]}
                 onPress={() => setIncidentSubTab('new')}
                 activeOpacity={0.8}
+                accessibilityRole="tab"
+                accessibilityLabel="Log New Incident"
+                accessibilityState={{ selected: incidentSubTab === 'new' }}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[
@@ -2044,6 +2048,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   fetchMyIncidents();
                 }}
                 activeOpacity={0.8}
+                accessibilityRole="tab"
+                accessibilityLabel={`Incident Logs, ${myIncidentsList.length} items`}
+                accessibilityState={{ selected: incidentSubTab === 'history' }}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[
@@ -2070,7 +2078,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     dotColor: '#B8932A',
                     activeBg: '#FBF5E4',
                     activeBorder: '#F0DFA0',
-                    activeTextColor: '#B8932A',
+                    activeTextColor: '#854D0E', // Elevated from #B8932A to #854D0E (>5:1 on #FBF5E4)
                   },
                   {
                     key: 'Lost Citizen QR Pass',
@@ -2102,6 +2110,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       ]}
                       onPress={() => setIncidentType(cat.key)}
                       activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${cat.key}, ${cat.sub}`}
+                      accessibilityState={{ selected: isSelected }}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
                       <View style={[styles.catDot, { backgroundColor: cat.dotColor }]} />
                       <View style={{ flex: 1 }}>
@@ -2121,7 +2133,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 <TextInput
                   style={styles.textArea}
                   placeholder="Describe field conditions or incident at distribution site..."
-                  placeholderTextColor="#8A9BB8"
+                  placeholderTextColor="#64748B"
                   value={incidentNotes}
                   onChangeText={setIncidentNotes}
                   multiline
@@ -2155,8 +2167,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       flexDirection: 'row',
                       alignItems: 'center',
                       gap: 5,
-                      paddingVertical: 6,
+                      paddingVertical: 10,
                       paddingHorizontal: 12,
+                      minHeight: 44,
+                      minWidth: 44,
                       backgroundColor: '#EDF1FB',
                       borderRadius: 10,
                       borderWidth: 1,
@@ -2164,6 +2178,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       flexShrink: 0,
                       alignSelf: 'flex-start',
                     }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Refresh incident logs"
                     activeOpacity={0.7}
                   >
                     {loadingMyIncidents ? (
@@ -2206,7 +2223,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                           const isAck = inc.status === 'acknowledged';
                           const statusBg = isResolved ? '#E6F6EF' : isAck ? '#FBF5E4' : '#FEF0F2';
                           const statusBorder = isResolved ? 'rgba(13,138,90,0.35)' : isAck ? '#F0DFA0' : '#F5E0E3';
-                          const statusColor = isResolved ? '#0D8A5A' : isAck ? '#B8932A' : '#C8102E';
+                          const statusColor = isResolved ? '#047857' : isAck ? '#854D0E' : '#B91C1C';
                           const statusLabel = isResolved ? 'RESOLVED' : isAck ? 'IN PROGRESS' : 'OPEN';
 
                           return (
@@ -2269,7 +2286,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                                 {inc.notes}
                               </Text>
 
-                              <Text style={{ fontSize: 10.5, color: '#8A9BB8', marginBottom: 4 }}>
+                              <Text style={{ fontSize: 10.5, color: '#475569', marginBottom: 4 }}>
                                 Logged: {new Date(inc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </Text>
 
@@ -2437,7 +2454,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 </View>
                 <View style={styles.statGridCard}>
                   <Text style={styles.statGridLabel}>VERIFIED</Text>
-                  <Text style={[styles.statGridVal, { color: '#059669' }]}>{verifiedTodayCount}</Text>
+                  <Text style={[styles.statGridVal, { color: '#047857' }]}>{verifiedTodayCount}</Text>
                 </View>
                 <View style={styles.statGridCard}>
                   <Text style={styles.statGridLabel}>FLAGGED</Text>
@@ -3308,12 +3325,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D6DEFA',
     borderRadius: 14,
-    padding: 3,
+    padding: 4,
+    minHeight: 56,
+    alignItems: 'center',
     marginBottom: 14,
   },
   incidentSubTabBtn: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 12,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 11,
@@ -3332,8 +3352,8 @@ const styles = StyleSheet.create({
   },
   incidentSubTabBtnText: {
     fontSize: 12.5,
-    fontWeight: '600',
-    color: '#3D5070',
+    fontWeight: '700',
+    color: '#1E293B',
   },
   incidentSubTabBtnTextActive: {
     color: '#1C3F94',
@@ -4279,6 +4299,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     borderRadius: 14,
     padding: 14,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -4321,6 +4342,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C3F94',
     borderRadius: 12,
     paddingVertical: 14,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
@@ -4385,7 +4407,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   onDutyText: {
-    color: '#059669',
+    color: '#047857',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -4456,7 +4478,7 @@ const styles = StyleSheet.create({
   },
   dutyInfoKicker: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     fontWeight: '600',
     marginBottom: 2,
   },
