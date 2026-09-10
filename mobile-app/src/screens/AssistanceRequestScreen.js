@@ -628,7 +628,7 @@ export default function AssistanceRequestScreen({
                             activeOpacity={0.8}
                             accessibilityRole="button"
                             accessibilityState={{ selected: isSelected }}
-                            accessibilityLabel={`${cat.title}, ${cat.scope}`}
+                            accessibilityLabel={`${cat.title}, ${cat.scope}. ${cat.desc}`}
                             accessibilityHint={cat.desc}
                           >
                             <View style={styles.categoryHeaderRow}>
@@ -914,11 +914,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   navBackBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    minWidth: 44,
-    minHeight: 44,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    minWidth: 48,
+    minHeight: 48,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
@@ -926,11 +926,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navRefreshBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    minWidth: 44,
-    minHeight: 44,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    minWidth: 48,
+    minHeight: 48,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
@@ -1415,10 +1415,10 @@ const styles = StyleSheet.create({
   modalTopBackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 44,
-    minWidth: 44,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    minHeight: 48,
+    minWidth: 48,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#EDF1FB',
     gap: 4,
@@ -1442,11 +1442,11 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   closeBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    minWidth: 44,
-    minHeight: 44,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    minWidth: 48,
+    minHeight: 48,
     backgroundColor: '#F3F6FC',
     justifyContent: 'center',
     alignItems: 'center',
