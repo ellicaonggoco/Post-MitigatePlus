@@ -1095,7 +1095,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       activeOpacity={0.85}
                       accessible={true}
                       accessibilityRole="button"
-                      accessibilityLabel={`${isUnread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${ann.title}`}
+                      accessibilityLabel={`${isUnread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${ann.tag || ''}, ${ann.title}. ${ann.body || ''}. ${ann.timestamp || ''}`}
                       accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Double tap to read announcement details'}
                     >
                       <View style={styles.annTopRow}>

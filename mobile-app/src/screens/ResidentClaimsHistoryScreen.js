@@ -148,7 +148,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
               onPress={() => setSelectedReceipt(item)}
               activeOpacity={0.88}
               accessibilityRole="button"
-              accessibilityLabel={`${item.type}, ${item.receiptNumber}, ${item.status === 'CLAIMED' ? (t.claimedStatus || 'CLAIMED') : (t.inTransitStatus || 'PENDING')}`}
+              accessibilityLabel={`${item.type}, ${item.date}, ${item.status === 'CLAIMED' ? (t.claimedStatus || 'CLAIMED') : (t.inTransitStatus || 'PENDING')}. QUANTITY: ${item.quantity} ${item.quantity > 1 ? 'Packs' : 'Pack'}. LOCATION: ${item.location}. ${lang === 'tl' ? 'Na-verify ni:' : 'Verified by:'} ${item.verifiedBy}. ${item.receiptNumber}. ${lang === 'tl' ? 'Tingnan ang Resibo' : 'View Claim Receipt'}.`}
               accessibilityHint={lang === 'tl' ? 'Bubuksan ang opisyal na resibo ng ayuda' : 'Opens the official relief claim receipt'}
             >
               <View style={styles.cardTop}>
@@ -449,6 +449,34 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 10,
     fontWeight: '800',
+  },
+  cardMid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  metaCol: {
+    flex: 1,
+  },
+  metaLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#334155',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  metaVal: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#0B1525',
+    marginTop: 2,
   },
   cardDivider: {
     height: 1,
