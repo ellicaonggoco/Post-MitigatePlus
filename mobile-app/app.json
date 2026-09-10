@@ -31,7 +31,11 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -51,11 +55,11 @@
         }
       ]
     ],
+    "owner": "neilchestet",
     "extra": {
       "eas": {
-        "projectId": "a27f3d5a-0dc3-43c9-9b66-fc72e3031133"
+        "projectId": "ac00885c-734b-4320-bc00-9ef9d1255843"
       }
-    },
-    "owner": "ellica19"
+    }
   }
 }
