@@ -27,6 +27,7 @@ import {
   Hammer,
   Package,
   Wrench,
+  Search,
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import Pagination from '../components/Pagination';
@@ -59,6 +60,15 @@ export default function LivelihoodAssistance() {
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState('ALL'); // 'ALL' | 'CRITICAL' | 'HIGH' | 'MODERATE'
   // Application Status Filter
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'pending_barangay_review' | 'approved_for_work' | 'rejected'
+
+  // Project Directory Search, Filter & Pagination
+  const [projectSearch, setProjectSearch] = useState('');
+  const [projectStatusFilter, setProjectStatusFilter] = useState('ALL'); // 'ALL' | 'approved_active' | 'pending_lgu_approval' | 'has_pending_workers'
+  const [projectCurrentPage, setProjectCurrentPage] = useState(1);
+  const PROJECTS_PER_PAGE = 3;
+
+  // Worker Registry Search
+  const [applicantSearch, setApplicantSearch] = useState('');
 
   // Modal State for Creating / Requesting Project
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -305,11 +315,43 @@ export default function LivelihoodAssistance() {
     return { ...a, computedScore: score, computedLevel: level, computedColor: color };
   }).sort((a, b) => b.computedScore - a.computedScore);
 
+  // Filter and paginate projects
+  const filteredProjects = projects.filter(p => {
+    if (projectStatusFilter === 'approved_active' && p.status !== 'approved_active') return false;
+    if (projectStatusFilter === 'pending_lgu_approval' && p.status !== 'pending_lgu_approval') return false;
+    if (projectStatusFilter === 'has_pending_workers' && (p.pendingCount || 0) <= 0) return false;
+    if (projectSearch.trim()) {
+      const q = projectSearch.toLowerCase().trim();
+      const matchTitle = (p.title || '').toLowerCase().includes(q);
+      const matchBrgy = (p.barangayCode || '').toLowerCase().includes(q);
+      const matchWorksite = (p.targetWorksite || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchBrgy && !matchWorksite) return false;
+    }
+    return true;
+  });
+
+  const paginatedProjects = filteredProjects.slice(
+    (projectCurrentPage - 1) * PROJECTS_PER_PAGE,
+    projectCurrentPage * PROJECTS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setProjectCurrentPage(1);
+  }, [projectSearch, projectStatusFilter]);
+
   const filteredApplicants = sortedApplicants.filter(a => {
     if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
     if (vulnerabilityFilter === 'CRITICAL') return a.computedScore >= 85;
     if (vulnerabilityFilter === 'HIGH') return a.computedScore >= 75;
     if (vulnerabilityFilter === 'MODERATE') return a.computedScore < 75;
+    if (applicantSearch.trim()) {
+      const q = applicantSearch.toLowerCase().trim();
+      const matchName = (a.applicantName || '').toLowerCase().includes(q);
+      const matchVoucher = (a.payoutVoucherCode || '').toLowerCase().includes(q);
+      const matchPhone = (a.applicantPhone || '').toLowerCase().includes(q);
+      const matchCategory = (a.selectedCategory || '').toLowerCase().includes(q);
+      if (!matchName && !matchVoucher && !matchPhone && !matchCategory) return false;
+    }
     return true;
   });
 
@@ -318,7 +360,7 @@ export default function LivelihoodAssistance() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [vulnerabilityFilter, statusFilter, selectedProjectId]);
+  }, [vulnerabilityFilter, statusFilter, applicantSearch, selectedProjectId]);
 
   const paginatedApplicants = filteredApplicants.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -537,105 +579,226 @@ export default function LivelihoodAssistance() {
         </MotionCard>
       </div>
 
-      {/* Select Project & Filter Controls */}
-      <div className="clay-card" style={{ padding: 16, marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>SELECT REHABILITATION PROJECT</div>
+      {/* ── SECTION 1: REHABILITATION PROJECTS DIRECTORY ── */}
+      <div className="clay-card" style={{ padding: 20, marginBottom: 24, borderRadius: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 14 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Briefcase size={20} color="#1557B0" />
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>
+                Cash-for-Work Rehabilitation Projects ({filteredProjects.length})
+              </h3>
+            </div>
+            <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              Select a community recovery initiative to monitor worker attendance and manage certified payouts.
+            </p>
+          </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Application Status:</span>
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
-              >
-                <option value="ALL">All ({sortedApplicants.length})</option>
-                <option value="pending_barangay_review">Pending Review ({sortedApplicants.filter(a => a.status === 'pending_barangay_review').length})</option>
-                <option value="approved_for_work">Approved Workers ({sortedApplicants.filter(a => a.status === 'approved_for_work').length})</option>
-                <option value="rejected">Rejected ({sortedApplicants.filter(a => a.status === 'rejected').length})</option>
-              </select>
+          {/* Search & Status Filter for Projects */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: 260 }}>
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-soft)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                placeholder="Search project, barangay, worksite..."
+                value={projectSearch}
+                onChange={e => setProjectSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px 8px 32px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border)',
+                  fontSize: 12.5,
+                  background: 'var(--card)',
+                  color: 'var(--ink)',
+                  outline: 'none',
+                }}
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Vulnerability:</span>
-              <select
-                value={vulnerabilityFilter}
-                onChange={e => setVulnerabilityFilter(e.target.value)}
-                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
-              >
-                <option value="ALL">All Scores</option>
-                <option value="CRITICAL">Critical (Score 85+)</option>
-                <option value="HIGH">High (Score 75+)</option>
-                <option value="MODERATE">Standard (&lt;75)</option>
-              </select>
-            </div>
+            <select
+              value={projectStatusFilter}
+              onChange={e => setProjectStatusFilter(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                fontSize: 12.5,
+                background: 'var(--card)',
+                fontWeight: 700,
+                color: 'var(--ink)',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="ALL">All Statuses ({projects.length})</option>
+              <option value="approved_active">Active / Enrolling ({projects.filter(p => p.status === 'approved_active').length})</option>
+              <option value="pending_lgu_approval">Pending LGU Review ({projects.filter(p => p.status === 'pending_lgu_approval').length})</option>
+              <option value="has_pending_workers">Has Worker Applications ({projects.filter(p => (p.pendingCount || 0) > 0).length})</option>
+            </select>
           </div>
         </div>
 
-        {projects.length === 0 ? (
-          <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13 }}>
-            No cash-for-work projects created yet. Click <strong>{isBarangay ? 'Request New Project' : 'Create Livelihood Project'}</strong> above to start.
+        {filteredProjects.length === 0 ? (
+          <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--ink-soft)', fontSize: 13, background: '#F8FAFC', borderRadius: 10 }}>
+            No rehabilitation projects match your search criteria.
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {projects.map(p => {
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
+            {paginatedProjects.map(p => {
               const isSelected = selectedProjectId === p._id;
               const isPendingApproval = p.status === 'pending_lgu_approval';
               const pendingApps = p.pendingCount || 0;
               return (
-                <button
+                <div
                   key={p._id}
                   onClick={() => { setSelectedProjectId(p._id); fetchPayroll(p._id); }}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: 8,
-                    border: isSelected ? '2px solid #1557B0' : '1px solid var(--border)',
-                    background: isSelected ? '#EFF6FF' : 'var(--card)',
-                    color: isSelected ? '#1557B0' : 'var(--ink)',
-                    fontWeight: 700,
-                    fontSize: 12.5,
                     cursor: 'pointer',
+                    border: isSelected ? '2px solid #1557B0' : '1px solid var(--border)',
+                    background: isSelected ? 'linear-gradient(135deg, #F0F7FF 0%, #FFFFFF 100%)' : 'var(--card)',
+                    borderRadius: 12,
+                    padding: 16,
+                    boxShadow: isSelected ? '0 6px 20px rgba(21, 87, 176, 0.12)' : '0 2px 4px rgba(0,0,0,0.02)',
+                    transition: 'all 0.2s ease',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  <span>{p.title + ' (Brgy ' + p.barangayCode + ')'}</span>
-                  {pendingApps > 0 && (
-                    <span style={{
-                      fontSize: 10.5,
-                      fontWeight: 800,
-                      background: '#FEF3C7',
-                      color: '#B45309',
-                      padding: '1px 6px',
-                      borderRadius: 4,
-                    }}>
-                      {pendingApps} Pending
-                    </span>
-                  )}
-                  {isPendingApproval && (
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      background: '#FEE2E2',
-                      color: '#DC2626',
-                      padding: '1px 6px',
-                      borderRadius: 4,
-                    }}>
-                      Pending LGU
-                    </span>
-                  )}
-                </button>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          background: '#EFF6FF',
+                          color: '#1557B0',
+                          border: '1px solid #BFDBFE',
+                        }}>
+                          Barangay {p.barangayCode}
+                        </span>
+                        {p.status === 'approved_active' ? (
+                          <span style={{
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: '#DCFCE7',
+                            color: '#15803D',
+                          }}>
+                            Active • Enrolling
+                          </span>
+                        ) : (
+                          <span style={{
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: '#FEF3C7',
+                            color: '#B45309',
+                          }}>
+                            Pending LGU Review
+                          </span>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          background: '#1557B0',
+                          color: '#FFFFFF',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          whiteSpace: 'nowrap',
+                        }}>
+                          <Check size={12} strokeWidth={3} /> Selected
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 style={{ margin: '4px 0 3px', fontSize: 14.5, fontWeight: 800, color: isSelected ? '#1557B0' : 'var(--ink)' }}>
+                      {p.title}
+                    </h4>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--ink-soft)', marginBottom: 8 }}>
+                      <MapPin size={13} color="#64748B" />
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {p.targetWorksite || `Barangay ${p.barangayCode} Worksites`}
+                      </span>
+                    </div>
+
+                    {pendingApps > 0 && (
+                      <div style={{
+                        marginBottom: 8,
+                        padding: '6px 10px',
+                        background: '#FFFBEB',
+                        border: '1px solid #FCD34D',
+                        borderRadius: 6,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        color: '#B45309',
+                      }}>
+                        <AlertCircle size={14} color="#D97706" />
+                        <span>{pendingApps} Worker Application{pendingApps > 1 ? 's' : ''} Awaiting Review</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{
+                    marginTop: 8,
+                    paddingTop: 8,
+                    borderTop: '1px solid var(--border)',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: 6,
+                    textAlign: 'center',
+                  }}>
+                    <div style={{ background: isSelected ? 'rgba(255,255,255,0.7)' : '#F8FAFC', padding: '5px 2px', borderRadius: 6 }}>
+                      <div style={{ fontSize: 10, color: 'var(--ink-soft)', fontWeight: 700 }}>WORKER SLOTS</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, color: '#1557B0', marginTop: 1 }}>
+                        {p.filledSlots || 0} / {p.totalSlots || 25}
+                      </div>
+                    </div>
+                    <div style={{ background: isSelected ? 'rgba(255,255,255,0.7)' : '#F8FAFC', padding: '5px 2px', borderRadius: 6 }}>
+                      <div style={{ fontSize: 10, color: 'var(--ink-soft)', fontWeight: 700 }}>DAILY WAGE</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, color: '#15803D', marginTop: 1 }}>
+                        PHP {p.dailyWageRate || 500}
+                      </div>
+                    </div>
+                    <div style={{ background: isSelected ? 'rgba(255,255,255,0.7)' : '#F8FAFC', padding: '5px 2px', borderRadius: 6 }}>
+                      <div style={{ fontSize: 10, color: 'var(--ink-soft)', fontWeight: 700 }}>DURATION</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ink)', marginTop: 1 }}>
+                        {p.durationDays || 10} Days
+                      </div>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
         )}
 
+        {/* Project Pagination */}
+        <Pagination
+          currentPage={projectCurrentPage}
+          totalItems={filteredProjects.length}
+          itemsPerPage={PROJECTS_PER_PAGE}
+          onPageChange={setProjectCurrentPage}
+          style={{ marginTop: 14, borderRadius: 8, borderTop: '1px solid var(--border)' }}
+        />
+
         {/* Notice for Barangay if current selected project is pending LGU approval */}
         {currentSelectedProject?.status === 'pending_lgu_approval' && (
           <div style={{
-            marginTop: 12,
+            marginTop: 14,
             padding: '10px 14px',
             background: '#FFFBEB',
             border: '1px solid #FCD34D',
@@ -654,30 +817,88 @@ export default function LivelihoodAssistance() {
         )}
       </div>
 
-      {/* Worker Registry Table Ranked by Vulnerability Rating */}
+      {/* ── SECTION 2: WORKER REGISTRY & DAILY ATTENDANCE LEDGER ── */}
       <div className="clay-card" style={{ borderRadius: 12, overflow: 'hidden', padding: 0 }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--ink)' }}>
                 Vulnerability-Ranked Worker Registry and Daily Attendance Ledger
               </h3>
               {sortedApplicants.filter(a => a.status === 'pending_barangay_review').length > 0 && (
                 <span style={{
                   background: '#FEF3C7',
                   color: '#B45309',
-                  padding: '2px 8px',
+                  padding: '3px 10px',
                   borderRadius: 999,
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: 800,
+                  border: '1px solid #FCD34D',
                 }}>
                   {sortedApplicants.filter(a => a.status === 'pending_barangay_review').length} Awaiting Review
                 </span>
               )}
             </div>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--ink-soft)' }}>
-              Households with the highest disaster vulnerability score are prioritized for slot confirmation.
+            <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              Showing worker enrollments for:{' '}
+              <strong style={{ color: '#1557B0' }}>
+                {currentSelectedProject?.title || 'Selected Project'} (Barangay {currentSelectedProject?.barangayCode || '291'})
+              </strong>
             </p>
+          </div>
+
+          {/* Worker Registry Search & Filters */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Search worker name / voucher / phone */}
+            <div style={{ position: 'relative', width: 240 }}>
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-soft)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                placeholder="Search applicant or voucher..."
+                value={applicantSearch}
+                onChange={e => setApplicantSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px 7px 30px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border)',
+                  fontSize: 12,
+                  background: 'var(--card)',
+                  color: 'var(--ink)',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Application Status Filter */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Status:</span>
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={{ padding: '7px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
+              >
+                <option value="ALL">All ({sortedApplicants.length})</option>
+                <option value="pending_barangay_review">Pending Review ({sortedApplicants.filter(a => a.status === 'pending_barangay_review').length})</option>
+                <option value="approved_for_work">Approved ({sortedApplicants.filter(a => a.status === 'approved_for_work').length})</option>
+                <option value="rejected">Rejected ({sortedApplicants.filter(a => a.status === 'rejected').length})</option>
+              </select>
+            </div>
+
+            {/* Vulnerability Filter */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Priority:</span>
+              <select
+                value={vulnerabilityFilter}
+                onChange={e => setVulnerabilityFilter(e.target.value)}
+                style={{ padding: '7px 12px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, background: 'var(--card)', fontWeight: 700, color: 'var(--ink)', cursor: 'pointer' }}
+              >
+                <option value="ALL">All Scores</option>
+                <option value="CRITICAL">Critical (85+)</option>
+                <option value="HIGH">High (75+)</option>
+                <option value="MODERATE">Standard (&lt;75)</option>
+              </select>
+            </div>
           </div>
         </div>
 
