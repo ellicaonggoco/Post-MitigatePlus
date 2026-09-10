@@ -129,10 +129,46 @@ export default function DistributionEvents() {
     try {
       socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
       socket.emit('join_admin_room');
+
+      // ── Real-Time Synchronization when Field Leader starts or completes event on mobile terminal ──
+      const handleLiveEventUpdate = (incoming) => {
+        if (incoming && (incoming._id || incoming.id)) {
+          const uId = String(incoming._id || incoming.id);
+          setEvents(prev =>
+            prev.map(e => (String(e._id || e.id) === uId ? { ...e, ...incoming } : e))
+          );
+        }
+        fetchEvents();
+      };
+
+      socket.on('distribution_event_updated', handleLiveEventUpdate);
+
+      socket.on('distribution_status_changed', (data) => {
+        if (data?.event && (data.event._id || data.event.id)) {
+          const uId = String(data.event._id || data.event.id);
+          setEvents(prev =>
+            prev.map(e => (String(e._id || e.id) === uId ? { ...e, ...data.event } : e))
+          );
+        }
+        fetchEvents();
+      });
+
+      socket.on('distribution_event_created', () => {
+        fetchEvents();
+      });
+
+      socket.on('distribution_event_deleted', ({ eventId }) => {
+        if (eventId) {
+          setEvents(prev => prev.filter(e => String(e._id || e.id) !== String(eventId)));
+        }
+        fetchEvents();
+      });
+
       socket.on('assistance_released_global', () => {
         fetchClaims();
         fetchEvents();
       });
+
       socket.on('recovery_updated', () => {
         fetchClaims();
       });

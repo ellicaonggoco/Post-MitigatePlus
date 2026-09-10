@@ -26,10 +26,10 @@ router.get('/events', protect, async (req, res) => {
       const residentBrgy = hh?.barangayCode || req.user.barangayCode || '291';
       query.barangayCode = residentBrgy;
     } else if (req.user.role === 'field_staff') {
-      // Field staff see drives assigned to their team, their barangay, or any active/scheduled drive
+      // Field staff see drives assigned to their team, their barangay, or any active/scheduled/completed drive
       const staffConditions = [
         { isActive: true },
-        { status: { $in: ['Ongoing', 'Scheduled'] } },
+        { status: { $in: ['Ongoing', 'Scheduled', 'Completed'] } },
       ];
       if (req.user.teamName) {
         staffConditions.push({ assignedTeam: req.user.teamName });
@@ -104,23 +104,35 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
     if (title !== undefined) event.title = title;
     if (announcementMessage !== undefined) event.announcementMessage = announcementMessage;
 
-    if (status === 'Completed' || isActive === false) {
-      event.status = 'Completed';
-      event.isActive = false;
-      event.closedAt = req.body.completedAt ? new Date(req.body.completedAt) : new Date();
-    } else if (status === 'Ongoing' || isActive === true) {
-      event.status = 'Ongoing';
-      event.isActive = true;
-      if (!event.openedAt || event.status !== 'Ongoing') {
-        event.openedAt = req.body.startedAt ? new Date(req.body.startedAt) : new Date();
+    if (status) {
+      const s = String(status).toLowerCase();
+      if (s === 'completed') {
+        event.status = 'Completed';
+        event.isActive = false;
+        event.closedAt = req.body.completedAt || req.body.closedAt ? new Date(req.body.completedAt || req.body.closedAt) : new Date();
+      } else if (s === 'ongoing') {
+        event.status = 'Ongoing';
+        event.isActive = true;
+        event.openedAt = req.body.startedAt || req.body.openedAt ? new Date(req.body.startedAt || req.body.openedAt) : (event.openedAt || new Date());
+        event.closedAt = null;
+      } else if (s === 'scheduled') {
+        event.status = 'Scheduled';
+        event.isActive = false;
+        event.closedAt = null;
+      } else if (s === 'cancelled') {
+        event.status = 'Cancelled';
+        event.isActive = false;
       }
-      event.closedAt = null;
-    } else if (status === 'Scheduled') {
-      event.status = 'Scheduled';
-      event.isActive = false;
-    } else if (status === 'Cancelled') {
-      event.status = 'Cancelled';
-      event.isActive = false;
+    } else if (isActive !== undefined) {
+      event.isActive = Boolean(isActive);
+      if (event.isActive) {
+        event.status = 'Ongoing';
+        event.openedAt = req.body.startedAt || req.body.openedAt ? new Date(req.body.startedAt || req.body.openedAt) : (event.openedAt || new Date());
+        event.closedAt = null;
+      } else {
+        event.status = 'Completed';
+        event.closedAt = req.body.completedAt || req.body.closedAt ? new Date(req.body.completedAt || req.body.closedAt) : new Date();
+      }
     }
 
     await event.save();
@@ -132,14 +144,27 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
       action: 'UPDATE_EVENT',
       targetType: 'DistributionEvent',
       targetId: event._id.toString(),
-      notes: `Event "${event.title}" updated. Assigned Team: ${event.assignedTeam}, Status: ${event.status}`,
+      notes: `Event "${event.title}" status updated to ${event.status} by ${req.user.name || req.user.role}. Assigned Team: ${event.assignedTeam}`,
     });
 
-    // Broadcast event update to Web Admin and Residents in the Barangay
+    // Broadcast event update to Web Admin and Residents in the Barangay in real-time
     const io = req.app.get('io');
     if (io) {
+      const payloadStatus = {
+        eventId: event._id.toString(),
+        status: event.status,
+        isActive: event.isActive,
+        event,
+      };
+
       io.emit('distribution_event_updated', event);
+      io.emit('distribution_status_changed', payloadStatus);
+      io.to('admin_room').emit('distribution_event_updated', event);
+      io.to('admin_room').emit('distribution_status_changed', payloadStatus);
       io.to(`barangay:${event.barangayCode || '291'}`).emit('distribution_event_updated', event);
+      io.to(`barangay:${event.barangayCode || '291'}`).emit('distribution_status_changed', payloadStatus);
+      io.to(`brgy:${event.barangayCode || '291'}`).emit('distribution_event_updated', event);
+      io.to(`brgy:${event.barangayCode || '291'}`).emit('distribution_status_changed', payloadStatus);
     }
 
     res.json(event);
