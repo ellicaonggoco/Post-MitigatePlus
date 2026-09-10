@@ -7,7 +7,8 @@ export const TRANSLATIONS = {
     // Nav Headers
     mainMenu: 'MAIN MENU',
     cityOps: 'CITY OPERATIONS',
-    execTools: 'EXECUTIVE TOOLS',
+    execTools: 'EXECUTIVE INTELLIGENCE',
+    systemGov: 'GOVERNANCE & SECURITY',
     brgyTools: 'BARANGAY TOOLS',
 
     // Sidebar items
@@ -28,6 +29,7 @@ export const TRANSLATIONS = {
     fieldAccounts: 'Account Management',
     accountSecurity: 'Account Security',
     globalPolicy: 'Global Policy Config',
+    systemAuditLogs: 'System Audit Logs',
     recoveryProgress: 'Recovery Progress',
     settings: 'Settings',
     logout: 'Logout',
@@ -52,7 +54,8 @@ export const TRANSLATIONS = {
     // Nav Headers
     mainMenu: 'PANGUNAHING MENU',
     cityOps: 'OPERASYON NG LUNGSOD',
-    execTools: 'MGA GAMIT NG OPISYAL',
+    execTools: 'EHEKUTIBONG PAGPAPLANO',
+    systemGov: 'PAMAMAHALA AT SEGURIDAD',
     brgyTools: 'MGA GAMIT NG BARANGAY',
 
     // Sidebar items
@@ -64,13 +67,16 @@ export const TRANSLATIONS = {
     warehouseInventory: 'Imbentaryo sa Imbakan',
     reliefAllocation: 'Kalkulador ng Ayuda',
     fraudInterception: 'Paghaharang sa Pandaraya',
-    specialRequests: 'Tulong Pangkabuhayan (Cash-for-Work)',
+    specialRelief: 'Natatanging Kahilingan sa Ayuda',
+    livelihoodAssistance: 'Tulong Pangkabuhayan (Cash-for-Work)',
+    specialRequests: 'Natatanging Kahilingan sa Ayuda',
     announcements: 'Mga Anunsyo sa Residente',
     reports: 'Ulat at Pagsusuri',
     provisionAccounts: 'Paggawa ng Akawnt',
     fieldAccounts: 'Akawnt ng Field Staff',
     accountSecurity: 'Kasegurohan ng Akawnt',
     globalPolicy: 'Patakaran ng Sistema',
+    systemAuditLogs: 'Tala ng Sistema (Audit Logs)',
     recoveryProgress: 'Antas ng Pagbangon',
     settings: 'Mga Setting ng Sistema',
     logout: 'Mag-logout',

@@ -48,7 +48,8 @@ const ProtectedRoute = ({ children }) => {
 const RoleProtectedRoute = ({ children, allowedRoles }) => {
   const { token, user } = useContext(AuthContext);
   if (!token) return <Navigate to="/login" replace />;
-  if (!allowedRoles.includes(user?.role)) return <Navigate to="/" replace />;
+  const userRole = user?.role === 'lgu_super_admin' ? ROLES.LGU_SUPERADMIN : user?.role;
+  if (!allowedRoles.includes(userRole) && !allowedRoles.includes(user?.role)) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -672,23 +673,23 @@ function AppRoutes() {
             <Routes>
               <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/verification-queue" element={<ProtectedRoute><VerificationQueue /></ProtectedRoute>} />
-              <Route path="/priority-index" element={<ProtectedRoute><SmartPriorityDashboard /></ProtectedRoute>} />
+              <Route path="/verification-queue" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL]}><VerificationQueue /></RoleProtectedRoute>} />
+              <Route path="/priority-index" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL, ROLES.LGU_ADMIN, ROLES.LGU_SUPERADMIN]}><SmartPriorityDashboard /></RoleProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
               <Route path="/heatmap" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><BarangayHeatmap /></RoleProtectedRoute>} />
               <Route path="/relief-allocation" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ReliefAllocationPage /></RoleProtectedRoute>} />
-              <Route path="/distribution-events" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><DistributionEvents /></RoleProtectedRoute>} />
-              <Route path="/warehouse-inventory" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><WarehouseInventory /></RoleProtectedRoute>} />
+              <Route path="/distribution-events" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN]}><DistributionEvents /></RoleProtectedRoute>} />
+              <Route path="/warehouse-inventory" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN]}><WarehouseInventory /></RoleProtectedRoute>} />
               <Route path="/fraud-interception" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><FraudInterception /></RoleProtectedRoute>} />
-              <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
-              <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
-              <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
-              <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
+              <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
+              <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
+              <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
+              <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
               <Route path="/provision-accounts" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ProvisionAccounts /></RoleProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/global-policy" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><GlobalPolicyConfig /></RoleProtectedRoute>} />
               <Route path="/system-audit-logs" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><SystemAuditLogs /></RoleProtectedRoute>} />
-              <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
+              <Route path="/account-security" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><AccountSecurityPage /></RoleProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

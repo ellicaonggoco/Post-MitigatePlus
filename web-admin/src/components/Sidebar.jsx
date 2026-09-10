@@ -181,59 +181,62 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   if (role === ROLES.BARANGAY_OFFICIAL) {
     mainItems.push({ label: t.verificationQueue || 'Verification Queue', path: '/verification-queue', icon: IconlyVerification });
   }
-  if (role === ROLES.BARANGAY_OFFICIAL || isLguAdmin || isSuperAdmin) {
+  if (role === ROLES.BARANGAY_OFFICIAL || isLguAdmin) {
     mainItems.push({ label: t.priorityIndex || 'Priority Index', path: '/priority-index', icon: IconlyShield });
   }
   navGroups.push({ title: t.mainMenu || 'MAIN MENU', items: mainItems });
 
-  // ── LGU SUPERADMIN - Executive Tools
+  // ── LGU SUPERADMIN - Executive Intelligence & Governance
   if (isSuperAdmin) {
     navGroups.push({
-      title: t.execTools || 'EXECUTIVE TOOLS',
+      title: t.execTools || 'EXECUTIVE INTELLIGENCE',
       items: [
         { label: t.heatmap || 'Barangay Heatmap', path: '/heatmap', icon: IconlyMapPin },
         { label: t.reliefAllocation || 'Relief Allocation Engine', path: '/relief-allocation', icon: IconlyPackage },
-        { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
-        { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
-        { label: t.warehouseInventory || 'Warehouse Inventory', path: '/warehouse-inventory', icon: IconlyWarehouse },
-        { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
-        { label: 'Fraud Interception', path: '/fraud-interception', icon: IconlyShield },
-        { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
-        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
+        { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },
+      ],
+    });
+
+    navGroups.push({
+      title: t.systemGov || 'GOVERNANCE & SECURITY',
+      items: [
         { label: t.provisionAccounts || 'Account Management', path: '/provision-accounts', icon: IconlyUserPlus },
-        { label: 'Account Security', path: '/account-security', icon: IconlyLock },
+        { label: t.accountSecurity || 'Account Security', path: '/account-security', icon: IconlyLock },
         { label: t.globalPolicy || 'Global Policy Config', path: '/global-policy', icon: IconlyPolicy },
-        { label: 'System Audit Logs', path: '/system-audit-logs', icon: IconlyLock },
+        { label: t.systemAuditLogs || 'System Audit Logs', path: '/system-audit-logs', icon: IconlyLock },
       ],
     });
   }
 
-  // -- LGU ADMIN - City Operations
+  // ── LGU ADMIN - City Operations & Logistics
   if (isLguAdmin) {
     navGroups.push({
       title: t.cityOps || 'CITY OPERATIONS',
       items: [
         { label: t.heatmap || 'Barangay Heatmap', path: '/heatmap', icon: IconlyMapPin },
+        { label: t.warehouseInventory || 'Warehouse Inventory', path: '/warehouse-inventory', icon: IconlyWarehouse },
         { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
         { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
-        { label: t.warehouseInventory || 'Warehouse Inventory', path: '/warehouse-inventory', icon: IconlyWarehouse },
         { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
+        { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
+        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
+        { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },
-        { label: 'Manage Accounts', path: '/provision-accounts', icon: IconlyUserPlus },
+        { label: t.fieldAccounts || 'Manage Field Accounts', path: '/provision-accounts', icon: IconlyUserPlus },
       ],
     });
   }
 
-  // -- BARANGAY OFFICIAL - Barangay Tools
+  // ── BARANGAY OFFICIAL - Grassroots Barangay Tools
   if (role === ROLES.BARANGAY_OFFICIAL) {
     navGroups.push({
       title: t.brgyTools || 'BARANGAY TOOLS',
       items: [
         { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
-        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
+        { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.reports || 'Reports', path: '/reports', icon: IconlyFileText },
       ],
     });
