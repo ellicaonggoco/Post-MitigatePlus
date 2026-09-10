@@ -4535,8 +4535,8 @@ const styles = StyleSheet.create({
   },
   dutyInfoKicker: {
     fontSize: 11,
-    color: '#475569',
-    fontWeight: '600',
+    color: '#334155',
+    fontWeight: '700',
     marginBottom: 2,
   },
   dutyInfoVal: {
@@ -4631,8 +4631,8 @@ const styles = StyleSheet.create({
   },
   navTabLabel: {
     fontSize: 10.5,
-    fontWeight: '600',
-    color: '#475569',
+    fontWeight: '700',
+    color: '#334155',
     marginTop: 2,
   },
   navTabLabelActive: {
