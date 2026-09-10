@@ -139,6 +139,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
   const [inAppNotifs, setInAppNotifs] = useState([]);
+  const [readNotifIds, setReadNotifIds] = useState([]);
   const [householdData, setHouseholdData] = useState(household || null);
   const [announcements, setAnnouncements] = useState([]);
   const [readAnnouncementIds, setReadAnnouncementIds] = useState([]);
@@ -194,13 +195,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     return () => backSub.remove();
   }, [selectedAnnouncement, showQRModal, showVerifInfoModal, showNotifModal, activeTab, lang]);
 
-  // Load read announcement IDs from AsyncStorage on mount
+  // Load read announcement IDs and notification IDs from AsyncStorage on mount
   useEffect(() => {
     (async () => {
       try {
         const saved = await AsyncStorage.getItem('mitigateplus_read_announcements');
         if (saved) {
           setReadAnnouncementIds(JSON.parse(saved));
+        }
+        const savedNotifs = await AsyncStorage.getItem('mitigateplus_read_notifs');
+        if (savedNotifs) {
+          setReadNotifIds(JSON.parse(savedNotifs));
         }
       } catch (e) {}
     })();
@@ -218,12 +223,57 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     }
   };
 
+  const handleMarkNotifAsRead = async (id) => {
+    const idStr = String(id);
+    if (!readNotifIds.includes(idStr)) {
+      const updatedNotifs = [...readNotifIds, idStr];
+      setReadNotifIds(updatedNotifs);
+      try {
+        await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(updatedNotifs));
+      } catch (e) {}
+    }
+    if (!readAnnouncementIds.includes(idStr)) {
+      const updatedAnns = [...readAnnouncementIds, idStr];
+      setReadAnnouncementIds(updatedAnns);
+      try {
+        await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(updatedAnns));
+      } catch (e) {}
+    }
+  };
+
   const handleMarkAllAsRead = async () => {
     const allIds = announcements.map((a) => String(a._id || a.id || a.title));
     const combined = Array.from(new Set([...readAnnouncementIds, ...allIds]));
     setReadAnnouncementIds(combined);
+
+    const allNotifIds = inAppNotifs.map((n) => String(n.id || n._id));
+    const combinedNotifs = Array.from(new Set([...readNotifIds, ...allNotifIds]));
+    setReadNotifIds(combinedNotifs);
+
+    setHasUnreadNotifs(false);
+
     try {
       await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(combined));
+      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(combinedNotifs));
+    } catch (e) {}
+  };
+
+  const handleOpenNotificationModal = async () => {
+    setShowNotifModal(true);
+    setHasUnreadNotifs(false);
+
+    // Auto-mark all current notifications and announcements as read upon opening the bell
+    const allNotifIds = inAppNotifs.map((n) => String(n.id || n._id));
+    const combinedNotifs = Array.from(new Set([...readNotifIds, ...allNotifIds]));
+    setReadNotifIds(combinedNotifs);
+
+    const allAnnIds = announcements.map((a) => String(a._id || a.id || a.title));
+    const combinedAnns = Array.from(new Set([...readAnnouncementIds, ...allAnnIds]));
+    setReadAnnouncementIds(combinedAnns);
+
+    try {
+      await AsyncStorage.setItem('mitigateplus_read_notifs', JSON.stringify(combinedNotifs));
+      await AsyncStorage.setItem('mitigateplus_read_announcements', JSON.stringify(combinedAnns));
     } catch (e) {}
   };
 
@@ -231,6 +281,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     (ann) => !readAnnouncementIds.includes(String(ann._id || ann.id || ann.title))
   );
   const unreadCount = unreadAnnouncements.length;
+
+  const unreadInAppNotifs = inAppNotifs.filter(
+    (n) => !n.isRead && !readNotifIds.includes(String(n.id || n._id))
+  );
+  const unreadNotifCount = unreadInAppNotifs.length;
+
+  // The bell icon badge only shows if there are actual unread notifications or unread announcements
+  const hasAnyUnread = hasUnreadNotifs || unreadNotifCount > 0 || unreadCount > 0;
 
   useEffect(() => {
     if (propLang) setLang(propLang);
@@ -486,11 +544,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       <View style={styles.headerActionArea}>
         <TouchableOpacity
           style={styles.bellBtn}
-          onPress={() => { setShowNotifModal(true); setHasUnreadNotifs(false); }}
+          onPress={handleOpenNotificationModal}
           activeOpacity={0.8}
         >
           <BellIcon size={18} color="#FFFFFF" />
-          {(hasUnreadNotifs || unreadCount > 0) && (
+          {hasAnyUnread && (
             <View style={styles.unreadBadgeDot} />
           )}
         </TouchableOpacity>
@@ -1450,26 +1508,28 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         }}
         notifs={[
           ...inAppNotifs.map((n) => ({
-            id: n.id,
+            id: String(n.id || n._id),
             title: n.title,
             body: n.message,
             time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Kamakailan',
             tag: n.type === 'priority_update' ? 'Priority' : 'Opisyal',
             targetTab: 'history',
             type: 'urgent',
-            unread: !n.isRead,
+            unread: !n.isRead && !readNotifIds.includes(String(n.id || n._id)),
           })),
           ...announcements.map((a, idx) => ({
-            id: a.id || idx,
+            id: String(a._id || a.id || a.title),
             title: a.title,
             body: a.body,
             time: a.timestamp,
             tag: a.tag,
             targetTab: a.targetTab || (idx === 0 ? 'request' : idx === 1 ? 'damage' : 'history'),
             type: a.isUrgent ? 'urgent' : 'advisory',
-            unread: idx === 0,
+            unread: !readAnnouncementIds.includes(String(a._id || a.id || a.title)),
           }))
         ]}
+        onMarkAllRead={handleMarkAllAsRead}
+        onMarkRead={handleMarkNotifAsRead}
         onNavigate={(targetTab) => {
           if (targetTab) {
             navigateToTab(targetTab);

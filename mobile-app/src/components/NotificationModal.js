@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { BellIcon, CloseIcon, ArrowLeftIcon, MegaphoneIcon, EditIcon, ArrowRightIcon } from './AppIcons';
+import { BellIcon, CloseIcon, ArrowLeftIcon, MegaphoneIcon, EditIcon, ArrowRightIcon, CheckIcon } from './AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { MotionPressable } from './motion';
 
@@ -18,6 +18,8 @@ export default function NotificationModal({
   notifications,
   notifs: notifsProp,
   onNavigate,
+  onMarkAllRead,
+  onMarkRead,
   lang = 'en',
 }) {
   const [selectedNotif, setSelectedNotif] = useState(null);
@@ -30,6 +32,9 @@ export default function NotificationModal({
 
   const handleItemPress = (notif) => {
     setSelectedNotif(notif);
+    if (onMarkRead && notif?.id) {
+      onMarkRead(notif.id);
+    }
   };
 
   const handleBackToList = () => {
@@ -149,15 +154,29 @@ export default function NotificationModal({
             /* LIST VIEW: All Notifications */
             <>
               <View style={styles.popoverHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, paddingRight: 8 }}>
                   <BellIcon size={17} color="#1C3F94" />
-                  <Text style={styles.popoverTitle}>
+                  <Text style={[styles.popoverTitle, { flex: 1 }]} numberOfLines={1}>
                     {lang === 'tl' ? 'Mga Notipikasyon at Alert' : 'Notifications & Alerts'}
                   </Text>
                 </View>
-                <TouchableOpacity onPress={handleModalClose} style={styles.closeBtn} activeOpacity={0.8}>
-                  <CloseIcon size={14} color="#172B4D" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {onMarkAllRead && notifs.some((n) => n.unread) && (
+                    <TouchableOpacity
+                      onPress={onMarkAllRead}
+                      style={styles.markAllReadBtn}
+                      activeOpacity={0.8}
+                    >
+                      <CheckIcon size={12} color="#1C3F94" strokeWidth={2.5} />
+                      <Text style={styles.markAllReadText}>
+                        {lang === 'tl' ? 'Basahin Lahat' : 'Read All'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={handleModalClose} style={styles.closeBtn} activeOpacity={0.8}>
+                    <CloseIcon size={14} color="#0B1525" />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <ScrollView
@@ -259,13 +278,29 @@ const styles = StyleSheet.create({
   popoverTitle: {
     fontSize: 15,
     fontWeight: FONT_WEIGHT.black,
-    color: '#172B4D',
+    color: '#0B1525',
+  },
+  markAllReadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EDF1FB',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D6DEFA',
+  },
+  markAllReadText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1C3F94',
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F8F9F7',
+    backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
