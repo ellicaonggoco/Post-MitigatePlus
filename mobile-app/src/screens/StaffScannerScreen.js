@@ -1268,8 +1268,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   setAttendanceResult(null);
                 }}
                 activeOpacity={0.8}
+                accessibilityRole="tab"
+                accessibilityLabel={lang === 'tl' ? 'Pamamahagi ng Ayuda' : 'Relief Goods'}
+                accessibilityState={{ selected: scanMode === 'relief' }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <PackageIcon size={16} color={scanMode === 'relief' ? '#FFFFFF' : '#3D5070'} />
+                <PackageIcon size={16} color={scanMode === 'relief' ? '#FFFFFF' : '#1E293B'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'relief' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'Pamamahagi ng Ayuda' : 'Relief Goods'}
                 </Text>
@@ -1283,8 +1287,12 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   setAttendanceResult(null);
                 }}
                 activeOpacity={0.8}
+                accessibilityRole="tab"
+                accessibilityLabel={lang === 'tl' ? 'CFW Attendance' : 'CFW Attendance'}
+                accessibilityState={{ selected: scanMode === 'attendance' }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <ClockIcon size={16} color={scanMode === 'attendance' ? '#FFFFFF' : '#3D5070'} />
+                <ClockIcon size={16} color={scanMode === 'attendance' ? '#FFFFFF' : '#1E293B'} />
                 <Text style={[styles.scanModeTabText, scanMode === 'attendance' && styles.scanModeTabTextActive]}>
                   {lang === 'tl' ? 'CFW Attendance' : 'CFW Attendance'}
                 </Text>
@@ -1492,6 +1500,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                       style={[styles.secondaryActionBtn, torchOn && styles.secondaryActionBtnActive]}
                       onPress={() => setTorchOn(prev => !prev)}
                       activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={torchOn ? 'Turn Flashlight Off' : 'Turn Flashlight On'}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <ZapIcon size={16} color={torchOn ? '#0B1D4E' : '#C9A84C'} />
                       <Text style={[styles.secondaryActionText, torchOn && styles.secondaryActionTextActive]}>
@@ -1505,6 +1516,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                     onPress={showPhotoScanOptions}
                     activeOpacity={0.8}
                     disabled={decodingPhoto}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'Mag-upload ng imahe mula sa gallery' : 'Upload Image from Gallery'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     {decodingPhoto ? (
                       <ActivityIndicator size="small" color="#C9A84C" />
@@ -1672,14 +1686,18 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   value={manualCode}
                   onChangeText={setManualCode}
                   placeholder="MNL-291-ELLICA-2026"
-                  placeholderTextColor="#8A9BB8"
+                  placeholderTextColor="#64748B"
                   autoCapitalize="characters"
+                  accessibilityLabel="Manual QR Code Entry Input"
                 />
                 <TouchableOpacity
                   style={styles.verifyBtnWrapper}
                   onPress={() => handleExecuteScan()}
                   disabled={loading}
                   activeOpacity={0.88}
+                  accessibilityRole="button"
+                  accessibilityLabel="Verify manual code"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <LinearGradient
                     colors={['#12296A', '#1C3F94']}
@@ -3387,6 +3405,8 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 12,
     gap: 6,
+    minHeight: 56,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#DDE4F0',
     ...(Platform.OS === 'web'
@@ -3404,9 +3424,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 10,
+    minHeight: 48,
     gap: 8,
     backgroundColor: 'transparent',
   },
@@ -3425,7 +3446,7 @@ const styles = StyleSheet.create({
   scanModeTabText: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#3D5070',
+    color: '#1E293B',
   },
   scanModeTabTextActive: {
     color: '#FFFFFF',
@@ -3491,12 +3512,12 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: '#0D8A5A',
+    backgroundColor: '#047857',
   },
   driveActivePillText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#0D8A5A',
+    color: '#047857',
     letterSpacing: 0.3,
   },
   driveWidgetTitle: {
@@ -3570,7 +3591,7 @@ const styles = StyleSheet.create({
   scannerPanelSub: {
     fontSize: 11.5,
     fontWeight: '500',
-    color: '#8A9BB8',
+    color: '#E2E8F0',
     marginTop: 2,
   },
   scannerReadyPill: {
@@ -3588,12 +3609,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#0D8A5A',
+    backgroundColor: '#047857',
   },
   scannerReadyText: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#0D8A5A',
+    color: '#047857',
     letterSpacing: 0.4,
   },
   // Header icon badge for scanner card
@@ -3619,7 +3640,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   scannerGuidanceText: {
-    color: '#8A9BB8',
+    color: '#E2E8F0',
     fontSize: 12.5,
     fontWeight: '500',
     lineHeight: 18,
@@ -3663,7 +3684,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   mainScanTriggerSub: {
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: 'rgba(255, 255, 255, 0.92)',
     fontSize: 11.5,
     fontWeight: '500',
   },
@@ -3685,6 +3706,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 7,
+    minHeight: 48,
+    minWidth: 48,
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 14,
@@ -4071,7 +4094,7 @@ const styles = StyleSheet.create({
   },
   manualHelperNote: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 8,
     lineHeight: 15,
   },
