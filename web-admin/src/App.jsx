@@ -185,6 +185,7 @@ function AppRoutes() {
   const location = useLocation();
 
   const [toastDirective, setToastDirective] = useState(null);
+  const [toastIncident, setToastIncident] = useState(null);
 
   useEffect(() => {
     const handleNotifUpdate = () => {
@@ -201,7 +202,7 @@ function AppRoutes() {
     };
   }, []);
 
-  // Real-Time Socket.IO & Audit Log Sync for Cross-Device Executive Directives
+  // Real-Time Socket.IO & Audit Log Sync for Cross-Device Executive Directives & Field Incidents
   useEffect(() => {
     if (!token) return;
 
@@ -237,6 +238,40 @@ function AppRoutes() {
       });
     });
 
+    // Real-Time Field Incident Reports from Mobile Field Staff
+    socket.on('new_field_incident', (data) => {
+      const bCode = data.barangayCode || '291';
+      const incType = data.incidentType || 'Field Incident';
+      const reporter = data.reportedByName || 'Field Staff';
+      const incomingNotif = {
+        id: `inc-${data._id || Date.now()}`,
+        type: "alert",
+        title: `Field Incident: ${incType}`,
+        body: `Brgy ${bCode} (${reporter}): ${data.notes || ''}`.trim(),
+        time: "Just now",
+        read: false,
+        link: `/reports?tab=incidents`,
+      };
+
+      setNotifsState(prev => {
+        const filtered = prev.filter(n => String(n.id) !== String(incomingNotif.id));
+        const updated = [incomingNotif, ...filtered];
+        try {
+          localStorage.setItem('mitigateplus_user_notifications', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+
+      setToastIncident({
+        isOpen: true,
+        incidentType: incType,
+        barangay: bCode,
+        notes: data.notes || '',
+        reportedBy: reporter,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      });
+    });
+
     // Also sync past directives from database audit logs
     fetch(`${API_BASE_URL}/audit-logs?action=EXECUTIVE_RELIEF_DIRECTIVE&limit=5`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -257,6 +292,39 @@ function AppRoutes() {
           setNotifsState(prev => {
             const existingIds = new Set(prev.map(p => String(p.id)));
             const newOnes = fetchedNotifs.filter(f => !existingIds.has(f.id));
+            if (newOnes.length > 0) {
+              const merged = [...newOnes, ...prev];
+              try {
+                localStorage.setItem('mitigateplus_user_notifications', JSON.stringify(merged));
+              } catch (e) {}
+              return merged;
+            }
+            return prev;
+          });
+        }
+      })
+      .catch(() => {});
+
+    // Sync past open incident reports for notification feed
+    fetch(`${API_BASE_URL}/incidents?status=open&limit=5`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const fetchedIncidents = data.map(inc => ({
+            id: `inc-${inc._id}`,
+            type: "alert",
+            title: `Field Incident: ${inc.incidentType}`,
+            body: `Brgy ${inc.barangayCode} (${inc.reportedBy?.name || 'Field Staff'}): ${inc.notes || ''}`.trim(),
+            time: new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            read: false,
+            link: `/reports?tab=incidents`,
+          }));
+
+          setNotifsState(prev => {
+            const existingIds = new Set(prev.map(p => String(p.id)));
+            const newOnes = fetchedIncidents.filter(f => !existingIds.has(f.id));
             if (newOnes.length > 0) {
               const merged = [...newOnes, ...prev];
               try {
@@ -362,6 +430,67 @@ function AppRoutes() {
               }}
             >
               Buksan ang Event Creation →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ── REAL-TIME FIELD INCIDENT FLOATING ALERT ── */}
+      {toastIncident && (
+        <div style={{
+          position: 'fixed',
+          top: toastDirective ? 140 : 20,
+          right: 20,
+          zIndex: 10001,
+          maxWidth: 420,
+          background: '#FEF2F2',
+          border: '2px solid #EF4444',
+          borderRadius: 12,
+          padding: '14px 18px',
+          boxShadow: '0 10px 25px rgba(220, 38, 38, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B91C1C', fontWeight: 800, fontSize: 13.5 }}>
+              <AlertTriangle size={18} color="#DC2626" />
+              <span>FIELD INCIDENT REPORTED</span>
+            </div>
+            <button
+              onClick={() => setToastIncident(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B91C1C' }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#991B1B' }}>
+            {toastIncident.incidentType} · Barangay {toastIncident.barangay}
+          </div>
+          <p style={{ margin: 0, fontSize: 12.5, color: '#7F1D1D', lineHeight: 1.4 }}>
+            {toastIncident.notes}
+          </p>
+          <div style={{ fontSize: 11, color: '#991B1B', opacity: 0.85 }}>
+            Reported by: <strong>{toastIncident.reportedBy}</strong> · {toastIncident.time}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <Link
+              to="/reports?tab=incidents"
+              onClick={() => setToastIncident(null)}
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                background: '#DC2626',
+                color: '#FFFFFF',
+                padding: '6px 14px',
+                borderRadius: 8,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              Tingnan sa Incident Directory →
             </Link>
           </div>
         </div>

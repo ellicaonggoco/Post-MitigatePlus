@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import io from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
-import { FileText, ShieldAlert, AlertCircle, Download, Printer, Users, CheckCircle2, XOctagon, BarChart2, Filter, Globe, Building, Package } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import {
+  FileText, ShieldAlert, AlertCircle, Download, Printer, Users, CheckCircle2,
+  XOctagon, BarChart2, Filter, Globe, Building, Package, AlertTriangle, Clock,
+  RefreshCw, Check, X, Search, MapPin, CheckCircle
+} from 'lucide-react';
+import { API_BASE_URL, SOCKET_URL } from '../config';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 import Pagination from '../components/Pagination';
 import { MotionCard, MotionNumberCounter, MotionButton } from '../components/motion';
@@ -11,6 +17,10 @@ export default function ReportsPage() {
   const { token, user } = useContext(AuthContext);
   const isSuperAdmin = user?.role === 'lgu_superadmin';
   const isLguAdmin = user?.role === 'lgu_admin';
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'incidents' ? 'incidents' : 'audit';
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const [selectedBrgy, setSelectedBrgy] = useState('all');
   const [duplicateLogs, setDuplicateLogs] = useState([]);
@@ -23,6 +33,25 @@ export default function ReportsPage() {
     totalEvents: 0,
     fulfillmentRate: '0%',
   });
+
+  // ── Field Incident Reports Directory State ──
+  const [incidents, setIncidents] = useState([]);
+  const [loadingIncidents, setLoadingIncidents] = useState(false);
+  const [incidentTypeFilter, setIncidentTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [incidentSearch, setIncidentSearch] = useState('');
+  const [incidentPage, setIncidentPage] = useState(1);
+  const [resolvingIncident, setResolvingIncident] = useState(null);
+  const [resolutionRemarks, setResolutionRemarks] = useState('');
+  const [submittingResolution, setSubmittingResolution] = useState(false);
+
+  // Sync tab with URL search parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'incidents') {
+      setActiveTab('incidents');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -94,6 +123,119 @@ export default function ReportsPage() {
     }
   }, [token]);
 
+  // ── Fetch Field Incidents ──
+  const fetchIncidents = async () => {
+    try {
+      setLoadingIncidents(true);
+      const res = await fetch(`${API_BASE_URL}/incidents`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setIncidents(data);
+      }
+    } catch (e) {
+      console.error('Failed to load incidents:', e);
+    } finally {
+      setLoadingIncidents(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) fetchIncidents();
+  }, [token]);
+
+  // ── Real-Time Socket.IO Listener for Field Incidents ──
+  useEffect(() => {
+    if (!token) return;
+    const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    socket.emit('join_admin_room');
+
+    socket.on('new_field_incident', (incoming) => {
+      setIncidents((prev) => {
+        const id = incoming._id;
+        const exists = prev.some((x) => String(x._id) === String(id));
+        if (exists) return prev;
+        const formatted = {
+          _id: incoming._id || `inc-${Date.now()}`,
+          incidentType: incoming.incidentType,
+          notes: incoming.notes,
+          barangayCode: incoming.barangayCode,
+          reportedBy: {
+            name: incoming.reportedByName || 'Field Staff',
+            role: incoming.reportedByRole || 'field_staff',
+            teamName: incoming.reportedByTeam || 'MDRRMO Field Operations',
+          },
+          status: incoming.status || 'open',
+          createdAt: incoming.reportedAt || new Date().toISOString(),
+          gpsLocation: incoming.gpsLocation,
+          photoUri: incoming.photoUri,
+        };
+        return [formatted, ...prev];
+      });
+    });
+
+    socket.on('field_incident_updated', (updated) => {
+      setIncidents((prev) =>
+        prev.map((item) => (String(item._id) === String(updated._id) ? updated : item))
+      );
+    });
+
+    return () => socket.disconnect();
+  }, [token]);
+
+  // ── Acknowledge / Resolve Handlers ──
+  const handleAcknowledgeIncident = async (incidentId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/incidents/${incidentId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'acknowledged' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIncidents((prev) =>
+          prev.map((inc) => (inc._id === incidentId ? (data.incident || { ...inc, status: 'acknowledged' }) : inc))
+        );
+      }
+    } catch (e) {
+      console.error('Error acknowledging incident:', e);
+    }
+  };
+
+  const handleConfirmResolve = async () => {
+    if (!resolvingIncident) return;
+    setSubmittingResolution(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/incidents/${resolvingIncident._id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'resolved',
+          resolutionNotes: resolutionRemarks.trim() || 'Issue resolved and verified by LGU Command Center.',
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIncidents((prev) =>
+          prev.map((inc) => (inc._id === resolvingIncident._id ? (data.incident || { ...inc, status: 'resolved' }) : inc))
+        );
+        setResolvingIncident(null);
+        setResolutionRemarks('');
+      }
+    } catch (e) {
+      console.error('Error resolving incident:', e);
+    } finally {
+      setSubmittingResolution(false);
+    }
+  };
+
   const filteredDups = selectedBrgy === 'all'
     ? duplicateLogs
     : duplicateLogs.filter(d => (d.barangay || d.barangayCode) === selectedBrgy);
@@ -102,6 +244,22 @@ export default function ReportsPage() {
     ? gapReport
     : gapReport.filter(g => g.barangayCode === selectedBrgy);
 
+  // Filtered Incidents Directory
+  const filteredIncidents = incidents.filter((inc) => {
+    const bCode = inc.barangayCode || '';
+    if (selectedBrgy !== 'all' && bCode !== selectedBrgy) return false;
+    if (incidentTypeFilter !== 'all' && inc.incidentType !== incidentTypeFilter) return false;
+    if (statusFilter !== 'all' && (inc.status || 'open') !== statusFilter) return false;
+    if (incidentSearch.trim()) {
+      const q = incidentSearch.toLowerCase();
+      const matchNotes = (inc.notes || '').toLowerCase().includes(q);
+      const matchReporter = (inc.reportedBy?.name || '').toLowerCase().includes(q);
+      const matchType = (inc.incidentType || '').toLowerCase().includes(q);
+      if (!matchNotes && !matchReporter && !matchType) return false;
+    }
+    return true;
+  });
+
   const [dupPage, setDupPage] = useState(1);
   const [gapPage, setGapPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
@@ -109,10 +267,12 @@ export default function ReportsPage() {
   useEffect(() => {
     setDupPage(1);
     setGapPage(1);
-  }, [selectedBrgy]);
+    setIncidentPage(1);
+  }, [selectedBrgy, incidentTypeFilter, statusFilter, incidentSearch]);
 
   const paginatedDups = filteredDups.slice((dupPage - 1) * ITEMS_PER_PAGE, dupPage * ITEMS_PER_PAGE);
   const paginatedGaps = filteredGaps.slice((gapPage - 1) * ITEMS_PER_PAGE, gapPage * ITEMS_PER_PAGE);
+  const paginatedIncidents = filteredIncidents.slice((incidentPage - 1) * ITEMS_PER_PAGE, incidentPage * ITEMS_PER_PAGE);
 
   const exportToCSV = (filename, headers, rows) => {
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -156,6 +316,21 @@ export default function ReportsPage() {
       item.totalGaps || 0,
     ]);
     exportToCSV(`MitigatePlus_Manila_City_Assistance_Gap_Matrix_${selectedBrgy}`, headers, rows);
+  };
+
+  const handleExportIncidentCSV = () => {
+    const headers = ['Timestamp', 'Barangay', 'Category / Incident Type', 'Field Staff Reporter', 'Staff Role / Team', 'Incident Notes', 'Current Status', 'Resolution Remarks'];
+    const rows = filteredIncidents.map(inc => [
+      new Date(inc.createdAt).toLocaleString(),
+      `Brgy ${inc.barangayCode || '291'}`,
+      inc.incidentType,
+      inc.reportedBy?.name || 'Field Staff',
+      inc.reportedBy?.teamName || inc.reportedBy?.role || 'MDRRMO Field Operations',
+      inc.notes,
+      (inc.status || 'open').toUpperCase(),
+      inc.resolutionNotes || 'None',
+    ]);
+    exportToCSV(`MitigatePlus_Manila_Field_Incident_Directory_${selectedBrgy}`, headers, rows);
   };
 
   const handlePrintPDF = () => {
@@ -302,236 +477,775 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* ── KPI Summary Cards with MotionCard ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-        {kpiCards.map((kpi, i) => (
-          <MotionCard key={i} delay={i * 0.06} className="clay-card" style={{ borderLeft: `4px solid ${kpi.accent}`, padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {kpi.label}
-              </span>
-              <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: kpi.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {kpi.icon}
+      {/* ── Directory Tabs Switcher ── */}
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        borderBottom: '2px solid var(--border)',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+      }}>
+        <button
+          onClick={() => {
+            setActiveTab('audit');
+            setSearchParams({});
+          }}
+          style={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 800,
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'audit' ? '3px solid var(--manila-blue)' : '3px solid transparent',
+            color: activeTab === 'audit' ? 'var(--manila-blue)' : 'var(--ink-soft)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <FileText size={17} color={activeTab === 'audit' ? 'var(--manila-blue)' : 'currentColor'} />
+          Master Disaster Audit & Gap Matrix
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('incidents');
+            setSearchParams({ tab: 'incidents' });
+          }}
+          style={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 800,
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'incidents' ? '3px solid #DC2626' : '3px solid transparent',
+            color: activeTab === 'incidents' ? '#DC2626' : 'var(--ink-soft)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <AlertTriangle size={17} color={activeTab === 'incidents' ? '#DC2626' : 'currentColor'} />
+          Field Incident Reports Directory
+          {incidents.filter(i => (i.status || 'open') === 'open').length > 0 && (
+            <span style={{
+              background: '#DC2626',
+              color: '#FFFFFF',
+              fontSize: '11px',
+              fontWeight: 900,
+              padding: '2px 8px',
+              borderRadius: '999px',
+              marginLeft: '4px',
+            }}>
+              {incidents.filter(i => (i.status || 'open') === 'open').length} OPEN
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* ── TAB 1: MASTER DISASTER AUDIT & GAPS ── */}
+      {activeTab === 'audit' && (
+        <>
+          {/* ── KPI Summary Cards with MotionCard ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+            {kpiCards.map((kpi, i) => (
+              <MotionCard key={i} delay={i * 0.06} className="clay-card" style={{ borderLeft: `4px solid ${kpi.accent}`, padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {kpi.label}
+                  </span>
+                  <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: kpi.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {kpi.icon}
+                  </div>
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: kpi.accent, lineHeight: 1 }}>
+                  <MotionNumberCounter value={kpi.value} />
+                </div>
+              </MotionCard>
+            ))}
+          </div>
+
+          {/* ── Blocked Duplicate Claims Audit Trail ── */}
+          <div className="clay-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <ShieldAlert size={20} color="var(--danger)" />
+                <div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--danger)', margin: 0 }}>
+                    Audit Trail: Blocked Duplicate Claim Attempts
+                  </h2>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    Real-time fraud prevention logs across Manila distribution points ({filteredDups.length})
+                  </span>
+                </div>
+              </div>
+              <button onClick={handleExportDuplicateCSV} className="clay-button-secondary" aria-label="Export CSV Audit Logs" style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}>
+                <Download size={14} /> Export CSV Audit Logs
+              </button>
+            </div>
+
+            <div className="table-container">
+              <table className="clay-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Barangay</th>
+                    <th>Audit Action / Flag</th>
+                    <th>Details & Fraud Interception Notes</th>
+                    <th>Actor Staff</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedDups.map((log) => (
+                    <tr key={log.id}>
+                      <td style={{ fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--ink-soft)' }}>{log.timestamp}</td>
+                      <td>
+                        <span style={{ background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>
+                          Brgy {log.barangay || log.barangayCode || '291'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-danger">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', fontWeight: 600 }}>{log.notes}</td>
+                      <td style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>{log.staff} ({log.role})</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={dupPage}
+                totalItems={filteredDups.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setDupPage}
+              />
+            </div>
+          </div>
+
+          {/* ── Assistance Gap Analysis Matrix ── */}
+          <div className="clay-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <AlertCircle size={20} color="var(--manila-blue)" />
+                <div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
+                    City-Wide Assistance Gap Analysis Matrix
+                  </h2>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    Identified unfulfilled resident relief needs across Manila City ({filteredGaps.length})
+                  </span>
+                </div>
+              </div>
+              <button onClick={handleExportGapCSV} className="clay-button-secondary" aria-label="Export CSV Gap Matrix" style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}>
+                <Download size={14} /> Export CSV Gap Matrix
+              </button>
+            </div>
+
+            <div className="table-container">
+              <table className="clay-table">
+                <thead>
+                  <tr>
+                    <th>Household Address</th>
+                    <th>Barangay</th>
+                    <th>Family Headcount</th>
+                    <th>Priority Level</th>
+                    <th>Assistance Gaps (Unfulfilled Relief Supplies)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedGaps.map((item) => (
+                    <tr key={item.id}>
+                      <td style={{ fontSize: '13px', fontWeight: 600 }}>{item.address}</td>
+                      <td>
+                        <span style={{ background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>
+                          Brgy {item.barangayCode}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', fontWeight: 700 }}>{item.memberCount} members</td>
+                      <td>
+                        <span className={`badge ${item.priorityLevel === 'High' ? 'badge-danger' : 'badge-neutral'}`}>
+                          {item.priorityLevel} Priority
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {item.gaps.map((gap, gIdx) => (
+                            <span key={gIdx} style={{
+                              background: '#FFFBEB',
+                              border: '1px solid #FDE68A',
+                              color: '#92400E',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                            }}>
+                              {gap}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={gapPage}
+                totalItems={filteredGaps.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setGapPage}
+              />
+            </div>
+          </div>
+
+          {/* ── Official COA / DSWD Disaster Relief Liquidation & Beneficiary Masterlist ── */}
+          <div className="clay-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Package size={20} color="var(--manila-blue)" />
+                <div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
+                    Official COA / DSWD Disaster Relief Liquidation & Beneficiary Masterlist
+                  </h2>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    Exportable audit spreadsheet compliant with COA disaster expenditure guidelines
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`${API_BASE_URL}/reports/coa-liquidation?barangayCode=${selectedBrgy}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
+                      const data = await res.json();
+                      if (data && Array.isArray(data.records) && data.records.length > 0) {
+                        const headers = [
+                          'Item No.', 'Claim Receipt No.', 'Beneficiary Full Name', 'Contact Number',
+                          'Registered Address', 'Barangay', 'QR Pass Code', 'Valid ID Presented',
+                          'Family Headcount', 'Priority Tier', 'Relief Event Title', 'Item Type',
+                          'Base Packs', 'Top-Up Packs', 'Total Quantity Released', 'Disbursing Officer',
+                          'Disbursing Team', 'Date & Time Claimed (PHT)', 'Allocation Note / Reason'
+                        ];
+                        const rows = data.records.map(r => [
+                          r.itemNo, r.claimReceiptNo, r.beneficiaryName, r.contactNumber,
+                          r.address, r.barangay, r.qrCode, r.validId,
+                          r.familySize, r.priorityLevel, r.eventTitle, r.reliefItem,
+                          r.basePacks, r.topUpPacks, r.totalPacksReleased, r.disbursingOfficer,
+                          r.disbursingTeam, r.dateTimeClaimed, r.overrideReason
+                        ]);
+                        exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_Manila_${selectedBrgy}`, headers, rows);
+                      } else {
+                        alert('No relief distribution records found for the selected filter criteria.');
+                      }
+                    } catch (e) {
+                      alert('Error exporting COA liquidation masterlist: ' + e.message);
+                    }
+                  }}
+                  className="clay-button-primary"
+                  style={{ padding: '8px 16px', fontSize: '12px', gap: 6 }}
+                >
+                  <Download size={14} /> Export COA Masterlist (CSV / Excel)
+                </button>
               </div>
             </div>
-            <div style={{ fontSize: '32px', fontWeight: 900, color: kpi.accent, lineHeight: 1 }}>
-              <MotionNumberCounter value={kpi.value} />
-            </div>
-          </MotionCard>
-        ))}
-      </div>
 
-      {/* ── Blocked Duplicate Claims Audit Trail ── */}
-      <div className="clay-card" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <ShieldAlert size={20} color="var(--danger)" />
-            <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--danger)', margin: 0 }}>
-                Audit Trail: Blocked Duplicate Claim Attempts
-              </h2>
-              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Real-time fraud prevention logs across Manila distribution points ({filteredDups.length})
-              </span>
+            <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <AlertCircle size={16} color="var(--manila-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
+              <span><strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.</span>
             </div>
           </div>
-          <button onClick={handleExportDuplicateCSV} className="clay-button-secondary" aria-label="Export CSV Audit Logs" style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}>
-            <Download size={14} /> Export CSV Audit Logs
-          </button>
-        </div>
+        </>
+      )}
 
-        <div className="table-container">
-          <table className="clay-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Barangay</th>
-                <th>Audit Action / Flag</th>
-                <th>Details & Fraud Interception Notes</th>
-                <th>Actor Staff</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedDups.map((log) => (
-                <tr key={log.id}>
-                  <td style={{ fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--ink-soft)' }}>{log.timestamp}</td>
-                  <td>
-                    <span style={{ background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>
-                      Brgy {log.barangay || log.barangayCode || '291'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="badge badge-danger">
-                      {log.action}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '13px', fontWeight: 600 }}>{log.notes}</td>
-                  <td style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>{log.staff} ({log.role})</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <Pagination
-            currentPage={dupPage}
-            totalItems={filteredDups.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setDupPage}
-          />
-        </div>
-      </div>
+      {/* ── TAB 2: FIELD INCIDENT REPORTS DIRECTORY ── */}
+      {activeTab === 'incidents' && (
+        <>
+          {/* Incident KPI Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+            <MotionCard delay={0} className="clay-card" style={{ borderLeft: '4px solid var(--manila-blue)', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Total Field Reports
+                </span>
+                <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: 'var(--manila-blue-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={18} color="var(--manila-blue)" />
+                </div>
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--manila-blue)', lineHeight: 1 }}>
+                <MotionNumberCounter value={incidents.length} />
+              </div>
+            </MotionCard>
 
-      {/* ── Assistance Gap Analysis Matrix ── */}
-      <div className="clay-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <AlertCircle size={20} color="var(--manila-blue)" />
-            <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
-                City-Wide Assistance Gap Analysis Matrix
-              </h2>
-              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Identified unfulfilled resident relief needs across Manila City ({filteredGaps.length})
-              </span>
-            </div>
+            <MotionCard delay={0.06} className="clay-card" style={{ borderLeft: '4px solid #DC2626', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Open / Action Required
+                </span>
+                <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertCircle size={18} color="#DC2626" />
+                </div>
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: '#DC2626', lineHeight: 1 }}>
+                <MotionNumberCounter value={incidents.filter(i => (i.status || 'open') === 'open').length} />
+              </div>
+            </MotionCard>
+
+            <MotionCard delay={0.12} className="clay-card" style={{ borderLeft: '4px solid #D97706', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Dispatched / In Progress
+                </span>
+                <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={18} color="#D97706" />
+                </div>
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: '#D97706', lineHeight: 1 }}>
+                <MotionNumberCounter value={incidents.filter(i => i.status === 'acknowledged').length} />
+              </div>
+            </MotionCard>
+
+            <MotionCard delay={0.18} className="clay-card" style={{ borderLeft: '4px solid #059669', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Settled & Resolved
+                </span>
+                <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-inner)', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle size={18} color="#059669" />
+                </div>
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: '#059669', lineHeight: 1 }}>
+                <MotionNumberCounter value={incidents.filter(i => i.status === 'resolved').length} />
+              </div>
+            </MotionCard>
           </div>
-          <button onClick={handleExportGapCSV} className="clay-button-secondary" aria-label="Export CSV Gap Matrix" style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}>
-            <Download size={14} /> Export CSV Gap Matrix
-          </button>
-        </div>
 
-        <div className="table-container">
-          <table className="clay-table">
-            <thead>
-              <tr>
-                <th>Household Address</th>
-                <th>Barangay</th>
-                <th>Priority</th>
-                <th>Unfulfilled Needs (Gaps)</th>
-                <th>Total Gaps</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedGaps.map((item) => {
-                const memberCount = Number(item.memberCount || 1);
-                const basePacks = memberCount >= 9 ? 3 : memberCount >= 5 ? 2 : 1;
-                const gapsList = Array.isArray(item.gaps) && item.gaps.length > 0
-                  ? item.gaps
-                  : [
-                      `Family Food Pack (x${basePacks} Base Pack${basePacks > 1 ? 's' : ''})`,
-                      'Drinking Water (10L Jug)',
-                    ];
-                const count = item.totalGaps || gapsList.length;
+          {/* Incident Directory Table Card */}
+          <div className="clay-card" style={{ marginBottom: '24px' }}>
+            {/* Header + Action Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '8px',
+                  background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <AlertTriangle size={20} color="#DC2626" />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+                    Field Incident Reports Directory
+                  </h2>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                    Live on-ground reports from field leaders and distribution officers ({filteredIncidents.length} total)
+                  </span>
+                </div>
+              </div>
 
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 14 }}>{item.address}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>
-                        {memberCount} member{memberCount !== 1 ? 's' : ''}
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ background: 'var(--manila-blue-light)', color: 'var(--manila-blue)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999 }}>
-                        Brgy {item.barangayCode || '291'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${item.priorityLevel === 'High' ? 'badge-danger' : item.priorityLevel === 'Medium' ? 'badge-warning' : 'badge-success'}`}>
-                        {item.priorityLevel || (memberCount >= 5 ? 'High' : 'Low')}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {gapsList.map((gap, gIdx) => (
-                          <span key={gIdx} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 5,
-                            background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D',
-                            fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 'var(--radius-inner)',
-                          }}>
-                            <Package size={12} color="#D97706" /> {gap}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <span style={{ color: count > 1 ? '#DC2626' : 'var(--ink)', fontSize: '15px', fontWeight: 800 }}>
-                          {count} {count === 1 ? 'item' : 'items'}
-                        </span>
-                        <span style={{ fontSize: '11px', color: 'var(--ink-soft)', fontWeight: 500 }}>unfulfilled gap{count !== 1 ? 's' : ''}</span>
-                      </div>
-                    </td>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={fetchIncidents}
+                  disabled={loadingIncidents}
+                  className="clay-button-secondary"
+                  style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}
+                  title="Reload Incidents"
+                >
+                  <RefreshCw size={14} className={loadingIncidents ? 'spin' : ''} />
+                  Refresh
+                </button>
+                <button
+                  onClick={handleExportIncidentCSV}
+                  className="clay-button-primary"
+                  style={{ padding: '8px 14px', fontSize: '12px', gap: 6 }}
+                >
+                  <Download size={14} /> Export Incident Directory (CSV)
+                </button>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div style={{
+              display: 'flex',
+              gap: 12,
+              marginBottom: 16,
+              flexWrap: 'wrap',
+              background: '#F8FAFC',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-inner)',
+              border: '1px solid var(--border)',
+              alignItems: 'center'
+            }}>
+              {/* Search input */}
+              <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 200 }}>
+                <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="text"
+                  placeholder="Search notes, officer name, or type..."
+                  value={incidentSearch}
+                  onChange={(e) => setIncidentSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 32px',
+                    borderRadius: 6,
+                    border: '1px solid #CBD5E1',
+                    fontSize: 12.5,
+                    color: 'var(--ink)',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Category Filter */}
+              <select
+                value={incidentTypeFilter}
+                onChange={(e) => setIncidentTypeFilter(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #CBD5E1',
+                  fontSize: 12.5,
+                  background: '#FFFFFF',
+                  color: 'var(--ink)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                <option value="all">All Incident Categories</option>
+                <option value="Stock Shortage">Stock Shortage</option>
+                <option value="Lost Citizen QR Pass">Lost Citizen QR Pass</option>
+                <option value="Emergency Evacuation">Emergency Evacuation</option>
+                <option value="Suspicious / Duplicate Claim Attempt">Suspicious / Duplicate Claim</option>
+                <option value="Damaged Relief Package Stock">Damaged Relief Package</option>
+                <option value="Crowd / Queue Disturbance at Booth">Crowd / Queue Disturbance</option>
+                <option value="Unregistered Household Emergency Claim">Unregistered Household Claim</option>
+                <option value="Other">Other Issues</option>
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #CBD5E1',
+                  fontSize: 12.5,
+                  background: '#FFFFFF',
+                  color: 'var(--ink)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                <option value="all">All Statuses</option>
+                <option value="open">Open / Action Required</option>
+                <option value="acknowledged">Dispatched / In Progress</option>
+                <option value="resolved">Settled & Resolved</option>
+              </select>
+            </div>
+
+            {/* Directory Table */}
+            <div className="table-container">
+              <table className="clay-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Barangay</th>
+                    <th>Category</th>
+                    <th>Reported By</th>
+                    <th>Field Notes & Conditions</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <Pagination
-            currentPage={gapPage}
-            totalItems={filteredGaps.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setGapPage}
-          />
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {paginatedIncidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ink-soft)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                          <AlertTriangle size={36} color="#CBD5E1" />
+                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+                            Walang Naitalang Field Incident Reports
+                          </span>
+                          <span style={{ fontSize: 12, maxWidth: 400 }}>
+                            Lahat ng reports na isusumite ng mga Field Staff at Team Leaders mula sa mobile app (Logger tab) ay awtomatikong lalabas dito nang real-time.
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedIncidents.map((inc) => {
+                      const isEmergency = (inc.incidentType || '').toLowerCase().includes('emergency');
+                      const isShortage = (inc.incidentType || '').toLowerCase().includes('shortage') || (inc.incidentType || '').toLowerCase().includes('stock');
+                      const isLostPass = (inc.incidentType || '').toLowerCase().includes('pass') || (inc.incidentType || '').toLowerCase().includes('qr');
 
-      {/* ── Official COA & DSWD DROMIC Relief Liquidation Masterlist ── */}
-      <div className="clay-card" style={{ marginTop: '24px', borderLeft: '4px solid var(--manila-blue)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Building size={22} color="var(--manila-blue)" />
-            <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
-                Official COA & DSWD DROMIC Relief Liquidation Masterlist
-              </h2>
-              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                COA Circular 2014-002 Compliance · Download official liquidation sheet with full beneficiary and disbursing staff audit trails.
-              </span>
+                      const badgeStyle = isEmergency
+                        ? { bg: '#FEE2E2', border: '#FCA5A5', color: '#B91C1C' }
+                        : isShortage
+                        ? { bg: '#FEF3C7', border: '#FDE68A', color: '#B45309' }
+                        : isLostPass
+                        ? { bg: '#EFF6FF', border: '#BFDBFE', color: '#1D4ED8' }
+                        : { bg: '#F1F5F9', border: '#E2E8F0', color: '#334155' };
+
+                      const statusCfg = inc.status === 'resolved'
+                        ? { bg: '#ECFDF5', border: '#A7F3D0', color: '#059669', label: 'RESOLVED' }
+                        : inc.status === 'acknowledged'
+                        ? { bg: '#FFFBEB', border: '#FDE68A', color: '#D97706', label: 'IN PROGRESS' }
+                        : { bg: '#FEF2F2', border: '#FCA5A5', color: '#DC2626', label: 'OPEN' };
+
+                      return (
+                        <tr key={inc._id}>
+                          {/* Timestamp */}
+                          <td style={{ fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--ink-soft)' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--ink)' }}>
+                              {new Date(inc.createdAt).toLocaleDateString()}
+                            </div>
+                            <div style={{ fontSize: 11 }}>
+                              {new Date(inc.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+
+                          {/* Barangay */}
+                          <td>
+                            <span style={{
+                              background: 'var(--manila-blue-light)',
+                              color: 'var(--manila-blue)',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: 999,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              Brgy {inc.barangayCode || '291'}
+                            </span>
+                          </td>
+
+                          {/* Category Badge */}
+                          <td>
+                            <span style={{
+                              background: badgeStyle.bg,
+                              border: `1px solid ${badgeStyle.border}`,
+                              color: badgeStyle.color,
+                              fontSize: 11.5,
+                              fontWeight: 800,
+                              padding: '4px 10px',
+                              borderRadius: 6,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {inc.incidentType}
+                            </span>
+                          </td>
+
+                          {/* Reported By */}
+                          <td>
+                            <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--ink)' }}>
+                              {inc.reportedBy?.name || 'Field Officer Cruz'}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--ink-soft)' }}>
+                              {inc.reportedBy?.teamName || inc.reportedBy?.staffDesignation || 'MDRRMO Field Operations'}
+                            </div>
+                          </td>
+
+                          {/* Notes */}
+                          <td>
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', maxWidth: 360, lineHeight: 1.4 }}>
+                              {inc.notes}
+                            </div>
+                            {inc.resolutionNotes && (
+                              <div style={{
+                                marginTop: 6,
+                                padding: '6px 10px',
+                                background: '#F0FDF4',
+                                border: '1px solid #BBF7D0',
+                                borderRadius: 6,
+                                fontSize: 11.5,
+                                color: '#166534',
+                              }}>
+                                <strong>Resolution:</strong> {inc.resolutionNotes}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td>
+                            <span style={{
+                              background: statusCfg.bg,
+                              border: `1px solid ${statusCfg.border}`,
+                              color: statusCfg.color,
+                              fontSize: 10.5,
+                              fontWeight: 900,
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              letterSpacing: '0.04em',
+                              display: 'inline-block',
+                            }}>
+                              {statusCfg.label}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                              {(inc.status || 'open') === 'open' && (
+                                <button
+                                  onClick={() => handleAcknowledgeIncident(inc._id)}
+                                  className="clay-button-secondary"
+                                  style={{ padding: '5px 10px', fontSize: '11px', gap: 4 }}
+                                  title="Mark as Acknowledged / In Progress"
+                                >
+                                  <Clock size={12} /> Acknowledge
+                                </button>
+                              )}
+
+                              {(inc.status || 'open') !== 'resolved' && (
+                                <button
+                                  onClick={() => {
+                                    setResolvingIncident(inc);
+                                    setResolutionRemarks('');
+                                  }}
+                                  className="clay-button-primary"
+                                  style={{ padding: '5px 10px', fontSize: '11px', gap: 4 }}
+                                  title="Mark as Resolved"
+                                >
+                                  <Check size={12} /> Resolve
+                                </button>
+                              )}
+
+                              {inc.status === 'resolved' && (
+                                <span style={{ fontSize: 12, fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <Check size={14} /> Settled
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={incidentPage}
+                totalItems={filteredIncidents.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setIncidentPage}
+              />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button
-              onClick={async () => {
-                try {
-                  const url = `${API_BASE_URL}/reports/coa-liquidation${selectedBrgy !== 'all' ? `?barangayCode=${selectedBrgy}` : ''}`;
-                  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                  const data = await res.json();
-                  if (data && Array.isArray(data.records) && data.records.length > 0) {
-                    const headers = [
-                      'Item No.', 'Claim Receipt No.', 'Beneficiary Full Name', 'Contact Number',
-                      'Registered Address', 'Barangay', 'QR Pass Code', 'Valid ID Presented',
-                      'Family Headcount', 'Priority Tier', 'Relief Event Title', 'Item Type',
-                      'Base Packs', 'Top-Up Packs', 'Total Quantity Released', 'Disbursing Officer',
-                      'Disbursing Team', 'Date & Time Claimed (PHT)', 'Allocation Note / Reason'
-                    ];
-                    const rows = data.records.map(r => [
-                      r.itemNo, r.claimReceiptNo, r.beneficiaryName, r.contactNumber,
-                      r.address, r.barangay, r.qrCode, r.validId,
-                      r.familySize, r.priorityLevel, r.eventTitle, r.reliefItem,
-                      r.basePacks, r.topUpPacks, r.totalPacksReleased, r.disbursingOfficer,
-                      r.disbursingTeam, r.dateTimeClaimed, r.overrideReason
-                    ]);
-                    exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_Manila_${selectedBrgy}`, headers, rows);
-                  } else {
-                    alert('No relief distribution records found for the selected filter criteria.');
-                  }
-                } catch (e) {
-                  alert('Error exporting COA liquidation masterlist: ' + e.message);
-                }
-              }}
-              className="clay-button-primary"
-              style={{ padding: '8px 16px', fontSize: '12px', gap: 6 }}
-            >
-              <Download size={14} /> Export COA Masterlist (CSV / Excel)
-            </button>
+        </>
+      )}
+
+      {/* ── RESOLVE INCIDENT MODAL ── */}
+      {resolvingIncident && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(3px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100000,
+          padding: 20,
+        }}>
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: 16,
+            maxWidth: 500,
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0', paddingBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle size={18} color="#059669" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>
+                    Resolve Field Incident Report
+                  </h3>
+                  <span style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
+                    {resolvingIncident.incidentType} · Brgy {resolvingIncident.barangayCode || '291'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setResolvingIncident(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Original report summary box */}
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>
+                Field Officer Notes ({resolvingIncident.reportedBy?.name || 'Staff'}):
+              </div>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--ink)', lineHeight: 1.4 }}>
+                {resolvingIncident.notes}
+              </p>
+            </div>
+
+            {/* Resolution remarks input */}
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
+                Resolution Action & Remarks *
+              </label>
+              <textarea
+                placeholder="Hal. Nagpadala ng karagdagang 50 relief packs mula sa Baseco staging warehouse..."
+                value={resolutionRemarks}
+                onChange={(e) => setResolutionRemarks(e.target.value)}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1.5px solid #CBD5E1',
+                  fontSize: 13,
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            {/* Modal Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
+              <button
+                onClick={() => setResolvingIncident(null)}
+                className="clay-button-secondary"
+                style={{ padding: '8px 16px', fontSize: 13 }}
+                disabled={submittingResolution}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmResolve}
+                className="clay-button-primary"
+                style={{ padding: '8px 18px', fontSize: 13, gap: 6, background: '#059669', borderColor: '#059669' }}
+                disabled={submittingResolution}
+              >
+                {submittingResolution ? <RefreshCw size={14} className="spin" /> : <Check size={14} />}
+                Confirm & Mark Resolved
+              </button>
+            </div>
           </div>
         </div>
-
-        <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <AlertCircle size={16} color="var(--manila-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-          <span><strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1047,10 +1047,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     }
     setSubmittingIncident(true);
     try {
+      const storedToken = token || (await AsyncStorage.getItem('mitigateplus_token')) || (await AsyncStorage.getItem('token'));
       const res = await fetch(`${API_BASE_URL}/incidents`, {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer ' + token,
+          Authorization: 'Bearer ' + storedToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -1062,12 +1063,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       if (res.ok) {
         setIncidentSuccess(true);
         setIncidentNotes('');
-        Alert.alert('Incident Logged!', 'Report submitted to LGU Command Center.');
+        Alert.alert('Incident Logged!', 'The on-ground incident has been logged and broadcasted in real-time to the LGU Command Center.');
       } else {
-        Alert.alert('Submitted', 'Incident report has been queued.');
+        const errData = await res.json().catch(() => ({}));
+        Alert.alert('Submission Notice', errData.message || 'Incident report could not be verified by server.');
       }
     } catch (err) {
-      Alert.alert('Submitted', 'Incident report recorded.');
+      Alert.alert('Connection Notice', 'Unable to reach command center server. Please check internet connection.');
     } finally {
       setSubmittingIncident(false);
     }
