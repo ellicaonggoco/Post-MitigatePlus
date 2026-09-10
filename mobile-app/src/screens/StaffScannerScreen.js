@@ -2028,7 +2028,11 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   styles.incidentSubTabBtn,
                   incidentSubTab === 'new' && styles.incidentSubTabBtnActive,
                 ]}
-                onPress={() => setIncidentSubTab('new')}
+                onPress={() => {
+                  requestAnimationFrame(() => {
+                    setIncidentSubTab('new');
+                  });
+                }}
                 activeOpacity={0.8}
                 accessibilityRole="tab"
                 accessibilityLabel="Log New Incident"
@@ -2051,8 +2055,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                   incidentSubTab === 'history' && styles.incidentSubTabBtnActive,
                 ]}
                 onPress={() => {
-                  setIncidentSubTab('history');
-                  fetchMyIncidents();
+                  requestAnimationFrame(() => {
+                    setIncidentSubTab('history');
+                    fetchMyIncidents();
+                  });
                 }}
                 activeOpacity={0.8}
                 accessibilityRole="tab"

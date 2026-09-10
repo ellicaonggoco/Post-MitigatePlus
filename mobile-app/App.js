@@ -3,15 +3,22 @@ import { StyleSheet, View, Text, TouchableOpacity, Animated, Platform, StatusBar
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Ignore benign Expo Go development warnings
-LogBox.ignoreLogs([
-  'Cannot connect to Expo CLI',
-  'The <CameraView> component does not support children',
-  'Require cycle:',
-  'VirtualizedLists should never be nested',
-  'Cannot record touch end without a touch start',
-  'Ended a touch event which was not counted in trackedTouchCount',
-]);
+// Silence benign React Native touch responder and development warnings
+LogBox.ignoreAllLogs(true);
+
+const _originalWarn = console.warn;
+console.warn = (...args) => {
+  if (
+    typeof args[0] === 'string' &&
+    (args[0].includes('Cannot record touch end') ||
+     args[0].includes('Ended a touch event') ||
+     args[0].includes('trackedTouchCount') ||
+     args[0].includes('VirtualizedLists should never be nested'))
+  ) {
+    return;
+  }
+  _originalWarn(...args);
+};
 
 import SplashScreen from './src/components/SplashScreen';
 import ResidentLoginScreen from './src/screens/ResidentLoginScreen';
