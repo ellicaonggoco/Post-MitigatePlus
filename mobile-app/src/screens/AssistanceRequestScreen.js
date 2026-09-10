@@ -344,14 +344,30 @@ export default function AssistanceRequestScreen({
           
           <View style={styles.navHeaderRow}>
             {onBack && (
-              <TouchableOpacity onPress={onBack} style={styles.navBackBtn} activeOpacity={0.8}>
+              <TouchableOpacity
+                onPress={onBack}
+                style={styles.navBackBtn}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
+                accessibilityHint={lang === 'tl' ? 'Babalik sa home screen' : 'Returns to the home screen'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={2.0} />
               </TouchableOpacity>
             )}
             <Text style={styles.navTitle}>
               {lang === 'tl' ? 'Pang-emerhensiyang Hanapbuhay' : 'Livelihood Assistance'}
             </Text>
-            <TouchableOpacity onPress={fetchCFWData} style={styles.navRefreshBtn} activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={fetchCFWData}
+              style={styles.navRefreshBtn}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'I-refresh ang mga proyekto' : 'Refresh projects list'}
+              accessibilityHint={lang === 'tl' ? 'Ilo-load muli ang pinakabagong Cash-for-Work projects' : 'Reloads the latest Cash-for-Work projects'}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <RefreshIcon size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -501,6 +517,9 @@ export default function AssistanceRequestScreen({
                     style={styles.showAttendanceQrBtn}
                     onPress={() => setShowAttendanceQrModal(true)}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'Ipakita ang Attendance QR Pass' : 'Show Attendance QR Pass'}
+                    accessibilityHint={lang === 'tl' ? 'Bubuksan ang inyong attendance QR para sa time in at out' : 'Opens your attendance QR pass for duty check-in'}
                   >
                     <QrCodeIcon size={18} color="#FFFFFF" />
                     <Text style={styles.showAttendanceQrBtnText}>
@@ -512,6 +531,9 @@ export default function AssistanceRequestScreen({
                     style={styles.viewVoucherBtn}
                     onPress={() => setShowVoucherModal(true)}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'Buksan ang Digital Payout Voucher' : 'View Digital Payout Voucher'}
+                    accessibilityHint={lang === 'tl' ? 'Bubuksan ang opisyal na payout voucher para sa natapos na trabaho' : 'Opens official payout voucher for completed duty'}
                   >
                     <Text style={styles.viewVoucherBtnText}>
                       {lang === 'tl' ? 'Buksan ang Digital Payout Voucher' : 'View Digital Payout Voucher'}
@@ -604,6 +626,10 @@ export default function AssistanceRequestScreen({
                             style={[styles.categoryCard, isSelected && styles.categoryCardSelected]}
                             onPress={() => setSelectedCategory(cat.id)}
                             activeOpacity={0.8}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isSelected }}
+                            accessibilityLabel={`${cat.title}, ${cat.scope}`}
+                            accessibilityHint={cat.desc}
                           >
                             <View style={styles.categoryHeaderRow}>
                               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
@@ -628,6 +654,14 @@ export default function AssistanceRequestScreen({
                           style={styles.checkboxRow}
                           onPress={() => setIsCommitted(!isCommitted)}
                           activeOpacity={0.7}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: isCommitted }}
+                          accessibilityLabel={
+                            lang === 'tl'
+                              ? 'Kumpirmasyon sa kahandaan sa 10 araw ng rehabilitation work'
+                              : 'Confirmation of availability for 10-day rehabilitation assignment'
+                          }
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                           <View style={[styles.checkbox, isCommitted && styles.checkboxChecked]}>
                             {isCommitted && <CheckIcon size={12} color="#FFFFFF" />}
@@ -646,7 +680,12 @@ export default function AssistanceRequestScreen({
                               ? 'Maikling tala tungkol sa inyong karanasan o kakayahan (opsyonal)...'
                               : 'Brief note regarding relevant skills or experience (optional)...'
                           }
-                          placeholderTextColor="#8A9BB8"
+                          placeholderTextColor="#54657E"
+                          accessibilityLabel={
+                            lang === 'tl'
+                              ? 'Maikling tala tungkol sa inyong karanasan o kakayahan'
+                              : 'Brief note regarding relevant skills or experience'
+                          }
                           value={experienceNotes}
                           onChangeText={setExperienceNotes}
                           multiline
@@ -664,6 +703,9 @@ export default function AssistanceRequestScreen({
                         onPress={handleApplyCFW}
                         disabled={submittingCFW}
                         activeOpacity={0.85}
+                        accessibilityRole="button"
+                        accessibilityLabel={lang === 'tl' ? 'I-submit ang Aplikasyon sa Barangay' : 'Submit Application to Barangay'}
+                        accessibilityHint={lang === 'tl' ? 'Ipapadala ang aplikasyon sa Barangay Council para sa pagsusuri' : 'Submits application to Barangay Council for review'}
                       >
                         {submittingCFW ? (
                           <ActivityIndicator color="#FFFFFF" />
@@ -691,6 +733,9 @@ export default function AssistanceRequestScreen({
                 style={styles.modalTopBackBtn}
                 onPress={() => setShowVoucherModal(false)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Bumalik' : 'Back'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2.2} />
                 <Text style={styles.modalTopBackText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
@@ -699,7 +744,14 @@ export default function AssistanceRequestScreen({
                 <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
                 <Text style={styles.voucherMainTitle}>Digital Payout Voucher</Text>
               </View>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowVoucherModal(false)} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => setShowVoucherModal(false)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang voucher' : 'Close voucher'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={16} color="#0F172A" />
               </TouchableOpacity>
             </View>
@@ -739,7 +791,13 @@ export default function AssistanceRequestScreen({
               </View>
             </ScrollView>
 
-            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowVoucherModal(false)} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setShowVoucherModal(false)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Isara ang voucher' : 'Close voucher'}
+            >
               <Text style={styles.modalCloseBtnText}>Close Voucher</Text>
             </TouchableOpacity>
           </View>
@@ -755,6 +813,9 @@ export default function AssistanceRequestScreen({
                 style={styles.modalTopBackBtn}
                 onPress={() => setShowAttendanceQrModal(false)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Bumalik' : 'Back'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2.2} />
                 <Text style={styles.modalTopBackText}>{lang === 'tl' ? 'Bumalik' : 'Back'}</Text>
@@ -763,7 +824,14 @@ export default function AssistanceRequestScreen({
                 <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
                 <Text style={styles.voucherMainTitle}>Attendance Duty QR Pass</Text>
               </View>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowAttendanceQrModal(false)} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => setShowAttendanceQrModal(false)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang QR Pass' : 'Close QR Pass'}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={16} color="#0F172A" />
               </TouchableOpacity>
             </View>
@@ -806,6 +874,8 @@ export default function AssistanceRequestScreen({
               style={[styles.modalCloseBtn, { backgroundColor: '#1C3F94' }]}
               onPress={() => setShowAttendanceQrModal(false)}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Isara ang QR Pass' : 'Close QR Pass'}
             >
               <Text style={styles.modalCloseBtnText}>
                 {lang === 'tl' ? 'Isara ang QR Pass' : 'Close QR Pass'}
@@ -849,9 +919,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   navBackBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    minWidth: 44,
+    minHeight: 44,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
@@ -859,9 +931,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navRefreshBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    minWidth: 44,
+    minHeight: 44,
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
@@ -880,7 +954,7 @@ const styles = StyleSheet.create({
   heroKicker: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.55)',
+    color: 'rgba(255,255,255,0.75)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 5,
@@ -893,7 +967,7 @@ const styles = StyleSheet.create({
   },
   heroSubtitle: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.70)',
+    color: 'rgba(255,255,255,0.90)',
     lineHeight: 19.5,
     marginTop: 4,
   },
@@ -929,7 +1003,7 @@ const styles = StyleSheet.create({
   },
   pendingTimestamp: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     fontWeight: '600',
   },
   pendingCardTitle: {
@@ -958,7 +1032,7 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 11.5,
-    color: '#3D5070',
+    color: '#475569',
   },
   metaValue: {
     fontSize: 11.5,
@@ -1101,7 +1175,8 @@ const styles = StyleSheet.create({
   showAttendanceQrBtn: {
     backgroundColor: '#1C3F94',
     borderRadius: 12,
-    paddingVertical: 13,
+    minHeight: 50,
+    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1118,7 +1193,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#DDE4F0',
     borderRadius: 12,
-    paddingVertical: 11,
+    minHeight: 48,
+    paddingVertical: 12,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   viewVoucherBtnText: {
@@ -1146,13 +1223,13 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#16A34A',
+    backgroundColor: '#166534',
     marginRight: 6,
   },
   projectKicker: {
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#16A34A',
+    color: '#166534',
     letterSpacing: 0.6,
   },
   projectTitle: {
@@ -1181,7 +1258,7 @@ const styles = StyleSheet.create({
   },
   specLabel: {
     fontSize: 11,
-    color: '#3D5070',
+    color: '#475569',
     fontWeight: '500',
   },
   specValue: {
@@ -1202,7 +1279,7 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     fontSize: 12,
-    color: '#3D5070',
+    color: '#475569',
     lineHeight: 16,
     marginTop: 2,
   },
@@ -1245,7 +1322,7 @@ const styles = StyleSheet.create({
   },
   categoryDesc: {
     fontSize: 11.5,
-    color: '#3D5070',
+    color: '#475569',
     lineHeight: 16,
   },
 
@@ -1262,6 +1339,8 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    minHeight: 48,
+    paddingVertical: 6,
     marginBottom: 10,
   },
   checkbox: {
@@ -1282,7 +1361,7 @@ const styles = StyleSheet.create({
   checkboxText: {
     flex: 1,
     fontSize: 12,
-    color: '#3D5070',
+    color: '#1E293B',
     lineHeight: 17,
   },
   experienceInput: {
@@ -1299,6 +1378,9 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: '#1C3F94',
     borderRadius: 12,
+    minHeight: 52,
+    height: 52,
+    justifyContent: 'center',
     paddingVertical: 14,
     alignItems: 'center',
     ...SHADOWS.card,
@@ -1338,11 +1420,14 @@ const styles = StyleSheet.create({
   modalTopBackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    minHeight: 44,
+    minWidth: 44,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 8,
     backgroundColor: '#EDF1FB',
     gap: 4,
+    justifyContent: 'center',
   },
   modalTopBackText: {
     fontSize: 11.5,
@@ -1362,9 +1447,11 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   closeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    minWidth: 44,
+    minHeight: 44,
     backgroundColor: '#F3F6FC',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1485,9 +1572,11 @@ const styles = StyleSheet.create({
   },
   modalCloseBtn: {
     backgroundColor: '#1C3F94',
-    borderRadius: 8,
-    paddingVertical: 11,
+    borderRadius: 10,
+    minHeight: 48,
+    paddingVertical: 13,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
   },
   modalCloseBtnText: {

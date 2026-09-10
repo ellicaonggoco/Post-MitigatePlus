@@ -110,11 +110,34 @@ function HouseholdProfileHeader({
     <View style={{ marginHorizontal: 0, marginBottom: 16, marginTop: 4 }}>
       <View style={{ height: 4, backgroundColor: '#C9A84C', borderTopLeftRadius: 8, borderTopRightRadius: 8 }} />
       <View style={{ backgroundColor: '#FFFFFF', borderBottomLeftRadius: 20, borderBottomRightRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <TouchableOpacity onPress={onToggleAvatar} activeOpacity={0.8}>
+        <TouchableOpacity
+          onPress={onToggleAvatar}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={lang === 'tl' ? 'Palitan ang profile photo' : 'Change profile photo'}
+          accessibilityHint={lang === 'tl' ? 'Bubuksan ang options para palitan ang litrato' : 'Opens options to change photo'}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           {profilePhoto ? (
             <Image source={{ uri: profilePhoto }} style={{ width: 64, height: 64, borderRadius: 32 }} />
           ) : (
-            <LinearGradient colors={['#B8932A', '#C9A84C']} style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#C9A84C', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.30, shadowRadius: 18, elevation: 6 }}>
+            <LinearGradient
+              colors={['#0B1D4E', '#1C3F94']}
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: '#C9A84C',
+                shadowColor: '#1C3F94',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.30,
+                shadowRadius: 18,
+                elevation: 6,
+              }}
+            >
               <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>{initials}</Text>
             </LinearGradient>
           )}
@@ -126,8 +149,8 @@ function HouseholdProfileHeader({
           <Text style={{ fontSize: 20, fontWeight: '900', color: '#0B1525', letterSpacing: -0.4 }}>{formattedName}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 6 }}>
             {isVerified ? (
-              <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(13,138,90,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-                <Text style={{ color: '#0D8A5A', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
+              <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(4,120,87,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#047857', fontSize: 11, fontWeight: '800' }}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
               </View>
             ) : isNeedsInfo ? (
               <View style={{ backgroundColor: '#EDF1FB', borderColor: 'rgba(29,78,216,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
@@ -135,16 +158,16 @@ function HouseholdProfileHeader({
               </View>
             ) : isRejected ? (
               <View style={{ backgroundColor: '#FEF2F2', borderColor: 'rgba(220,38,38,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-                <Text style={{ color: '#DC2626', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Hindi Naaprubahan' : 'Rejected'}</Text>
+                <Text style={{ color: '#B91C1C', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Hindi Naaprubahan' : 'Rejected'}</Text>
               </View>
             ) : (
               <View style={{ backgroundColor: '#FEF3C7', borderColor: 'rgba(217,119,6,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-                <Text style={{ color: '#D97706', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Nirerepaso ng Barangay' : 'Pending Verification'}</Text>
+                <Text style={{ color: '#B45309', fontSize: 11, fontWeight: '700' }}>{lang === 'tl' ? 'Nirerepaso ng Barangay' : 'Pending Verification'}</Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: 12, color: '#8A9BB8' }}>Barangay {barangayCode || '291'}, Manila</Text>
-          <Text style={{ fontSize: 12, color: '#8A9BB8' }}>{contact}</Text>
+          <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>Barangay {barangayCode || '291'}, Manila</Text>
+          <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>{contact}</Text>
         </View>
       </View>
     </View>
@@ -799,6 +822,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           style={styles.rosterSummaryCard}
           onPress={() => setShowRosterModal(true)}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={`${lang === 'tl' ? 'Talaan ng Miyembro' : 'Household Members'}, ${members.length} ${lang === 'tl' ? 'Miyembro' : 'Members'}`}
+          accessibilityHint={lang === 'tl' ? 'Bubuksan ang buong talaan ng pamilya' : 'Opens full household members roster'}
         >
           <View style={styles.rosterIconCircle}>
             <UsersIcon size={20} color="#1C3F94" />
@@ -851,6 +877,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <TouchableOpacity
               style={styles.editActionBtn}
               onPress={isEditingContact ? handleSaveContact : () => setIsEditingContact(true)}
+              accessibilityRole="button"
+              accessibilityLabel={isEditingContact ? (lang === 'tl' ? 'I-save ang contact' : 'Save contact') : (lang === 'tl' ? 'Palitan ang contact' : 'Edit contact')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.editActionText}>
                 {isEditingContact ? (lang === 'tl' ? 'I-save' : 'Save') : lang === 'tl' ? 'Palitan' : 'Edit'}
@@ -879,6 +908,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <TouchableOpacity
               style={styles.actionPillBtn}
               onPress={() => setShowPasswordModal(true)}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Palitan ang Password' : 'Change Password'}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <LockIcon size={12} color="#1C3F94" />
               <Text style={styles.actionPillBtnText}>
@@ -907,6 +939,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 setRenewPassword('');
                 setShowRenewQrModal(true);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'I-renew ang QR' : 'Renew QR'}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.revokeQrBtnText}>
                 {lang === 'tl' ? 'I-renew ang QR' : 'Renew QR'}
@@ -934,6 +969,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               onValueChange={setSmsAlerts}
               trackColor={{ false: '#DDE4F0', true: '#D6DEFA' }}
               thumbColor={smsAlerts ? '#1C3F94' : '#F3F6FC'}
+              accessibilityRole="switch"
+              accessibilityLabel={lang === 'tl' ? 'SMS Ayuda Alerts' : 'SMS Relief Alerts'}
+              accessibilityState={{ checked: smsAlerts }}
             />
           </View>
 
@@ -953,6 +991,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               onValueChange={setPushAlerts}
               trackColor={{ false: '#DDE4F0', true: '#D6DEFA' }}
               thumbColor={pushAlerts ? '#1C3F94' : '#F3F6FC'}
+              accessibilityRole="switch"
+              accessibilityLabel={lang === 'tl' ? 'Push Notifications' : 'Push Notifications'}
+              accessibilityState={{ checked: pushAlerts }}
             />
           </View>
         </View>
@@ -981,6 +1022,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             onPress={handleSyncOfflineData}
             disabled={syncing}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'I-sync ang Offline Data Ngayon' : 'Sync Offline Data Now'}
           >
             {syncing ? (
               <ActivityIndicator color="#1C3F94" size="small" />
@@ -1012,6 +1055,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <TouchableOpacity
               style={styles.privacyViewBtn}
               onPress={() => setShowPrivacyModal(true)}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Basahin ang Data Privacy Policy' : 'Review Data Privacy Policy'}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.privacyViewBtnText}>
                 {lang === 'tl' ? 'Basahin' : 'Review'}
@@ -1029,12 +1075,18 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <TouchableOpacity
               style={[styles.langBtn, lang === 'en' ? styles.langBtnActive : styles.langBtnInactive]}
               onPress={() => onSelectLang && onSelectLang('en')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: lang === 'en' }}
+              accessibilityLabel="English"
             >
               <Text style={[styles.langText, lang === 'en' && styles.langTextActive]}>English</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.langBtn, lang === 'tl' ? styles.langBtnActive : styles.langBtnInactive]}
               onPress={() => onSelectLang && onSelectLang('tl')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: lang === 'tl' }}
+              accessibilityLabel="Tagalog"
             >
               <Text style={[styles.langText, lang === 'tl' && styles.langTextActive]}>Tagalog</Text>
             </TouchableOpacity>
@@ -1060,6 +1112,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 style={styles.hotlineCallBtn}
                 onPress={() => Linking.openURL(`tel:${h.phone.replace(/[^0-9]/g, '')}`)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`${lang === 'tl' ? 'Tawagan ang' : 'Call'} ${h.name}`}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 <PhoneCallIcon size={12} color="#FFFFFF" />
                 <Text style={styles.hotlineCallBtnText}>{lang === 'tl' ? 'Tawag' : 'Call'}</Text>
@@ -1073,6 +1128,8 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           style={styles.logoutBtn}
           onPress={handleLogout}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={lang === 'tl' ? 'Mag-Logout sa Account' : 'Sign Out of Account'}
         >
           <Text style={styles.logoutBtnText}>
             {lang === 'tl' ? 'Mag-Logout sa Account' : 'Sign Out of Account'}
@@ -1122,6 +1179,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               <TouchableOpacity
                 style={styles.modalCloseCircle}
                 onPress={() => setShowRosterModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close roster modal"
+                accessibilityHint="Closes the household members roster"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <CloseIcon size={16} color="#0F172A" />
               </TouchableOpacity>
@@ -1156,6 +1217,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               style={styles.addMemberFullBtn}
               onPress={handleOpenAddMember}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Add new family member"
+              accessibilityHint="Opens the form to add a new household member"
             >
               <PlusIcon size={16} color="#FFFFFF" />
               <Text style={styles.addMemberFullBtnText}>
@@ -1212,6 +1276,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                           style={styles.memberEditBtn}
                           onPress={() => handleOpenEditMember(mem)}
                           activeOpacity={0.75}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Edit ${mem.name || 'member'}`}
+                          accessibilityHint="Opens the form to edit this household member"
                         >
                           <Text style={styles.memberEditBtnText}>
                             {lang === 'tl' ? 'I-edit' : 'Edit'}
@@ -1223,6 +1290,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                             style={styles.memberDeleteBtn}
                             onPress={() => handleRemoveMember(memKey)}
                             activeOpacity={0.75}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Remove ${mem.name || 'member'} from household`}
+                            accessibilityHint="Permanently removes this member from the roster"
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           >
                             <TrashIcon size={14} color="#DC2626" />
                           </TouchableOpacity>
@@ -1238,6 +1309,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               style={styles.modalDoneBtn}
               onPress={() => setShowRosterModal(false)}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Done, close roster"
+              accessibilityHint="Closes the household members roster"
             >
               <Text style={styles.modalDoneBtnText}>
                 {lang === 'tl' ? 'Tapos Na (Isara)' : 'Done (Close)'}
@@ -1268,7 +1342,14 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   ? 'Magdagdag ng Miyembro'
                   : 'Add Family Member'}
               </Text>
-              <TouchableOpacity onPress={() => setShowMemberFormModal(false)}>
+              <TouchableOpacity
+                onPress={() => setShowMemberFormModal(false)}
+                style={styles.modalCloseCircle}
+                accessibilityRole="button"
+                accessibilityLabel="Close member form"
+                accessibilityHint="Closes the add or edit member form"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={18} color="#0F172A" />
               </TouchableOpacity>
             </View>
@@ -1303,6 +1384,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                     key={rel}
                     style={[styles.relChoiceBtn, memberRelInput === rel && styles.relChoiceBtnActive]}
                     onPress={() => setMemberRelInput(rel)}
+                    accessibilityRole="button"
+                    accessibilityLabel={rel}
+                    accessibilityState={{ selected: memberRelInput === rel }}
                   >
                     <Text
                       style={[styles.relChoiceText, memberRelInput === rel && styles.relChoiceTextActive]}
@@ -1336,6 +1420,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                           setMemberConditionsInput((prev) => [...prev, preset.tag]);
                         }
                       }}
+                      accessibilityRole="checkbox"
+                      accessibilityLabel={preset.tag}
+                      accessibilityHint={isChecked ? `Remove ${preset.tag} condition` : `Add ${preset.tag} condition`}
+                      accessibilityState={{ checked: isChecked }}
                     >
                       {isChecked ? (
                         <CheckIcon size={12} color={preset.color} />
@@ -1359,6 +1447,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 style={styles.saveMemberSubmitBtn}
                 onPress={handleSaveMemberSubmit}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Save member information"
+                accessibilityHint="Saves the household member details to the roster"
               >
                 <Text style={styles.saveMemberSubmitBtnText}>
                   {lang === 'tl' ? 'I-save ang Impormasyon' : 'Save Member Information'}
@@ -1396,7 +1487,14 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => setShowPasswordModal(false)} style={{ flexShrink: 0, padding: 4 }}>
+              <TouchableOpacity
+                onPress={() => setShowPasswordModal(false)}
+                style={[styles.modalCloseCircle, { flexShrink: 0 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Close password modal"
+                accessibilityHint="Closes the change password form"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={18} color="#0B1525" />
               </TouchableOpacity>
             </View>
@@ -1434,6 +1532,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 onPress={handleChangePassword}
                 disabled={passLoading}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Save new password"
+                accessibilityHint="Saves your updated account password"
               >
                 {passLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
@@ -1464,7 +1565,14 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 <ShieldCheckIcon size={20} color="#16A34A" />
                 <Text style={styles.modalMainTitle}>Data Privacy Act (RA 10173)</Text>
               </View>
-              <TouchableOpacity onPress={() => setShowPrivacyModal(false)}>
+              <TouchableOpacity
+                onPress={() => setShowPrivacyModal(false)}
+                style={styles.modalCloseCircle}
+                accessibilityRole="button"
+                accessibilityLabel="Close data privacy modal"
+                accessibilityHint="Closes the data privacy information"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={18} color="#0F172A" />
               </TouchableOpacity>
             </View>
@@ -1480,6 +1588,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             <TouchableOpacity
               style={styles.modalDoneBtn}
               onPress={() => setShowPrivacyModal(false)}
+              accessibilityRole="button"
+              accessibilityLabel="I understand, close privacy notice"
+              accessibilityHint="Closes the data privacy information modal"
             >
               <Text style={styles.modalDoneBtnText}>
                 {lang === 'tl' ? 'Naiintindihan Ko' : 'I Understand'}
@@ -1565,6 +1676,10 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   style={styles.dropdownTriggerBtn}
                   onPress={() => setShowReasonDropdown(!showReasonDropdown)}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Select renewal reason"
+                  accessibilityHint="Opens a dropdown to select the reason for QR renewal"
+                  accessibilityState={{ expanded: showReasonDropdown }}
                 >
                   <Text style={styles.dropdownTriggerText} numberOfLines={1}>
                     {(lang === 'tl' ? RENEWAL_REASONS_TL : RENEWAL_REASONS_EN).find((r) => r.key === selectedReasonKey)?.label || (lang === 'tl' ? 'Pumili ng dahilan...' : 'Select a reason...')}
@@ -1594,6 +1709,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                             if (renewError) setRenewError('');
                           }}
                           activeOpacity={0.75}
+                          accessibilityRole="button"
+                          accessibilityLabel={opt.label}
+                          accessibilityState={{ selected: isSelected }}
                         >
                           <Text
                             style={[
@@ -1633,6 +1751,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 onPress={handleRenewQrPassWithPassword}
                 disabled={renewLoading}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Verify password and renew QR"
+                accessibilityHint="Verifies your password then issues a new QR pass"
               >
                 {renewLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
@@ -1660,7 +1781,14 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               <Text style={styles.modalMainTitle}>
                 {lang === 'tl' ? 'Palitan ang Profile Photo' : 'Update Profile Photo'}
               </Text>
-              <TouchableOpacity onPress={() => setShowAvatarPicker(false)}>
+              <TouchableOpacity
+                onPress={() => setShowAvatarPicker(false)}
+                style={styles.modalCloseCircle}
+                accessibilityRole="button"
+                accessibilityLabel="Close photo options"
+                accessibilityHint="Closes the profile photo source selection"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <CloseIcon size={18} color="#172B4D" />
               </TouchableOpacity>
             </View>
@@ -1676,6 +1804,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 style={styles.avatarOptionBtn}
                 onPress={handlePickFromCamera}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Take photo with camera"
+                accessibilityHint="Opens the camera to take a new profile photo"
               >
                 <View style={[styles.avatarOptionIconWell, { backgroundColor: '#E0F2FE' }]}>
                   <CameraIcon size={20} color="#0284C7" />
@@ -1694,6 +1825,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 style={styles.avatarOptionBtn}
                 onPress={handlePickFromGallery}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Choose photo from gallery"
+                accessibilityHint="Opens the photo gallery to select an existing photo"
               >
                 <View style={[styles.avatarOptionIconWell, { backgroundColor: '#FEF3C7' }]}>
                   <ImageIcon size={20} color="#D97706" />
@@ -1713,6 +1847,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   style={styles.avatarOptionBtn}
                   onPress={handleResetToInitials}
                   activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove profile photo"
+                  accessibilityHint="Resets your profile photo to the default initials badge"
                 >
                   <View style={[styles.avatarOptionIconWell, { backgroundColor: '#F3F6FC' }]}>
                     <TrashIcon size={18} color="#DC2626" />
@@ -1733,6 +1870,9 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               style={styles.cancelSheetBtn}
               onPress={() => setShowAvatarPicker(false)}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+              accessibilityHint="Closes the photo options without making any changes"
             >
               <Text style={styles.cancelSheetBtnText}>{lang === 'tl' ? 'Kanselahin' : 'Cancel'}</Text>
             </TouchableOpacity>
@@ -1808,9 +1948,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  verifiedTagText: { fontSize: 9.5, fontWeight: '800', color: '#16A34A' },
-  profileSub: { fontSize: 11.5, color: '#3D5070', marginTop: 2 },
-  profileContactText: { fontSize: 11, color: '#3D5070', fontWeight: '600', marginTop: 2 },
+  verifiedTagText: { fontSize: 9.5, fontWeight: '800', color: '#047857' },
+  profileSub: { fontSize: 11.5, color: '#475569', marginTop: 2 },
+  profileContactText: { fontSize: 11, color: '#475569', fontWeight: '600', marginTop: 2 },
 
   // ── Roster Summary Card ──
   rosterSummaryCard: {
@@ -1843,18 +1983,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   headcountBadgeText: { fontSize: 9.5, fontWeight: '800', color: '#0284C7' },
-  rosterCardSub: { fontSize: 10.5, color: '#3D5070', marginTop: 1 },
+  rosterCardSub: { fontSize: 10.5, color: '#475569', marginTop: 1 },
   viewRosterBtn: {
     flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#EDF1FB',
-    paddingHorizontal: 9,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#D6DEFA',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   viewRosterBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
 
@@ -1891,7 +2033,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#F3F6FC', marginVertical: 6 },
   readOnlyBadge: { flexShrink: 0, backgroundColor: '#F3F6FC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   readOnlyText: { fontSize: 10, fontWeight: '700', color: '#3D5070' },
-  editActionBtn: { flexShrink: 0, backgroundColor: '#EDF1FB', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  editActionBtn: { flexShrink: 0, backgroundColor: '#EDF1FB', paddingHorizontal: 12, paddingVertical: 12, borderRadius: 6, minHeight: 48, justifyContent: 'center' },
   editActionText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   successInline: { fontSize: 11, color: '#16A34A', fontWeight: '700', marginTop: 4 },
   actionPillBtn: {
@@ -1902,9 +2044,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#D6DEFA',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 8,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   actionPillBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
   revokeQrBtn: {
@@ -1912,11 +2056,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
     borderWidth: 1,
     borderColor: '#FECACA',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 8,
+    minHeight: 48,
+    justifyContent: 'center',
   },
-  revokeQrBtnText: { fontSize: 11, fontWeight: '800', color: '#DC2626' },
+  revokeQrBtnText: { fontSize: 11, fontWeight: '800', color: '#B91C1C' },
   cachePill: { backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   cachePillText: { fontSize: 10, fontWeight: '800', color: '#16A34A' },
   syncBtn: {
@@ -1924,10 +2070,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BBF7D0',
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
+    minHeight: 48,
   },
   syncBtnText: { fontSize: 12, fontWeight: '800', color: '#1C3F94' },
   privacyViewBtn: {
@@ -1935,15 +2082,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     borderWidth: 1,
     borderColor: '#BBF7D0',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 8,
+    minHeight: 48,
+    justifyContent: 'center',
   },
-  privacyViewBtnText: { fontSize: 11, fontWeight: '800', color: '#16A34A' },
+  privacyViewBtnText: { fontSize: 11, fontWeight: '800', color: '#047857' },
 
   // ── Language ──
   langRow: { flexDirection: 'row', gap: 10 },
-  langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5 },
+  langBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1.5, minHeight: 48, justifyContent: 'center' },
   langBtnActive: { backgroundColor: '#EDF1FB', borderColor: '#1C3F94' },
   langBtnInactive: { backgroundColor: '#FFFFFF', borderColor: '#DDE4F0' },
   langText: { fontSize: 13, fontWeight: '600', color: '#3D5070' },
@@ -1978,9 +2127,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#DC2626',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 6,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   hotlineCallBtnText: { color: '#FFFFFF', fontSize: 10.5, fontWeight: '800' },
 
@@ -1990,11 +2141,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FCA5A5',
     borderRadius: 12,
-    paddingVertical: 11,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 12,
     marginBottom: 4,
+    minHeight: 52,
     ...SHADOWS.sm,
   },
   logoutBtnText: { fontSize: 13.5, fontWeight: FONT_WEIGHT.black, color: '#DC2626' },
@@ -2037,12 +2189,14 @@ const styles = StyleSheet.create({
   modalMainTitle: { fontSize: 16, fontWeight: FONT_WEIGHT.black, color: '#0F172A' },
   modalMainSub: { fontSize: 11, color: '#3D5070', marginTop: 1 },
   modalCloseCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 44,
+    minHeight: 44,
   },
 
   // ── Roster Metrics Bar ──
@@ -2070,6 +2224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     marginVertical: 6,
+    minHeight: 52,
     ...SHADOWS.button,
   },
   addMemberFullBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
@@ -2119,19 +2274,27 @@ const styles = StyleSheet.create({
   },
   memberEditBtn: {
     backgroundColor: '#EDF1FB',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#D6DEFA',
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   memberEditBtnText: { fontSize: 10.5, fontWeight: '800', color: '#1C3F94' },
   memberDeleteBtn: {
     backgroundColor: '#FEF2F2',
-    padding: 5,
+    padding: 10,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#FECACA',
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   conditionTagsRowModal: {
     flexDirection: 'row',
@@ -2140,9 +2303,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   condTagBtnSmall: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: 6,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   condTagBtnInactive: {
     backgroundColor: '#F3F6FC',
@@ -2157,6 +2322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
+    minHeight: 48,
     ...SHADOWS.md,
   },
   modalDoneBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
@@ -2172,12 +2338,14 @@ const styles = StyleSheet.create({
   formInputLabel: { fontSize: 12, fontWeight: '700', color: '#0F172A', marginBottom: 6 },
   relChoicesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   relChoiceBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 6,
     backgroundColor: '#F3F6FC',
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    minHeight: 44,
+    justifyContent: 'center',
   },
   relChoiceBtnActive: {
     backgroundColor: '#EDF1FB',
@@ -2194,6 +2362,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 18,
     marginBottom: 10,
+    minHeight: 52,
     ...SHADOWS.button,
   },
   saveMemberSubmitBtnText: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
@@ -2214,6 +2383,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     marginBottom: 10,
+    minHeight: 52,
     ...SHADOWS.button,
   },
   savePassFullBtnText: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
@@ -2248,6 +2418,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDE4F0',
     padding: 12,
+    minHeight: 52,
   },
   avatarOptionIconWell: {
     width: 40,
@@ -2265,6 +2436,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 14,
+    minHeight: 48,
   },
   cancelSheetBtnText: { fontSize: 13, fontWeight: '800', color: '#3D5070' },
 
@@ -2312,6 +2484,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     marginTop: 4,
+    minHeight: 50,
   },
   dropdownTriggerText: {
     flex: 1,
@@ -2334,9 +2507,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F6FC',
+    minHeight: 48,
   },
   dropdownOptionItemSelected: {
     backgroundColor: '#EDF1FB',
@@ -2360,6 +2534,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 14,
     marginBottom: 10,
+    minHeight: 52,
     ...SHADOWS.sm,
   },
   confirmRenewBtnText: {

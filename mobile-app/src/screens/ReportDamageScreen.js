@@ -28,6 +28,10 @@ function SeveritySelectorTray({ severities, currentLevel, onSelect }) {
             ]}
             onPress={() => onSelect(s.level)}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${s.label}, ${s.sub}`}
+            accessibilityHint={lang === 'tl' ? `Piliin ang ${s.label} na antas ng pinsala` : `Select ${s.label} damage level`}
           >
             <View style={styles.severityHeaderRow}>
               <View style={[styles.severityDot, { backgroundColor: s.color }]} />
@@ -55,17 +59,37 @@ function PhotoAttachmentSection({ selectedPhoto, onPickCamera, onPickLibrary, on
       {selectedPhoto ? (
         <View style={styles.previewBox}>
           <Image source={{ uri: selectedPhoto.uri }} style={styles.previewImg} resizeMode="cover" />
-          <TouchableOpacity style={styles.removePhotoBtn} onPress={onRemove}>
+          <TouchableOpacity
+            style={styles.removePhotoBtn}
+            onPress={onRemove}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Text style={styles.removePhotoText}>{lang === 'tl' ? 'Palitan ang Litrato' : 'Change Photo'}</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.uploadActionsRow}>
-          <TouchableOpacity style={styles.cameraBtn} onPress={onPickCamera} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.cameraBtn}
+            onPress={onPickCamera}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Kumuha ng litrato gamit ang camera' : 'Take photo with camera'}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
             <CameraIcon size={20} color="#1C3F94" />
             <Text style={styles.uploadBtnText}>{lang === 'tl' ? 'Camera' : 'Take Photo'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.galleryBtn} onPress={onPickLibrary} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.galleryBtn}
+            onPress={onPickLibrary}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Pumili ng litrato mula sa gallery' : 'Choose photo from gallery'}
+            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
             <ImageIcon size={20} color="#3D5070" />
             <Text style={styles.uploadBtnText}>{lang === 'tl' ? 'Gallery' : 'From Gallery'}</Text>
           </TouchableOpacity>
@@ -355,7 +379,12 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         <Text style={styles.successSub}>
           {lang === 'tl' ? 'Naihatid na sa Disaster Command Center ang inyong ulat.' : 'Your report has been sent to the Command Center.'}
         </Text>
-        <TouchableOpacity style={styles.backHomeBtn} onPress={onBack}>
+        <TouchableOpacity
+          style={styles.backHomeBtn}
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel={lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}
+        >
           <Text style={styles.backHomeBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
         </TouchableOpacity>
       </View>
@@ -379,16 +408,35 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           <View style={{height: 3, backgroundColor: '#C9A84C'}} />
           <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe + 4 }} />
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
-            <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'}}>
+            <TouchableOpacity
+              onPress={onBack}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                minWidth: 44,
+                minHeight: 44,
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.25)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
+              accessibilityHint={lang === 'tl' ? 'Babalik sa home screen' : 'Returns to the home screen'}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
             </TouchableOpacity>
             <View style={{flex: 1, alignItems: 'center'}}>
               <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Report Damage</Text>
             </View>
-            <View style={{width: 36}} />
+            <View style={{width: 44}} />
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
-            <Text style={{ fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', marginBottom: 4 }}>DAMAGE ASSESSMENT</Text>
+            <Text style={{ fontSize: 9.5, fontWeight: '800', color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: 0.8 }}>DAMAGE ASSESSMENT</Text>
             <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>Structural Damage Report</Text>
           </View>
         </LinearGradient>
@@ -445,7 +493,14 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             lang={lang}
           />
 
-          <MotionPressable style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmitReport} disabled={loading}>
+          <MotionPressable
+            style={[styles.submitBtn, loading && { opacity: 0.7 }]}
+            onPress={handleSubmitReport}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'I-submit ang Ulat ng Pinsala' : 'Submit Damage Report'}
+            accessibilityHint={lang === 'tl' ? 'Ipapadala ang ulat ng pinsala sa Disaster Command Center' : 'Submits damage report to Disaster Command Center'}
+          >
             {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
           </MotionPressable>
         </View>
@@ -531,7 +586,7 @@ const styles = StyleSheet.create({
   },
   autoLocationGpsText: {
     fontSize: 10.5,
-    color: '#3D5070',
+    color: '#475569',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -539,6 +594,8 @@ const styles = StyleSheet.create({
   severityTile: {
     flex: 1,
     minWidth: '47%',
+    minHeight: 72,
+    justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     padding: 14,
@@ -561,7 +618,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   severityLabel: { fontSize: 13, fontWeight: '700', color: '#0B1525', marginBottom: 2 },
-  severitySub: { fontSize: 10, color: '#3D5070', lineHeight: 14 },
+  severitySub: { fontSize: 10, color: '#475569', lineHeight: 14 },
   uploadCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -575,33 +632,46 @@ const styles = StyleSheet.create({
   uploadActionsRow: { flexDirection: 'row', gap: 10 },
   cameraBtn: {
     flex: 1,
+    minHeight: 48,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#D6DEFA',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
     ...SHADOWS.sm,
   },
   galleryBtn: {
     flex: 1,
+    minHeight: 48,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#DDE4F0',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
     ...SHADOWS.sm,
   },
   uploadBtnText: { fontSize: 11, fontWeight: '700', color: '#0B1525' },
   previewBox: { alignItems: 'center' },
   previewImg: { width: '100%', height: 150, borderRadius: 10, backgroundColor: '#F3F6FC', marginBottom: 8 },
-  removePhotoBtn: { paddingVertical: 6, paddingHorizontal: 12 },
+  removePhotoBtn: {
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   removePhotoText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   submitBtn: {
     backgroundColor: '#1C3F94',
+    minHeight: 52,
+    height: 52,
+    justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -613,6 +683,15 @@ const styles = StyleSheet.create({
   successIconWell: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#E6F6EF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, ...SHADOWS.md },
   successTitle: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0B1525', marginBottom: 6 },
   successSub: { fontSize: 12, color: '#3D5070', textAlign: 'center', marginBottom: 20 },
-  backHomeBtn: { backgroundColor: '#1C3F94', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, ...SHADOWS.button },
+  backHomeBtn: {
+    backgroundColor: '#1C3F94',
+    minHeight: 48,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.button,
+  },
   backHomeBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
 });

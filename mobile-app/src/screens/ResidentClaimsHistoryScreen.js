@@ -68,17 +68,36 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
         <View style={{height: 3, backgroundColor: '#C9A84C'}} />
         <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe + 4 }} />
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
-          <TouchableOpacity onPress={onBack} style={{width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)'}}>
+          <TouchableOpacity
+            onPress={onBack}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              minWidth: 44,
+              minHeight: 44,
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.25)',
+            }}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
+            accessibilityHint={lang === 'tl' ? 'Babalik sa home screen' : 'Returns to the home screen'}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
           </TouchableOpacity>
           <View style={{flex: 1, alignItems: 'center'}}>
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Claims History</Text>
           </View>
-          <View style={{width: 36}} />
+          <View style={{width: 44}} />
         </View>
         <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
           <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 }}>Distribution & Claims</Text>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
         </View>
       </LinearGradient>
 
@@ -93,7 +112,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>AUDIT</Text>
-          <Text style={[styles.summaryValue, { color: '#0D8A5A' }]}>100%</Text>
+          <Text style={[styles.summaryValue, { color: '#047857' }]}>100%</Text>
           <Text style={styles.summarySub}>Verified</Text>
         </View>
         <View style={styles.summaryDivider} />
@@ -128,6 +147,9 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
               style={styles.claimCard}
               onPress={() => setSelectedReceipt(item)}
               activeOpacity={0.88}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.type}, ${item.receiptNumber}, ${item.status === 'CLAIMED' ? (t.claimedStatus || 'CLAIMED') : (t.inTransitStatus || 'PENDING')}`}
+              accessibilityHint={lang === 'tl' ? 'Bubuksan ang opisyal na resibo ng ayuda' : 'Opens the official relief claim receipt'}
             >
               <View style={styles.cardTop}>
                 <View style={styles.packageIconWell}>
@@ -141,9 +163,9 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   </View>
                 </View>
 
-                <MotionPulseBadge color={item.status === 'CLAIMED' ? '#10B981' : '#F59E0B'}>
+                <MotionPulseBadge color={item.status === 'CLAIMED' ? '#047857' : '#F59E0B'}>
                   <View style={[styles.statusTag, item.status === 'CLAIMED' ? styles.tagClaimed : styles.tagPending]}>
-                    <Text style={[styles.statusText, { color: item.status === 'CLAIMED' ? '#16A34A' : '#D97706' }]}>
+                    <Text style={[styles.statusText, { color: item.status === 'CLAIMED' ? '#047857' : '#B45309' }]}>
                       {item.status === 'CLAIMED' ? (t.claimedStatus || 'CLAIMED') : (t.inTransitStatus || 'PENDING')}
                     </Text>
                   </View>
@@ -163,7 +185,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
 
               <View style={styles.cardFooter}>
                 <View style={styles.footerRow}>
-                  <ShieldCheckIcon size={13} color="#0D8A5A" />
+                  <ShieldCheckIcon size={13} color="#047857" />
                   <Text style={styles.footerOfficer}>
                     {lang === 'tl' ? 'Na-verify ni:' : 'Verified by:'} <Text style={{ fontWeight: '700', color: '#172B4D' }}>{item.verifiedBy}</Text>
                   </Text>
@@ -171,12 +193,12 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
               </View>
 
               {/* Receipt Pill Action */}
-              <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderColor: '#DDE4F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#3D5070' }}>
+              <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderColor: '#DDE4F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 48 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#1E293B' }}>
                   {item.receiptNumber}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94' }}>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#1C3F94' }}>
                     {lang === 'tl' ? 'Tingnan ang Resibo' : 'View Claim Receipt'}
                   </Text>
                   <ArrowRightIcon size={12} color="#1C3F94" />
@@ -267,6 +289,8 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                 style={styles.receiptCloseBtn}
                 onPress={() => setSelectedReceipt(null)}
                 activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Isara ang Resibo' : 'Close Receipt'}
               >
                 <Text style={styles.receiptCloseBtnText}>{lang === 'tl' ? 'Isara ang Resibo' : 'Close Receipt'}</Text>
               </TouchableOpacity>
@@ -354,7 +378,7 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: 8,
     fontWeight: '700',
-    color: '#8A9BB8',
+    color: '#475569',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
@@ -366,7 +390,7 @@ const styles = StyleSheet.create({
   },
   summarySub: {
     fontSize: 10,
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 1,
   },
   historyList: { gap: 10 },
@@ -415,7 +439,7 @@ const styles = StyleSheet.create({
   tagClaimed: {
     backgroundColor: '#E6F6EF',
     borderWidth: 1,
-    borderColor: 'rgba(13,138,90,0.3)',
+    borderColor: 'rgba(4,120,87,0.35)',
   },
   tagPending: {
     backgroundColor: '#FBF5E4',
@@ -475,7 +499,7 @@ const styles = StyleSheet.create({
   receiptKicker: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#8A9BB8',
+    color: '#475569',
     letterSpacing: 0.8,
   },
   receiptTitle: {
@@ -545,20 +569,22 @@ const styles = StyleSheet.create({
   receiptSealText: {
     fontSize: 9.5,
     fontWeight: '900',
-    color: '#15803D',
+    color: '#047857',
     letterSpacing: 0.3,
   },
   receiptSecurityHint: {
     fontSize: 9,
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 4,
     textAlign: 'center',
   },
   receiptCloseBtn: {
     backgroundColor: '#1C3F94',
-    paddingVertical: 11,
+    minHeight: 48,
+    paddingVertical: 13,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 14,
   },
   receiptCloseBtnText: {
