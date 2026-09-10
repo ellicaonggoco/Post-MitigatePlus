@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#F3F6FC',
+    backgroundColor: '#FFFFFF',
   },
   adaptiveWrapper: {
     flex: 1,

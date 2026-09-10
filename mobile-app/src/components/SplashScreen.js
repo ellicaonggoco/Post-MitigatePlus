@@ -170,82 +170,77 @@ export default function SplashScreen({ onFinish }) {
 
   return (
     <Animated.View style={[styles.container, { opacity: screenExitOpacity }]}>
+      {/* Background Tap-To-Skip Touch Surface */}
       <Pressable
-        style={styles.touchSurface}
+        style={StyleSheet.absoluteFill}
         onPress={handleTapToSkip}
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel="Skip splash screen"
-      >
-        <View style={styles.centerContent}>
-          {/* LOGO STAGE */}
-          <View style={styles.logoStage}>
-            {/* LOGO 1: MITIGATE+ BANNER */}
-            <Animated.View
-              style={[
-                styles.logoAbsolute,
-                {
-                  opacity: logo1Opacity,
-                  transform: [{ scale: logo1Scale }],
-                },
-              ]}
-              pointerEvents="none"
-            >
+      />
+
+      {/* Centered Civic & Brand Lockup */}
+      <View style={styles.centerContent} pointerEvents="none">
+        {/* LOGO STAGE */}
+        <View style={styles.logoStage}>
+          {/* LOGO 1: MITIGATE+ BANNER */}
+          <Animated.View
+            style={[
+              styles.logoAbsolute,
+              {
+                opacity: logo1Opacity,
+                transform: [{ scale: logo1Scale }],
+              },
+            ]}
+          >
+            <Image
+              source={require('../../assets/logo_primary.png')}
+              style={styles.massiveLogo1}
+              resizeMode="contain"
+            />
+          </Animated.View>
+
+          {/* LOGO 2: SLANTED 'M' CLOCK TOWER */}
+          <Animated.View
+            style={[
+              styles.logoAbsolute,
+              {
+                opacity: logo2Opacity,
+                transform: [{ scale: logo2Scale }],
+              },
+            ]}
+          >
+            <View style={{ transform: [{ rotate: '-4deg' }] }}>
               <Image
-                source={require('../../assets/logo_primary.png')}
-                style={styles.massiveLogo1}
+                source={require('../../assets/logo_secondary.png')}
+                style={styles.slantedLogoImg}
                 resizeMode="contain"
               />
-            </Animated.View>
-
-            {/* LOGO 2: SLANTED 'M' CLOCK TOWER */}
-            <Animated.View
-              style={[
-                styles.logoAbsolute,
-                {
-                  opacity: logo2Opacity,
-                  transform: [{ scale: logo2Scale }],
-                },
-              ]}
-              pointerEvents="none"
-            >
-              <View style={{ transform: [{ rotate: '-4deg' }] }}>
-                <Image
-                  source={require('../../assets/logo_secondary.png')}
-                  style={styles.slantedLogoImg}
-                  resizeMode="contain"
-                />
-              </View>
-            </Animated.View>
-          </View>
-
-          {/* PERSISTENT CIVIC TYPOGRAPHY */}
-          <Animated.View style={[styles.textGroup, { opacity: textOpacity }]} pointerEvents="none">
-            <Text style={styles.civicTitle}>Pamahalaang Lungsod ng Maynila</Text>
-            <Text style={styles.platformSub}>Disaster Mitigation & Recovery Platform</Text>
+            </View>
           </Animated.View>
         </View>
 
-        {/* BOTTOM CIVIC ANCHOR */}
-        <View style={styles.footerAnchor} pointerEvents="none">
-          <Text style={styles.footerAnchorText}>CITY OF MANILA • MDRRMO OPERATIONS</Text>
-        </View>
-      </Pressable>
+        {/* PERSISTENT CIVIC TYPOGRAPHY */}
+        <Animated.View style={[styles.textGroup, { opacity: textOpacity }]}>
+          <Text style={styles.civicTitle}>Pamahalaang Lungsod ng Maynila</Text>
+          <Text style={styles.platformSub}>Disaster Mitigation & Recovery Platform</Text>
+        </Animated.View>
+      </View>
+
+      {/* BOTTOM CIVIC ANCHOR */}
+      <View style={styles.footerAnchor} pointerEvents="none">
+        <Text style={styles.footerAnchorText}>CITY OF MANILA • MDRRMO OPERATIONS</Text>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFFFF',
-    zIndex: 99999,
-    elevation: 99999,
-  },
-  touchSurface: {
     flex: 1,
     width: '100%',
     height: '100%',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -301,11 +296,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: Platform.OS === 'android' ? 26 : 40,
     alignItems: 'center',
+    width: '100%',
   },
   footerAnchorText: {
     fontSize: 9.5,
     fontWeight: '700',
     color: '#94A3B8',
     letterSpacing: 1.2,
+    textAlign: 'center',
   },
 });
+
