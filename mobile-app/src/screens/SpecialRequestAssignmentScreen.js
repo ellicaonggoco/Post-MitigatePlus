@@ -251,6 +251,11 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
           style={[styles.segmentBtn, filterTab === 'assigned' && styles.segmentBtnActive]}
           onPress={() => setFilterTab('assigned')}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Assigned deliveries, ${assignedTasks.length}`}
+          accessibilityHint="Filters the list to assigned deliveries"
+          accessibilityState={{ selected: filterTab === 'assigned' }}
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
           <Text style={[styles.segmentText, filterTab === 'assigned' && styles.segmentTextActive]}>
             Assigned ({assignedTasks.length})
@@ -261,6 +266,11 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
           style={[styles.segmentBtn, filterTab === 'delivered' && styles.segmentBtnActive]}
           onPress={() => setFilterTab('delivered')}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Delivered, ${deliveredTasks.length}`}
+          accessibilityHint="Filters the list to completed deliveries"
+          accessibilityState={{ selected: filterTab === 'delivered' }}
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
           <Text style={[styles.segmentText, filterTab === 'delivered' && styles.segmentTextActive]}>
             Delivered ({deliveredTasks.length})
@@ -607,6 +617,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    minHeight: 56,
+    alignItems: 'center',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)' }
       : {
@@ -619,19 +631,20 @@ const styles = StyleSheet.create({
   },
   segmentBtn: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
     backgroundColor: 'transparent',
+    minHeight: 48,
   },
   segmentBtnActive: {
     backgroundColor: '#1C3F94',
   },
   segmentText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#3D5070',
+    fontWeight: '700',
+    color: '#1E293B',
   },
   segmentTextActive: {
     color: '#FFFFFF',
@@ -737,6 +750,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginTop: 4,
+    minHeight: 52,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
       : {

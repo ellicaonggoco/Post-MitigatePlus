@@ -246,6 +246,11 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
           style={[styles.segmentBtn, filterTab === 'scheduled' && styles.segmentBtnActive]}
           onPress={() => setFilterTab('scheduled')}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Scheduled events, ${scheduledCount}`}
+          accessibilityHint="Filters the list to scheduled distribution events"
+          accessibilityState={{ selected: filterTab === 'scheduled' }}
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
           <Text style={[styles.segmentText, filterTab === 'scheduled' && styles.segmentTextActive]}>
             Scheduled ({scheduledCount})
@@ -256,6 +261,11 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
           style={[styles.segmentBtn, filterTab === 'ongoing' && styles.segmentBtnActive]}
           onPress={() => setFilterTab('ongoing')}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Ongoing events, ${ongoingCount}`}
+          accessibilityHint="Filters the list to currently active distribution events"
+          accessibilityState={{ selected: filterTab === 'ongoing' }}
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
           <Text style={[styles.segmentText, filterTab === 'ongoing' && styles.segmentTextActive]}>
             Ongoing ({ongoingCount})
@@ -266,6 +276,11 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
           style={[styles.segmentBtn, filterTab === 'completed' && styles.segmentBtnActive]}
           onPress={() => setFilterTab('completed')}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Completed events, ${completedCount}`}
+          accessibilityHint="Filters the list to finished distribution events"
+          accessibilityState={{ selected: filterTab === 'completed' }}
+          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
           <Text style={[styles.segmentText, filterTab === 'completed' && styles.segmentTextActive]}>
             Completed ({completedCount})
@@ -533,6 +548,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDE4F0',
     marginBottom: 16,
+    minHeight: 56,
+    alignItems: 'center',
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 1px 3px rgba(11,21,80,0.06), 0 4px 12px rgba(28,63,148,0.08)' }
       : {
@@ -545,19 +562,20 @@ const styles = StyleSheet.create({
   },
   segmentBtn: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
+    minHeight: 48,
   },
   segmentBtnActive: {
     backgroundColor: '#1C3F94',
   },
   segmentText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#3D5070',
+    fontWeight: '700',
+    color: '#1E293B',
   },
   segmentTextActive: {
     color: '#FFFFFF',
@@ -648,6 +666,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginTop: 4,
+    minHeight: 52,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 4px 18px rgba(28,63,148,0.32)' }
       : {
@@ -675,16 +694,17 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 14,
     marginTop: 4,
+    minHeight: 52,
   },
   disabledStartBtnText: {
-    color: '#8A9BB8',
+    color: '#475569',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
   disabledLeaderHelperText: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     fontWeight: '600',
     textAlign: 'center',
     paddingHorizontal: 8,
@@ -717,9 +737,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+    minHeight: 48,
   },
   completeBtnText: {
-    color: '#0D8A5A',
+    color: '#047857',
     fontSize: 12.5,
     fontWeight: '800',
   },
@@ -733,7 +754,7 @@ const styles = StyleSheet.create({
   },
   leaderNoticeText: {
     fontSize: 11,
-    color: '#3D5070',
+    color: '#334155',
     textAlign: 'center',
     fontWeight: '500',
   },

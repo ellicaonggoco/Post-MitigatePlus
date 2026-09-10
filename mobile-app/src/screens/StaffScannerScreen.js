@@ -1219,6 +1219,10 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 style={styles.headerLogoutBtn}
                 onPress={onLogout}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Logout"
+                accessibilityHint="Logs out of the field staff portal"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text style={styles.headerLogoutText}>Logout</Text>
               </TouchableOpacity>
@@ -2542,9 +2546,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               style={styles.navTabBtn}
               onPress={() => setActiveTab(item.key)}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
+              accessibilityState={{ selected: isActive }}
+              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
             >
               <View style={[styles.navIconWell, isActive && styles.navIconWellActive]}>
-                {item.icon(isActive ? '#B8932A' : '#8A9BB8')}
+                {item.icon(isActive ? '#B8932A' : '#475569')}
               </View>
               <Text style={[styles.navTabLabel, isActive && styles.navTabLabelActive]}>
                 {item.label}
@@ -3349,7 +3357,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8102E', // Manila Red
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 7,
+    paddingVertical: 12,
+    minHeight: 48,
+    minWidth: 48,
     alignItems: 'center',
     justifyContent: 'center',
     ...(Platform.OS === 'web'
@@ -4502,6 +4512,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    minHeight: 48,
   },
   navIconWell: {
     width: 44,
@@ -4517,7 +4528,7 @@ const styles = StyleSheet.create({
   navTabLabel: {
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#8A9BB8',
+    color: '#475569',
     marginTop: 2,
   },
   navTabLabelActive: {
