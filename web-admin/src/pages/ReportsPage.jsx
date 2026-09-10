@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import ReactDOM from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
@@ -1359,8 +1360,8 @@ export default function ReportsPage() {
         </>
       )}
 
-      {/* ── RESOLVE INCIDENT MODAL ── */}
-      {resolvingIncident && (
+      {/* ── RESOLVE INCIDENT MODAL (PORTALED TO BODY TO BLUR FULL SCREEN INCLUDING SIDEBAR & NAVBAR) ── */}
+      {resolvingIncident && typeof document !== 'undefined' && ReactDOM.createPortal(
         <div style={{
           position: 'fixed',
           top: 0,
@@ -1369,13 +1370,13 @@ export default function ReportsPage() {
           bottom: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(15, 23, 42, 0.75)',
+          background: 'rgba(15, 23, 42, 0.72)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 999999,
+          zIndex: 99999999,
           padding: '24px 16px',
           overflowY: 'auto',
         }}>
@@ -1789,7 +1790,8 @@ export default function ReportsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
