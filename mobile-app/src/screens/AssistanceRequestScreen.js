@@ -25,7 +25,6 @@ import {
   BoxPackageIcon,
   HammerToolIcon,
   BriefcaseOutlineIcon,
-  RefreshIcon,
   QrCodeIcon,
 } from '../components/AppIcons';
 import { SHADOWS, RESPONSIVE } from '../theme';
@@ -359,17 +358,7 @@ export default function AssistanceRequestScreen({
             <Text style={styles.navTitle}>
               {lang === 'tl' ? 'Pang-emerhensiyang Hanapbuhay' : 'Livelihood Assistance'}
             </Text>
-            <TouchableOpacity
-              onPress={fetchCFWData}
-              style={styles.navRefreshBtn}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel={lang === 'tl' ? 'I-refresh ang mga proyekto' : 'Refresh projects list'}
-              accessibilityHint={lang === 'tl' ? 'Ilo-load muli ang pinakabagong Cash-for-Work projects' : 'Reloads the latest Cash-for-Work projects'}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <RefreshIcon size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={{ width: 48, height: 48 }} />
           </View>
 
           <View style={styles.heroTextContainer}>
