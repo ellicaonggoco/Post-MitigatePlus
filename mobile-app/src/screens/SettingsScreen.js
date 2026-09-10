@@ -146,7 +146,13 @@ function HouseholdProfileHeader({
           </View>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 20, fontWeight: '900', color: '#0B1525', letterSpacing: -0.4 }}>{formattedName}</Text>
+          <Text
+            accessibilityRole="header"
+            accessibilityLabel={`${lang === 'tl' ? 'Pangalan sa Profile' : 'Profile Name'}: ${formattedName}`}
+            style={{ fontSize: 20, fontWeight: '900', color: '#0B1525', letterSpacing: -0.4 }}
+          >
+            {formattedName}
+          </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 6 }}>
             {isVerified ? (
               <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(4,120,87,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
@@ -167,7 +173,12 @@ function HouseholdProfileHeader({
             )}
           </View>
           <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>Barangay {barangayCode || '291'}, Manila</Text>
-          <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>{contact}</Text>
+          <Text
+            accessibilityLabel={`${lang === 'tl' ? 'Email sa Profile' : 'Profile Email'}: ${contact}`}
+            style={{ fontSize: 12, color: '#334155', fontWeight: '600' }}
+          >
+            {contact}
+          </Text>
         </View>
       </View>
     </View>
@@ -823,7 +834,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
           onPress={() => setShowRosterModal(true)}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={`${lang === 'tl' ? 'Talaan ng Miyembro' : 'Household Members'}, ${members.length} ${lang === 'tl' ? 'Miyembro' : 'Members'}`}
+          accessibilityLabel={`${lang === 'tl' ? 'Talaan ng Miyembro' : 'Household Members'}, ${members.length} ${lang === 'tl' ? 'Miyembro' : 'Members'}, ${vulnerableCount > 0 ? `${vulnerableCount} Vulnerable` : 'Standard'}, ${computedScore} pts. ${lang === 'tl' ? 'Tingnan ang talaan' : 'View roster'}`}
           accessibilityHint={lang === 'tl' ? 'Bubuksan ang buong talaan ng pamilya' : 'Opens full household members roster'}
         >
           <View style={styles.rosterIconCircle}>
@@ -854,7 +865,12 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               <Text style={styles.settingItemLabel}>
                 {lang === 'tl' ? 'Punong-Pamilya' : 'Head of Household'}
               </Text>
-              <Text style={styles.settingItemValue}>{formatCapitalizeWords(name)}</Text>
+              <Text
+                accessibilityLabel={`${lang === 'tl' ? 'Rehistradong Punong-Pamilya' : 'Registered Head of Household'}: ${formatCapitalizeWords(name)}`}
+                style={styles.settingItemValue}
+              >
+                {formatCapitalizeWords(name)}
+              </Text>
             </View>
             <View style={styles.readOnlyBadge}>
               <Text style={styles.readOnlyText}>{lang === 'tl' ? 'Naka-rehistro' : 'Registered'}</Text>
@@ -871,7 +887,12 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               {isEditingContact ? (
                 <NeumorphicInput value={contact} onChangeText={setContact} placeholder="09XXXXXXXXX" />
               ) : (
-                <Text style={styles.settingItemValue}>{contact}</Text>
+                <Text
+                  accessibilityLabel={`${lang === 'tl' ? 'Rehistradong Contact' : 'Registered Contact'}: ${contact}`}
+                  style={styles.settingItemValue}
+                >
+                  {contact}
+                </Text>
               )}
             </View>
             <TouchableOpacity
@@ -2033,7 +2054,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#F3F6FC', marginVertical: 6 },
   readOnlyBadge: { flexShrink: 0, backgroundColor: '#F3F6FC', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   readOnlyText: { fontSize: 10, fontWeight: '700', color: '#3D5070' },
-  editActionBtn: { flexShrink: 0, backgroundColor: '#EDF1FB', paddingHorizontal: 12, paddingVertical: 12, borderRadius: 6, minHeight: 48, justifyContent: 'center' },
+  editActionBtn: { flexShrink: 0, backgroundColor: '#EDF1FB', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 6, minHeight: 48, minWidth: 48, alignItems: 'center', justifyContent: 'center' },
   editActionText: { fontSize: 11, fontWeight: '700', color: '#1C3F94' },
   successInline: { fontSize: 11, color: '#16A34A', fontWeight: '700', marginTop: 4 },
   actionPillBtn: {
@@ -2044,10 +2065,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDF1FB',
     borderWidth: 1,
     borderColor: '#D6DEFA',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 8,
     minHeight: 48,
+    minWidth: 48,
     justifyContent: 'center',
   },
   actionPillBtnText: { fontSize: 11, fontWeight: '800', color: '#1C3F94' },
@@ -2056,10 +2078,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
     borderWidth: 1,
     borderColor: '#FECACA',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 8,
     minHeight: 48,
+    minWidth: 48,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   revokeQrBtnText: { fontSize: 11, fontWeight: '800', color: '#B91C1C' },
