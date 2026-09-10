@@ -229,7 +229,15 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
       {/* 0. Top Navigation & Header */}
       <View style={styles.topNavRow}>
         {onBack && (
-          <TouchableOpacity style={styles.backCircleBtn} onPress={onBack} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.backCircleBtn}
+            onPress={onBack}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'tl' ? 'Bumalik sa mga gawain' : 'Go back to tasks'}
+            accessibilityHint="Returns to tasks and distribution drives"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <ArrowLeftIcon size={18} color="#1C3F94" />
           </TouchableOpacity>
         )}
@@ -307,9 +315,12 @@ export default function SpecialRequestAssignmentScreen({ user, onBack, lang = 'e
                   : 'Delivered relief goods with uploaded proof photos will appear here.'}
             </Text>
             <TouchableOpacity
-              style={[styles.royalBlueBtn, { marginTop: 14, paddingHorizontal: 20, alignSelf: 'center' }]}
+              style={[styles.royalBlueBtn, { marginTop: 14, paddingHorizontal: 20, alignSelf: 'center', minHeight: 52 }]}
               onPress={fetchTasks}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'I-refresh ang Listahan' : 'Refresh Task List'}
+              accessibilityHint="Reloads assigned special requests and door to door deliveries"
             >
               <Text style={styles.royalBlueBtnText}>
                 {lang === 'tl' ? 'I-refresh ang Listahan' : 'Refresh Task List'}
@@ -580,9 +591,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    minWidth: 44,
+    minHeight: 44,
     backgroundColor: '#EDF1FB',
     alignItems: 'center',
     justifyContent: 'center',
@@ -933,8 +946,10 @@ const styles = StyleSheet.create({
   },
   changePhotoBtn: {
     backgroundColor: '#F3F6FC',
-    paddingVertical: 8,
+    paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   changePhotoText: {
     fontSize: 11,
@@ -944,7 +959,7 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#3D5070',
+    color: '#475569',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -973,6 +988,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 48,
   },
   modalCancelBtnText: {
     fontSize: 12.5,
@@ -986,6 +1002,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 48,
     flexDirection: 'row',
     gap: 6,
     shadowColor: '#1C3F94',

@@ -138,6 +138,9 @@ export default function StaffIncidentReportScreen({ token }) {
                 style={[styles.typeOption, isSelected && styles.typeOptionActive]}
                 onPress={() => setIncidentType(type)}
                 activeOpacity={0.8}
+                accessibilityRole="radio"
+                accessibilityLabel={type}
+                accessibilityState={{ checked: isSelected }}
               >
                 {isSelected ? (
                   <RadioCheckedIcon size={16} color="#1C3F94" />
@@ -159,6 +162,8 @@ export default function StaffIncidentReportScreen({ token }) {
           keyboardType="numeric"
           style={styles.input}
           placeholder="e.g. 291"
+          placeholderTextColor="#54657E"
+          accessibilityLabel="Barangay Code"
         />
 
         <Text style={styles.label}>Incident Details & Action Taken:</Text>
@@ -169,6 +174,8 @@ export default function StaffIncidentReportScreen({ token }) {
           numberOfLines={4}
           style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
           placeholder="Describe what happened on-ground and any actions taken..."
+          placeholderTextColor="#54657E"
+          accessibilityLabel="Incident Details and Action Taken"
         />
 
         {/* GPS Location Card */}
@@ -180,7 +187,14 @@ export default function StaffIncidentReportScreen({ token }) {
 
         {/* Photo Evidence */}
         <Text style={[styles.label, { marginTop: 12 }]}>Photo Evidence (Optional):</Text>
-        <TouchableOpacity style={styles.photoBtn} onPress={handlePickPhoto} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.photoBtn}
+          onPress={handlePickPhoto}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={photoUri ? 'Change Photo' : 'Attach Photo Evidence'}
+          accessibilityHint="Select or capture incident photo"
+        >
           <CameraIcon size={16} color="#1C3F94" />
           <Text style={styles.photoBtnText}>{photoUri ? 'Change Photo' : 'Attach Photo Evidence'}</Text>
         </TouchableOpacity>
@@ -193,6 +207,9 @@ export default function StaffIncidentReportScreen({ token }) {
           onPress={handleSubmitIncident}
           disabled={loading}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Log Incident to Command Center"
+          accessibilityHint="Submits incident report to the LGU Command Center"
         >
           <Text style={styles.submitBtnText}>
             {loading ? 'Logging Incident...' : 'Log Incident to Command Center'}
@@ -212,7 +229,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', borderRadius: RADIUS.card, padding: SPACING.lg, borderWidth: 1, borderColor: '#DDE4F0' },
   label: { fontSize: 13, fontWeight: FONT_WEIGHT.bold, color: '#0B1525', marginBottom: 6 },
   typeOption: {
-    padding: 10,
+    padding: 12,
     borderRadius: RADIUS.inner,
     borderWidth: 1,
     borderColor: '#DDE4F0',
@@ -220,12 +237,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    minHeight: 48,
   },
   typeOptionActive: {
     borderColor: '#1C3F94',
     backgroundColor: '#EDF1FB',
   },
-  typeOptionText: { fontSize: 12, fontWeight: '600', color: '#3D5070' },
+  typeOptionText: { fontSize: 12, fontWeight: '700', color: '#1E293B' },
   typeOptionTextActive: { color: '#1C3F94', fontWeight: FONT_WEIGHT.bold },
   input: {
     borderWidth: 1.5,
@@ -236,6 +254,7 @@ const styles = StyleSheet.create({
     color: '#0B1525',
     marginBottom: 16,
     backgroundColor: '#FFFFFF',
+    minHeight: 48,
   },
   submitBtn: {
     backgroundColor: '#C8102E',
@@ -244,6 +263,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
+    minHeight: 52,
     ...SHADOWS.button,
   },
   submitBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: FONT_WEIGHT.black },
@@ -265,12 +285,13 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.inner,
     borderWidth: 1.5,
     borderColor: '#D6DEFA',
-    paddingVertical: 11,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     marginBottom: 10,
+    minHeight: 48,
     ...SHADOWS.sm,
   },
   photoBtnText: { fontSize: 13, color: '#1C3F94', fontWeight: '700' },
