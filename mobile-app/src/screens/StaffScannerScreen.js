@@ -39,6 +39,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   UsersIcon,
+  BriefcaseOutlineIcon,
 } from '../components/AppIcons';
 import StaffTasksScreen from './StaffTasksScreen';
 import SpecialRequestAssignmentScreen from './SpecialRequestAssignmentScreen';
@@ -63,6 +64,8 @@ const STATUSBAR_INSET = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 export default function StaffScannerScreen({ token, user, lang = 'en', onSelectLang, onLogout }) {
   const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' | 'deliveries' | 'scanner' | 'incident' | 'settings'
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [scanMode, setScanMode] = useState('relief'); // 'relief' | 'attendance'
+  const [attendanceResult, setAttendanceResult] = useState(null);
   const lastBackPressRef = useRef(0);
 
   useEffect(() => {
@@ -132,7 +135,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const [torchOn, setTorchOn] = useState(false);
   const [cameraMountKey, setCameraMountKey] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
-  // Scanner is now button-triggered — modal controls visibility
+  // Scanner is now button-triggered - modal controls visibility
   const [scanModalVisible, setScanModalVisible] = useState(false);
   const lastScannedRef = useRef({ code: '', time: 0 });
 
@@ -579,6 +582,58 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     setScanNotice(null);
     setScansTodayCount(prev => prev + 1);
 
+    if (scanMode === 'attendance') {
+      try {
+        const attRes = await fetch(`${API_BASE_URL}/cash-for-work/attendance/scan`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ qrCode: rawCode }),
+        });
+        const attData = await attRes.json();
+
+        if (attRes.ok && attData.success) {
+          setScanModalVisible(false);
+          setAttendanceResult({
+            actionType: attData.actionType,
+            applicantName: attData.applicantName || 'Resident Worker',
+            dayNumber: attData.dayNumber || 1,
+            totalDaysWorked: attData.totalDaysWorked || 0,
+            durationDays: attData.durationDays || 10,
+            totalPayoutEarned: attData.totalPayoutEarned || 0,
+            dailyWageRate: attData.dailyWageRate || 500,
+            selectedCategory: attData.application?.selectedCategory || 'Rehabilitation Assignment',
+            barangayCode: attData.application?.barangayCode || dutyBrgy,
+            payoutVoucherCode: attData.application?.payoutVoucherCode || rawCode,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: new Date().toLocaleDateString(),
+          });
+          setVerifiedTodayCount(prev => prev + 1);
+          setScanNotice({
+            type: 'success',
+            text: (attData.actionType === 'TIME_IN' ? 'TIME-IN RECORDED: ' : 'TIME-OUT RECORDED: ') + attData.applicantName + ' (Day ' + attData.dayNumber + ')',
+          });
+        } else {
+          Alert.alert(
+            lang === 'tl' ? 'Attendance Checker' : 'Attendance Scan Result',
+            attData.message || (lang === 'tl' ? 'Hindi nakita ang worker sa mga aprubadong Cash-for-Work list.' : 'No approved CFW record found for this QR pass.'),
+            [{ text: 'OK', onPress: () => setScanned(false) }]
+          );
+          setFlaggedTodayCount(prev => prev + 1);
+          setTimeout(() => setScanned(false), 2000);
+        }
+      } catch (e) {
+        console.warn('Attendance scan error:', e);
+        Alert.alert('Error', lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Cannot connect to attendance server.');
+        setTimeout(() => setScanned(false), 2000);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const activeDrive = selectedEvent || {
       title: lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution',
       itemType: 'All-in-One Family Food Pack',
@@ -721,7 +776,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         const evBrgy = err.data?.eventBarangay;
         setScanNotice({
           type: 'error',
-          text: `HINDI PWEDE: QR ng Brgy ${hhBrgy} — Event para sa Brgy ${evBrgy} lamang`,
+          text: `HINDI PWEDE: QR ng Brgy ${hhBrgy} (Event para sa Brgy ${evBrgy} lamang)`,
         });
         Alert.alert(
           'Maling Barangay',
@@ -835,7 +890,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         const hhBrgy = err.data?.householdBarangay;
         const evBrgy = err.data?.eventBarangay;
         Alert.alert(
-          'Hindi Pwede — Maling Barangay',
+          'Hindi Pwede: Maling Barangay',
           err.message || `Ang pamilyang ito ay mula sa Barangay ${hhBrgy}. Ang distribution event ay para sa Barangay ${evBrgy} lamang. Hindi maaaring ibigay ang relief dito.`,
           [{ text: 'OK', style: 'cancel' }]
         );
@@ -922,7 +977,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             <Text style={styles.headerOfficerName}>{officerName}</Text>
             <View style={styles.headerDutyRow}>
               <MapPinIcon size={12} color="#C9A84C" />
-              <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} — Batch 1</Text>
+              <Text style={styles.headerDutyText}>Duty: Brgy {dutyBrgy} (Batch 1)</Text>
             </View>
           </View>
           {onLogout && (
@@ -964,69 +1019,150 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* ── 1. LIVE DISTRIBUTION DRIVE WIDGET (White Card + Left 4px Gold Accent Bar) ── */}
-            <View style={styles.driveWidgetCard}>
-              <View style={styles.driveWidgetHeader}>
-                <View style={styles.driveWidgetLiveTag}>
-                  <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
-                  <Text style={styles.driveWidgetLiveText}>
-                    LIVE DISTRIBUTION DRIVE
-                  </Text>
-                </View>
-                <View style={styles.driveActivePill}>
-                  <View style={styles.driveActivePillDot} />
-                  <Text style={styles.driveActivePillText}>ACTIVE</Text>
-                </View>
-              </View>
+            {/* ── SCANNER MODE SEGMENT SWITCHER ── */}
+            <View style={styles.scanModeSegment}>
+              <TouchableOpacity
+                style={[styles.scanModeTab, scanMode === 'relief' && styles.scanModeTabActive]}
+                onPress={() => {
+                  setScanMode('relief');
+                  setScanResult(null);
+                  setAttendanceResult(null);
+                }}
+                activeOpacity={0.8}
+              >
+                <PackageIcon size={15} color={scanMode === 'relief' ? '#FFFFFF' : '#64748B'} />
+                <Text style={[styles.scanModeTabText, scanMode === 'relief' && styles.scanModeTabTextActive]}>
+                  {lang === 'tl' ? 'Pamamahagi ng Ayuda' : 'Relief Goods'}
+                </Text>
+              </TouchableOpacity>
 
-              <Text style={styles.driveWidgetTitle}>
-                {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive')}
-              </Text>
-
-              <View style={styles.driveWidgetMetaRow}>
-                <View style={styles.driveMetaItem}>
-                  <MapPinIcon size={13} color="#1C3F94" />
-                  <Text style={styles.driveMetaText} numberOfLines={1}>
-                    {selectedEvent?.venue || selectedEvent?.location || `Barangay ${dutyBrgy} Evacuation Site`}
-                  </Text>
-                </View>
-                <View style={styles.driveMetaDivider} />
-                <View style={styles.driveMetaItem}>
-                  <PackageIcon size={13} color="#1C3F94" />
-                  <Text style={styles.driveMetaText} numberOfLines={1}>
-                    {selectedEvent?.itemType || 'Family Food Pack'}
-                  </Text>
-                </View>
-                <View style={styles.driveMetaDivider} />
-                <View style={styles.driveMetaItem}>
-                  <ClockIcon size={13} color="#1C3F94" />
-                  <Text style={styles.driveMetaText} numberOfLines={1}>
-                    08:00 AM – 05:00 PM
-                  </Text>
-                </View>
-              </View>
+              <TouchableOpacity
+                style={[styles.scanModeTab, scanMode === 'attendance' && styles.scanModeTabActiveAttendance]}
+                onPress={() => {
+                  setScanMode('attendance');
+                  setScanResult(null);
+                  setAttendanceResult(null);
+                }}
+                activeOpacity={0.8}
+              >
+                <ClockIcon size={15} color={scanMode === 'attendance' ? '#FFFFFF' : '#64748B'} />
+                <Text style={[styles.scanModeTabText, scanMode === 'attendance' && styles.scanModeTabTextActive]}>
+                  {lang === 'tl' ? 'CFW Attendance' : 'CFW Attendance'}
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            {/* ── 1. ACTIVE OPERATION WIDGET ── */}
+            {scanMode === 'relief' ? (
+              <View style={styles.driveWidgetCard}>
+                <View style={styles.driveWidgetHeader}>
+                  <View style={styles.driveWidgetLiveTag}>
+                    <Animated.View style={[styles.beaconDot, { opacity: beaconAnim }]} />
+                    <Text style={styles.driveWidgetLiveText}>
+                      LIVE DISTRIBUTION DRIVE
+                    </Text>
+                  </View>
+                  <View style={styles.driveActivePill}>
+                    <View style={styles.driveActivePillDot} />
+                    <Text style={styles.driveActivePillText}>ACTIVE</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.driveWidgetTitle}>
+                  {selectedEvent?.title || (lang === 'tl' ? 'Pangkalahatang Pamamahagi ng Ayuda' : 'General Relief Distribution Drive')}
+                </Text>
+
+                <View style={styles.driveWidgetMetaRow}>
+                  <View style={styles.driveMetaItem}>
+                    <MapPinIcon size={13} color="#1C3F94" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      {selectedEvent?.venue || selectedEvent?.location || ('Barangay ' + dutyBrgy + ' Evacuation Site')}
+                    </Text>
+                  </View>
+                  <View style={styles.driveMetaDivider} />
+                  <View style={styles.driveMetaItem}>
+                    <PackageIcon size={13} color="#1C3F94" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      {selectedEvent?.itemType || 'Family Food Pack'}
+                    </Text>
+                  </View>
+                  <View style={styles.driveMetaDivider} />
+                  <View style={styles.driveMetaItem}>
+                    <ClockIcon size={13} color="#1C3F94" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      08:00 AM - 05:00 PM
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={[styles.driveWidgetCard, { borderLeftColor: '#0F766E' }]}>
+                <View style={styles.driveWidgetHeader}>
+                  <View style={[styles.driveWidgetLiveTag, { backgroundColor: '#F0FDFA' }]}>
+                    <Animated.View style={[styles.beaconDot, { backgroundColor: '#0F766E', opacity: beaconAnim }]} />
+                    <Text style={[styles.driveWidgetLiveText, { color: '#0F766E' }]}>
+                      CASH-FOR-WORK ATTENDANCE
+                    </Text>
+                  </View>
+                  <View style={[styles.driveActivePill, { backgroundColor: '#CCFBF1' }]}>
+                    <View style={[styles.driveActivePillDot, { backgroundColor: '#0F766E' }]} />
+                    <Text style={[styles.driveActivePillText, { color: '#0F766E' }]}>CHECKER</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.driveWidgetTitle}>
+                  {lang === 'tl' ? 'Pang-araw-araw na Attendance ng Manggagawa' : 'Daily Worker Duty & Attendance'}
+                </Text>
+
+                <View style={styles.driveWidgetMetaRow}>
+                  <View style={styles.driveMetaItem}>
+                    <MapPinIcon size={13} color="#0F766E" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      {'Barangay ' + dutyBrgy + ' Worksites'}
+                    </Text>
+                  </View>
+                  <View style={styles.driveMetaDivider} />
+                  <View style={styles.driveMetaItem}>
+                    <BriefcaseOutlineIcon size={13} color="#0F766E" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      PHP 500.00 / day
+                    </Text>
+                  </View>
+                  <View style={styles.driveMetaDivider} />
+                  <View style={styles.driveMetaItem}>
+                    <ClockIcon size={13} color="#0F766E" />
+                    <Text style={styles.driveMetaText} numberOfLines={1}>
+                      Time-In & Time-Out
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* ── 2. OFFICIAL QR PASS SCANNER PANEL (Dark Gradient Card + Top 3px Gold Rule) ── */}
             <LinearGradient
-              colors={['#0B1D4E', '#12296A', '#1C3F94']}
+              colors={scanMode === 'attendance' ? ['#042F2E', '#115E59', '#0F766E'] : ['#0B1D4E', '#12296A', '#1C3F94']}
               start={{ x: 0, y: 0 }}
               end={{ x: 0.3, y: 1 }}
               style={styles.scannerPanelCard}
             >
               {/* Top 3px Gold Rule */}
-              <View style={styles.scannerPanelGoldRule} />
+              <View style={[styles.scannerPanelGoldRule, scanMode === 'attendance' && { backgroundColor: '#2DD4BF' }]} />
 
               <View style={styles.scannerPanelInner}>
                 {/* Header Row */}
                 <View style={styles.scannerPanelHeader}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
                     <View style={styles.scannerHeaderIconBadge}>
-                      <ScanIcon size={20} color="#C9A84C" />
+                      <ScanIcon size={20} color={scanMode === 'attendance' ? '#2DD4BF' : '#C9A84C'} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.scannerPanelTitle}>QR Pass Camera Scanner</Text>
-                      <Text style={styles.scannerPanelSub}>LGU Manila · MDRRMO Operations</Text>
+                      <Text style={styles.scannerPanelTitle}>
+                        {scanMode === 'attendance' ? 'Worker Attendance Scanner' : 'QR Pass Camera Scanner'}
+                      </Text>
+                      <Text style={styles.scannerPanelSub}>
+                        {scanMode === 'attendance' ? 'LGU Manila · Cash-for-Work Duty' : 'LGU Manila · MDRRMO Operations'}
+                      </Text>
                     </View>
                   </View>
                   <View style={styles.scannerReadyPill}>
@@ -1040,9 +1176,13 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
                 {/* Guidance Note */}
                 <View style={styles.scannerGuidanceBox}>
                   <Text style={styles.scannerGuidanceText}>
-                    {lang === 'tl'
-                      ? 'Pindutin ang button sa ibaba upang buksan ang totoong camera scanner para sa pag-verify ng QR Pass at pamamahagi ng relief pack.'
-                      : "Tap the button below to launch the live camera scanner to verify the resident's QR Pass and disburse relief packs."}
+                    {scanMode === 'attendance'
+                      ? (lang === 'tl'
+                          ? 'Pindutin ang button sa ibaba upang buksan ang camera para i-scan ang QR Pass ng worker para sa Time-In o Time-Out.'
+                          : 'Tap the button below to launch the camera scanner to record morning Time-In or afternoon Time-Out for CFW workers.')
+                      : (lang === 'tl'
+                          ? 'Pindutin ang button sa ibaba upang buksan ang totoong camera scanner para sa pag-verify ng QR Pass at pamamahagi ng relief pack.'
+                          : "Tap the button below to launch the live camera scanner to verify the resident's QR Pass and disburse relief packs.")}
                   </Text>
                 </View>
 
@@ -1597,7 +1737,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
               <View style={styles.dutyInfoRow}>
                 <Text style={styles.dutyInfoKicker}>Duty Period</Text>
                 <Text style={styles.dutyInfoVal}>
-                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · 06:00 AM – 06:00 PM
+                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · 06:00 AM - 06:00 PM
                 </Text>
               </View>
             </View>
@@ -1945,6 +2085,104 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         </View>
       </Modal>
 
+      {/* ATTENDANCE RESULT POP-UP CARD MODAL */}
+      <Modal
+        visible={!!attendanceResult}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setAttendanceResult(null);
+          setScanned(false);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          {attendanceResult && (
+            <View style={styles.scanPopupCard}>
+              {/* Header */}
+              <View style={styles.popupHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                  <View style={[styles.popupIconCircle, attendanceResult.actionType === 'TIME_IN' ? { backgroundColor: '#16A34A' } : { backgroundColor: '#0284C7' }]}>
+                    <ClockIcon size={20} color="#FFFFFF" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.popupTitle}>
+                      {attendanceResult.actionType === 'TIME_IN' ? 'TIME-IN RECORDED' : 'TIME-OUT RECORDED'}
+                    </Text>
+                    <Text style={styles.popupSub} numberOfLines={1}>
+                      {attendanceResult.actionType === 'TIME_IN' ? 'Morning Worksite Arrival Logged' : 'Full Day Duty Certified & Credited'}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setAttendanceResult(null);
+                    setScanned(false);
+                  }}
+                  style={styles.popupCloseBtn}
+                  activeOpacity={0.8}
+                >
+                  <CloseIcon size={18} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Attendance Details Box */}
+              <View style={styles.popupBeneficiaryBox}>
+                <Text style={styles.popupHhName}>{attendanceResult.applicantName}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <BriefcaseOutlineIcon size={13} color="#64748B" />
+                  <Text style={styles.popupHhAddress}>
+                    {attendanceResult.selectedCategory}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <MapPinIcon size={13} color="#64748B" />
+                  <Text style={styles.popupHhMeta}>
+                    {'Barangay ' + (attendanceResult.barangayCode || dutyBrgy) + ' Worksite'}
+                  </Text>
+                </View>
+
+                {/* Duty & Progress Stats */}
+                <View style={{ marginTop: 12, padding: 12, borderRadius: 8, backgroundColor: attendanceResult.actionType === 'TIME_IN' ? '#F0FDF4' : '#F0F9FF', borderWidth: 1, borderColor: attendanceResult.actionType === 'TIME_IN' ? '#BBF7D0' : '#BAE6FD' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Timestamp:</Text>
+                    <Text style={{ fontSize: 12, color: '#0F172A', fontWeight: '700' }}>{attendanceResult.date + ' · ' + attendanceResult.time}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Attendance Progress:</Text>
+                    <Text style={{ fontSize: 12, color: attendanceResult.actionType === 'TIME_IN' ? '#15803D' : '#0369A1', fontWeight: '800' }}>
+                      {attendanceResult.actionType === 'TIME_IN'
+                        ? ('Day ' + attendanceResult.dayNumber + ' (In Progress)')
+                        : ('Day ' + attendanceResult.totalDaysWorked + ' of ' + attendanceResult.durationDays + ' Completed')}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>Accumulated Earnings:</Text>
+                    <Text style={{ fontSize: 13, color: '#15803D', fontWeight: '900' }}>
+                      {'PHP ' + Number(attendanceResult.totalPayoutEarned || 0).toLocaleString() + '.00'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Button */}
+              <TouchableOpacity
+                style={[styles.popupReleaseBtn, attendanceResult.actionType === 'TIME_IN' ? { backgroundColor: '#16A34A' } : { backgroundColor: '#0284C7' }]}
+                onPress={() => {
+                  setAttendanceResult(null);
+                  setScanned(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <CheckIcon size={18} color="#FFFFFF" />
+                <Text style={styles.popupReleaseBtnText}>
+                  {lang === 'tl' ? 'Tapos Na (I-scan ang Susunod)' : 'Done (Scan Next Worker)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
+
       {/* 3. DUPLICATE CLAIM WARNING POP-UP CARD MODAL */}
       <Modal
         visible={duplicateAlert}
@@ -2119,6 +2357,51 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+
+  // ── SCANNER MODE SEGMENT SWITCHER ──
+  scanModeSegment: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 12,
+    gap: 6,
+  },
+  scanModeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: 9,
+    gap: 6,
+  },
+  scanModeTabActive: {
+    backgroundColor: '#1C3F94',
+    shadowColor: '#1C3F94',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  scanModeTabActiveAttendance: {
+    backgroundColor: '#0F766E',
+    shadowColor: '#0F766E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  scanModeTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  scanModeTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
 
   // ── MITIGATEPLUS DESIGN SYSTEM V1.0: QR SCANNER SECTION ──

@@ -417,18 +417,43 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
     const { qrCode, householdId, projectId } = req.body;
 
     let application = null;
+    const activeStatuses = ['approved_for_work', 'active_on_duty'];
+
     if (householdId && projectId) {
-      application = await CashForWorkApplication.findOne({ householdId, projectId, status: 'approved_for_work' }).populate('projectId');
+      application = await CashForWorkApplication.findOne({
+        householdId,
+        projectId,
+        status: { $in: activeStatuses },
+      }).populate('projectId');
     } else if (qrCode) {
-      // Find household by qrCode
-      const hh = await Household.findOne({ qrCode });
-      if (hh) {
-        application = await CashForWorkApplication.findOne({ householdId: hh._id, status: 'approved_for_work' }).populate('projectId');
+      const cleanCode = String(qrCode).trim();
+      // 1. Check if the scanned code matches a payoutVoucherCode (e.g. CFW-291-XXXX)
+      application = await CashForWorkApplication.findOne({
+        payoutVoucherCode: { $regex: new RegExp(`^${cleanCode}$`, 'i') },
+        status: { $in: activeStatuses },
+      }).populate('projectId');
+
+      // 2. If not matched, check if it matches a Household qrCode (e.g. HH-291-XXXX)
+      if (!application) {
+        const hh = await Household.findOne({
+          $or: [
+            { qrCode: cleanCode },
+            { qrCode: { $regex: new RegExp(`^${cleanCode}$`, 'i') } },
+          ],
+        });
+        if (hh) {
+          application = await CashForWorkApplication.findOne({
+            householdId: hh._id,
+            status: { $in: activeStatuses },
+          }).populate('projectId');
+        }
       }
     }
 
     if (!application) {
-      return res.status(400).json({ message: 'No approved Cash-for-Work assignment found for this QR pass.' });
+      return res.status(400).json({
+        message: 'No approved Cash-for-Work assignment found for this QR pass. Please verify that the resident application is approved by the Barangay.',
+      });
     }
 
     const todayStr = new Date().toISOString().split('T')[0];
@@ -473,6 +498,21 @@ router.post('/attendance/scan', protect, requireRole('field_staff', 'barangay_of
       application._id,
       req.ip
     );
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`household:${application.householdId}`).emit('cfw_attendance_updated', {
+        actionType,
+        dayNumber: record.dayNumber,
+        totalDaysWorked: application.totalDaysWorked,
+        totalPayoutEarned: application.totalPayoutEarned,
+      });
+      io.to(`barangay:${application.barangayCode}`).emit('cfw_attendance_logged', {
+        workerName: application.applicantName,
+        actionType,
+        dayNumber: record.dayNumber,
+      });
+    }
 
     res.json({
       success: true,

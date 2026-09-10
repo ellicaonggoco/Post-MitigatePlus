@@ -26,6 +26,7 @@ import {
   HammerToolIcon,
   BriefcaseOutlineIcon,
   RefreshIcon,
+  QrCodeIcon,
 } from '../components/AppIcons';
 import { SHADOWS, RESPONSIVE } from '../theme';
 import { API_BASE_URL } from '../config';
@@ -95,6 +96,7 @@ export default function AssistanceRequestScreen({
   const [experienceNotes, setExperienceNotes] = useState('');
   const [isCommitted, setIsCommitted] = useState(false);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [showAttendanceQrModal, setShowAttendanceQrModal] = useState(false);
 
   const scrollRef = useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -405,6 +407,17 @@ export default function AssistanceRequestScreen({
                   </View>
 
                   <TouchableOpacity
+                    style={styles.showAttendanceQrBtn}
+                    onPress={() => setShowAttendanceQrModal(true)}
+                    activeOpacity={0.85}
+                  >
+                    <QrCodeIcon size={18} color="#FFFFFF" />
+                    <Text style={styles.showAttendanceQrBtnText}>
+                      {lang === 'tl' ? 'Ipakita ang Attendance QR Pass' : 'Show Attendance QR Pass'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
                     style={styles.viewVoucherBtn}
                     onPress={() => setShowVoucherModal(true)}
                     activeOpacity={0.85}
@@ -627,6 +640,64 @@ export default function AssistanceRequestScreen({
 
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowVoucherModal(false)}>
               <Text style={styles.modalCloseBtnText}>Close Voucher</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* POP-UP MODAL: CASH-FOR-WORK ATTENDANCE QR PASS */}
+      <Modal visible={showAttendanceQrModal} transparent animationType="fade" onRequestClose={() => setShowAttendanceQrModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.voucherModalCard}>
+            <View style={styles.voucherHeaderRow}>
+              <View>
+                <Text style={styles.voucherGovKicker}>CITY GOVERNMENT OF MANILA</Text>
+                <Text style={styles.voucherMainTitle}>Attendance Duty QR Pass</Text>
+              </View>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowAttendanceQrModal(false)}>
+                <CloseIcon size={16} color="#0F172A" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.voucherDetailsBox}>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Worker Name:</Text>
+                <Text style={styles.voucherMetaValue}>{userApplication?.applicantName || user?.name || 'Resident Worker'}</Text>
+              </View>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Assigned Scope:</Text>
+                <Text style={styles.voucherMetaValue}>{userApplication?.selectedCategory || 'Rehabilitation Assignment'}</Text>
+              </View>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Worksite Location:</Text>
+                <Text style={styles.voucherMetaValue}>{'Barangay ' + (userApplication?.barangayCode || householdData?.barangayCode || '291')}</Text>
+              </View>
+              <View style={styles.voucherMetaRow}>
+                <Text style={styles.voucherMetaLabel}>Daily Wage Rate:</Text>
+                <Text style={[styles.voucherMetaValue, { color: '#15803D', fontWeight: '800' }]}>PHP 500.00 / day</Text>
+              </View>
+            </View>
+
+            <View style={styles.qrContainer}>
+              <QRCodeVisual
+                value={userApplication?.payoutVoucherCode || householdData?.qrCode || 'CFW-291-OFFICIAL-ATTENDANCE'}
+                size={170}
+                isCompact={false}
+              />
+              <Text style={styles.qrInstructions}>
+                {lang === 'tl'
+                  ? 'Ipakita ang QR Code na ito sa LGU Attendance Checker para sa Morning Time-In at Afternoon Time-Out.'
+                  : 'Present this QR Pass to the LGU Field Staff for daily Morning Time-In and Afternoon Time-Out.'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalCloseBtn, { backgroundColor: '#0F766E' }]}
+              onPress={() => setShowAttendanceQrModal(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>
+                {lang === 'tl' ? 'Isara ang QR Pass' : 'Close QR Pass'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -914,6 +985,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#166534',
+  },
+  showAttendanceQrBtn: {
+    backgroundColor: '#0F766E',
+    borderRadius: 10,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  showAttendanceQrBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   viewVoucherBtn: {
     backgroundColor: '#1C3F94',
