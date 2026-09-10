@@ -204,7 +204,17 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
         keyboardDismissMode="on-drag"
       >
         {/* Back Button */}
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={handleBack}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={stage > 1 && stage < 4
+            ? (lang === 'tl' ? 'Bumalik sa Nakaraan' : 'Back to Previous')
+            : (lang === 'tl' ? 'Bumalik sa Login' : 'Back to Sign In')}
+          accessibilityHint="Double tap to navigate back"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#C8102E" />
           </View>
@@ -221,6 +231,9 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               source={require('../../assets/logo_secondary.png')}
               style={styles.logoSecondaryImg}
               resizeMode="contain"
+              accessible={true}
+              accessibilityRole="image"
+              accessibilityLabel="MitigatePlus Manila City Seal Logo"
             />
           </View>
           <Text style={styles.brandTitle}>MitigatePlus</Text>
@@ -260,6 +273,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               onPress={handleSendOtp}
               disabled={loading}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={loading
+                ? (lang === 'tl' ? 'Ipinapadala ang Code...' : 'Sending code...')
+                : (lang === 'tl' ? 'Ipadala ang Verification Code' : 'Send Verification Code')}
+              accessibilityState={{ busy: loading, disabled: loading }}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -304,13 +322,17 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                     }}
                     style={{
                       backgroundColor: '#1C3F94',
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      minHeight: 36,
                       borderRadius: 6,
                     }}
                     activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={lang === 'tl' ? 'I-auto fill ang verification code' : 'Auto-fill verification code'}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#FFFFFF' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
                       {lang === 'tl' ? 'I-auto fill ⚡' : 'Auto-Fill ⚡'}
                     </Text>
                   </TouchableOpacity>
@@ -318,7 +340,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                 <Text style={{ fontSize: 22, fontWeight: '900', color: '#1C3F94', letterSpacing: 4, textAlign: 'center', marginVertical: 4 }}>
                   {fallbackOtp}
                 </Text>
-                <Text style={{ fontSize: 10.5, color: '#3D5070', textAlign: 'center' }}>
+                <Text style={{ fontSize: 11, color: '#3D5070', textAlign: 'center' }}>
                   {lang === 'tl'
                     ? 'Gamitin ang verification code na ito kung naantala ang SMS/Email.'
                     : 'Use this verification code if SMS or email delivery is delayed.'}
@@ -349,6 +371,7 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                   keyboardType="numeric"
                   maxLength={1}
                   textAlign="center"
+                  accessibilityLabel={lang === 'tl' ? `Numero ${i + 1} ng 6-digit code` : `Digit ${i + 1} of 6`}
                 />
               ))}
             </View>
@@ -362,7 +385,17 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               </View>
             )}
 
-            <MotionPressable style={styles.actionBtn} onPress={handleVerifyOtp} disabled={loading} activeOpacity={0.85}>
+            <MotionPressable
+              style={styles.actionBtn}
+              onPress={handleVerifyOtp}
+              disabled={loading}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={loading
+                ? (lang === 'tl' ? 'Sinusuri ang code...' : 'Verifying code...')
+                : (lang === 'tl' ? 'I-beripika ang Code' : 'Verify Code')}
+              accessibilityState={{ busy: loading, disabled: loading }}
+            >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
@@ -376,13 +409,18 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               <TouchableOpacity
                 onPress={handleSendOtp}
                 disabled={loading || resendCooldown > 0}
-                style={{ paddingVertical: 6, paddingHorizontal: 12 }}
+                style={{ paddingVertical: 12, paddingHorizontal: 16, minHeight: 48, justifyContent: 'center' }}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={resendCooldown > 0
+                  ? (lang === 'tl' ? `Muling magpadala sa loob ng ${resendCooldown} segundo` : `Resend code in ${resendCooldown} seconds`)
+                  : (lang === 'tl' ? 'Hindi natanggap ang code? Ipadala Muli' : "Didn't receive code? Resend OTP")}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: resendCooldown > 0 ? '#8A9BB8' : '#C8102E',
+                  fontSize: 12.5,
+                  fontWeight: '700',
+                  color: resendCooldown > 0 ? '#54657E' : '#C8102E',
                 }}>
                   {resendCooldown > 0
                     ? (lang === 'tl' ? `Muling magpadala sa loob ng ${resendCooldown}s` : `Resend code in ${resendCooldown}s`)
@@ -450,7 +488,17 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
               secureTextEntry
             />
 
-            <MotionPressable style={styles.actionBtn} onPress={handleResetPassword} disabled={loading} activeOpacity={0.85}>
+            <MotionPressable
+              style={styles.actionBtn}
+              onPress={handleResetPassword}
+              disabled={loading}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={loading
+                ? (lang === 'tl' ? 'Ina-update ang password...' : 'Updating password...')
+                : (lang === 'tl' ? 'I-save ang Bagong Password' : 'Save New Password')}
+              accessibilityState={{ busy: loading, disabled: loading }}
+            >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
@@ -487,7 +535,13 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
                 : 'Your account password has been updated. You can now sign in using your new credentials.'}
             </Text>
 
-            <MotionPressable style={styles.actionBtn} onPress={onResetComplete} activeOpacity={0.85}>
+            <MotionPressable
+              style={styles.actionBtn}
+              onPress={onResetComplete}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Mag-sign In Ngayon' : 'Sign In Now'}
+            >
               <Text style={styles.actionBtnText}>
                 {lang === 'tl' ? 'Mag-sign In Ngayon' : 'Sign In Now'}
               </Text>
@@ -517,8 +571,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#DDE4F0',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
     borderRadius: 9999,
     marginBottom: 16,
     ...(Platform.OS === 'web' ? {
@@ -647,8 +702,9 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   otpBoxInput: {
-    width: 44,
-    height: 48,
+    width: 46,
+    height: 50,
+    minHeight: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -666,9 +722,11 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     backgroundColor: '#C8102E',
-    paddingVertical: 14,
+    height: 52,
+    minHeight: 52,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
@@ -682,7 +740,7 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     color: '#FFFFFF',
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: '800',
   },
 });
