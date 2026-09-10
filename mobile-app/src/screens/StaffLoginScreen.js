@@ -84,7 +84,14 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
         end={{ x: 1, y: 0 }}
         style={styles.gradientHeader}
       >
-        <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backBtn}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Pumili ng Portal, Back to portal selection"
+          accessibilityHint="Returns to portal selection screen"
+        >
           <View style={styles.backIconCircle}>
             <ArrowLeftIcon size={14} color="#C8102E" />
           </View>
@@ -117,25 +124,31 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
             placeholder="Enter Username"
-            placeholderTextColor="#8A9BB8"
+            placeholderTextColor="#54657E"
             keyboardType="email-address"
             autoCapitalize="none"
+            accessibilityLabel="Field Staff Email o Username"
           />
 
           <Text style={[styles.label, { marginTop: 14 }]}>Password ng Kawani:</Text>
           <View style={{ position: 'relative', justifyContent: 'center' }}>
             <TextInput
-              style={[styles.input, { paddingRight: 44 }]}
+              style={[styles.input, { paddingRight: 48 }]}
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••••••"
-              placeholderTextColor="#8A9BB8"
+              placeholderTextColor="#54657E"
               secureTextEntry={!showPassword}
+              accessibilityLabel="Password ng Kawani"
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: 12, top: 14, padding: 4 }}
+              style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? "Itago ang password" : "Ipakita ang password"}
+              accessibilityHint="Toggles password visibility"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               {showPassword ? <EyeOffIcon size={19} color="#1C3F94" /> : <EyeIcon size={19} color="#3D5070" />}
             </TouchableOpacity>
@@ -146,6 +159,9 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             onPress={handleStaffLogin}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Mag-Log In sa Staff Scanner"
+            accessibilityHint="Submits credentials to log into the field staff portal"
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -195,9 +211,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDE4F0',
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 10,
     borderRadius: 9999,
     marginBottom: 14,
+    minHeight: 48,
+    justifyContent: 'center',
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 2px 8px rgba(200, 16, 46, 0.08)',
     } : {
@@ -233,7 +251,7 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 9.5, fontWeight: '800', color: '#C9A84C', letterSpacing: 0.5 },
   title: { fontSize: 24, fontWeight: FONT_WEIGHT.black, color: '#FFFFFF', letterSpacing: -0.3 },
-  sub: { fontSize: 12, color: 'rgba(255, 255, 255, 0.8)', marginTop: 4, lineHeight: 17 },
+  sub: { fontSize: 12, color: 'rgba(255, 255, 255, 0.9)', marginTop: 4, lineHeight: 17 },
   scrollBody: { flex: 1 },
   content: {
     paddingHorizontal: RESPONSIVE.padding,
@@ -271,6 +289,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     fontSize: 13.5,
     color: '#0B1525',
+    minHeight: 48,
   },
   loginBtn: {
     backgroundColor: '#C8102E',
@@ -279,6 +298,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
+    minHeight: 52,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 4px 14px rgba(200, 16, 46, 0.35)',
     } : {
@@ -310,5 +330,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FECDD3',
   },
-  noticeText: { fontSize: 11.5, color: '#C8102E', lineHeight: 17 },
+  noticeText: { fontSize: 11.5, color: '#9E0B24', lineHeight: 17 },
 });

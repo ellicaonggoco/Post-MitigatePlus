@@ -40,6 +40,9 @@ export default function AuthChoiceScreen({ onSelectRole }) {
               style={styles.roleCard}
               onPress={() => onSelectRole('resident')}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Portal ng Residente, Resident Portal"
+              accessibilityHint="Pumunta sa Resident Portal upang tingnan ang QR Pass at mga serbisyo"
             >
               <View style={[styles.iconCircle, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
                 <HomeIcon size={22} color="#C8102E" />
@@ -58,6 +61,9 @@ export default function AuthChoiceScreen({ onSelectRole }) {
               style={styles.roleCard}
               onPress={() => onSelectRole('staff')}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Field Staff Portal"
+              accessibilityHint="Pumunta sa Field Staff Portal para sa QR Scanner at relief distribution"
             >
               <View style={[styles.iconCircle, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0' }]}>
                 <ShieldCheckIcon size={22} color="#B8932A" />
@@ -149,6 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    minHeight: 72,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 10px 28px rgba(11, 29, 78, 0.16), 0 2px 8px rgba(11, 29, 78, 0.06)',
     } : {
@@ -177,14 +184,14 @@ const styles = StyleSheet.create({
   },
   roleSub: {
     fontSize: 11.5,
-    color: '#3D5070',
+    color: '#475569',
     marginTop: 3,
     lineHeight: 16,
   },
   footerNote: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.85)',
     letterSpacing: 1.2,
     marginBottom: 10,
   },

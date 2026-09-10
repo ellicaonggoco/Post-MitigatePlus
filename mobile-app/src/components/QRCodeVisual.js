@@ -247,6 +247,9 @@ export default function QRCodeVisual({
         ]}
         onPress={handleCopy}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={copied ? (lang === 'tl' ? 'Na-kopya na sa clipboard' : 'Copied to clipboard') : (lang === 'tl' ? `Manual Household ID: ${code}. Pindutin upang kopyahin` : `Manual Household ID: ${code}. Tap to copy`)}
+        accessibilityHint={lang === 'tl' ? 'Kinokopya ang household ID code sa clipboard' : 'Copies the household ID code to clipboard'}
       >
         <Text style={[styles.manualCodeLabel, copied && { color: '#059669' }]}>
           {copied
@@ -398,6 +401,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     borderStyle: 'solid',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
     ...SHADOWS.sm,
   },
   manualCodeContainerCopied: {

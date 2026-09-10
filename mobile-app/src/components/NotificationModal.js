@@ -96,6 +96,9 @@ export default function NotificationModal({
                   onPress={handleBackToList}
                   style={styles.backBtnPill}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Mga Notipikasyon, back to all notifications"
+                  accessibilityHint="Returns to notification list"
                 >
                   <View style={styles.backIconCircle}>
                     <ArrowLeftIcon size={14} color="#1C3F94" />
@@ -109,6 +112,10 @@ export default function NotificationModal({
                   onPress={handleModalClose}
                   style={styles.closeBtn}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close notifications"
+                  accessibilityHint="Closes the notification modal"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <CloseIcon size={14} color="#172B4D" />
                 </TouchableOpacity>
@@ -148,6 +155,21 @@ export default function NotificationModal({
                 </View>
 
                 <Text style={styles.detailBody}>{selectedNotif.body || selectedNotif.content || 'Walang karagdagang detalye.'}</Text>
+
+                {(selectedNotif.targetTab || selectedNotif.actionTab) && (
+                  <TouchableOpacity
+                    style={styles.detailActionBtn}
+                    onPress={() => handleActionRoute(selectedNotif.targetTab || selectedNotif.actionTab)}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={getActionLabel(selectedNotif.targetTab || selectedNotif.actionTab)}
+                    accessibilityHint="Navigates to the corresponding service"
+                  >
+                    <Text style={styles.detailActionBtnText}>
+                      {getActionLabel(selectedNotif.targetTab || selectedNotif.actionTab)}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </ScrollView>
             </View>
           ) : (
@@ -166,6 +188,9 @@ export default function NotificationModal({
                       onPress={onMarkAllRead}
                       style={styles.markAllReadBtn}
                       activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Basahin Lahat, Mark all as read"
+                      accessibilityHint="Marks all notifications as read"
                     >
                       <CheckIcon size={12} color="#1C3F94" strokeWidth={2.5} />
                       <Text style={styles.markAllReadText}>
@@ -173,7 +198,15 @@ export default function NotificationModal({
                       </Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity onPress={handleModalClose} style={styles.closeBtn} activeOpacity={0.8}>
+                  <TouchableOpacity
+                    onPress={handleModalClose}
+                    style={styles.closeBtn}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close notifications"
+                    accessibilityHint="Closes the notification modal"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
                     <CloseIcon size={14} color="#0B1525" />
                   </TouchableOpacity>
                 </View>
@@ -200,6 +233,9 @@ export default function NotificationModal({
                       ]}
                       onPress={() => handleItemPress(n)}
                       activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${n.unread ? 'Unread notification' : 'Notification'}: ${n.title}`}
+                      accessibilityHint="Tap to read full announcement"
                     >
                       <View style={styles.notifTopRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -285,11 +321,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#EDF1FB',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#D6DEFA',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   markAllReadText: {
     fontSize: 11,
@@ -297,14 +335,16 @@ const styles = StyleSheet.create({
     color: '#1C3F94',
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#F3F6FC',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#DDE4F0',
+    minWidth: 44,
+    minHeight: 44,
   },
   scrollView: {
     maxHeight: 460,
@@ -319,7 +359,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
-    color: '#3D5070',
+    color: '#334155',
   },
   notifItem: {
     padding: 14,
@@ -359,7 +399,7 @@ const styles = StyleSheet.create({
   },
   notifTime: {
     fontSize: 11,
-    color: '#8A9BB8',
+    color: '#475569',
     fontWeight: '500',
   },
   notifTitle: {
@@ -404,11 +444,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 10,
     borderRadius: 9999,
     borderWidth: 1,
     borderColor: '#DDE4F0',
     gap: 8,
+    minHeight: 48,
+    justifyContent: 'center',
     ...SHADOWS.pill,
   },
   backIconCircle: {
@@ -425,17 +467,6 @@ const styles = StyleSheet.create({
     color: '#1C3F94',
     letterSpacing: 0.2,
   },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#DDE4F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.sm,
-  },
   detailScrollView: {
     maxHeight: 460,
   },
@@ -450,7 +481,7 @@ const styles = StyleSheet.create({
   },
   detailTime: {
     fontSize: 11.5,
-    color: '#3D5070',
+    color: '#475569',
     fontWeight: '500',
   },
   detailTitle: {
@@ -492,10 +523,11 @@ const styles = StyleSheet.create({
   detailActionBtn: {
     backgroundColor: '#1C3F94',
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
+    minHeight: 48,
   },
   detailActionBtnText: {
     fontSize: 13.5,

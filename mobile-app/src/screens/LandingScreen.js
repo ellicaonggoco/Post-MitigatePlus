@@ -113,6 +113,9 @@ export default function LandingScreen({ onGetStarted }) {
             style={styles.primaryCta}
             onPress={onGetStarted}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Pumasok, Mag-Sign In"
+            accessibilityHint="Opens the login and registration portal"
           >
             <Text style={styles.primaryCtaText}>Pumasok / Mag-Sign In</Text>
           </TouchableOpacity>
@@ -121,6 +124,9 @@ export default function LandingScreen({ onGetStarted }) {
             style={styles.secondaryCta}
             onPress={() => setShowLearnMore(true)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Tungkol sa Sistema, About"
+            accessibilityHint="Opens information about the disaster recovery system"
           >
             <Text style={styles.secondaryCtaText}>Tungkol sa Sistema (About)</Text>
           </TouchableOpacity>
@@ -139,7 +145,13 @@ export default function LandingScreen({ onGetStarted }) {
             <Text style={styles.modalBody}>
               Ang MitigatePlus ay binuo upang mapabilis at maging makatarungan ang pamamahagi ng tulong at ayuda sa bawat pamilya sa Lungsod ng Maynila pagkatapos ng baha, bagyo, at sunog.
             </Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowLearnMore(false)}>
+            <TouchableOpacity
+              style={styles.closeBtn}
+              onPress={() => setShowLearnMore(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Naiintindihan Ko, close dialog"
+              accessibilityHint="Closes the about information dialog"
+            >
               <Text style={styles.closeBtnText}>Naiintindihan Ko</Text>
             </TouchableOpacity>
           </View>
@@ -212,7 +224,7 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 10,
-    color: '#3D5070',
+    color: '#D6DEFA',
     fontWeight: '600',
   },
   container: {
@@ -268,7 +280,7 @@ const styles = StyleSheet.create({
   },
   heroDescription: {
     fontSize: 12,
-    color: '#3D5070',
+    color: '#334155',
     lineHeight: 18,
   },
   featureGrid: {
@@ -299,7 +311,7 @@ const styles = StyleSheet.create({
   },
   featureItemSub: {
     fontSize: 11,
-    color: '#3D5070',
+    color: '#334155',
     lineHeight: 15,
   },
   ctaGroup: {
@@ -312,6 +324,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
   },
   primaryCtaText: {
     color: '#FFFFFF',
@@ -323,6 +337,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
   },
   secondaryCtaText: {
     color: '#0F172A',
@@ -332,7 +348,7 @@ const styles = StyleSheet.create({
   footerLegal: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#8A9BB8',
+    color: '#475569',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -359,7 +375,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     fontSize: 12,
-    color: '#3D5070',
+    color: '#334155',
     lineHeight: 18,
     marginBottom: 16,
   },
@@ -368,6 +384,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   closeBtnText: {
     color: '#FFFFFF',
