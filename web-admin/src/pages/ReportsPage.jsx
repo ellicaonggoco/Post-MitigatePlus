@@ -12,22 +12,24 @@ import { API_BASE_URL, SOCKET_URL } from '../config';
 import SearchableBarangaySelect from '../components/SearchableBarangaySelect';
 import Pagination from '../components/Pagination';
 import { MotionCard, MotionNumberCounter, MotionButton } from '../components/motion';
+import { canSeeCityWide } from '../utils/roleUtils';
 
 
 export default function ReportsPage() {
   const { token, user } = useContext(AuthContext);
+  const isCityWide = canSeeCityWide(user);
   const isSuperAdmin = user?.role === 'lgu_superadmin';
   const isLguAdmin = user?.role === 'lgu_admin';
-  const isBarangayOfficial = user?.role === 'barangay_official';
+  const isBarangayOfficial = !isCityWide || user?.role === 'barangay_official';
   const officialBrgy = user?.barangayCode ? String(user.barangayCode) : '291';
-  const activeBrgy = isBarangayOfficial ? officialBrgy : selectedBrgy;
+  const activeBrgy = isCityWide ? selectedBrgy : officialBrgy;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') === 'incidents' ? 'incidents' : 'audit';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const [selectedBrgy, setSelectedBrgy] = useState(
-    user?.role === 'barangay_official' ? (user?.barangayCode ? String(user.barangayCode) : '291') : 'all'
+    isCityWide ? 'all' : (user?.barangayCode ? String(user.barangayCode) : '291')
   );
   const [duplicateLogs, setDuplicateLogs] = useState([]);
   const [gapReport, setGapReport] = useState([]);
@@ -40,12 +42,12 @@ export default function ReportsPage() {
     fulfillmentRate: '0%',
   });
 
-  // Lock selectedBrgy to official's barangay code
+  // Lock selectedBrgy to official's barangay code if not city wide
   useEffect(() => {
-    if (isBarangayOfficial && user?.barangayCode) {
+    if (!isCityWide && user?.barangayCode) {
       setSelectedBrgy(String(user.barangayCode));
     }
-  }, [isBarangayOfficial, user?.barangayCode]);
+  }, [isCityWide, user?.barangayCode]);
 
   // ── Field Incident Reports Directory State ──
   const [incidents, setIncidents] = useState([]);
@@ -707,8 +709,8 @@ export default function ReportsPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Scope Filter: Locked Badge for Barangay Official, Select Dropdown for LGU Admins */}
-          {isBarangayOfficial ? (
+          {/* Scope Filter: Locked Badge for Barangay Official, Select Dropdown ONLY for City-Wide Admins */}
+          {!isCityWide ? (
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
