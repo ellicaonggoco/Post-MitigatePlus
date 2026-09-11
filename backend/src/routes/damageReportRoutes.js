@@ -58,6 +58,14 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
+      io.to('admin_room').emit('new_pending_damage_report', {
+        reportId: report._id,
+        householdId: household._id,
+        damageLevel,
+        address: household.address,
+        barangayCode: household.barangayCode,
+        reportedAt: report.reportedAt,
+      });
       io.to(`barangay:${household.barangayCode}`).emit('new_pending_damage_report', {
         reportId: report._id,
         householdId: household._id,
@@ -65,6 +73,11 @@ router.post('/', protect, requireRole('resident'), async (req, res) => {
         address: household.address,
         barangayCode: household.barangayCode,
         reportedAt: report.reportedAt,
+      });
+      io.to(`household:${household._id}`).emit('damage_report_submitted', {
+        reportId: report._id,
+        damageLevel,
+        verificationStatus: 'pending',
       });
     }
 
@@ -146,6 +159,50 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
       report.notes = notes || report.notes;
       await report.save();
 
+      const household = await Household.findById(report.householdId);
+      if (household) {
+        household.inAppNotifications = household.inAppNotifications || [];
+        household.inAppNotifications.unshift({
+          id: Date.now().toString(),
+          title: '⚠️ Ulat ng Pinsala: Hindi Naaprubahan',
+          message: `Hindi naaprubahan ang inyong ulat ng pinsala sa bahay. Dahilan: ${report.rejectionReason}`,
+          type: 'info',
+          createdAt: new Date(),
+          isRead: false,
+        });
+        await household.save();
+
+        const io = req.app.get('io');
+        if (io) {
+          io.to('admin_room').emit('damage_report_verified', {
+            householdId: household._id,
+            verifiedDamageLevel: household.damageLevel || 'None',
+            status: 'rejected',
+            priorityScore: household.priorityScore,
+            priorityLevel: household.priorityLevel,
+          });
+          io.to(`barangay:${household.barangayCode}`).emit('damage_report_verified', {
+            householdId: household._id,
+            verifiedDamageLevel: household.damageLevel || 'None',
+            status: 'rejected',
+            priorityScore: household.priorityScore,
+            priorityLevel: household.priorityLevel,
+          });
+          io.to(`household:${household._id}`).emit('damage_report_updated', {
+            reportId: report._id,
+            verificationStatus: 'rejected',
+            rejectionReason: report.rejectionReason,
+            damageLevel: household.damageLevel || 'None',
+            priorityScore: household.priorityScore,
+            priorityLevel: household.priorityLevel,
+          });
+          io.to(`household:${household._id}`).emit('new_in_app_notification', {
+            title: '⚠️ Ulat ng Pinsala: Hindi Naaprubahan',
+            priorityLevel: household.priorityLevel,
+          });
+        }
+      }
+
       return res.json({
         message: 'Damage report rejected.',
         report,
@@ -168,14 +225,52 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
       const { priorityScore, priorityLevel } = calculatePriorityIndex(household);
       household.priorityScore = priorityScore;
       household.priorityLevel = priorityLevel;
+
+      household.inAppNotifications = household.inAppNotifications || [];
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: '✅ Ulat ng Pinsala: Beripikado Na',
+        message: `Na-verify ng Barangay Admin ang inyong ulat ng pinsala bilang [${finalLevel}]. Ang inyong Priority Score ay na-update na sa ${priorityScore} pts (${priorityLevel}).`,
+        type: 'priority_update',
+        createdAt: new Date(),
+        isRead: false,
+      });
       await household.save();
 
       const io = req.app.get('io');
       if (io) {
+        // Emit to admin and barangay rooms for dashboard refresh
+        io.to('admin_room').emit('damage_report_verified', {
+          householdId: household._id,
+          verifiedDamageLevel: finalLevel,
+          priorityScore,
+          priorityLevel,
+        });
         io.to(`barangay:${household.barangayCode}`).emit('damage_report_verified', {
           householdId: household._id,
           verifiedDamageLevel: finalLevel,
           priorityScore,
+          priorityLevel,
+        });
+
+        // Emit directly to resident household room for instant mobile reflection
+        io.to(`household:${household._id}`).emit('damage_report_updated', {
+          reportId: report._id,
+          verificationStatus: report.verificationStatus,
+          verifiedDamageLevel: finalLevel,
+          damageLevel: finalLevel,
+          priorityScore,
+          priorityLevel,
+          notes: report.notes,
+        });
+        io.to(`household:${household._id}`).emit('verification_updated', {
+          verificationStatus: household.verificationStatus,
+          damageLevel: finalLevel,
+          priorityScore,
+          priorityLevel,
+        });
+        io.to(`household:${household._id}`).emit('new_in_app_notification', {
+          title: '✅ Ulat ng Pinsala: Beripikado Na',
           priorityLevel,
         });
       }

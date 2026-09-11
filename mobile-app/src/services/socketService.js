@@ -86,6 +86,19 @@ export function onRecoveryStatusUpdated(callback) {
 }
 
 /**
+ * Listen for real-time damage report validation and priority updates
+ */
+export function onDamageReportUpdated(callback) {
+  if (!socket) return () => {};
+  socket.on('damage_report_updated', callback);
+  socket.on('damage_report_verified', callback);
+  return () => {
+    socket.off('damage_report_updated', callback);
+    socket.off('damage_report_verified', callback);
+  };
+}
+
+/**
  * Listen for real-time duplicate claim alerts (for Field Staff)
  */
 export function onDuplicateClaimAlert(callback) {

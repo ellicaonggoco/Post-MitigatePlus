@@ -1,11 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Image, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Image,
+  ActivityIndicator,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  Modal,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { submitDamageReport } from '../services/api';
+import { submitDamageReport, fetchMyDamageReports } from '../services/api';
+import { onDamageReportUpdated } from '../services/socketService';
 import NeumorphicInput from '../components/NeumorphicInput';
-import { CameraIcon, ImageIcon, CheckIcon, ShieldCheckIcon, ArrowLeftIcon, MapPinIcon } from '../components/AppIcons';
+import {
+  CameraIcon,
+  ImageIcon,
+  CheckIcon,
+  ShieldCheckIcon,
+  ArrowLeftIcon,
+  MapPinIcon,
+  ClockIcon,
+  RefreshCwIcon,
+  CloseIcon,
+  DamageIcon,
+} from '../components/AppIcons';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionSeverityTile, MotionPressable } from '../components/motion';
@@ -108,6 +133,22 @@ function PhotoAttachmentSection({ selectedPhoto, onPickCamera, onPickLibrary, on
   );
 }
 
+const getDamagePoints = (level) => {
+  switch (level) {
+    case 'Totally Damaged':
+    case 'Total':
+      return 40;
+    case 'Severe':
+      return 30;
+    case 'Moderate':
+      return 20;
+    case 'Minor':
+      return 10;
+    default:
+      return 0;
+  }
+};
+
 export default function ReportDamageScreen({ token, user, householdData, lang = 'en', onBack, onSubmitSuccess }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
@@ -118,6 +159,11 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       ? `${user.address}, Barangay ${user.barangayCode || '291'}, Manila`
       : '142 Quirino Ave, Purok 3, Barangay 291, Manila';
 
+  const [existingReports, setExistingReports] = useState([]);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [previewPhotoModal, setPreviewPhotoModal] = useState(null);
+
   const [damageLevel, setDamageLevel] = useState('Severe');
   const [description, setDescription] = useState('');
   const [addressLandmark, setAddressLandmark] = useState(defaultResolvedAddress);
@@ -125,6 +171,38 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
   const [loading, setLoading] = useState(false);
   const scrollRef = React.useRef(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [errors, setErrors] = useState({});
+
+  const [geoCoords, setGeoCoords] = useState(null);
+  const [isLocating, setIsLocating] = useState(true);
+
+  const loadReports = async () => {
+    if (!token) {
+      setLoadingExisting(false);
+      return;
+    }
+    try {
+      setLoadingExisting(true);
+      const data = await fetchMyDamageReports(token);
+      if (Array.isArray(data)) {
+        setExistingReports(data);
+      }
+    } catch (e) {
+      console.warn('Error fetching damage reports:', e);
+    } finally {
+      setLoadingExisting(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReports();
+    const unsub = onDamageReportUpdated(() => {
+      loadReports();
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, [token]);
 
   useEffect(() => {
     if (householdData?.address || user?.address) {
@@ -156,11 +234,6 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       hideSub.remove();
     };
   }, []);
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const [geoCoords, setGeoCoords] = useState(null);
-  const [isLocating, setIsLocating] = useState(true);
 
   useEffect(() => {
     handleGetGPSLocation();
@@ -283,6 +356,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             const reader = new FileReader();
             reader.onload = (event) => {
               setSelectedPhoto({ uri: event.target.result, source: 'camera', name: file.name || 'damage.jpg' });
+              setErrors((prev) => ({ ...prev, photo: '' }));
             };
             reader.readAsDataURL(file);
           }
@@ -333,6 +407,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             const reader = new FileReader();
             reader.onload = (event) => {
               setSelectedPhoto({ uri: event.target.result, source: 'gallery', name: file.name || 'damage.jpg' });
+              setErrors((prev) => ({ ...prev, photo: '' }));
             };
             reader.readAsDataURL(file);
           }
@@ -373,7 +448,16 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         },
         token
       );
-      setSubmitted(true);
+      await loadReports();
+      setShowNewForm(false);
+      setDescription('');
+      setSelectedPhoto(null);
+      Alert.alert(
+        lang === 'tl' ? 'Ulat Naipadala Na!' : 'Report Submitted!',
+        lang === 'tl'
+          ? 'Naihatid na sa Disaster Command Center ng Barangay ang inyong ulat para sa opisyal na beripikasyon.'
+          : 'Your report has been submitted to the Barangay Disaster Command Center for official verification.'
+      );
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (err) {
       console.error('Damage report submission error:', err);
@@ -384,28 +468,288 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
     }
   };
 
-  if (submitted) {
+  const activeReport = existingReports && existingReports.length > 0 ? existingReports[0] : null;
+  const hasExisting = !!activeReport;
+
+  // ── Render Case 1: Existing Report Status View ──
+  if (hasExisting && !showNewForm) {
+    const finalLevel = activeReport.verifiedDamageLevel || activeReport.damageLevel || 'Moderate';
+    const bonusPts = getDamagePoints(finalLevel);
+
     return (
-      <View style={styles.successContainer}>
-        <View style={styles.successIconWell}>
-          <CheckIcon size={36} color="#16A34A" />
-        </View>
-        <Text style={styles.successTitle}>{lang === 'tl' ? 'Nai-submit ang Ulat!' : 'Report Submitted!'}</Text>
-        <Text style={styles.successSub}>
-          {lang === 'tl' ? 'Naihatid na sa Disaster Command Center ang inyong ulat.' : 'Your report has been sent to the Command Center.'}
-        </Text>
-        <TouchableOpacity
-          style={styles.backHomeBtn}
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel={lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        contentContainerStyle={[{ paddingBottom: 120 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <LinearGradient
+          colors={['#6E071A', '#C8102E', '#9E0B24']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ marginBottom: 20 }}
         >
-          <Text style={styles.backHomeBtnText}>{lang === 'tl' ? 'Bumalik sa Home' : 'Back to Home'}</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={{ height: 3, backgroundColor: '#C9A84C' }} />
+          <View style={{ height: Platform.OS === 'web' ? 0 : RESPONSIVE.topSafe + 4 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
+            <TouchableOpacity
+              onPress={onBack}
+              style={styles.headerBackBtn}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
+            >
+              <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+                {lang === 'tl' ? 'Katayuan ng Pinsala' : 'Damage Assessment'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={loadReports}
+              style={styles.headerRefreshBtn}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'I-refresh' : 'Refresh'}
+            >
+              {loadingExisting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <RefreshCwIcon size={16} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+          <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
+            <Text style={styles.headerKicker}>
+              {lang === 'tl' ? 'OPISYAL NA STATUS SA BARANGAY' : 'BARANGAY DISASTER AUDIT'}
+            </Text>
+            <Text style={styles.headerTitleLarge}>
+              {lang === 'tl' ? 'Pagsusuri sa Pinsala ng Bahay' : 'Structural Damage Assessment'}
+            </Text>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.statusViewBody}>
+          {/* Main Status Hero Card */}
+          <View style={styles.statusHeroCard}>
+            <View style={styles.statusHeroTopRow}>
+              <View style={styles.statusIconCircle}>
+                <DamageIcon size={24} color="#C8102E" />
+              </View>
+              <View
+                style={[
+                  styles.statusBadgeLarge,
+                  activeReport.verificationStatus === 'verified' || activeReport.verificationStatus === 'adjusted'
+                    ? styles.badgeVerifiedLarge
+                    : activeReport.verificationStatus === 'rejected'
+                    ? styles.badgeRejectedLarge
+                    : styles.badgePendingLarge,
+                ]}
+              >
+                {activeReport.verificationStatus === 'verified' || activeReport.verificationStatus === 'adjusted' ? (
+                  <CheckIcon size={14} color="#15803D" strokeWidth={2.6} />
+                ) : activeReport.verificationStatus === 'rejected' ? (
+                  <CloseIcon size={14} color="#B91C1C" strokeWidth={2.6} />
+                ) : (
+                  <ClockIcon size={14} color="#B45309" strokeWidth={2.4} />
+                )}
+                <Text
+                  style={[
+                    styles.statusBadgeLargeText,
+                    activeReport.verificationStatus === 'verified' || activeReport.verificationStatus === 'adjusted'
+                      ? styles.badgeVerifiedLargeText
+                      : activeReport.verificationStatus === 'rejected'
+                      ? styles.badgeRejectedLargeText
+                      : styles.badgePendingLargeText,
+                  ]}
+                >
+                  {activeReport.verificationStatus === 'verified'
+                    ? (lang === 'tl' ? 'BERIPIKADO NA' : 'OFFICIALLY VERIFIED')
+                    : activeReport.verificationStatus === 'adjusted'
+                    ? (lang === 'tl' ? 'BINAGO AT BERIPIKADO' : 'ADJUSTED & VERIFIED')
+                    : activeReport.verificationStatus === 'rejected'
+                    ? (lang === 'tl' ? 'HINDI NAAPRUBAHAN' : 'REJECTED')
+                    : (lang === 'tl' ? 'SINUSURI NG BARANGAY ADMIN' : 'UNDER REVIEW')}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.statusDamageLevelTitle}>
+              {finalLevel} Damage
+            </Text>
+
+            <View style={styles.statusBonusScoreRow}>
+              <Text style={styles.statusBonusScoreText}>
+                +{bonusPts} PUNTOS SA PRIORITY SCORE
+              </Text>
+            </View>
+
+            {/* If adjusted: show level comparison */}
+            {activeReport.verificationStatus === 'adjusted' && activeReport.verifiedDamageLevel && (
+              <View style={styles.adjustmentCallout}>
+                <Text style={styles.adjustmentCalloutTitle}>
+                  {lang === 'tl' ? 'Pagsasaayos ng Antas ng Pinsala:' : 'Damage Level Adjustment:'}
+                </Text>
+                <Text style={styles.adjustmentCalloutText}>
+                  {lang === 'tl'
+                    ? `Isinumite: [${activeReport.damageLevel}] ➔ Inaprubahan ng Admin: [${activeReport.verifiedDamageLevel}]`
+                    : `Reported: [${activeReport.damageLevel}] ➔ Approved by Admin: [${activeReport.verifiedDamageLevel}]`}
+                </Text>
+              </View>
+            )}
+
+            <Text style={styles.statusExplanationText}>
+              {activeReport.verificationStatus === 'verified' || activeReport.verificationStatus === 'adjusted'
+                ? (lang === 'tl'
+                    ? 'Matagumpay na na-validate ng Barangay Disaster Risk Assessor ang inyong ulat. Ang dagdag na puntos ay pumasok na sa inyong priority score para sa alokasyon ng ayuda at rehabilitation aid.'
+                    : 'The Barangay Disaster Risk Assessor has verified your report. The bonus priority points are reflected in your relief and rehabilitation priority status.')
+                : activeReport.verificationStatus === 'rejected'
+                ? (lang === 'tl'
+                    ? 'Hindi tinanggap ng Barangay Admin ang ulat na ito. Maaari kayong magsumite ng bagong ulat na may mas malinaw na litrato ng pinsala.'
+                    : 'This damage report was rejected by the Barangay Admin. You may submit a new report with clearer photos of the structural damage.')
+                : (lang === 'tl'
+                    ? 'Nasa Verification Queue ng Barangay Admin sa Web Admin ang inyong ulat. Awtomatikong mag-uupdate ang inyong Priority Score sa oras na aprubahan ito ng opisyal.'
+                    : 'Your report is currently in the Barangay Admin Verification Queue. Your Priority Score will automatically update upon official approval.')}
+            </Text>
+          </View>
+
+          {/* Barangay Official Notes or Rejection Reason */}
+          {(activeReport.notes || activeReport.rejectionReason) && (
+            <View style={[styles.notesCard, activeReport.verificationStatus === 'rejected' && styles.notesCardRejected]}>
+              <Text style={[styles.notesCardTitle, activeReport.verificationStatus === 'rejected' && { color: '#B91C1C' }]}>
+                {activeReport.verificationStatus === 'rejected'
+                  ? (lang === 'tl' ? 'DAHILAN NG PAGTANGGI' : 'REJECTION REASON')
+                  : (lang === 'tl' ? 'TALA MULA SA BARANGAY ADMIN' : 'BARANGAY OFFICIAL ASSESSMENT')}
+              </Text>
+              <Text style={styles.notesCardContent}>
+                "{activeReport.rejectionReason || activeReport.notes}"
+              </Text>
+              {activeReport.validatedBy?.name && (
+                <Text style={styles.notesCardAuthor}>
+                  — {activeReport.validatedBy.name} ({lang === 'tl' ? 'Opisyal ng Barangay' : 'Barangay Official'})
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Evidence Photo Card */}
+          {activeReport.photos && activeReport.photos.length > 0 && (
+            <View style={styles.evidenceCard}>
+              <Text style={styles.evidenceCardTitle}>
+                {lang === 'tl' ? 'ISINUMITENG LITRATO NG PINSALA' : 'SUBMITTED DAMAGE PHOTO'}
+              </Text>
+              <TouchableOpacity
+                style={styles.evidenceImageWrapper}
+                onPress={() => setPreviewPhotoModal(activeReport.photos[0])}
+                activeOpacity={0.9}
+              >
+                <Image
+                  source={{ uri: activeReport.photos[0] }}
+                  style={styles.evidenceImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.evidenceEnlargeOverlay}>
+                  <Text style={styles.evidenceEnlargeText}>
+                    {lang === 'tl' ? 'I-tap upang palakihin' : 'Tap to enlarge'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Audit Trail & Location Info */}
+          <View style={styles.auditCard}>
+            <View style={styles.auditRow}>
+              <ClockIcon size={14} color="#64748B" />
+              <Text style={styles.auditLabel}>
+                {lang === 'tl' ? 'Petsa ng Pag-uulat:' : 'Date Reported:'}
+              </Text>
+              <Text style={styles.auditValue}>
+                {activeReport.reportedAt ? new Date(activeReport.reportedAt).toLocaleDateString() : 'N/A'}
+              </Text>
+            </View>
+
+            {activeReport.validatedAt && (
+              <View style={styles.auditRow}>
+                <CheckIcon size={14} color="#16A34A" />
+                <Text style={styles.auditLabel}>
+                  {lang === 'tl' ? 'Petsa ng Pagsusuri:' : 'Date Validated:'}
+                </Text>
+                <Text style={styles.auditValue}>
+                  {new Date(activeReport.validatedAt).toLocaleDateString()}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.auditRow}>
+              <MapPinIcon size={14} color="#1C3F94" />
+              <Text style={styles.auditLabel}>
+                {lang === 'tl' ? 'Lokasyon:' : 'Location:'}
+              </Text>
+              <Text style={styles.auditValue} numberOfLines={1}>
+                {activeReport.locationName || defaultResolvedAddress}
+              </Text>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.statusActionsArea}>
+            <TouchableOpacity
+              style={styles.submitNewReportBtn}
+              onPress={() => setShowNewForm(true)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Magsumite ng Bagong Ulat ng Pinsala' : 'Submit New Damage Report'}
+            >
+              <Text style={styles.submitNewReportBtnText}>
+                {lang === 'tl' ? 'Magsumite ng Bagong / Karagdagang Ulat' : 'Submit New / Supplementary Report'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.statusBackHomeBtn}
+              onPress={onBack}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Bumalik sa Dashboard' : 'Back to Dashboard'}
+            >
+              <Text style={styles.statusBackHomeBtnText}>
+                {lang === 'tl' ? 'Bumalik sa Dashboard' : 'Back to Dashboard'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Image Fullscreen Preview Modal */}
+        {previewPhotoModal && (
+          <Modal
+            visible={!!previewPhotoModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setPreviewPhotoModal(null)}
+          >
+            <View style={styles.previewModalOverlay}>
+              <TouchableOpacity
+                style={styles.previewModalCloseBtn}
+                onPress={() => setPreviewPhotoModal(null)}
+                activeOpacity={0.85}
+              >
+                <CloseIcon size={20} color="#FFFFFF" strokeWidth={2.5} />
+              </TouchableOpacity>
+              <Image
+                source={{ uri: previewPhotoModal }}
+                style={styles.previewModalImage}
+                resizeMode="contain"
+              />
+            </View>
+          </Modal>
+        )}
+      </ScrollView>
     );
   }
 
+  // ── Render Case 2: New Report Submission Form ──
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -419,24 +763,18 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <LinearGradient colors={['#6E071A', '#C8102E', '#9E0B24']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
-          <View style={{height: 3, backgroundColor: '#C9A84C'}} />
-          <View style={{ height: Platform.OS==='web' ? 0 : RESPONSIVE.topSafe + 4 }} />
+        <LinearGradient
+          colors={['#6E071A', '#C8102E', '#9E0B24']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ marginBottom: 20 }}
+        >
+          <View style={{ height: 3, backgroundColor: '#C9A84C' }} />
+          <View style={{ height: Platform.OS === 'web' ? 0 : RESPONSIVE.topSafe + 4 }} />
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
             <TouchableOpacity
-              onPress={onBack}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                minWidth: 48,
-                minHeight: 48,
-                backgroundColor: 'rgba(255,255,255,0.15)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.25)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              onPress={hasExisting ? () => setShowNewForm(false) : onBack}
+              style={styles.headerBackBtn}
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
@@ -445,18 +783,37 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             >
               <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
             </TouchableOpacity>
-            <View style={{flex: 1, alignItems: 'center'}}>
-              <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Report Damage</Text>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+                {lang === 'tl' ? 'Mag-ulat ng Pinsala' : 'Report Damage'}
+              </Text>
             </View>
-            <View style={{width: 48}} />
+            <View style={{ width: 48 }} />
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
-            <Text style={{ fontSize: 9.5, fontWeight: '800', color: 'rgba(255,255,255,0.92)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: 0.8 }}>DAMAGE ASSESSMENT</Text>
-            <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>Structural Damage Report</Text>
+            <Text style={styles.headerKicker}>
+              DAMAGE ASSESSMENT
+            </Text>
+            <Text style={styles.headerTitleLarge}>
+              {lang === 'tl' ? 'Ulat ng Sira sa Tirahan' : 'Structural Damage Report'}
+            </Text>
           </View>
         </LinearGradient>
 
         <View style={styles.formBody}>
+          {hasExisting && (
+            <TouchableOpacity
+              style={styles.viewExistingReportPillBtn}
+              onPress={() => setShowNewForm(false)}
+              activeOpacity={0.85}
+            >
+              <ArrowLeftIcon size={14} color="#1C3F94" strokeWidth={2} />
+              <Text style={styles.viewExistingReportPillText}>
+                {lang === 'tl' ? 'Tingnan ang Kasalukuyang Ulat ng Pinsala' : 'View Active Damage Report Status'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionLabel}>{lang === 'tl' ? 'ANTAS NG PINSALA' : 'DAMAGE LEVEL'}</Text>
           </View>
@@ -493,7 +850,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             label={lang === 'tl' ? 'Deskripsyon ng Pinsala' : 'Damage Description'}
             value={description}
             onChangeText={setDescription}
-            placeholder={lang === 'tl' ? 'Ilarawan ang nangyari...' : 'Describe the damage...'}
+            placeholder={lang === 'tl' ? 'Ilarawan ang nangyaring pinsala sa bahay...' : 'Describe the damage to the structure...'}
             errorText={errors.description}
             multiline
             numberOfLines={3}
@@ -527,32 +884,59 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
   formBody: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 },
-  content: { paddingHorizontal: RESPONSIVE.padding, paddingTop: RESPONSIVE.topSafe + 8, paddingBottom: 24 },
-  backBtnPill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
+  headerBackBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    minWidth: 48,
+    minHeight: 48,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
-    borderColor: '#DDE4F0',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 9999,
-    marginBottom: 14,
-    ...SHADOWS.pill,
-  },
-  backIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#EDF1FB',
+    borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backBtnText: { fontSize: 13, fontWeight: '800', color: '#1C3F94', letterSpacing: 0.2 },
-  headerTitle: { fontSize: 20, fontWeight: FONT_WEIGHT.black, color: '#0B1525' },
-  headerSub: { fontSize: 11.5, color: '#3D5070', marginTop: 2, marginBottom: 16 },
+  headerRefreshBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerKicker: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.92)',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    letterSpacing: 0.8,
+  },
+  headerTitleLarge: {
+    fontSize: 23,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  viewExistingReportPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#EDF1FB',
+    borderWidth: 1,
+    borderColor: '#D6DEFA',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  viewExistingReportPillText: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#1C3F94',
+  },
   sectionHeader: { marginBottom: 8 },
   sectionLabel: { fontSize: 10.5, fontWeight: '800', color: '#0B1525', letterSpacing: 0.5 },
   autoLocationCard: {
@@ -700,19 +1084,273 @@ const styles = StyleSheet.create({
     ...SHADOWS.button,
   },
   submitBtnText: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
-  successContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#F3F6FC' },
-  successIconWell: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#E6F6EF', justifyContent: 'center', alignItems: 'center', marginBottom: 16, ...SHADOWS.md },
-  successTitle: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0B1525', marginBottom: 6 },
-  successSub: { fontSize: 12, color: '#3D5070', textAlign: 'center', marginBottom: 20 },
-  backHomeBtn: {
+
+  // ── Status View Styles ──
+  statusViewBody: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  statusHeroCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 20,
+    marginBottom: 16,
+    ...SHADOWS.card,
+  },
+  statusHeroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  statusIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FEF0F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusBadgeLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  badgeVerifiedLarge: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
+  badgeVerifiedLargeText: {
+    color: '#15803D',
+  },
+  badgeRejectedLarge: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+  },
+  badgeRejectedLargeText: {
+    color: '#B91C1C',
+  },
+  badgePendingLarge: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FCD34D',
+  },
+  badgePendingLargeText: {
+    color: '#B45309',
+  },
+  statusBadgeLargeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  statusDamageLevelTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0B1525',
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  statusBonusScoreRow: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#C8102E',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  statusBonusScoreText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  adjustmentCallout: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    padding: 12,
+    marginBottom: 12,
+  },
+  adjustmentCalloutTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0F766E',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+  },
+  adjustmentCalloutText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#115E59',
+  },
+  statusExplanationText: {
+    fontSize: 12.5,
+    color: '#475569',
+    lineHeight: 18,
+  },
+  notesCard: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: '#1C3F94',
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  notesCardRejected: {
+    backgroundColor: '#FFF1F2',
+    borderLeftColor: '#E11D48',
+    borderColor: '#FFE4E6',
+  },
+  notesCardTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1C3F94',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  notesCardContent: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    color: '#1E3A8A',
+    lineHeight: 18,
+    marginBottom: 6,
+  },
+  notesCardAuthor: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  evidenceCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 16,
+    marginBottom: 16,
+    ...SHADOWS.card,
+  },
+  evidenceCardTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0B1525',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  evidenceImageWrapper: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#0F172A',
+  },
+  evidenceImage: {
+    width: '100%',
+    height: 180,
+  },
+  evidenceEnlargeOverlay: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  evidenceEnlargeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  auditCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 14,
+    marginBottom: 18,
+    gap: 10,
+  },
+  auditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  auditLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  auditValue: {
+    flex: 1,
+    fontSize: 12,
+    color: '#0B1525',
+    fontWeight: '700',
+  },
+  statusActionsArea: {
+    gap: 10,
+    marginTop: 4,
+  },
+  submitNewReportBtn: {
     backgroundColor: '#1C3F94',
-    minHeight: 48,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 10,
+    minHeight: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 14,
+    paddingVertical: 14,
     ...SHADOWS.button,
   },
-  backHomeBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  submitNewReportBtnText: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  statusBackHomeBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingVertical: 12,
+  },
+  statusBackHomeBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#3D5070',
+  },
+  previewModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  previewModalCloseBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'web' ? 20 : 50,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  previewModalImage: {
+    width: '100%',
+    height: '80%',
+  },
 });

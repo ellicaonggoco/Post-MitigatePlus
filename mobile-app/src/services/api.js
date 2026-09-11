@@ -106,6 +106,15 @@ export async function submitDamageReport(data, token) {
 }
 
 /**
+ * 5b. Fetch Resident's Submitted Damage Reports
+ */
+export async function fetchMyDamageReports(token) {
+  return request(`${API_BASE_URL}/damage-reports`, {
+    headers: getAuthHeaders(token),
+  });
+}
+
+/**
  * 6. Submit Assistance Request
  */
 export async function submitAssistanceRequest(data, token) {

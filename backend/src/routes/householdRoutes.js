@@ -8,6 +8,7 @@ const DistributionEvent = require('../models/DistributionEvent');
 const AssistanceRequest = require('../models/AssistanceRequest');
 const AuditLog = require('../models/AuditLog');
 const RecoveryStatus = require('../models/RecoveryStatus');
+const DamageReport = require('../models/DamageReport');
 const { protect, requireRole, requireBarangayScope } = require('../middleware/auth');
 const { calculatePriorityIndex } = require('../utils/priorityIndex');
 const { calculateReliefAllocation, calculateHouseholdEntitlement } = require('../utils/reliefAllocation');
@@ -360,7 +361,9 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
       }
     }
 
-    const hasPastClaims = Array.isArray(pastDistributions) && pastDistributions.length > 0;
+    const latestDamageReport = await DamageReport.findOne({ householdId: household._id }).sort({ reportedAt: -1 });
+    householdObj.latestDamageReport = latestDamageReport || null;
+    householdObj.damageReportStatus = latestDamageReport ? latestDamageReport.verificationStatus : 'none';
 
     householdObj.hasActiveEvent = !!activeEvent;
     householdObj.activeEvent = activeEvent || null;

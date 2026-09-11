@@ -14,7 +14,7 @@ import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopS
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
 import { fetchAnnouncements, fetchHouseholdProfile, markNotificationAsRead } from '../services/api';
-import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated } from '../services/socketService';
+import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated, onDamageReportUpdated } from '../services/socketService';
 
 const STATUSBAR_INSET = getStatusBarHeight();
 
@@ -437,6 +437,40 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         onRecoveryStatusUpdated((status) => {
           setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: status } : prev));
         });
+        onDamageReportUpdated((payload) => {
+          refreshData(true);
+          const newStatus = payload?.verificationStatus || 'verified';
+          const newLevel = payload?.verifiedDamageLevel || payload?.damageLevel || 'Moderate';
+          const newScore = payload?.priorityScore;
+          const newPriority = payload?.priorityLevel;
+
+          setHouseholdData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              damageLevel: newLevel,
+              damageReportStatus: newStatus,
+              priorityScore: newScore || prev.priorityScore,
+              priorityLevel: newPriority || prev.priorityLevel,
+            };
+          });
+
+          if (newStatus === 'rejected') {
+            Alert.alert(
+              lang === 'tl' ? 'Ulat ng Pinsala: Hindi Naaprubahan' : 'Damage Report Rejected',
+              lang === 'tl'
+                ? `Hindi naaprubahan ang inyong ulat ng pinsala sa bahay. ${payload?.rejectionReason ? `Dahilan: ${payload.rejectionReason}` : ''}`
+                : `Your structural damage report was rejected. ${payload?.rejectionReason ? `Reason: ${payload.rejectionReason}` : ''}`
+            );
+          } else {
+            Alert.alert(
+              lang === 'tl' ? 'Pinsala Na-verify Na!' : 'Damage Report Verified!',
+              lang === 'tl'
+                ? `Na-verify ng Barangay Admin ang inyong ulat ng pinsala bilang [${newLevel}]. Ang inyong Priority Score ay na-update na sa [${newScore || ''} pts (${newPriority || ''})].`
+                : `The Barangay Admin has verified your damage report as [${newLevel}]. Your Priority Score has been updated to [${newScore || ''} pts (${newPriority || ''})].`
+            );
+          }
+        });
         socket.on('recovery_updated', (data) => {
           if (data && (String(data.householdId) === String(householdData?._id) || (data.relatedHouseholdIds && data.relatedHouseholdIds.includes(String(householdData?._id))))) {
             setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: data.status } : prev));
@@ -491,6 +525,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
   const topUpUnits = headcount > baseCoverage ? (headcount - (basePacks * baseCoverage)) : 0;
+
+  const currentDamageLevel = householdData?.damageLevel || 'None';
+  const damageStatus = householdData?.damageReportStatus || (householdData?.latestDamageReport ? householdData.latestDamageReport.verificationStatus : (currentDamageLevel !== 'None' ? 'verified' : 'none'));
+  const damagePointsBonus = currentDamageLevel === 'Totally Damaged' ? 40 : currentDamageLevel === 'Severe' ? 30 : currentDamageLevel === 'Moderate' ? 20 : currentDamageLevel === 'Minor' ? 10 : 0;
 
   // 5-Stage Disaster Recovery Event & Claim Evaluation
   const activeEvent = householdData?.activeEvent || null;
@@ -936,6 +974,135 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               )}
             </LinearGradient>
+
+            {/* ── Structural Damage Assessment Status Card ── */}
+            {currentDamageLevel !== 'None' || householdData?.latestDamageReport ? (
+              <View style={styles.damageAssessmentCard}>
+                <View style={styles.damageAssessmentHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <View style={styles.damageIconWell}>
+                      <DamageIcon size={18} color="#C8102E" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.damageAssessmentTitle}>
+                        {lang === 'tl' ? 'Nasuring Pinsala sa Tirahan' : 'Home Damage Assessment'}
+                      </Text>
+                      <Text style={styles.damageAssessmentSub}>
+                        {lang === 'tl' ? 'LGU & Barangay Structural Audit' : 'Barangay Disaster Risk Verification'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.damageStatusBadge,
+                      damageStatus === 'verified' || damageStatus === 'adjusted'
+                        ? styles.damageBadgeVerified
+                        : damageStatus === 'rejected'
+                        ? styles.damageBadgeRejected
+                        : styles.damageBadgePending,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.damageStatusBadgeText,
+                        damageStatus === 'verified' || damageStatus === 'adjusted'
+                          ? styles.damageBadgeVerifiedText
+                          : damageStatus === 'rejected'
+                          ? styles.damageBadgeRejectedText
+                          : styles.damageBadgePendingText,
+                      ]}
+                    >
+                      {damageStatus === 'verified'
+                        ? (lang === 'tl' ? 'BERIPIKADO NA' : 'VERIFIED')
+                        : damageStatus === 'adjusted'
+                        ? (lang === 'tl' ? 'BINAGO NG OPISYAL' : 'ADJUSTED & VERIFIED')
+                        : damageStatus === 'rejected'
+                        ? (lang === 'tl' ? 'HINDI NAAPRUBAHAN' : 'REJECTED')
+                        : (lang === 'tl' ? 'SINUSURI PA' : 'UNDER REVIEW')}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Level + Points Pill */}
+                <View style={styles.damageLevelRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.damageLevelText}>
+                      {currentDamageLevel !== 'None' ? `${currentDamageLevel} Damage` : (lang === 'tl' ? 'Ulat Isinumite' : 'Report Submitted')}
+                    </Text>
+                    <Text style={styles.damageLevelExpl}>
+                      {damageStatus === 'verified' || damageStatus === 'adjusted'
+                        ? (lang === 'tl'
+                            ? `Opisyal na na-validate ng Barangay. Ang +${damagePointsBonus} pts ay kasama na sa inyong Priority Score (${priorityScore} pts).`
+                            : `Officially validated by Barangay. The +${damagePointsBonus} pts bonus is applied to your Priority Score (${priorityScore} pts).`)
+                        : damageStatus === 'rejected'
+                        ? (lang === 'tl'
+                            ? `Hindi naaprubahan ang ulat ng pinsala. Walang dagdag na puntos.`
+                            : `Damage report was not approved. No bonus points applied.`)
+                        : (lang === 'tl'
+                            ? `Kasalukuyang sinusuri sa Web Admin. Hanggang +${damagePointsBonus > 0 ? damagePointsBonus : 30} pts ang maidadagdag kapag naaprubahan.`
+                            : `Under review in Web Admin. Up to +${damagePointsBonus > 0 ? damagePointsBonus : 30} pts bonus will be awarded once verified.`)}
+                    </Text>
+                  </View>
+                  {damagePointsBonus > 0 && (
+                    <View style={styles.damageBonusPill}>
+                      <Text style={styles.damageBonusPillText}>+{damagePointsBonus} PTS</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Barangay Notes if available */}
+                {householdData?.latestDamageReport?.notes ? (
+                  <View style={styles.damageAdminNotesBox}>
+                    <Text style={styles.damageAdminNotesTitle}>
+                      {lang === 'tl' ? 'Tala mula sa Barangay Admin:' : 'Barangay Official Note:'}
+                    </Text>
+                    <Text style={styles.damageAdminNotesText}>
+                      "{householdData.latestDamageReport.notes}"
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Action Link to Damage Tab */}
+                <TouchableOpacity
+                  style={styles.damageViewDetailsBtn}
+                  onPress={() => setActiveTab('damage')}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'tl' ? 'Tingnan ang Detalye ng Pinsala' : 'View Damage Details'}
+                >
+                  <Text style={styles.damageViewDetailsBtnText}>
+                    {lang === 'tl' ? 'Tingnan ang Detalye o Mag-ulat Muli' : 'View Report Details or Re-submit'}
+                  </Text>
+                  <ArrowLeftIcon size={12} color="#1C3F94" style={{ transform: [{ rotate: '180deg' }] }} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.damagePromptCard}
+                onPress={() => setActiveTab('damage')}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'tl' ? 'Mag-ulat ng Structural Damage' : 'Report Structural Damage'}
+              >
+                <View style={styles.damagePromptIconWell}>
+                  <DamageIcon size={20} color="#C8102E" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.damagePromptTitle}>
+                    {lang === 'tl' ? 'May pinsala ba ang inyong tirahan?' : 'Home Damaged by Disaster?'}
+                  </Text>
+                  <Text style={styles.damagePromptSub}>
+                    {lang === 'tl'
+                      ? 'Mag-ulat ng Structural Damage upang masuri ng Barangay at mapataas ang inyong Priority Score (hanggang +40 pts).'
+                      : 'Submit damage photos to earn up to +40 bonus points on your Priority Index.'}
+                  </Text>
+                </View>
+                <View style={styles.damagePromptArrow}>
+                  <ArrowLeftIcon size={14} color="#C8102E" style={{ transform: [{ rotate: '180deg' }] }} />
+                </View>
+              </TouchableOpacity>
+            )}
 
             {/* ── Relief Entitlement ── */}
             <View style={styles.entitlementBannerCard}>
@@ -1956,6 +2123,203 @@ verifCheckCirclePending: {
     paddingVertical: 14,
     paddingHorizontal: 12,
     width: '100%',
+  },
+  damageAssessmentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 18,
+    marginBottom: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 10px 28px rgba(11, 29, 78, 0.08), 0 2px 8px rgba(11, 29, 78, 0.04)',
+    } : {
+      shadowColor: '#0B1D4E',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.10,
+      shadowRadius: 16,
+      elevation: 4,
+    }),
+  },
+  damageAssessmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  damageIconWell: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FEF0F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  damageAssessmentTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.3,
+  },
+  damageAssessmentSub: {
+    fontSize: 11,
+    color: '#475569',
+    marginTop: 1,
+  },
+  damageStatusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  damageBadgeVerified: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
+  damageBadgeVerifiedText: {
+    color: '#15803D',
+  },
+  damageBadgeRejected: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+  },
+  damageBadgeRejectedText: {
+    color: '#B91C1C',
+  },
+  damageBadgePending: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FCD34D',
+  },
+  damageBadgePendingText: {
+    color: '#B45309',
+  },
+  damageStatusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  damageLevelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 12,
+    marginBottom: 10,
+  },
+  damageLevelText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0B1525',
+    marginBottom: 2,
+  },
+  damageLevelExpl: {
+    fontSize: 11.5,
+    color: '#475569',
+    lineHeight: 16,
+  },
+  damageBonusPill: {
+    backgroundColor: '#C8102E',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  damageBonusPillText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  damageAdminNotesBox: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: 10,
+    borderLeftWidth: 3.5,
+    borderLeftColor: '#1C3F94',
+    padding: 10,
+    marginBottom: 10,
+  },
+  damageAdminNotesTitle: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#1C3F94',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  damageAdminNotesText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: '#1E3A8A',
+    lineHeight: 16,
+  },
+  damageViewDetailsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  damageViewDetailsBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1C3F94',
+  },
+  damagePromptCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#FEE2E2',
+    padding: 16,
+    marginBottom: 16,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 8px 24px rgba(200, 16, 46, 0.06)',
+    } : {
+      shadowColor: '#C8102E',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      elevation: 3,
+    }),
+  },
+  damagePromptIconWell: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FEF0F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  damagePromptTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0B1525',
+    marginBottom: 2,
+  },
+  damagePromptSub: {
+    fontSize: 11.5,
+    color: '#475569',
+    lineHeight: 16,
+  },
+  damagePromptArrow: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FEF0F2',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   entitlementBannerCard: {
     backgroundColor: '#FFFFFF',
