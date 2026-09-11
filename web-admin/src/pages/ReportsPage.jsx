@@ -22,7 +22,6 @@ export default function ReportsPage() {
   const isLguAdmin = user?.role === 'lgu_admin';
   const isBarangayOfficial = !isCityWide || user?.role === 'barangay_official';
   const officialBrgy = user?.barangayCode ? String(user.barangayCode) : '291';
-  const activeBrgy = isCityWide ? selectedBrgy : officialBrgy;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') === 'incidents' && isCityWide) ? 'incidents' : 'audit';
@@ -31,6 +30,7 @@ export default function ReportsPage() {
   const [selectedBrgy, setSelectedBrgy] = useState(
     isCityWide ? 'all' : (user?.barangayCode ? String(user.barangayCode) : '291')
   );
+  const activeBrgy = isCityWide ? selectedBrgy : officialBrgy;
   const [duplicateLogs, setDuplicateLogs] = useState([]);
   const [gapReport, setGapReport] = useState([]);
   const [summary, setSummary] = useState({

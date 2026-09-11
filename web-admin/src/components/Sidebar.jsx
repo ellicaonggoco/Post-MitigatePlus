@@ -160,7 +160,7 @@ function IconlyLock({ size = 20, color = 'currentColor' }) {
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { user, logout } = useContext(AuthContext);
-  const { t, lang, setLanguage } = useContext(LanguageContext);
+  const { t } = useContext(LanguageContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -357,79 +357,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </nav>
       </div>
 
-      {/* ── BOTTOM USER CARD & LANGUAGE SWITCHER ── */}
+      {/* ── BOTTOM USER CARD ── */}
       <div>
         <div style={{ height: '1px', background: 'var(--border)', margin: '12px 0' }} />
-
-        {/* Global Language Switcher Pill */}
-        {isCollapsed ? (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => setLanguage(lang === 'fil' || lang === 'tl' ? 'en' : 'fil')}
-              title={lang === 'fil' || lang === 'tl' ? 'Lumipat sa English' : 'Switch to Tagalog / Filipino'}
-              style={{
-                width: '38px',
-                height: '24px',
-                borderRadius: '6px',
-                border: '1px solid var(--border)',
-                background: 'var(--card)',
-                color: 'var(--manila-blue)',
-                fontSize: '10px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              }}
-            >
-              {(lang === 'fil' || lang === 'tl') ? 'FIL' : 'EN'}
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {(lang === 'fil' || lang === 'tl') ? 'Wika' : 'Language'}
-            </span>
-            <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px', gap: '2px', border: '1px solid var(--border)' }}>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                style={{
-                  padding: '3px 10px',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  borderRadius: '6px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: lang === 'en' ? 'var(--manila-blue, #1C3F94)' : 'transparent',
-                  color: lang === 'en' ? '#FFFFFF' : 'var(--ink-soft, #64748B)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('fil')}
-                style={{
-                  padding: '3px 10px',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  borderRadius: '6px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: (lang === 'fil' || lang === 'tl') ? 'var(--manila-blue, #1C3F94)' : 'transparent',
-                  color: (lang === 'fil' || lang === 'tl') ? '#FFFFFF' : 'var(--ink-soft, #64748B)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                FIL
-              </button>
-            </div>
-          </div>
-        )}
 
         {isCollapsed ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
