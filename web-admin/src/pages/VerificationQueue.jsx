@@ -25,7 +25,7 @@ export default function VerificationQueue() {
   const [previewImage, setPreviewImage] = useState({ isOpen: false, url: '', title: '', idType: '', docType: 'id' });
 
   // ── Structural Damage Reports State ──────────────────────────────
-  const [damageReports, setDamageReports] = useState([]);
+  const [allDamageReports, setAllDamageReports] = useState([]);
   const [loadingDamage, setLoadingDamage] = useState(false);
   const [damageStatusFilter, setDamageStatusFilter] = useState('pending'); // 'pending' | 'all' | 'verified' | 'adjusted' | 'rejected'
   const [damageCurrentPage, setDamageCurrentPage] = useState(1);
@@ -37,6 +37,10 @@ export default function VerificationQueue() {
     notes: '',
     rejectionReason: '',
   });
+
+  const damageReports = damageStatusFilter === 'all'
+    ? allDamageReports
+    : allDamageReports.filter(d => (d.verificationStatus || 'pending') === damageStatusFilter);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -83,20 +87,17 @@ export default function VerificationQueue() {
       if (canSeeCityWide(user) && selectedBarangay !== 'ALL') {
         params.push(`barangayCode=${selectedBarangay}`);
       }
-      if (damageStatusFilter !== 'all') {
-        params.push(`verificationStatus=${damageStatusFilter}`);
-      }
       if (params.length > 0) url += `?${params.join('&')}`;
 
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
-        setDamageReports(data);
+        setAllDamageReports(data);
       } else {
-        setDamageReports([]);
+        setAllDamageReports([]);
       }
     } catch (err) {
-      setDamageReports([]);
+      setAllDamageReports([]);
     } finally {
       setLoadingDamage(false);
     }
@@ -117,6 +118,7 @@ export default function VerificationQueue() {
       });
       socket.on('new_pending_damage_report', (data) => {
         setActionStatus({ type: 'info', msg: `Bagong structural damage report natanggap mula sa Purok ${data?.address || ''}!` });
+        setDamageStatusFilter('pending');
         fetchDamageReports();
       });
       socket.on('damage_report_verified', () => {
@@ -127,7 +129,7 @@ export default function VerificationQueue() {
 
     return () => socket.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, user, selectedBarangay, damageStatusFilter]);
+  }, [token, user, selectedBarangay]);
 
   const [modal, setModal] = useState({ isOpen: false, hhId: null, actionStatus: '', name: '' });
 
@@ -357,13 +359,13 @@ export default function VerificationQueue() {
         >
           <Home size={18} />
           <span>Structural Damage Reports</span>
-          {damageReports.filter(d => d.verificationStatus === 'pending').length > 0 && (
+          {allDamageReports.filter(d => (d.verificationStatus || 'pending') === 'pending').length > 0 && (
             <span style={{
               background: '#DC2626',
               color: '#FFFFFF',
               fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: 999
             }}>
-              {damageReports.filter(d => d.verificationStatus === 'pending').length} pending
+              {allDamageReports.filter(d => (d.verificationStatus || 'pending') === 'pending').length} pending
             </span>
           )}
         </button>
@@ -373,26 +375,23 @@ export default function VerificationQueue() {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
         background: 'var(--card)', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-inner)', padding: '10px 16px', marginBottom: '20px',
+        borderRadius: 'var(--radius-card)', padding: '14px 20px', marginBottom: '24px',
+        boxShadow: 'var(--shadow-sm)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Filter size={16} color="var(--ink-soft)" />
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Scope:
+          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)' }}>
+            Barangay Jurisdiction:
           </span>
-          {canSeeCityWide(user) ? (
+          {isCityWide ? (
             <select
-              id="barangay-filter"
-              aria-label="Filter by Barangay"
               value={selectedBarangay}
               onChange={(e) => setSelectedBarangay(e.target.value)}
-              style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)', background: 'transparent', cursor: 'pointer' }}
+              className="clay-input"
+              style={{ padding: '6px 12px', fontSize: '13px', minWidth: '160px' }}
             >
               <option value="ALL">All Barangays (City-Wide)</option>
-              {Array.from(new Set([
-                '101', '102', '105', '128', '291', '292', '293', '294', '300', '344', '350', '395', '412', '586', '628', '701', '830',
-                ...households.map(h => String(h.barangayCode || '').trim()).filter(Boolean),
-              ])).sort((a, b) => Number(a) - Number(b)).map(b => (
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '291', '344'].map(b => (
                 <option key={b} value={b}>Barangay {b}</option>
               ))}
             </select>
@@ -407,25 +406,46 @@ export default function VerificationQueue() {
         {activeQueueTab === 'damage_reports' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)' }}>Status:</span>
-            {['pending', 'verified', 'adjusted', 'rejected', 'all'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setDamageStatusFilter(st)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  border: damageStatusFilter === st ? '1.5px solid #DC2626' : '1px solid var(--border)',
-                  background: damageStatusFilter === st ? '#FEF2F2' : 'var(--sampaguita)',
-                  color: damageStatusFilter === st ? '#DC2626' : 'var(--ink)',
-                  fontSize: '11.5px',
-                  fontWeight: damageStatusFilter === st ? 800 : 600,
-                  cursor: 'pointer',
-                  textTransform: 'capitalize'
-                }}
-              >
-                {st}
-              </button>
-            ))}
+            {['pending', 'verified', 'adjusted', 'rejected', 'all'].map((st) => {
+              const count = st === 'all'
+                ? allDamageReports.length
+                : allDamageReports.filter(d => (d.verificationStatus || 'pending') === st).length;
+              const isActive = damageStatusFilter === st;
+              return (
+                <button
+                  key={st}
+                  onClick={() => setDamageStatusFilter(st)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    border: isActive ? '1.5px solid #DC2626' : '1px solid var(--border)',
+                    background: isActive ? '#FEF2F2' : 'var(--sampaguita)',
+                    color: isActive ? '#DC2626' : 'var(--ink)',
+                    fontSize: '11.5px',
+                    fontWeight: isActive ? 800 : 600,
+                    cursor: 'pointer',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  <span>{st}</span>
+                  <span
+                    style={{
+                      background: isActive ? '#DC2626' : '#E2E8F0',
+                      color: isActive ? '#FFFFFF' : '#475569',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '1px 5px',
+                      borderRadius: 999,
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
