@@ -105,7 +105,10 @@ router.get('/', protect, async (req, res) => {
     }
 
     const reports = await DamageReport.find(filter)
-      .populate('householdId')
+      .populate({
+        path: 'householdId',
+        populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone contactNum' },
+      })
       .populate('validatedBy', 'name emailOrPhone')
       .sort({ reportedAt: -1 });
     res.json(reports);
@@ -116,11 +119,21 @@ router.get('/', protect, async (req, res) => {
 
 // @route   PATCH /api/damage-reports/:id/validate
 // @desc    Barangay Official or LGU Admin validates, adjusts, or rejects a damage report
-router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'field_staff'), async (req, res) => {
+router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { action, validatedDamageLevel, damageLevel, notes, rejectionReason } = req.body;
     const report = await DamageReport.findById(req.params.id);
     if (!report) return res.status(404).json({ message: 'Damage report not found.' });
+
+    // Enforce barangay boundary check: Barangay Official can only validate reports within their own barangay
+    if (req.user.role === 'barangay_official') {
+      const hhCheck = await Household.findById(report.householdId).select('barangayCode');
+      if (hhCheck && hhCheck.barangayCode !== req.user.barangayCode) {
+        return res.status(403).json({
+          message: `Forbidden: You are registered for Barangay ${req.user.barangayCode} and cannot validate a report in Barangay ${hhCheck.barangayCode}.`,
+        });
+      }
+    }
 
     const finalAction = action || (validatedDamageLevel ? 'verified' : 'verified');
     const finalLevel = validatedDamageLevel || damageLevel || report.reportedDamageLevel || report.damageLevel;

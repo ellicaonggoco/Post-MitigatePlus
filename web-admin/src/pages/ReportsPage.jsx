@@ -18,12 +18,17 @@ export default function ReportsPage() {
   const { token, user } = useContext(AuthContext);
   const isSuperAdmin = user?.role === 'lgu_superadmin';
   const isLguAdmin = user?.role === 'lgu_admin';
+  const isBarangayOfficial = user?.role === 'barangay_official';
+  const officialBrgy = user?.barangayCode ? String(user.barangayCode) : '291';
+  const activeBrgy = isBarangayOfficial ? officialBrgy : selectedBrgy;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') === 'incidents' ? 'incidents' : 'audit';
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  const [selectedBrgy, setSelectedBrgy] = useState('all');
+  const [selectedBrgy, setSelectedBrgy] = useState(
+    user?.role === 'barangay_official' ? (user?.barangayCode ? String(user.barangayCode) : '291') : 'all'
+  );
   const [duplicateLogs, setDuplicateLogs] = useState([]);
   const [gapReport, setGapReport] = useState([]);
   const [summary, setSummary] = useState({
@@ -34,6 +39,13 @@ export default function ReportsPage() {
     totalEvents: 0,
     fulfillmentRate: '0%',
   });
+
+  // Lock selectedBrgy to official's barangay code
+  useEffect(() => {
+    if (isBarangayOfficial && user?.barangayCode) {
+      setSelectedBrgy(String(user.barangayCode));
+    }
+  }, [isBarangayOfficial, user?.barangayCode]);
 
   // ── Field Incident Reports Directory State ──
   const [incidents, setIncidents] = useState([]);
@@ -69,10 +81,11 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
+        const brgyQuery = activeBrgy && activeBrgy !== 'all' ? `?barangayCode=${encodeURIComponent(activeBrgy)}` : '';
         const results = await Promise.allSettled([
-          fetch(`${API_BASE_URL}/reports/summary`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
-          fetch(`${API_BASE_URL}/reports/duplicate-attempts`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
-          fetch(`${API_BASE_URL}/reports/gap-analysis`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
+          fetch(`${API_BASE_URL}/reports/summary${brgyQuery}`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
+          fetch(`${API_BASE_URL}/reports/duplicate-attempts${brgyQuery}`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
+          fetch(`${API_BASE_URL}/reports/gap-analysis${brgyQuery}`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }),
         ]);
 
         const sumRes = results[0]?.status === 'fulfilled' ? results[0].value : null;
@@ -134,13 +147,14 @@ export default function ReportsPage() {
     if (token) {
       fetchReports();
     }
-  }, [token]);
+  }, [token, activeBrgy]);
 
   // ── Fetch Field Incidents ──
   const fetchIncidents = async () => {
     try {
       setLoadingIncidents(true);
-      const res = await fetch(`${API_BASE_URL}/incidents`, {
+      const brgyQuery = activeBrgy && activeBrgy !== 'all' ? `?barangayCode=${encodeURIComponent(activeBrgy)}` : '';
+      const res = await fetch(`${API_BASE_URL}/incidents${brgyQuery}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -156,7 +170,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (token) fetchIncidents();
-  }, [token]);
+  }, [token, activeBrgy]);
 
   // ── Real-Time Socket.IO Listener for Field Incidents ──
   useEffect(() => {
@@ -165,6 +179,9 @@ export default function ReportsPage() {
     socket.emit('join_admin_room');
 
     socket.on('new_field_incident', (incoming) => {
+      if (isBarangayOfficial && String(incoming.barangayCode) !== String(officialBrgy)) {
+        return;
+      }
       setIncidents((prev) => {
         const id = incoming._id;
         const exists = prev.some((x) => String(x._id) === String(id));
@@ -195,7 +212,7 @@ export default function ReportsPage() {
     });
 
     return () => socket.disconnect();
-  }, [token]);
+  }, [token, isBarangayOfficial, officialBrgy]);
 
   // ── Acknowledge / Resolve Handlers ──
   const handleAcknowledgeIncident = async (incidentId) => {
@@ -422,18 +439,18 @@ export default function ReportsPage() {
     }
   };
 
-  const filteredDups = selectedBrgy === 'all'
+  const filteredDups = activeBrgy === 'all'
     ? duplicateLogs
-    : duplicateLogs.filter(d => (d.barangay || d.barangayCode) === selectedBrgy);
+    : duplicateLogs.filter(d => String(d.barangay || d.barangayCode) === String(activeBrgy));
 
-  const filteredGaps = selectedBrgy === 'all'
+  const filteredGaps = activeBrgy === 'all'
     ? gapReport
-    : gapReport.filter(g => g.barangayCode === selectedBrgy);
+    : gapReport.filter(g => String(g.barangayCode) === String(activeBrgy));
 
   // Filtered Incidents Directory
   const filteredIncidents = incidents.filter((inc) => {
-    const bCode = inc.barangayCode || '';
-    if (selectedBrgy !== 'all' && bCode !== selectedBrgy) return false;
+    const bCode = String(inc.barangayCode || '');
+    if (activeBrgy !== 'all' && bCode !== String(activeBrgy)) return false;
     if (incidentTypeFilter !== 'all' && inc.incidentType !== incidentTypeFilter) return false;
     if (statusFilter !== 'all' && (inc.status || 'open') !== statusFilter) return false;
     if (incidentSearch.trim()) {
@@ -454,7 +471,7 @@ export default function ReportsPage() {
     setDupPage(1);
     setGapPage(1);
     setIncidentPage(1);
-  }, [selectedBrgy, incidentTypeFilter, statusFilter, incidentSearch]);
+  }, [activeBrgy, incidentTypeFilter, statusFilter, incidentSearch]);
 
   const paginatedDups = filteredDups.slice((dupPage - 1) * ITEMS_PER_PAGE, dupPage * ITEMS_PER_PAGE);
   const paginatedGaps = filteredGaps.slice((gapPage - 1) * ITEMS_PER_PAGE, gapPage * ITEMS_PER_PAGE);
@@ -482,13 +499,14 @@ export default function ReportsPage() {
     const headers = ['Timestamp', 'Barangay', 'Action / Flag', 'Audit Notes / Details', 'Logged By Staff', 'Staff Role'];
     const rows = filteredDups.map(log => [
       log.timestamp || new Date(log.createdAt).toLocaleString(),
-      log.barangay || log.barangayCode || 'City-Wide',
+      log.barangay || log.barangayCode || (isBarangayOfficial ? `Brgy ${officialBrgy}` : 'City-Wide'),
       log.action,
       log.notes,
       log.staff || log.actorUserId?.name || 'Staff Scanner',
       log.role || log.actorRole || 'Field Staff',
     ]);
-    exportToCSV(`MitigatePlus_Manila_City_Duplicate_Audit_Logs_${selectedBrgy}`, headers, rows);
+    const fileScope = isBarangayOfficial ? `Barangay_${officialBrgy}` : (activeBrgy === 'all' ? 'Manila_City' : `Barangay_${activeBrgy}`);
+    exportToCSV(`MitigatePlus_Duplicate_Audit_Logs_${fileScope}`, headers, rows);
   };
 
   const handleExportGapCSV = () => {
@@ -501,14 +519,15 @@ export default function ReportsPage() {
       Array.isArray(item.gaps) ? item.gaps.join('; ') : 'None',
       item.totalGaps || 0,
     ]);
-    exportToCSV(`MitigatePlus_Manila_City_Assistance_Gap_Matrix_${selectedBrgy}`, headers, rows);
+    const fileScope = isBarangayOfficial ? `Barangay_${officialBrgy}` : (activeBrgy === 'all' ? 'Manila_City' : `Barangay_${activeBrgy}`);
+    exportToCSV(`MitigatePlus_Assistance_Gap_Matrix_${fileScope}`, headers, rows);
   };
 
   const handleExportIncidentCSV = () => {
     const headers = ['Timestamp', 'Barangay', 'Category / Incident Type', 'Field Staff Reporter', 'Staff Role / Team', 'Incident Notes', 'Current Status', 'Resolution Remarks'];
     const rows = filteredIncidents.map(inc => [
       new Date(inc.createdAt).toLocaleString(),
-      `Brgy ${inc.barangayCode || '291'}`,
+      `Brgy ${inc.barangayCode || officialBrgy}`,
       inc.incidentType,
       inc.reportedBy?.name || 'Field Staff',
       inc.reportedBy?.teamName || inc.reportedBy?.role || 'MDRRMO Field Operations',
@@ -516,16 +535,27 @@ export default function ReportsPage() {
       (inc.status || 'open').toUpperCase(),
       inc.resolutionNotes || 'None',
     ]);
-    exportToCSV(`MitigatePlus_Manila_Field_Incident_Directory_${selectedBrgy}`, headers, rows);
+    const fileScope = isBarangayOfficial ? `Barangay_${officialBrgy}` : (activeBrgy === 'all' ? 'Manila_City' : `Barangay_${activeBrgy}`);
+    exportToCSV(`MitigatePlus_Field_Incident_Directory_${fileScope}`, headers, rows);
   };
 
   const handlePrintPDF = () => {
     const printWindow = window.open('', '_blank');
+    const reportTitle = isBarangayOfficial
+      ? `MitigatePlus - Barangay ${officialBrgy} Disaster Recovery & Audit Report`
+      : 'MitigatePlus - Official Manila City Executive Disaster Audit Report';
+    const reportScope = isBarangayOfficial
+      ? `Jurisdiction: Barangay ${officialBrgy}, Manila`
+      : (activeBrgy === 'all' ? 'Entire Manila City (All Barangays)' : `Barangay ${activeBrgy}`);
+    const certFooter = isBarangayOfficial
+      ? `Official Audit Certified by Barangay Administration • Barangay ${officialBrgy}, Manila`
+      : 'Official Executive Audit certified by Mayor / LGU SuperAdmin • City of Manila';
+
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>MitigatePlus - Official Manila City Executive Audit Report</title>
+        <title>${reportTitle}</title>
         <style>
           body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 24px; color: #1A2332; }
           .header { border-bottom: 2px solid #173F56; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -544,19 +574,19 @@ export default function ReportsPage() {
       <body>
         <div class="header">
           <div>
-            <h1>MitigatePlus - Official Manila City Executive Disaster Audit Report</h1>
-            <p>Lungsod ng Maynila • Scope: ${selectedBrgy === 'all' ? 'Entire Manila City (All Barangays)' : `Barangay ${selectedBrgy}`} • Date: ${new Date().toLocaleString()}</p>
+            <h1>${reportTitle}</h1>
+            <p>Lungsod ng Maynila • Scope: ${reportScope} • Date: ${new Date().toLocaleString()}</p>
           </div>
         </div>
 
         <div class="summary-grid">
-          <div class="summary-card">Total Households: <span>${summary.totalHouseholds.toLocaleString()}</span></div>
+          <div class="summary-card">${isBarangayOfficial ? `Brgy ${officialBrgy} Households` : 'Total Households'}: <span>${summary.totalHouseholds.toLocaleString()}</span></div>
           <div class="summary-card">Verified Beneficiaries: <span>${summary.verifiedHouseholds.toLocaleString()}</span></div>
           <div class="summary-card">Blocked Fraud Attempts: <span>${summary.duplicateAttemptsCount}</span></div>
-          <div class="summary-card">City Fulfillment Rate: <span>${summary.fulfillmentRate}</span></div>
+          <div class="summary-card">${isBarangayOfficial ? 'Brgy Fulfillment Rate' : 'City Fulfillment Rate'}: <span>${summary.fulfillmentRate}</span></div>
         </div>
 
-        <h3>Blocked Duplicate Claim Attempts Audit Log:</h3>
+        <h3>Blocked Duplicate Claim Attempts Audit Log (${isBarangayOfficial ? `Barangay ${officialBrgy}` : 'City-Wide'}):</h3>
         <table>
           <thead>
             <tr>
@@ -571,7 +601,7 @@ export default function ReportsPage() {
             ${filteredDups.map(log => `
               <tr>
                 <td>${log.timestamp}</td>
-                <td>Brgy ${log.barangay}</td>
+                <td>Brgy ${log.barangay || officialBrgy}</td>
                 <td><span class="badge">${log.action}</span></td>
                 <td>${log.notes}</td>
                 <td>${log.staff} (${log.role})</td>
@@ -580,7 +610,7 @@ export default function ReportsPage() {
           </tbody>
         </table>
 
-        <h3 style="margin-top: 28px;">City-Wide Assistance Gap Analysis Matrix:</h3>
+        <h3 style="margin-top: 28px;">Assistance Gap Analysis Matrix (${isBarangayOfficial ? `Barangay ${officialBrgy}` : 'City-Wide'}):</h3>
         <table>
           <thead>
             <tr>
@@ -594,7 +624,7 @@ export default function ReportsPage() {
             ${filteredGaps.map(item => `
               <tr>
                 <td>${item.address}</td>
-                <td>Brgy ${item.barangayCode}</td>
+                <td>Brgy ${item.barangayCode || officialBrgy}</td>
                 <td>${item.priorityLevel}</td>
                 <td>${Array.isArray(item.gaps) ? item.gaps.join(', ') : 'None'}</td>
               </tr>
@@ -603,7 +633,7 @@ export default function ReportsPage() {
         </table>
 
         <div class="footer">
-          Official Executive Audit certified by Mayor / LGU SuperAdmin • City of Manila
+          ${certFooter}
         </div>
       </body>
       </html>
@@ -622,10 +652,34 @@ export default function ReportsPage() {
   const displayRate = summary.fulfillmentRate;
 
   const kpiCards = [
-    { label: selectedBrgy === 'all' ? 'Total Manila Households' : `Barangay ${selectedBrgy} Households`, value: displayHouseholds.toLocaleString(), icon: <Users size={20} color="var(--manila-blue)" />, accent: 'var(--manila-blue)', bg: 'var(--manila-blue-light)' },
-    { label: selectedBrgy === 'all' ? 'Verified Beneficiaries' : `Verified (Brgy ${selectedBrgy})`, value: displayVerified.toLocaleString(), icon: <CheckCircle2 size={20} color="var(--bay-teal)" />, accent: 'var(--bay-teal)', bg: 'var(--bay-teal-light)' },
-    { label: 'Blocked Duplicate Claims', value: displayBlocked, icon: <XOctagon size={20} color="var(--danger)" />, accent: 'var(--danger)', bg: 'var(--danger-light)' },
-    { label: selectedBrgy === 'all' ? 'City Fulfillment Rate' : 'Barangay Fulfillment Rate', value: displayRate, icon: <BarChart2 size={20} color="#7C3AED" />, accent: '#7C3AED', bg: '#F5F3FF' },
+    {
+      label: isBarangayOfficial ? `Barangay ${officialBrgy} Households` : (activeBrgy === 'all' ? 'Total Manila Households' : `Barangay ${activeBrgy} Households`),
+      value: displayHouseholds.toLocaleString(),
+      icon: <Users size={20} color="var(--manila-blue)" />,
+      accent: 'var(--manila-blue)',
+      bg: 'var(--manila-blue-light)'
+    },
+    {
+      label: isBarangayOfficial ? `Verified (Brgy ${officialBrgy})` : (activeBrgy === 'all' ? 'Verified Beneficiaries' : `Verified (Brgy ${activeBrgy})`),
+      value: displayVerified.toLocaleString(),
+      icon: <CheckCircle2 size={20} color="var(--bay-teal)" />,
+      accent: 'var(--bay-teal)',
+      bg: 'var(--bay-teal-light)'
+    },
+    {
+      label: isBarangayOfficial ? `Blocked Claims (Brgy ${officialBrgy})` : 'Blocked Duplicate Claims',
+      value: displayBlocked,
+      icon: <XOctagon size={20} color="var(--danger)" />,
+      accent: 'var(--danger)',
+      bg: 'var(--danger-light)'
+    },
+    {
+      label: isBarangayOfficial ? `Brgy ${officialBrgy} Fulfillment Rate` : (activeBrgy === 'all' ? 'City Fulfillment Rate' : 'Barangay Fulfillment Rate'),
+      value: displayRate,
+      icon: <BarChart2 size={20} color="#7C3AED" />,
+      accent: '#7C3AED',
+      bg: '#F5F3FF'
+    },
   ];
 
   return (
@@ -642,20 +696,40 @@ export default function ReportsPage() {
           </div>
           <div>
             <h1 className="section-header" style={{ margin: 0, fontSize: '22px' }}>
-              Disaster Recovery Reports & Audit Exporter
+              {isBarangayOfficial ? `Barangay ${officialBrgy} Disaster Reports & Audit` : 'Disaster Recovery Reports & Audit Exporter'}
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
-              City-Wide Master Reports · Complete audit trails, anti-duplicate logs, and gap matrix for Manila City.
+              {isBarangayOfficial
+                ? `Official localized audit trail, incidents, and relief gap analysis for Barangay ${officialBrgy}.`
+                : 'City-Wide Master Reports · Complete audit trails, anti-duplicate logs, and gap matrix for Manila City.'}
             </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Searchable Barangay Scope Filter */}
-          <SearchableBarangaySelect
-            value={selectedBrgy}
-            onChange={setSelectedBrgy}
-          />
+          {/* Scope Filter: Locked Badge for Barangay Official, Select Dropdown for LGU Admins */}
+          {isBarangayOfficial ? (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '9px 14px',
+              background: 'var(--manila-blue-light)',
+              border: '1.5px solid var(--manila-blue)',
+              borderRadius: 'var(--radius-inner)',
+              color: 'var(--manila-blue)',
+              fontWeight: 800,
+              fontSize: '13px',
+            }}>
+              <Building size={16} />
+              <span>Barangay {officialBrgy} (Locked Jurisdiction)</span>
+            </div>
+          ) : (
+            <SearchableBarangaySelect
+              value={selectedBrgy}
+              onChange={setSelectedBrgy}
+            />
+          )}
 
           <button onClick={handlePrintPDF} className="clay-button-primary" style={{ padding: '9px 16px', fontSize: '13px', gap: 6 }}>
             <Printer size={15} /> Save / Print PDF Report
@@ -692,7 +766,7 @@ export default function ReportsPage() {
           }}
         >
           <FileText size={17} color={activeTab === 'audit' ? 'var(--manila-blue)' : 'currentColor'} />
-          Master Disaster Audit & Gap Matrix
+          {isBarangayOfficial ? `Barangay ${officialBrgy} Audit & Gap Matrix` : 'Master Disaster Audit & Gap Matrix'}
         </button>
 
         <button
@@ -765,7 +839,9 @@ export default function ReportsPage() {
                     Audit Trail: Blocked Duplicate Claim Attempts
                   </h2>
                   <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                    Real-time fraud prevention logs across Manila distribution points ({filteredDups.length})
+                    {isBarangayOfficial
+                      ? `Real-time fraud prevention logs in Barangay ${officialBrgy} (${filteredDups.length})`
+                      : `Real-time fraud prevention logs across Manila distribution points (${filteredDups.length})`}
                   </span>
                 </div>
               </div>
@@ -821,10 +897,12 @@ export default function ReportsPage() {
                 <AlertCircle size={20} color="var(--manila-blue)" />
                 <div>
                   <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
-                    City-Wide Assistance Gap Analysis Matrix
+                    {isBarangayOfficial ? `Barangay ${officialBrgy} Assistance Gap Analysis Matrix` : 'City-Wide Assistance Gap Analysis Matrix'}
                   </h2>
                   <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                    Identified unfulfilled resident relief needs across Manila City ({filteredGaps.length})
+                    {isBarangayOfficial
+                      ? `Identified unfulfilled resident relief needs in Barangay ${officialBrgy} (${filteredGaps.length})`
+                      : `Identified unfulfilled resident relief needs across Manila City (${filteredGaps.length})`}
                   </span>
                 </div>
               </div>
@@ -896,10 +974,12 @@ export default function ReportsPage() {
                 <Package size={20} color="var(--manila-blue)" />
                 <div>
                   <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--manila-blue)', margin: 0 }}>
-                    Official COA / DSWD Disaster Relief Liquidation & Beneficiary Masterlist
+                    {isBarangayOfficial ? `Barangay ${officialBrgy} COA / DSWD Relief Liquidation Masterlist` : 'Official COA / DSWD Disaster Relief Liquidation & Beneficiary Masterlist'}
                   </h2>
                   <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                    Exportable audit spreadsheet compliant with COA disaster expenditure guidelines
+                    {isBarangayOfficial
+                      ? `Exportable audit spreadsheet compliant with COA disaster expenditure guidelines for Barangay ${officialBrgy}`
+                      : 'Exportable audit spreadsheet compliant with COA disaster expenditure guidelines'}
                   </span>
                 </div>
               </div>
@@ -907,7 +987,7 @@ export default function ReportsPage() {
                 <button
                   onClick={async () => {
                     try {
-                      const res = await fetch(`${API_BASE_URL}/reports/coa-liquidation?barangayCode=${selectedBrgy}`, {
+                      const res = await fetch(`${API_BASE_URL}/reports/coa-liquidation?barangayCode=${encodeURIComponent(activeBrgy)}`, {
                         headers: { Authorization: `Bearer ${token}` },
                       });
                       const data = await res.json();
@@ -926,7 +1006,8 @@ export default function ReportsPage() {
                           r.basePacks, r.topUpPacks, r.totalPacksReleased, r.disbursingOfficer,
                           r.disbursingTeam, r.dateTimeClaimed, r.overrideReason
                         ]);
-                        exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_Manila_${selectedBrgy}`, headers, rows);
+                        const fileScope = isBarangayOfficial ? `Barangay_${officialBrgy}` : (activeBrgy === 'all' ? 'Manila_City' : `Barangay_${activeBrgy}`);
+                        exportToCSV(`COA_DSWD_Relief_Liquidation_Masterlist_${fileScope}`, headers, rows);
                       } else {
                         alert('No relief distribution records found for the selected filter criteria.');
                       }
@@ -944,7 +1025,9 @@ export default function ReportsPage() {
 
             <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <AlertCircle size={16} color="var(--manila-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-              <span><strong>Government Audit Compliance Note:</strong> Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang <em>Receipt Reference Numbers</em>, <em>Head of Household Names</em>, <em>Family Sizes</em>, at <em>Disbursing Officers</em> na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.</span>
+              <span><strong>Government Audit Compliance Note:</strong> {isBarangayOfficial
+                ? `Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap sa Barangay ${officialBrgy}, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds.`
+                : 'Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.'}</span>
             </div>
           </div>
         </>
@@ -1028,7 +1111,9 @@ export default function ReportsPage() {
                     Field Incident Reports Directory
                   </h2>
                   <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                    Live on-ground reports from field leaders and distribution officers ({filteredIncidents.length} total)
+                    {isBarangayOfficial
+                      ? `Live on-ground reports from field leaders and distribution officers in Barangay ${officialBrgy} (${filteredIncidents.length} total)`
+                      : `Live on-ground reports from field leaders and distribution officers (${filteredIncidents.length} total)`}
                   </span>
                 </div>
               </div>

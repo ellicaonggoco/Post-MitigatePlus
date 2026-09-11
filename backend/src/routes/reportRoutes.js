@@ -13,7 +13,9 @@ const { detectAssistanceGaps } = require('../utils/gapDetection');
 router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
   try {
     let query = {};
-    const brgy = req.query.barangayCode || (req.user.role === 'barangay_official' ? req.user.barangayCode : null);
+    const brgy = req.user.role === 'barangay_official'
+      ? req.user.barangayCode
+      : (req.query.barangayCode && req.query.barangayCode !== 'all' && req.query.barangayCode !== 'ALL' ? req.query.barangayCode : null);
     if (brgy) {
       query.barangayCode = brgy;
     }
@@ -173,10 +175,14 @@ router.get('/duplicate-attempts', protect, requireRole('barangay_official', 'lgu
       .populate('headOfHouseholdUserId', 'name emailOrPhone');
     const hhMap = new Map(households.map(h => [h._id.toString(), h]));
 
-    if (req.user.role === 'barangay_official') {
+    const targetBrgy = req.user.role === 'barangay_official'
+      ? req.user.barangayCode
+      : (req.query.barangayCode && req.query.barangayCode !== 'all' && req.query.barangayCode !== 'ALL' ? req.query.barangayCode : null);
+
+    if (targetBrgy) {
       logs = logs.filter(l => {
         const hh = hhMap.get(l.targetId);
-        return hh && String(hh.barangayCode) === String(req.user.barangayCode);
+        return hh && String(hh.barangayCode) === String(targetBrgy);
       });
     }
 
@@ -212,8 +218,11 @@ router.get('/duplicate-attempts', protect, requireRole('barangay_official', 'lgu
 router.get('/gap-analysis', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
   try {
     let query = { verificationStatus: 'verified' };
-    if (req.user.role === 'barangay_official') {
-      query.barangayCode = req.user.barangayCode;
+    const targetBrgy = req.user.role === 'barangay_official'
+      ? req.user.barangayCode
+      : (req.query.barangayCode && req.query.barangayCode !== 'all' && req.query.barangayCode !== 'ALL' ? req.query.barangayCode : null);
+    if (targetBrgy) {
+      query.barangayCode = targetBrgy;
     }
 
     const households = await Household.find(query).populate('headOfHouseholdUserId', 'name');
@@ -349,7 +358,7 @@ router.get('/coa-liquidation', protect, requireRole('barangay_official', 'lgu_ad
 // @desc    Automated Barangay Relief Demand & Pre-Event Assessment Report
 router.get('/pre-event-assessment', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
   try {
-    const rawBrgy = req.query.barangayCode || (req.user.role === 'barangay_official' ? req.user.barangayCode : '291');
+    const rawBrgy = req.user.role === 'barangay_official' ? req.user.barangayCode : (req.query.barangayCode || '291');
     const cleanCode = String(rawBrgy).replace(/\D/g, '') || '291';
 
     const households = await Household.find({
