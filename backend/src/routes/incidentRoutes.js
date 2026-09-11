@@ -95,7 +95,7 @@ router.get('/', protect, requireRole('field_staff', 'barangay_official', 'lgu_ad
 
 // @route   PATCH /api/incidents/:id
 // @desc    Update incident status (open -> acknowledged -> resolved), resolution notes & structured details
-router.patch('/:id', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+router.patch('/:id', protect, requireRole('lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { status, resolutionNotes, resolutionDetails } = req.body;
     const incident = await Incident.findById(req.params.id);

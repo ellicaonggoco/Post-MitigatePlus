@@ -25,7 +25,7 @@ export default function ReportsPage() {
   const activeBrgy = isCityWide ? selectedBrgy : officialBrgy;
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'incidents' ? 'incidents' : 'audit';
+  const initialTab = (searchParams.get('tab') === 'incidents' && isCityWide) ? 'incidents' : 'audit';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const [selectedBrgy, setSelectedBrgy] = useState(
@@ -72,13 +72,15 @@ export default function ReportsPage() {
   const [resEvacSite, setResEvacSite] = useState('Barangay 291 Covered Court');
   const [resEvacueesCount, setResEvacueesCount] = useState(15);
 
-  // Sync tab with URL search parameter
+  // Sync tab with URL search parameter (only City-Wide LGU Admins can access incidents tab)
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'incidents') {
+    if (tabParam === 'incidents' && isCityWide) {
       setActiveTab('incidents');
+    } else {
+      setActiveTab('audit');
     }
-  }, [searchParams]);
+  }, [searchParams, isCityWide]);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -151,8 +153,9 @@ export default function ReportsPage() {
     }
   }, [token, activeBrgy]);
 
-  // ── Fetch Field Incidents ──
+  // ── Fetch Field Incidents (City-Wide LGU Admins Only) ──
   const fetchIncidents = async () => {
+    if (!isCityWide) return;
     try {
       setLoadingIncidents(true);
       const brgyQuery = activeBrgy && activeBrgy !== 'all' ? `?barangayCode=${encodeURIComponent(activeBrgy)}` : '';
@@ -171,19 +174,16 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
-    if (token) fetchIncidents();
-  }, [token, activeBrgy]);
+    if (token && isCityWide) fetchIncidents();
+  }, [token, activeBrgy, isCityWide]);
 
-  // ── Real-Time Socket.IO Listener for Field Incidents ──
+  // ── Real-Time Socket.IO Listener for Field Incidents (City-Wide LGU Admins Only) ──
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isCityWide) return;
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
     socket.emit('join_admin_room');
 
     socket.on('new_field_incident', (incoming) => {
-      if (isBarangayOfficial && String(incoming.barangayCode) !== String(officialBrgy)) {
-        return;
-      }
       setIncidents((prev) => {
         const id = incoming._id;
         const exists = prev.some((x) => String(x._id) === String(id));
@@ -214,7 +214,7 @@ export default function ReportsPage() {
     });
 
     return () => socket.disconnect();
-  }, [token, isBarangayOfficial, officialBrgy]);
+  }, [token, isCityWide]);
 
   // ── Acknowledge / Resolve Handlers ──
   const handleAcknowledgeIncident = async (incidentId) => {
@@ -702,7 +702,7 @@ export default function ReportsPage() {
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
               {isBarangayOfficial
-                ? `Official localized audit trail, incidents, and relief gap analysis for Barangay ${officialBrgy}.`
+                ? `Official localized audit trail, distribution records, and relief gap analysis for Barangay ${officialBrgy}.`
                 : 'City-Wide Master Reports · Complete audit trails, anti-duplicate logs, and gap matrix for Manila City.'}
             </p>
           </div>
@@ -739,75 +739,77 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* ── Directory Tabs Switcher ── */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        borderBottom: '2px solid var(--border)',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-      }}>
-        <button
-          onClick={() => {
-            setActiveTab('audit');
-            setSearchParams({});
-          }}
-          style={{
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 800,
-            background: 'none',
-            border: 'none',
-            borderBottom: activeTab === 'audit' ? '3px solid var(--manila-blue)' : '3px solid transparent',
-            color: activeTab === 'audit' ? 'var(--manila-blue)' : 'var(--ink-soft)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <FileText size={17} color={activeTab === 'audit' ? 'var(--manila-blue)' : 'currentColor'} />
-          {isBarangayOfficial ? `Barangay ${officialBrgy} Audit & Gap Matrix` : 'Master Disaster Audit & Gap Matrix'}
-        </button>
+      {/* ── Directory Tabs Switcher (Only visible to City-Wide LGU Admins) ── */}
+      {isCityWide && (
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          borderBottom: '2px solid var(--border)',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+        }}>
+          <button
+            onClick={() => {
+              setActiveTab('audit');
+              setSearchParams({});
+            }}
+            style={{
+              padding: '12px 20px',
+              fontSize: '14px',
+              fontWeight: 800,
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'audit' ? '3px solid var(--manila-blue)' : '3px solid transparent',
+              color: activeTab === 'audit' ? 'var(--manila-blue)' : 'var(--ink-soft)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <FileText size={17} color={activeTab === 'audit' ? 'var(--manila-blue)' : 'currentColor'} />
+            Master Disaster Audit & Gap Matrix
+          </button>
 
-        <button
-          onClick={() => {
-            setActiveTab('incidents');
-            setSearchParams({ tab: 'incidents' });
-          }}
-          style={{
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 800,
-            background: 'none',
-            border: 'none',
-            borderBottom: activeTab === 'incidents' ? '3px solid #DC2626' : '3px solid transparent',
-            color: activeTab === 'incidents' ? '#DC2626' : 'var(--ink-soft)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <AlertTriangle size={17} color={activeTab === 'incidents' ? '#DC2626' : 'currentColor'} />
-          Field Incident Reports Directory
-          {incidents.filter(i => (i.status || 'open') === 'open').length > 0 && (
-            <span style={{
-              background: '#DC2626',
-              color: '#FFFFFF',
-              fontSize: '11px',
-              fontWeight: 900,
-              padding: '2px 8px',
-              borderRadius: '999px',
-              marginLeft: '4px',
-            }}>
-              {incidents.filter(i => (i.status || 'open') === 'open').length} OPEN
-            </span>
-          )}
-        </button>
-      </div>
+          <button
+            onClick={() => {
+              setActiveTab('incidents');
+              setSearchParams({ tab: 'incidents' });
+            }}
+            style={{
+              padding: '12px 20px',
+              fontSize: '14px',
+              fontWeight: 800,
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'incidents' ? '3px solid #DC2626' : '3px solid transparent',
+              color: activeTab === 'incidents' ? '#DC2626' : 'var(--ink-soft)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <AlertTriangle size={17} color={activeTab === 'incidents' ? '#DC2626' : 'currentColor'} />
+            Field Incident Reports Directory
+            {incidents.filter(i => (i.status || 'open') === 'open').length > 0 && (
+              <span style={{
+                background: '#DC2626',
+                color: '#FFFFFF',
+                fontSize: '11px',
+                fontWeight: 900,
+                padding: '2px 8px',
+                borderRadius: '999px',
+                marginLeft: '4px',
+              }}>
+                {incidents.filter(i => (i.status || 'open') === 'open').length} OPEN
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ── TAB 1: MASTER DISASTER AUDIT & GAPS ── */}
       {activeTab === 'audit' && (
@@ -1035,8 +1037,8 @@ export default function ReportsPage() {
         </>
       )}
 
-      {/* ── TAB 2: FIELD INCIDENT REPORTS DIRECTORY ── */}
-      {activeTab === 'incidents' && (
+      {/* ── TAB 2: FIELD INCIDENT REPORTS DIRECTORY (City-Wide LGU Admins Only) ── */}
+      {isCityWide && activeTab === 'incidents' && (
         <>
           {/* Incident KPI Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
