@@ -91,13 +91,19 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
             <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
           </TouchableOpacity>
           <View style={{flex: 1, alignItems: 'center'}}>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Claims History</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+              {lang === 'tl' ? 'Kasaysayan ng Ayuda' : 'Claims History'}
+            </Text>
           </View>
           <View style={{width: 48}} />
         </View>
         <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
-          <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 }}>Distribution & Claims</Text>
-          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 19.5, marginTop: 4 }}>Verified logs of received relief supplies and financial aid.</Text>
+          <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 }}>
+            {lang === 'tl' ? 'Pamamahagi at Ayuda' : 'Distribution & Claims'}
+          </Text>
+          <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 19.5, marginTop: 4 }}>
+            {lang === 'tl' ? 'Talaan ng mga natanggap na relief supplies at tulong pinansyal.' : 'Verified logs of received relief supplies and financial aid.'}
+          </Text>
         </View>
       </LinearGradient>
 
@@ -105,21 +111,21 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
         {/* Summary Stat Card */}
         <View style={styles.summaryCard}>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>DISTRIBUTED</Text>
+          <Text style={styles.summaryLabel}>{lang === 'tl' ? 'NAIPAMAHAGI' : 'DISTRIBUTED'}</Text>
           <Text style={styles.summaryValue}>{claims.length}</Text>
-          <Text style={styles.summarySub}>Packages</Text>
+          <Text style={styles.summarySub}>{lang === 'tl' ? 'Pakete' : 'Packages'}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>AUDIT</Text>
           <Text style={[styles.summaryValue, { color: '#065F46' }]}>100%</Text>
-          <Text style={styles.summarySub}>Verified</Text>
+          <Text style={styles.summarySub}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>SECURITY</Text>
+          <Text style={styles.summaryLabel}>{lang === 'tl' ? 'SEGURIDAD' : 'SECURITY'}</Text>
           <Text style={[styles.summaryValue, { color: '#78350F', fontSize: 22, fontWeight: '900' }]}>QR</Text>
-          <Text style={styles.summarySub}>Token Match</Text>
+          <Text style={styles.summarySub}>{lang === 'tl' ? 'Tugmang Token' : 'Token Match'}</Text>
         </View>
       </View>
 
@@ -133,10 +139,12 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
             <ClockIcon size={34} color="#1C3F94" strokeWidth={2.2} />
           </View>
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1525', textAlign: 'center', marginBottom: 8, letterSpacing: -0.3 }}>
-            No Records Yet
+            {lang === 'tl' ? 'Wala Pang Tala' : 'No Records Yet'}
           </Text>
           <Text style={{ fontSize: 14, color: '#334155', textAlign: 'center', maxWidth: 280, lineHeight: 21 }}>
-            Records appear here once your QR Pass is scanned at a distribution site.
+            {lang === 'tl'
+              ? 'Lalabas ang mga tala kapag na-scan ang inyong QR Pass sa distribution checkpoint.'
+              : 'Records appear here once your QR Pass is scanned at a distribution site.'}
           </Text>
         </View>
       ) : (
@@ -221,8 +229,12 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
           <View style={styles.receiptModalOverlay}>
             <View style={styles.receiptPaperCard}>
               <View style={styles.receiptHeader}>
-                <Text style={styles.receiptKicker}>REPUBLIC OF THE PHILIPPINES • CITY OF MANILA</Text>
-                <Text style={styles.receiptTitle}>OFFICIAL RELIEF CLAIM RECEIPT</Text>
+                <Text style={styles.receiptKicker}>
+                  {lang === 'tl' ? 'REPUBLIKA NG PILIPINAS • LUNGSOD NG MAYNILA' : 'REPUBLIC OF THE PHILIPPINES • CITY OF MANILA'}
+                </Text>
+                <Text style={styles.receiptTitle}>
+                  {lang === 'tl' ? 'OPISYAL NA RESIBO NG AYUDA' : 'OFFICIAL RELIEF CLAIM RECEIPT'}
+                </Text>
                 <Text style={styles.receiptNumberText}>{selectedReceipt.receiptNumber}</Text>
               </View>
 
@@ -238,7 +250,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   <Text style={styles.receiptValue}>{selectedReceipt.address}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'QR Pass Ref:' : 'QR Pass Ref:'}</Text>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Sanggunian ng QR Pass:' : 'QR Pass Ref:'}</Text>
                   <Text style={[styles.receiptValue, { fontWeight: '700', color: '#1C3F94' }]}>{selectedReceipt.qrCode}</Text>
                 </View>
                 <View style={styles.receiptRow}>
@@ -253,8 +265,10 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   <Text style={styles.receiptValueBold}>{selectedReceipt.type}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Dami na Na-release:' : 'Quantity Released:'}</Text>
-                  <Text style={[styles.receiptValueBold, { color: '#0D8A5A' }]}>{selectedReceipt.quantity} Pack(s)</Text>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Dami na Naipamahagi:' : 'Quantity Released:'}</Text>
+                  <Text style={[styles.receiptValueBold, { color: '#0D8A5A' }]}>
+                    {selectedReceipt.quantity} {lang === 'tl' ? 'Pakete' : (selectedReceipt.quantity > 1 ? 'Packs' : 'Pack')}
+                  </Text>
                 </View>
                 <View style={styles.receiptRow}>
                   <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Lugar ng Distribusyon:' : 'Distribution Venue:'}</Text>
@@ -265,11 +279,11 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
                   <Text style={styles.receiptValue}>{selectedReceipt.date}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Disbursing Officer:' : 'Disbursing Staff:'}</Text>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Opisyal na Naglabas:' : 'Disbursing Staff:'}</Text>
                   <Text style={styles.receiptValueBold}>{selectedReceipt.verifiedBy}</Text>
                 </View>
                 <View style={styles.receiptRow}>
-                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Operasyon / Team:' : 'Assigned Unit:'}</Text>
+                  <Text style={styles.receiptLabel}>{lang === 'tl' ? 'Tinalagang Yunit:' : 'Assigned Unit:'}</Text>
                   <Text style={styles.receiptValue}>{selectedReceipt.team}</Text>
                 </View>
               </View>
@@ -278,10 +292,14 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
 
               <View style={styles.receiptSealBox}>
                 <View style={styles.receiptSealPill}>
-                  <Text style={styles.receiptSealText}> 100% OFFICIALLY VERIFIED & RELEASED</Text>
+                  <Text style={styles.receiptSealText}>
+                    {lang === 'tl' ? '100% OPISYAL NA BERIPIKADO AT NAIPAMAHAGI' : '100% OFFICIALLY VERIFIED & RELEASED'}
+                  </Text>
                 </View>
                 <Text style={styles.receiptSecurityHint}>
-                  Security Hash: Verified against Manila LGU Post-Disaster Central Ledger.
+                  {lang === 'tl'
+                    ? 'Seguridad: Beripikado laban sa Central Ledger ng Maynila LGU.'
+                    : 'Security Hash: Verified against Manila LGU Post-Disaster Central Ledger.'}
                 </Text>
               </View>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { UserCheck, AlertTriangle, CheckCircle2, XCircle, Info, RefreshCw, Filter, ClipboardList, Eye, Maximize2, X, FileText, Image as ImageIcon, Home, Sliders, MapPin, Camera, Check, Clock, Edit3 } from 'lucide-react';
 import { IconlyVerification, IconlyShield, IconlyUserPlus } from '../components/Sidebar';
 import ConfirmModal from '../components/ConfirmModal';
@@ -14,6 +15,8 @@ const DAMAGE_ITEMS_PER_PAGE = 6;
 
 export default function VerificationQueue() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext);
+  const isFil = lang === 'fil' || lang === 'tl';
   const [activeQueueTab, setActiveQueueTab] = useState('households'); // 'households' | 'damage_reports'
   const [households, setHouseholds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -273,12 +276,18 @@ export default function VerificationQueue() {
           </div>
           <div>
             <h1 className="section-header" style={{ margin: 0, fontSize: '22px' }}>
-              {activeQueueTab === 'households' ? 'Resident Account Verification Queue' : 'Structural Damage Assessment Queue'}
+              {activeQueueTab === 'households'
+                ? (isFil ? 'Pila ng Beripikasyon ng mga Residente' : 'Resident Account Verification Queue')
+                : (isFil ? 'Pagsusuri sa Pinsala ng mga Tahanan' : 'Structural Damage Assessment Queue')}
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
               {activeQueueTab === 'households'
-                ? 'First layer of relief fairness - official confirmation of household identity and family roster.'
-                : 'Official barangay review of resident-reported house damage, photo evidence, and priority scoring.'}
+                ? (isFil
+                    ? 'Unang antas ng pagiging patas sa ayuda - opisyal na pagpapatunay ng pagkakakilanlan at talaan ng pamilya.'
+                    : 'First layer of relief fairness - official confirmation of household identity and family roster.')
+                : (isFil
+                    ? 'Opisyal na pagsusuri ng barangay sa iniulat na pinsala ng mga residente, litrato ng ebidensya, at priority scoring.'
+                    : 'Official barangay review of resident-reported house damage, photo evidence, and priority scoring.')}
             </p>
           </div>
         </div>
@@ -293,8 +302,8 @@ export default function VerificationQueue() {
             <ClipboardList size={16} color="#ffffff" />
             <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
               {activeQueueTab === 'households'
-                ? `${households.length} Pending Accounts`
-                : `${damageReports.filter(d => d.verificationStatus === 'pending').length} Pending Damage Reports`}
+                ? `${households.length} ${isFil ? 'Nakabinbing Akawnt' : 'Pending Accounts'}`
+                : `${damageReports.filter(d => d.verificationStatus === 'pending').length} ${isFil ? 'Nakabinbing Ulat' : 'Pending Damage Reports'}`}
             </span>
           </div>
 
@@ -306,7 +315,7 @@ export default function VerificationQueue() {
             className="clay-button-ghost"
             style={{ padding: '0 16px', fontSize: '13px' }}
           >
-            <RefreshCw size={15} /> Refresh
+            <RefreshCw size={15} /> {isFil ? 'I-refresh' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -334,7 +343,7 @@ export default function VerificationQueue() {
           }}
         >
           <UserCheck size={18} />
-          <span>Household Registrations</span>
+          <span>{isFil ? 'Rehistrasyon ng Sambahayan' : 'Household Registrations'}</span>
           {households.length > 0 && (
             <span style={{
               background: activeQueueTab === 'households' ? 'var(--manila-blue)' : 'var(--border)',
@@ -363,14 +372,14 @@ export default function VerificationQueue() {
           }}
         >
           <Home size={18} />
-          <span>Structural Damage Reports</span>
+          <span>{isFil ? 'Mga Ulat ng Pinsala' : 'Structural Damage Reports'}</span>
           {allDamageReports.filter(d => (d.verificationStatus || 'pending') === 'pending').length > 0 && (
             <span style={{
               background: '#DC2626',
               color: '#FFFFFF',
               fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: 999
             }}>
-              {allDamageReports.filter(d => (d.verificationStatus || 'pending') === 'pending').length} pending
+              {allDamageReports.filter(d => (d.verificationStatus || 'pending') === 'pending').length} {isFil ? 'nakabinbin' : 'pending'}
             </span>
           )}
         </button>
@@ -386,7 +395,7 @@ export default function VerificationQueue() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Filter size={16} color="var(--ink-soft)" />
           <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)' }}>
-            Barangay Jurisdiction:
+            {isFil ? 'Nasasakupang Barangay:' : 'Barangay Jurisdiction:'}
           </span>
           {isCityWide ? (
             <select
@@ -395,14 +404,14 @@ export default function VerificationQueue() {
               className="clay-input"
               style={{ padding: '6px 12px', fontSize: '13px', minWidth: '160px' }}
             >
-              <option value="ALL">All Barangays (City-Wide)</option>
+              <option value="ALL">{isFil ? 'Lahat ng Barangay (Buong Maynila)' : 'All Barangays (City-Wide)'}</option>
               {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '291', '344'].map(b => (
                 <option key={b} value={b}>Barangay {b}</option>
               ))}
             </select>
           ) : (
             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--manila-blue)' }}>
-              Barangay {user?.barangayCode || '291'} (Jurisdiction Locked)
+              Barangay {user?.barangayCode || '291'} {isFil ? '(Kasalukuyang Barangay)' : '(Jurisdiction Locked)'}
             </span>
           )}
         </div>
@@ -410,7 +419,7 @@ export default function VerificationQueue() {
         {/* Status Filter for Damage Reports Tab */}
         {activeQueueTab === 'damage_reports' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)' }}>Status:</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)' }}>{isFil ? 'Katayuan:' : 'Status:'}</span>
             {['pending', 'verified', 'adjusted', 'rejected', 'all'].map((st) => {
               const count = st === 'all'
                 ? allDamageReports.length
@@ -435,7 +444,11 @@ export default function VerificationQueue() {
                     textTransform: 'capitalize'
                   }}
                 >
-                  <span>{st}</span>
+                  <span>
+                    {isFil
+                      ? (st === 'pending' ? 'Nakabinbin' : st === 'verified' ? 'Beripikado' : st === 'adjusted' ? 'Binago' : st === 'rejected' ? 'Tinanggihan' : 'Lahat')
+                      : (st.charAt(0).toUpperCase() + st.slice(1))}
+                  </span>
                   <span
                     style={{
                       background: isActive ? '#DC2626' : '#E2E8F0',
@@ -1143,7 +1156,11 @@ export default function VerificationQueue() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>
-                {damageModal.action === 'verify' ? 'Kumpirmahin ang Damage Report' : damageModal.action === 'adjust' ? 'I-adjust ang Antas ng Pinsala' : 'I-reject ang Damage Report'}
+                {damageModal.action === 'verify'
+                  ? (isFil ? 'Kumpirmahin ang Ulat ng Pinsala' : 'Confirm Damage Report Verification')
+                  : damageModal.action === 'adjust'
+                    ? (isFil ? 'I-adjust ang Antas ng Pinsala' : 'Adjust Damage Severity Assessment')
+                    : (isFil ? 'Tanggihan ang Ulat ng Pinsala' : 'Reject Damage Report')}
               </h3>
               <button
                 onClick={() => setDamageModal({ isOpen: false, report: null, action: 'verify', newLevel: 'Moderate', notes: '', rejectionReason: '' })}
@@ -1155,13 +1172,13 @@ export default function VerificationQueue() {
 
             <div style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 13.5, color: 'var(--ink)', margin: '0 0 12px', lineHeight: 1.5 }}>
-                Household: <strong>{damageModal.report.householdId?.headOfHouseholdUserId?.name || 'Resident applicant'}</strong> ({damageModal.report.householdId?.address || damageModal.report.locationName})
+                {isFil ? 'Pamilya / Residente:' : 'Household:'} <strong>{damageModal.report.householdId?.headOfHouseholdUserId?.name || (isFil ? 'Aplikanteng Residente' : 'Resident applicant')}</strong> ({damageModal.report.householdId?.address || damageModal.report.locationName})
               </p>
 
               {damageModal.action === 'adjust' && (
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
-                    Bagong Verified Damage Level:
+                    {isFil ? 'Bagong Antas ng Pinsala (Beripikado):' : 'New Verified Damage Level:'}
                   </label>
                   <select
                     value={damageModal.newLevel}
@@ -1171,10 +1188,10 @@ export default function VerificationQueue() {
                       border: '1.5px solid var(--manila-blue)', fontSize: 13.5, fontWeight: 700
                     }}
                   >
-                    <option value="Totally Damaged">Totally Damaged (Critical / Wasak - 40 pts)</option>
-                    <option value="Severe">Severe Damage (Malubha - 30 pts)</option>
-                    <option value="Moderate">Moderate Damage (Katamtaman - 20 pts)</option>
-                    <option value="Minor">Minor Damage (Magaan - 10 pts)</option>
+                    <option value="Totally Damaged">{isFil ? 'Wasak na Wasak (Napakalubha - 40 pts)' : 'Totally Damaged (Critical - 40 pts)'}</option>
+                    <option value="Severe">{isFil ? 'Malubhang Pinsala (Malubha - 30 pts)' : 'Severe Damage (Severe - 30 pts)'}</option>
+                    <option value="Moderate">{isFil ? 'Katamtamang Pinsala (Katamtaman - 20 pts)' : 'Moderate Damage (Moderate - 20 pts)'}</option>
+                    <option value="Minor">{isFil ? 'Mababang Pinsala (Magaan - 10 pts)' : 'Minor Damage (Minor - 10 pts)'}</option>
                   </select>
                 </div>
               )}
@@ -1182,13 +1199,13 @@ export default function VerificationQueue() {
               {damageModal.action === 'reject' ? (
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 6 }}>
-                    Dahilan ng Pag-reject:
+                    {isFil ? 'Dahilan ng Pagtanggi:' : 'Reason for Rejection:'}
                   </label>
                   <textarea
                     rows={3}
                     value={damageModal.rejectionReason}
                     onChange={(e) => setDamageModal(m => ({ ...m, rejectionReason: e.target.value }))}
-                    placeholder="e.g. Hindi tugma ang litrato o luma ang ebidensya..."
+                    placeholder={isFil ? 'Halimbawa: Hindi tugma ang litrato o luma ang ebidensya...' : 'e.g. Photo does not match address or damage is outdated...'}
                     style={{
                       width: '100%', padding: '10px 12px', borderRadius: 8,
                       border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box'
@@ -1198,13 +1215,13 @@ export default function VerificationQueue() {
               ) : (
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)', marginBottom: 6 }}>
-                    Opisyal na Validation Notes (Opsyonal):
+                    {isFil ? 'Opisyal na Tala ng Beripikasyon (Opsyonal):' : 'Official Validation Notes (Optional):'}
                   </label>
                   <input
                     type="text"
                     value={damageModal.notes}
                     onChange={(e) => setDamageModal(m => ({ ...m, notes: e.target.value }))}
-                    placeholder="e.g. Sinuri ang litrato at tugma sa pinsala ng bagyo..."
+                    placeholder={isFil ? 'Halimbawa: Sinuri ang litrato at tugma sa pinsala ng bagyo...' : 'e.g. Photo inspected and verified consistent with typhoon damage...'}
                     style={{
                       width: '100%', padding: '10px 12px', borderRadius: 8,
                       border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box'
@@ -1220,14 +1237,16 @@ export default function VerificationQueue() {
                 className="clay-button-ghost"
                 style={{ padding: '8px 16px', fontSize: 13 }}
               >
-                Kanselahin
+                {isFil ? 'Kanselahin' : 'Cancel'}
               </button>
               <button
                 onClick={handleDamageValidate}
                 className={damageModal.action === 'reject' ? 'clay-button-danger' : 'clay-button-approve'}
                 style={{ padding: '8px 20px', fontSize: 13 }}
               >
-                {damageModal.action === 'reject' ? 'Oo, I-reject' : 'I-save at I-update ang Priority'}
+                {damageModal.action === 'reject'
+                  ? (isFil ? 'Oo, Tanggihan' : 'Confirm Rejection')
+                  : (isFil ? 'I-save at I-update ang Priority' : 'Save & Update Priority')}
               </button>
             </div>
           </div>
@@ -1343,15 +1362,15 @@ export default function VerificationQueue() {
             }}>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
                 {previewImage.docType === 'damage'
-                  ? `Official Barangay ${user?.barangayCode || '291'} Structural Damage Assessment Archive`
-                  : `Official Barangay ${user?.barangayCode || '291'} Resident Identity Document Verification Archive`}
+                  ? (isFil ? `Opisyal na Sinupang Pagsusuri ng Pinsala sa Barangay ${user?.barangayCode || '291'}` : `Official Barangay ${user?.barangayCode || '291'} Structural Damage Assessment Archive`)
+                  : (isFil ? `Opisyal na Sinupang Beripikasyon ng ID sa Barangay ${user?.barangayCode || '291'}` : `Official Barangay ${user?.barangayCode || '291'} Resident Identity Document Verification Archive`)}
               </span>
               <button
                 onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '', docType: 'id' })}
                 className="clay-button-primary"
                 style={{ padding: '0 20px', fontSize: 13 }}
               >
-                Close Viewer
+                {isFil ? 'Isara ang Viewer' : 'Close Viewer'}
               </button>
             </div>
           </div>

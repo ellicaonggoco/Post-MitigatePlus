@@ -1423,11 +1423,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       {/* Tab Bar - frosted glass */}
 <View style={styles.tabBarContainer}>
   {[
-    { key: 'home', label: 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
-    { key: 'assistance', label: 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#475569'} strokeWidth={isActive ? 2.4 : 2.0} filled={false} /> },
-    { key: 'damage', label: 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
-    { key: 'history', label: 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
-    { key: 'settings', label: 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'home', label: lang === 'tl' ? 'Tahanan' : 'Home', renderIcon: (isActive) => <HomeIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'assistance', label: lang === 'tl' ? 'Hanapbuhay' : 'Livelihood', renderIcon: (isActive) => <WrenchIcon size={22} color={isActive ? '#1C3F94' : '#475569'} strokeWidth={isActive ? 2.4 : 2.0} filled={false} /> },
+    { key: 'damage', label: lang === 'tl' ? 'Ulat Pinsala' : 'Report', renderIcon: (isActive) => <DamageIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'history', label: lang === 'tl' ? 'Kasaysayan' : 'History', renderIcon: (isActive) => <HistoryIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
+    { key: 'settings', label: lang === 'tl' ? 'Mga Setting' : 'Settings', renderIcon: (isActive) => <SettingsIcon size={22} color={isActive ? '#1C3F94' : '#475569'} filled={false} /> },
   ].map((item) => {
     const isTabActive = item.key === activeTab ||
       (item.key === 'history' && (activeTab === 'distribution' || activeTab === 'claim' || activeTab === 'claims' || activeTab === 'schedule')) ||

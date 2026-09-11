@@ -657,12 +657,14 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             </View>
 
             <Text style={styles.statusDamageLevelTitle}>
-              {finalLevel} Damage
+              {lang === 'tl'
+                ? (finalLevel === 'Totally Damaged' ? 'Wasak na Wasak' : finalLevel === 'Severe' ? 'Malubhang Pinsala' : finalLevel === 'Moderate' ? 'Katamtamang Pinsala' : 'Mababang Pinsala')
+                : `${finalLevel} Damage`}
             </Text>
 
             <View style={styles.statusBonusScoreRow}>
               <Text style={styles.statusBonusScoreText}>
-                +{bonusPts} PUNTOS SA PRIORITY SCORE
+                {lang === 'tl' ? `+${bonusPts} PUNTOS SA PRIORITY SCORE` : `+${bonusPts} BONUS PRIORITY POINTS`}
               </Text>
             </View>
 
@@ -674,7 +676,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
                 </Text>
                 <Text style={styles.adjustmentCalloutText}>
                   {lang === 'tl'
-                    ? `Isinumite: [${activeReport.damageLevel}] ➔ Inaprubahan ng Admin: [${activeReport.verifiedDamageLevel}]`
+                    ? `Isinumite: [${activeReport.damageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.damageLevel}] ➔ Inaprubahan ng Admin: [${activeReport.verifiedDamageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.verifiedDamageLevel}]`
                     : `Reported: [${activeReport.damageLevel}] ➔ Approved by Admin: [${activeReport.verifiedDamageLevel}]`}
                 </Text>
               </View>
@@ -900,7 +902,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
             <Text style={styles.headerKicker}>
-              DAMAGE ASSESSMENT
+              {lang === 'tl' ? 'PAGTATASA NG PINSALA' : 'DAMAGE ASSESSMENT'}
             </Text>
             <Text style={styles.headerTitleLarge}>
               {lang === 'tl' ? 'Ulat ng Sira sa Tirahan' : 'Structural Damage Report'}
@@ -931,7 +933,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
           <View style={styles.autoLocationCard}>
             <View style={styles.autoLocationHeader}>
               <Text style={styles.autoLocationLabel}>
-                {lang === 'tl' ? 'LOKASYON NG TAHANAN' : 'REGISTERED HOUSEHOLD LOCATION *'}
+                {lang === 'tl' ? 'REHISTRADONG LOKASYON NG TAHANAN *' : 'REGISTERED HOUSEHOLD LOCATION *'}
               </Text>
             </View>
 
@@ -948,7 +950,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
                     ? (lang === 'tl' ? 'Kinukuha ang live GPS coordinates...' : 'Fetching live GPS coordinates...')
                     : geoCoords
                     ? `GPS: ${geoCoords.lat}, ${geoCoords.lng} (±${geoCoords.accuracy}m)`
-                    : 'Barangay 291 GIS Grid Tagged'}
+                    : (lang === 'tl' ? 'Naka-tag sa GIS Grid ng Barangay 291' : 'Barangay 291 GIS Grid Tagged')}
                 </Text>
               </View>
             </View>
@@ -978,10 +980,10 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
             onPress={handleSubmitReport}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel={lang === 'tl' ? 'I-submit ang Ulat ng Pinsala' : 'Submit Damage Report'}
+            accessibilityLabel={lang === 'tl' ? 'Ipadala ang Ulat ng Pinsala' : 'Submit Damage Report'}
             accessibilityHint={lang === 'tl' ? 'Ipapadala ang ulat ng pinsala sa Disaster Command Center' : 'Submits damage report to Disaster Command Center'}
           >
-            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'I-submit ang Ulat' : 'Submit Damage Report'}</Text>}
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitBtnText}>{lang === 'tl' ? 'Ipadala ang Ulat ng Pinsala' : 'Submit Damage Report'}</Text>}
           </MotionPressable>
         </View>
       </ScrollView>
