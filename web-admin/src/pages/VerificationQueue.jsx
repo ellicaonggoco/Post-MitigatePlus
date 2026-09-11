@@ -22,7 +22,7 @@ export default function VerificationQueue() {
   const isCityWide = canSeeCityWide(user);
   const [selectedBarangay, setSelectedBarangay] = useState(isCityWide ? 'ALL' : (user?.barangayCode || '291'));
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewImage, setPreviewImage] = useState({ isOpen: false, url: '', title: '', idType: '' });
+  const [previewImage, setPreviewImage] = useState({ isOpen: false, url: '', title: '', idType: '', docType: 'id' });
 
   // ── Structural Damage Reports State ──────────────────────────────
   const [damageReports, setDamageReports] = useState([]);
@@ -617,8 +617,9 @@ export default function VerificationQueue() {
                             onClick={() => setPreviewImage({
                               isOpen: true,
                               url: hh.validIdImage,
-                              title: hh.headOfHouseholdUserId?.name || 'Resident ID',
+                              title: `${hh.headOfHouseholdUserId?.name || 'Resident ID'} • Government ID Document`,
                               idType: hh.validIdType || 'Government ID',
+                              docType: 'id',
                             })}
                             style={{
                               cursor: 'pointer',
@@ -655,8 +656,9 @@ export default function VerificationQueue() {
                             onClick={() => setPreviewImage({
                               isOpen: true,
                               url: hh.validIdImage,
-                              title: hh.headOfHouseholdUserId?.name || 'Resident ID',
+                              title: `${hh.headOfHouseholdUserId?.name || 'Resident ID'} • Government ID Document`,
                               idType: hh.validIdType || 'Government ID',
+                              docType: 'id',
                             })}
                             className="clay-button-secondary"
                             style={{ fontSize: '12px', padding: '6px 12px', gap: '6px' }}
@@ -888,8 +890,9 @@ export default function VerificationQueue() {
                               onClick={() => setPreviewImage({
                                 isOpen: true,
                                 url: photoUrl,
-                                title: `${headName} - Structural Damage Evidence`,
-                                idType: `${repLevel} Damage Report`
+                                title: `${headName} – Structural Damage Evidence`,
+                                idType: `${repLevel} Damage Report`,
+                                docType: 'damage',
                               })}
                               style={{
                                 cursor: 'pointer',
@@ -1209,14 +1212,24 @@ export default function VerificationQueue() {
             }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>
-                  {previewImage.title} • Government ID Document
+                  {previewImage.title}
                 </h3>
-                <span className="badge badge-primary" style={{ marginTop: 4, display: 'inline-block' }}>
+                <span
+                  className={`badge ${previewImage.docType === 'damage' ? 'badge-danger' : 'badge-primary'}`}
+                  style={{
+                    marginTop: 4,
+                    display: 'inline-block',
+                    background: previewImage.docType === 'damage' ? '#FEF2F2' : undefined,
+                    color: previewImage.docType === 'damage' ? '#DC2626' : undefined,
+                    borderColor: previewImage.docType === 'damage' ? '#FCA5A5' : undefined,
+                    fontWeight: 700,
+                  }}
+                >
                   {previewImage.idType}
                 </span>
               </div>
               <button
-                onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '' })}
+                onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '', docType: 'id' })}
                 style={{
                   background: '#F1F5F9',
                   border: 'none',
@@ -1245,7 +1258,7 @@ export default function VerificationQueue() {
             }}>
               <img
                 src={previewImage.url}
-                alt="Government ID Full Preview"
+                alt={previewImage.docType === 'damage' ? "Structural Damage Evidence Full Preview" : "Government ID Full Preview"}
                 style={{ maxWidth: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
               />
             </div>
@@ -1259,10 +1272,12 @@ export default function VerificationQueue() {
               alignItems: 'center',
             }}>
               <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                Official Barangay 291 Resident Identity Document Verification Archive
+                {previewImage.docType === 'damage'
+                  ? `Official Barangay ${user?.barangayCode || '291'} Structural Damage Assessment Archive`
+                  : `Official Barangay ${user?.barangayCode || '291'} Resident Identity Document Verification Archive`}
               </span>
               <button
-                onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '' })}
+                onClick={() => setPreviewImage({ isOpen: false, url: '', title: '', idType: '', docType: 'id' })}
                 className="clay-button-primary"
                 style={{ padding: '0 20px', fontSize: 13 }}
               >
