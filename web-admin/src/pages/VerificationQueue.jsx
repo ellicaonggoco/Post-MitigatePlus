@@ -40,11 +40,16 @@ export default function VerificationQueue() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBarangay]);
+    setDamageCurrentPage(1);
+  }, [selectedBarangay, damageStatusFilter]);
 
   const totalPages = Math.ceil(households.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentQueueItems = households.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const totalDamagePages = Math.max(1, Math.ceil(damageReports.length / DAMAGE_ITEMS_PER_PAGE));
+  const startDamageIndex = (damageCurrentPage - 1) * DAMAGE_ITEMS_PER_PAGE;
+  const currentDamageItems = damageReports.slice(startDamageIndex, startDamageIndex + DAMAGE_ITEMS_PER_PAGE);
 
   const fetchPendingQueue = async () => {
     setLoading(true);
