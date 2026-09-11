@@ -536,21 +536,27 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     }
 
     if (!queryEvId) {
-      let activeEv = null;
-      if (household.barangayCode) {
-        activeEv = await DistributionEvent.findOne({ isActive: true, barangayCode: household.barangayCode });
-      }
-      if (!activeEv) {
-        activeEv = await DistributionEvent.findOne({ isActive: true });
-      }
+      // Only ever resolve to an event for THIS household's own barangay (or an explicit
+      // city-wide event with no barangayCode / barangayCode 'ALL'). Never borrow an
+      // unrelated barangay's active event just because it happens to be the only one open —
+      // that produced confusing "wrong barangay" rejections downstream instead of a clear
+      // "no active event for your barangay" message.
+      const barangayOrCityWide = household.barangayCode
+        ? { $or: [{ barangayCode: household.barangayCode }, { barangayCode: 'ALL' }, { barangayCode: null }, { barangayCode: { $exists: false } }] }
+        : {};
+
+      let activeEv = await DistributionEvent.findOne({
+        isActive: true,
+        ...barangayOrCityWide,
+      }).sort({ openedAt: -1, createdAt: -1 });
+
       if (activeEv) {
         queryEvId = activeEv._id;
         eventName = activeEv.title;
       } else {
         const recentEv = await DistributionEvent.findOne({
-          isActive: true,
           status: { $in: ['Ongoing', 'Scheduled'] },
-          ...(household.barangayCode ? { barangayCode: household.barangayCode } : {}),
+          ...barangayOrCityWide,
         }).sort({ createdAt: -1 });
         if (recentEv) {
           queryEvId = recentEv._id;

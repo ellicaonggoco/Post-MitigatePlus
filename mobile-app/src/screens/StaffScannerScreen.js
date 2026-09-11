@@ -633,7 +633,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
       }
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4000);
+        // Widened from 4s to 9s: a 4s ceiling was too easy to trip on a slow/congested
+        // venue Wi-Fi, causing the app to falsely flip into offline mode mid-scan.
+        const timer = setTimeout(() => controller.abort(), 9000);
         const res = await fetch(`${API_BASE_URL}/health`, {
           method: 'GET',
           signal: controller.signal,
@@ -657,7 +659,7 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
     };
 
     probeConnectivity();
-    const interval = setInterval(probeConnectivity, 12000);
+    const interval = setInterval(probeConnectivity, 20000);
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const handleOnline = () => {

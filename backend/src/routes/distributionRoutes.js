@@ -466,14 +466,18 @@ router.post('/release', protect, requireRole('field_staff', 'barangay_official',
       event = await DistributionEvent.findById(distributionEventId);
     }
     if (!event) {
-      if (household.barangayCode) {
-        event = await DistributionEvent.findOne({ isActive: true, barangayCode: household.barangayCode });
-      }
+      // Only ever auto-resolve to an event for THIS household's own barangay (or an explicit
+      // city-wide event with no barangayCode / barangayCode 'ALL'). Never borrow an unrelated
+      // barangay's active event just because it's the only one open — that produced confusing
+      // cross-barangay rejections downstream instead of a clear "no active event" outcome.
+      const barangayOrCityWide = household.barangayCode
+        ? { $or: [{ barangayCode: household.barangayCode }, { barangayCode: 'ALL' }, { barangayCode: null }, { barangayCode: { $exists: false } }] }
+        : {};
+
+      event = await DistributionEvent.findOne({ isActive: true, ...barangayOrCityWide }).sort({ openedAt: -1, createdAt: -1 });
+
       if (!event) {
-        event = await DistributionEvent.findOne({ isActive: true });
-      }
-      if (!event) {
-        event = await DistributionEvent.findOne({ status: 'Scheduled', ...(household.barangayCode ? { barangayCode: household.barangayCode } : {}) });
+        event = await DistributionEvent.findOne({ status: 'Scheduled', ...barangayOrCityWide }).sort({ createdAt: -1 });
         if (event) {
           event.isActive = true;
           event.status = 'Ongoing';
