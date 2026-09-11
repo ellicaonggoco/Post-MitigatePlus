@@ -38,6 +38,11 @@ export default function VerificationQueue() {
     rejectionReason: '',
   });
 
+  const cleanDamageDescription = (desc) => {
+    if (!desc || typeof desc !== 'string') return '';
+    return desc.replace(/^Landmark:[^|]+\|\s*Notes:\s*/i, '').trim();
+  };
+
   const damageReports = damageStatusFilter === 'all'
     ? allDamageReports
     : allDamageReports.filter(d => (d.verificationStatus || 'pending') === damageStatusFilter);
@@ -812,6 +817,12 @@ export default function VerificationQueue() {
                 const valLevel = report.validatedDamageLevel || report.damageLevel;
                 const status = report.verificationStatus || 'pending';
 
+                const hhId = hh._id || report.householdId;
+                const hhReports = allDamageReports.filter(r => (r.householdId?._id || r.householdId) === hhId);
+                const isProgression = hhReports.length > 1;
+                const reportOrder = hhReports.findIndex(r => r._id === report._id);
+                const reportNumber = hhReports.length - reportOrder;
+
                 const severityColors = {
                   'Totally Damaged': { bg: 'rgba(139, 95, 191, 0.1)', border: '#8B5FBF', text: '#6D28D9' },
                   'Severe': { bg: 'rgba(220, 38, 38, 0.1)', border: '#DC2626', text: '#DC2626' },
@@ -830,13 +841,27 @@ export default function VerificationQueue() {
                     {/* Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                           <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
                             {headName}
                           </h3>
                           <span className={`badge badge-${status === 'verified' ? 'success' : status === 'adjusted' ? 'primary' : status === 'rejected' ? 'danger' : 'warning'}`}>
                             {status.toUpperCase()}
                           </span>
+                          {isProgression && (
+                            <span
+                              className="badge"
+                              style={{
+                                background: '#EEF2FF',
+                                color: '#4338CA',
+                                border: '1px solid #C7D2FE',
+                                fontWeight: 700,
+                                fontSize: '11px',
+                              }}
+                            >
+                              Progression Report #{reportNumber} of {hhReports.length}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           <span>{address}, Purok {purok} · Brgy {brgy}</span>
@@ -892,8 +917,33 @@ export default function VerificationQueue() {
                       <strong style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--ink-soft)', display: 'block', marginBottom: 4 }}>
                         Resident Damage Description / Observations:
                       </strong>
-                      {report.description || 'No detailed written statement provided with this submission.'}
+                      <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: '13.5px', lineHeight: 1.5 }}>
+                        "{cleanDamageDescription(report.description) || 'No detailed written statement provided with this submission.'}"
+                      </div>
                     </div>
+
+                    {/* Official Validation Notes (if verified/adjusted/rejected) */}
+                    {(report.notes || report.rejectionReason) && (
+                      <div style={{
+                        background: status === 'rejected' ? '#FEF2F2' : '#EFF6FF',
+                        border: `1px solid ${status === 'rejected' ? '#FECACA' : '#BFDBFE'}`,
+                        borderRadius: 'var(--radius-inner)',
+                        padding: '10px 14px',
+                        marginBottom: '14px',
+                        fontSize: '12.5px',
+                        color: status === 'rejected' ? '#991B1B' : '#1E3A8A'
+                      }}>
+                        <strong style={{ fontSize: '11px', textTransform: 'uppercase', color: status === 'rejected' ? '#DC2626' : '#2563EB', display: 'block', marginBottom: 2 }}>
+                          {status === 'rejected' ? 'Dahilan ng Pag-reject:' : 'Official Barangay Validation Notes:'}
+                        </strong>
+                        "{report.rejectionReason || report.notes}"
+                        {report.validatedBy?.name && (
+                          <span style={{ display: 'block', fontSize: '11px', marginTop: 4, opacity: 0.8 }}>
+                            — Opisyal: {report.validatedBy.name}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Attached Photo Evidence */}
                     <div style={{ marginBottom: '16px' }}>

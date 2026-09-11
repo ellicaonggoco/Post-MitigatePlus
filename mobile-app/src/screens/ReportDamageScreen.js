@@ -160,6 +160,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       : '142 Quirino Ave, Purok 3, Barangay 291, Manila';
 
   const [existingReports, setExistingReports] = useState([]);
+  const [selectedReportIndex, setSelectedReportIndex] = useState(0);
   const [loadingExisting, setLoadingExisting] = useState(true);
   const [showNewForm, setShowNewForm] = useState(false);
   const [previewPhotoModal, setPreviewPhotoModal] = useState(null);
@@ -440,7 +441,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       await submitDamageReport(
         {
           damageLevel: (damageLevel === 'Total' || damageLevel === 'Totally Damaged') ? 'Totally Damaged' : damageLevel,
-          description: `Landmark: ${addressLandmark} | Notes: ${description}`,
+          description: description.trim(),
           photos: selectedPhoto ? [selectedPhoto.uri] : [],
           latitude: geoCoords?.lat || 14.599512,
           longitude: geoCoords?.lng || 120.984215,
@@ -448,6 +449,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         },
         token
       );
+      setSelectedReportIndex(0);
       await loadReports();
       setShowNewForm(false);
       setDescription('');
@@ -468,7 +470,14 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
     }
   };
 
-  const activeReport = existingReports && existingReports.length > 0 ? existingReports[0] : null;
+  const cleanDamageDescription = (desc) => {
+    if (!desc || typeof desc !== 'string') return '';
+    return desc.replace(/^Landmark:[^|]+\|\s*Notes:\s*/i, '').trim();
+  };
+
+  const activeReport = existingReports && existingReports.length > 0
+    ? (existingReports[selectedReportIndex] || existingReports[0])
+    : null;
   const hasExisting = !!activeReport;
 
   // ── Render Case 1: Existing Report Status View ──
@@ -531,8 +540,80 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         </LinearGradient>
 
         <View style={styles.statusViewBody}>
+          {/* Multi-Report Progression Selector */}
+          {existingReports.length > 1 && (
+            <View style={styles.progressionContainer}>
+              <View style={styles.progressionHeaderRow}>
+                <Text style={styles.progressionTitle}>
+                  {lang === 'tl' ? 'Kasaysayan ng mga Ulat ng Pinsala' : 'Damage Report Progression'} ({existingReports.length})
+                </Text>
+                <Text style={styles.progressionSub}>
+                  {lang === 'tl' ? 'Pindutin upang tingnan ang bawat ulat sa progreso' : 'Tap to inspect individual progression reports'}
+                </Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.progressionChipsScroll}>
+                {existingReports.map((rep, idx) => {
+                  const isSelected = idx === selectedReportIndex;
+                  const repNum = existingReports.length - idx;
+                  const isLatest = idx === 0;
+                  const st = rep.verificationStatus || 'pending';
+                  const stLabel = st === 'verified'
+                    ? (lang === 'tl' ? 'Beripikado' : 'Verified')
+                    : st === 'adjusted'
+                    ? (lang === 'tl' ? 'Binago' : 'Adjusted')
+                    : st === 'rejected'
+                    ? (lang === 'tl' ? 'Tinanggihan' : 'Rejected')
+                    : (lang === 'tl' ? 'Sinusuri' : 'Under Review');
+                  const stColor = (st === 'verified' || st === 'adjusted') ? '#0D8A5A' : st === 'rejected' ? '#C8102E' : '#B8932A';
+
+                  return (
+                    <TouchableOpacity
+                      key={rep._id || idx}
+                      onPress={() => setSelectedReportIndex(idx)}
+                      style={[
+                        styles.progressionChip,
+                        isSelected && styles.progressionChipSelected,
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={[styles.progressionChipNum, isSelected && styles.progressionChipNumSelected]}>
+                          {lang === 'tl' ? `Ulat #${repNum}` : `Report #${repNum}`}
+                        </Text>
+                        {isLatest && (
+                          <View style={[styles.latestBadge, isSelected && { backgroundColor: '#FFFFFF' }]}>
+                            <Text style={[styles.latestBadgeText, isSelected && { color: '#C8102E' }]}>
+                              {lang === 'tl' ? 'PINAKABAGO' : 'LATEST'}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[styles.progressionChipDate, isSelected && { color: 'rgba(255,255,255,0.85)' }]}>
+                        {rep.reportedAt ? new Date(rep.reportedAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isSelected ? '#FFFFFF' : stColor }} />
+                        <Text style={[styles.progressionChipStatus, { color: isSelected ? '#FFFFFF' : stColor }]}>
+                          {rep.verifiedDamageLevel || rep.damageLevel} · {stLabel}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
           {/* Main Status Hero Card */}
           <View style={styles.statusHeroCard}>
+            {existingReports.length > 1 && (
+              <View style={{ marginBottom: 8, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#1C3F94', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  {lang === 'tl' ? `Ulat #${existingReports.length - selectedReportIndex} ng ${existingReports.length}` : `Report #${existingReports.length - selectedReportIndex} of ${existingReports.length}`}
+                  {selectedReportIndex === 0 ? (lang === 'tl' ? ' (Pinakabago)' : ' (Latest)') : ''}
+                </Text>
+              </View>
+            )}
             <View style={styles.statusHeroTopRow}>
               <View style={styles.statusIconCircle}>
                 <DamageIcon size={24} color="#C8102E" />
@@ -612,6 +693,33 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
                     ? 'Nasa Verification Queue ng Barangay Admin sa Web Admin ang inyong ulat. Awtomatikong mag-uupdate ang inyong Priority Score sa oras na aprubahan ito ng opisyal.'
                     : 'Your report is currently in the Barangay Admin Verification Queue. Your Priority Score will automatically update upon official approval.')}
             </Text>
+          </View>
+
+          {/* Resident's Submitted Damage Description */}
+          <View style={styles.residentDescCard}>
+            <Text style={styles.residentDescTitle}>
+              {lang === 'tl' ? 'INYONG ISINUMITENG DESKRIPSYON NG PINSALA' : 'YOUR SUBMITTED DAMAGE DESCRIPTION'}
+            </Text>
+            <Text style={styles.residentDescText}>
+              "{cleanDamageDescription(activeReport.description) || (lang === 'tl' ? 'Walang nakasulat na pahayag na isinumite.' : 'No detailed written statement provided.')}"
+            </Text>
+          </View>
+
+          {/* Non-Cumulative Priority Score Rule Assurance */}
+          <View style={styles.scoreRuleCard}>
+            <View style={styles.scoreRuleIconWell}>
+              <ShieldCheckIcon size={18} color="#1C3F94" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.scoreRuleTitle}>
+                {lang === 'tl' ? 'Patakaran sa Priority Score (Hindi Nagpapatong)' : 'Priority Score Policy (Non-Cumulative)'}
+              </Text>
+              <Text style={styles.scoreRuleBody}>
+                {lang === 'tl'
+                  ? 'Awtomatikong nirereset at ina-update ang inyong Priority Score sa bagong antas ng pinsala kapag na-verify ang bagong ulat na ito. Hindi ito nagpapatong-patong (halimbawa: kung 30 pts ang inyong base priority at naaprubahan ang Moderate damage [+20 pts], ang kabuuang score ay 50 pts, hindi 60 pts).'
+                  : 'Your Priority Score is freshly recalculated upon validation of this report based on the new damage level. Points do not stack cumulatively (e.g. 30 pts base + 20 pts Moderate = 50 pts, not 60 pts).'}
+              </Text>
+            </View>
           </View>
 
           {/* Barangay Official Notes or Rejection Reason */}
@@ -1352,5 +1460,124 @@ const styles = StyleSheet.create({
   previewModalImage: {
     width: '100%',
     height: '80%',
+  },
+  progressionContainer: {
+    marginBottom: 16,
+  },
+  progressionHeaderRow: {
+    marginBottom: 8,
+    paddingHorizontal: 2,
+  },
+  progressionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0B1525',
+    letterSpacing: -0.2,
+  },
+  progressionSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  progressionChipsScroll: {
+    gap: 10,
+    paddingVertical: 2,
+  },
+  progressionChip: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#DDE4F0',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minWidth: 160,
+    ...SHADOWS.sm,
+  },
+  progressionChipSelected: {
+    backgroundColor: '#C8102E',
+    borderColor: '#9E0B24',
+    ...SHADOWS.md,
+  },
+  progressionChipNum: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0B1525',
+  },
+  progressionChipNumSelected: {
+    color: '#FFFFFF',
+  },
+  latestBadge: {
+    backgroundColor: '#FEF0F2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  latestBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#C8102E',
+  },
+  progressionChipDate: {
+    fontSize: 10.5,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  progressionChipStatus: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  residentDescCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#DDE4F0',
+    padding: 16,
+    marginBottom: 14,
+    ...SHADOWS.card,
+  },
+  residentDescTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1C3F94',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  residentDescText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: '#0B1525',
+    lineHeight: 20,
+  },
+  scoreRuleCard: {
+    backgroundColor: '#EDF1FB',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#D6DEFA',
+    padding: 14,
+    marginBottom: 14,
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  scoreRuleIconWell: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  scoreRuleTitle: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#1C3F94',
+    marginBottom: 3,
+  },
+  scoreRuleBody: {
+    fontSize: 11.5,
+    color: '#3D5070',
+    lineHeight: 16.5,
   },
 });
