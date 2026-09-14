@@ -136,16 +136,6 @@ router.post('/send-otp', async (req, res) => {
   }
 });
 
-router.get('/test-email-live', async (req, res) => {
-  try {
-    const target = req.query.email || 'ellicaonggoco19@gmail.com';
-    const result = await sendEmailOTP(target, '888999');
-    res.json({ success: true, target, result });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 // @route   POST /api/auth/verify-otp
 // @desc    Verify 6-digit OTP code
 router.post('/verify-otp', async (req, res) => {
