@@ -23,6 +23,9 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
       tls: {
         rejectUnauthorized: false,
       },
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
     });
 
     const mailOptions = {

@@ -67,7 +67,11 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setOtpCode(['', '', '', '', '', '']);
+        if (data.otpCode) {
+          setOtpCode(data.otpCode.slice(0, 6).split(''));
+        } else {
+          setOtpCode(['', '', '', '', '', '']);
+        }
         setResendCooldown(60);
         setStage(2);
       } else {

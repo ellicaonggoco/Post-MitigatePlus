@@ -55,18 +55,6 @@ async function findExistingUserWithIdentifier(identifier, excludeUserId = null) 
 const { sendSMS } = require('../services/smsService');
 const { sendEmailOTP } = require('../services/emailService');
 
-// @route   GET /api/auth/test-email
-// @desc    Diagnostic to test Gmail SMTP on deployed server
-router.get('/test-email', async (req, res) => {
-  try {
-    const to = req.query.to || 'shandarating@gmail.com';
-    const result = await sendEmailOTP(to, '123456');
-    res.json({ to, result, envUser: process.env.GMAIL_USER });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // @route   POST /api/auth/send-otp
 // @desc    Send a 6-digit OTP code for registration or password reset
 router.post('/send-otp', async (req, res) => {
@@ -128,7 +116,7 @@ router.post('/send-otp', async (req, res) => {
       otpStore.set(v, { code, verified: false, expiresAt: now + 15 * 60 * 1000 });
     }
 
-    // Dispatch Email / SMS asynchronously with 3-second timeout protection
+    // Dispatch Email / SMS asynchronously with timeout protection
     if (isEmail) {
       sendEmailOTP(key, code).catch(err => console.error('[ASYNC EMAIL ERROR]', err.message));
     } else {
@@ -138,10 +126,11 @@ router.post('/send-otp', async (req, res) => {
       ).catch(err => console.error('[ASYNC SMS ERROR]', err.message));
     }
 
-    // Instant sub-second response to mobile client
+    // Instant response to mobile client with OTP code for fallback verification
     res.json({
       success: true,
       message: `OTP verification code sent to ${rawTarget}.`,
+      otpCode: code,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send OTP code', error: error.message });
