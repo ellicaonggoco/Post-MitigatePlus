@@ -253,8 +253,8 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'), async (req, res) => {
   try {
     const { status, verificationNotes, requestedDocType } = req.body;
-    if (!['verified', 'needs_info', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Status must be verified, needs_info, or rejected.' });
+    if (!['pending', 'verified', 'needs_info', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Status must be pending, verified, needs_info, or rejected.' });
     }
 
     const household = await Household.findById(req.params.id);
@@ -284,11 +284,18 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       // Revert any pending member update requests
       household.memberCountPendingUpdate = null;
       household.pendingMembers = [];
+    } else if (status === 'pending') {
+      // Re-evaluation: Reset official verification timestamp and revert to waiting queue
+      household.verifiedBy = null;
+      household.verifiedAt = null;
+      household.idResubmitted = false;
     }
 
     household.verificationStatus = status;
-    household.verifiedBy = req.user._id;
-    household.verifiedAt = new Date();
+    if (status !== 'pending') {
+      household.verifiedBy = req.user._id;
+      household.verifiedAt = new Date();
+    }
     household.verificationNotes = verificationNotes || '';
     if (requestedDocType) {
       household.requestedDocType = requestedDocType;
@@ -339,6 +346,17 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         createdAt: new Date(),
         isRead: false,
       });
+    } else if (status === 'pending') {
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: 'Kasalukuyang Sinusuri ang Rehistrasyon',
+        message: 'Ang inyong rehistrasyon ay ibinalik sa Waiting Queue para sa muling pagsusuri ng Barangay Official.',
+        type: 'verification',
+        targetTab: 'home',
+        actionTab: 'home',
+        createdAt: new Date(),
+        isRead: false,
+      });
     } else if (prevPriority !== priorityLevel) {
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
@@ -358,10 +376,12 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: req.user.role,
-      action: `VERIFICATION_${status.toUpperCase()}`,
+      action: status === 'pending' ? 'VERIFICATION_REEVALUATE_TO_PENDING' : `VERIFICATION_${status.toUpperCase()}`,
       targetType: 'Household',
       targetId: household._id.toString(),
-      notes: `Verified status updated to ${status}. Priority: ${priorityLevel}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}. Requested Doc: ${household.requestedDocType || 'None'}`,
+      notes: status === 'pending'
+        ? `Re-evaluation requested: returned to waiting queue. Notes: ${verificationNotes || 'None'}`
+        : `Verified status updated to ${status}. Priority: ${priorityLevel}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}. Requested Doc: ${household.requestedDocType || 'None'}`,
     });
 
     // Notify resident via Socket.IO across all targeted rooms
@@ -371,13 +391,17 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         ? 'Rehistrasyon Naaprubahan!'
         : status === 'needs_info'
         ? 'Karagdagang Impormasyon Kailangan'
-        : 'Rehistrasyon Hindi Naaprubahan';
+        : status === 'rejected'
+        ? 'Rehistrasyon Hindi Naaprubahan'
+        : 'Kasalukuyang Sinusuri ang Rehistrasyon';
 
       const notifMessage = status === 'verified'
         ? `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay [${priorityLevel}]. Handa na ang inyong Official QR Pass.`
         : status === 'needs_info'
         ? (verificationNotes ? `Hinihiling ng Barangay Official: "${verificationNotes}"` : 'Hinihiling ng Barangay Official na magsumite ng malinaw na Valid ID.')
-        : `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}.`;
+        : status === 'rejected'
+        ? `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}.`
+        : 'Ang inyong rehistrasyon ay ibinalik sa Waiting Queue para sa muling beripikasyon.';
 
       const verificationPayload = {
         verificationStatus: status,

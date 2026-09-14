@@ -236,6 +236,10 @@ export default function VerificationQueue() {
       notes = isFil
         ? 'Pakisumite o mag-upload ng malinaw na kopya ng Valid ID o patunay ng paninirahan para sa beripikasyon.'
         : 'Please submit or upload a clearer copy of your Valid ID or proof of residency for verification.';
+    } else if (status === 'pending' && !notes) {
+      notes = isFil
+        ? 'Ibinalik sa Waiting Queue para sa re-evaluation at muling beripikasyon.'
+        : 'Returned to waiting queue for re-evaluation and re-assessment.';
     }
 
     try {
@@ -310,6 +314,8 @@ export default function VerificationQueue() {
             ? (isFil ? `I-approve ang Household ni ${modal.name}?` : `Approve Household of ${modal.name}?`)
             : modal.actionStatus === 'needs_info'
             ? (isFil ? `Humingi ng Karagdagang Impormasyon kay ${modal.name}?` : `Request Additional Info from ${modal.name}?`)
+            : modal.actionStatus === 'pending'
+            ? (isFil ? `Ibalik sa Waiting Queue si ${modal.name}?` : `Return ${modal.name} to Waiting Queue?`)
             : (isFil ? `I-reject ang Household ni ${modal.name}?` : `Reject Household of ${modal.name}?`)
         }
         message={
@@ -321,16 +327,22 @@ export default function VerificationQueue() {
             ? (isFil
                 ? `I-notify si ${modal.name} upang magsumite o mag-update ng kailangang dokumento o impormasyon sa kanilang rehistrasyon.`
                 : `Notify ${modal.name} to submit required documents or clarification for their registration.`)
+            : modal.actionStatus === 'pending'
+            ? (isFil
+                ? `Ibabalik ang rehistrasyon ni ${modal.name} sa Waiting Queue (Pending). Dito ay maaari mo itong muling masuri, aprubahan, o hingan ng karagdagang impormasyon.`
+                : `Return registration of ${modal.name} to the Waiting Queue (Pending) where you can re-assess, approve, or request additional information.`)
             : (isFil
                 ? `I-reject ang aplikasyon ni ${modal.name}? Hindi sila makakatanggap ng relief pass hangga't hindi ito naayos.`
                 : `Reject the application of ${modal.name}? They will not be able to claim relief assistance until resolved.`)
         }
-        type={modal.actionStatus === 'verified' ? 'success' : modal.actionStatus === 'needs_info' ? 'warning' : 'danger'}
+        type={modal.actionStatus === 'verified' ? 'success' : modal.actionStatus === 'needs_info' ? 'warning' : modal.actionStatus === 'pending' ? 'info' : 'danger'}
         confirmText={
           modal.actionStatus === 'verified'
             ? (isFil ? 'Oo, Approve Household' : 'Yes, Approve Household')
             : modal.actionStatus === 'needs_info'
             ? (isFil ? 'Ipadala ang Kahilingan' : 'Send Info Request')
+            : modal.actionStatus === 'pending'
+            ? (isFil ? 'Oo, Ibalik sa Waiting' : 'Yes, Return to Waiting')
             : (isFil ? 'Oo, Reject Application' : 'Yes, Reject Application')
         }
         onConfirm={handleVerify}
@@ -895,8 +907,8 @@ export default function VerificationQueue() {
                           </div>
                           <div style={{ marginTop: 8, fontSize: '12px', color: '#7F1D1D' }}>
                             {isFil
-                              ? 'Maaari mo itong muling suriin at i-approve gamit ang berdeng buton sa ibaba kapag naitama na ang kanilang impormasyon.'
-                              : 'You can re-evaluate and approve this household registration using the green button below if information has been corrected.'}
+                              ? 'Maaari mo itong ibalik sa Waiting Queue para sa re-evaluation gamit ang buton sa ibaba upang masuring muli bago aprubahan o hingan ng bagong impormasyon.'
+                              : 'You can return this household to the Waiting Queue for re-evaluation using the button below before approving or requesting updated info.'}
                           </div>
                         </div>
                       </div>
@@ -1177,22 +1189,22 @@ export default function VerificationQueue() {
                       />
 
                       {hh.verificationStatus === 'rejected' ? (
-                        <>
-                          <button
-                            onClick={() => requestVerify(hh._id, 'verified', hh.headOfHouseholdUserId?.name)}
-                            className="clay-button-approve"
-                            style={{ padding: '0 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
-                          >
-                            <CheckCircle2 size={15} /> {isFil ? 'I-re-evaluate at I-approve' : 'Re-evaluate & Approve'}
-                          </button>
-                          <button
-                            onClick={() => requestVerify(hh._id, 'needs_info', hh.headOfHouseholdUserId?.name)}
-                            className="clay-button-secondary"
-                            style={{ padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
-                          >
-                            <Info size={15} /> {isFil ? 'Humingi ng Karagdagang Info' : 'Request More Info'}
-                          </button>
-                        </>
+                        <button
+                          onClick={() => requestVerify(hh._id, 'pending', hh.headOfHouseholdUserId?.name)}
+                          className="clay-button-secondary"
+                          style={{
+                            padding: '0 18px',
+                            fontSize: '13px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            background: '#EFF6FF',
+                            color: '#1D4ED8',
+                            borderColor: '#BFDBFE',
+                          }}
+                        >
+                          <RefreshCw size={15} /> {isFil ? 'I-re-evaluate (Ibalik sa Waiting Queue)' : 'Re-evaluate (Return to Waiting Queue)'}
+                        </button>
                       ) : hh.verificationStatus === 'verified' ? (
                         <>
                           <button

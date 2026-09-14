@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X, AlertTriangle } from 'lucide-react';
+import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { IconlyShield } from '../components/Sidebar';
@@ -198,13 +198,13 @@ export default function SmartPriorityDashboard() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          status: 'verified',
-          verificationNotes: 'Re-evaluated and approved via Smart Priority Dashboard.',
+          status: 'pending',
+          verificationNotes: 'Re-evaluation initiated: returned to waiting queue for re-assessment.',
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to approve household.');
-      setSuccessToast(`Household ni ${hhName} ay matagumpay na na-re-evaluate at na-approve!`);
+      if (!res.ok) throw new Error(data.message || 'Failed to re-evaluate household.');
+      setSuccessToast(`Household ni ${hhName} ay matagumpay na naibalik sa Waiting Queue para sa re-evaluation!`);
       fetchHouseholds();
     } catch (err) {
       alert(err.message || 'Failed to re-evaluate household.');
@@ -213,7 +213,7 @@ export default function SmartPriorityDashboard() {
 
   return (
     <div className="page-container page-animate">
-      {/* ── Universal Executive Directive Confirmation Modal ── */}
+      {/* Universal Executive Directive Confirmation Modal */}
       <ConfirmModal
         isOpen={directiveModal.isOpen}
         title="I-notify ang LGU Operations Admin?"
@@ -224,13 +224,13 @@ export default function SmartPriorityDashboard() {
         onCancel={() => setDirectiveModal({ isOpen: false, barangay: null })}
       />
 
-      {/* ── Re-evaluate / Approve Household Confirmation Modal ── */}
+      {/* Re-evaluate Household (Return to Waiting Queue) Confirmation Modal */}
       <ConfirmModal
         isOpen={reevaluateModal.isOpen}
-        title="I-re-evaluate at I-approve ang Household?"
-        message={`Kasalukuyang rejected ang rehistrasyon ni ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'}. Nais mo ba itong i-approve ngayon upang maging kwalipikado sa pamamahagi ng ayuda?`}
-        type="success"
-        confirmText="Oo, I-approve ang Sambahayan"
+        title="I-re-evaluate at Ibalik sa Waiting Queue?"
+        message={`Kasalukuyang rejected ang rehistrasyon ni ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'}. Nais mo ba itong ibalik sa Waiting Queue (Pending) upang muling masuri, maaprubahan, o mahingan ng update?`}
+        type="info"
+        confirmText="Oo, Ibalik sa Waiting Queue"
         onConfirm={handleReevaluateHousehold}
         onCancel={() => setReevaluateModal({ isOpen: false, household: null })}
       />
@@ -671,16 +671,16 @@ export default function SmartPriorityDashboard() {
                                 gap: '5px',
                                 fontSize: '11.5px',
                                 padding: '5px 10px',
-                                background: '#158A64',
+                                background: '#2563EB',
                                 color: '#FFFFFF',
                                 borderRadius: 6,
                                 fontWeight: 700,
                                 border: 'none',
                                 cursor: 'pointer',
                               }}
-                              title="Re-evaluate & Approve this rejected resident"
+                              title="Re-evaluate and return this resident to the Waiting Queue"
                             >
-                              <CheckCircle2 size={13} /> Re-evaluate / Approve
+                              <RefreshCw size={13} /> Re-evaluate (Waiting)
                             </button>
                           ) : hh.verificationStatus === 'pending' ? (
                             <button
