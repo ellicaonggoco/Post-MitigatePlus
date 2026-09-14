@@ -288,6 +288,24 @@ const bootstrapSystem = async () => {
       ]);
       console.log('✓ [Bootstrap] Initialized Standard Relief Item Configurations.');
     }
+
+    // 7. Align damageLevel for user-registered households with no damage report
+    const DamageReport = require('../models/DamageReport');
+    const allHouseholds = await Household.find({}).populate('headOfHouseholdUserId', 'emailOrPhone');
+    for (const h of allHouseholds) {
+      const hasReport = await DamageReport.findOne({ householdId: h._id });
+      if (!hasReport && h.damageLevel && h.damageLevel !== 'None') {
+        const seedContacts = ['09236051393', 'juan@gmail.com', 'roberto.bautista@gmail.com', '09179998877', 'maria@gmail.com', 'althea.morales@gmail.com', '09996517418'];
+        const isSeed = seedContacts.includes(h.headOfHouseholdUserId?.emailOrPhone);
+        if (!isSeed) {
+          h.damageLevel = 'None';
+          const { priorityScore, priorityLevel } = calculatePriorityIndex(h);
+          h.priorityScore = priorityScore;
+          h.priorityLevel = priorityLevel;
+          await h.save();
+        }
+      }
+    }
   } catch (err) {
     console.warn('[Bootstrap Warning] Failed to initialize default accounts:', err.message);
   }

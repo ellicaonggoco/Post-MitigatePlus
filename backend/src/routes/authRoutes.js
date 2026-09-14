@@ -460,7 +460,7 @@ router.post('/register', async (req, res) => {
       validIdType: validIdType || 'Government ID',
       validIdImage: validIdImage || null,
       validIdNumber: validIdNumber || '',
-      damageLevel: damageLevel || 'Minor',
+      damageLevel: damageLevel || 'None',
     });
 
     const { priorityScore, priorityLevel } = calculatePriorityIndex(newHousehold);

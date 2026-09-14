@@ -44,8 +44,8 @@ const householdSchema = new mongoose.Schema({
   validIdNumber: { type: String, default: '' },
   damageLevel: {
     type: String,
-    enum: ['Minor', 'Moderate', 'Severe', 'Totally Damaged'],
-    default: 'Minor',
+    enum: ['None', 'Minor', 'Moderate', 'Severe', 'Totally Damaged'],
+    default: 'None',
   },
   priorityScore: { type: Number, default: 0, index: true },
   priorityLevel: {

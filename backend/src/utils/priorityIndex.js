@@ -23,13 +23,14 @@
  */
 
 function calculatePriorityIndex(household, createdDate = null, assistanceReceivedCount = 0) {
-  let damageWeight = 1;
+  let damageWeight = 0;
   switch (household.damageLevel) {
-    case 'Moderate': damageWeight = 2; break;
-    case 'Severe': damageWeight = 3; break;
     case 'Totally Damaged': damageWeight = 4; break;
-    case 'Minor':
-    default: damageWeight = 1; break;
+    case 'Severe': damageWeight = 3; break;
+    case 'Moderate': damageWeight = 2; break;
+    case 'Minor': damageWeight = 1; break;
+    case 'None':
+    default: damageWeight = 0; break;
   }
 
   let vulnerabilityPoints = 0;

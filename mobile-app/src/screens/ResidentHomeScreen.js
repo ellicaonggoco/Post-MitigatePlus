@@ -559,9 +559,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
   const topUpUnits = headcount > baseCoverage ? (headcount - (basePacks * baseCoverage)) : 0;
 
-  const currentDamageLevel = householdData?.damageLevel || 'None';
-  const damageStatus = householdData?.damageReportStatus || (householdData?.latestDamageReport ? householdData.latestDamageReport.verificationStatus : (currentDamageLevel !== 'None' ? 'verified' : 'none'));
-  const damagePointsBonus = currentDamageLevel === 'Totally Damaged' ? 40 : currentDamageLevel === 'Severe' ? 30 : currentDamageLevel === 'Moderate' ? 20 : currentDamageLevel === 'Minor' ? 10 : 0;
+  const latestDamage = householdData?.latestDamageReport || null;
+  const hasDamageReport = !!latestDamage;
+  const damageStatus = householdData?.damageReportStatus || (latestDamage ? latestDamage.verificationStatus : 'none');
+  const currentDamageLevel = latestDamage?.validatedDamageLevel || latestDamage?.reportedDamageLevel || latestDamage?.damageLevel || (householdData?.damageLevel && householdData.damageLevel !== 'None' && damageStatus !== 'none' ? householdData.damageLevel : 'None');
+  const damagePointsBonus = (damageStatus === 'verified' || damageStatus === 'adjusted')
+    ? (currentDamageLevel === 'Totally Damaged' ? 40 : currentDamageLevel === 'Severe' ? 30 : currentDamageLevel === 'Moderate' ? 20 : currentDamageLevel === 'Minor' ? 10 : 0)
+    : 0;
 
   // 5-Stage Disaster Recovery Event & Claim Evaluation
   const activeEvent = householdData?.activeEvent || null;
@@ -1153,7 +1157,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             </LinearGradient>
 
             {/* ── Structural Damage Assessment Status Card ── */}
-            {currentDamageLevel !== 'None' || householdData?.latestDamageReport ? (
+            {(hasDamageReport && damageStatus !== 'none') || (currentDamageLevel !== 'None' && damageStatus !== 'none') ? (
               <View style={styles.damageAssessmentCard}>
                 <View style={styles.damageAssessmentHeader}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
