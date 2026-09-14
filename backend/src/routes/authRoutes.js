@@ -78,8 +78,15 @@ router.post('/send-otp', async (req, res) => {
           message: 'Walang account na natagpuan para sa email o mobile number na ito. Pakisuri ang inyong rehistradong credentials.'
         });
       }
+    } else {
+      // Registration flow: strictly check that the phone number or email is not already registered to an existing account
+      const existingUser = await findExistingUserWithIdentifier(key);
+      if (existingUser) {
+        return res.status(400).json({
+          message: 'Ang email o numerong ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan.'
+        });
+      }
     }
-    // Note: For registration, allow unlimited OTP sending so panelists/testers can repeat account creation anytime without restrictions.
 
     // Generate secure 6-digit random OTP code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -358,29 +365,22 @@ router.post('/register', async (req, res) => {
     }
 
     const existingUser = await findExistingUserWithIdentifier(emailOrPhone);
-    let user;
     if (existingUser) {
-      // Repeat registration: Allow panelists and testers to re-register with the same email or mobile number
-      existingUser.name = name;
-      existingUser.passwordHash = password;
-      existingUser.barangayCode = barangayCode;
-      await existingUser.save();
-      user = existingUser;
-
-      // Clean up previous household records owned by this user so a fresh household record is created
-      await Household.deleteMany({ headOfHouseholdUserId: user._id });
-    } else {
-      const isEmailInput = String(emailOrPhone).includes('@');
-      user = await User.create({
-        name,
-        emailOrPhone: emailOrPhone.trim().toLowerCase(),
-        email: isEmailInput ? emailOrPhone.trim().toLowerCase() : null,
-        contactNum: !isEmailInput ? emailOrPhone.trim() : null,
-        passwordHash: password,
-        role: 'resident',
-        barangayCode,
+      return res.status(400).json({
+        message: 'Ang email address o numerong ito ay rehistrado na sa sistema. Isang account lamang ang pinapayagan.'
       });
     }
+
+    const isEmailInput = String(emailOrPhone).includes('@');
+    const user = await User.create({
+      name,
+      emailOrPhone: emailOrPhone.trim().toLowerCase(),
+      email: isEmailInput ? emailOrPhone.trim().toLowerCase() : null,
+      contactNum: !isEmailInput ? emailOrPhone.trim() : null,
+      passwordHash: password,
+      role: 'resident',
+      barangayCode,
+    });
 
     // Check for existing address/purok overlap in the same barangay.
     // Overlap only FLAGS for review - it never auto-forces join_existing, since a
