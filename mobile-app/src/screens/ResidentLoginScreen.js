@@ -173,7 +173,7 @@ export default function ResidentLoginScreen({ onLoginSuccess, onNavigateRegister
             label={lang === 'tl' ? 'Email Address' : 'Email Address'}
             value={emailOrPhone}
             onChangeText={handleEmailOrPhoneChange}
-            placeholder={lang === 'tl' ? 'Ilagay ang Email Address (hal. resident@gmail.com)' : 'Enter Email Address (e.g. resident@gmail.com)'}
+            placeholder={lang === 'tl' ? 'hal. resident@gmail.com' : 'e.g. resident@gmail.com'}
             errorText={errors.emailOrPhone}
             required
             keyboardType="email-address"
