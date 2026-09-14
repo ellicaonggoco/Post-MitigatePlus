@@ -139,8 +139,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   // OTP Phone Verification Modal states
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
-  const [fallbackOtp, setFallbackOtp] = useState('');
-  const [otpTimer, setOtpTimer] = useState(60);
+  const [otpTimer, setOtpTimer] = useState(15);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [canResend, setCanResend] = useState(false);
@@ -448,15 +447,9 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setOtpError('');
-        setOtpTimer(60);
+        setOtpTimer(15);
         setCanResend(false);
-        const codeReceived = data.otpCode || data.debugOtp || '';
-        if (codeReceived) {
-          setFallbackOtp(codeReceived);
-          setOtpDigits(codeReceived.slice(0, 6).split(''));
-        } else {
-          setOtpDigits(['', '', '', '', '', '']);
-        }
+        setOtpDigits(['', '', '', '', '', '']);
         setShowOtpModal(true);
       } else {
         Alert.alert(
@@ -479,7 +472,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
   const handleResendOtp = async () => {
     if (!canResend) return;
     setCanResend(false);
-    setOtpTimer(60);
+    setOtpTimer(15);
     setOtpLoading(true);
     setOtpError('');
     try {
@@ -490,13 +483,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const codeReceived = data.otpCode || data.debugOtp || '';
-        if (codeReceived) {
-          setFallbackOtp(codeReceived);
-          setOtpDigits(codeReceived.slice(0, 6).split(''));
-        } else {
-          setOtpDigits(['', '', '', '', '', '']);
-        }
+        setOtpDigits(['', '', '', '', '', '']);
       } else {
         setOtpError(data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP.' : 'Failed to resend OTP.'));
       }
@@ -1449,36 +1436,6 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 <Text style={{ fontWeight: '800', color: '#1C3F94' }}>{emailOrPhone}</Text>
               </Text>
             </View>
-
-            {/* Instant Verification Code Helper */}
-            {fallbackOtp ? (
-              <View style={styles.demoOtpBox}>
-                <View style={styles.demoOtpHeader}>
-                  <Text style={styles.demoOtpTitle}>
-                    {lang === 'tl' ? 'Verification Code (Instant Delivery)' : 'Verification Code (Instant Delivery)'}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.autoFillBtn}
-                    onPress={() => {
-                      const digits = fallbackOtp.slice(0, 6).split('');
-                      setOtpDigits(digits);
-                    }}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.autoFillBtnText}>
-                      {lang === 'tl' ? 'I-auto Fill' : 'Auto-Fill'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.demoOtpCodeText}>{fallbackOtp}</Text>
-                <Text style={styles.demoOtpSubText}>
-                  {lang === 'tl'
-                    ? 'Awtomatikong inihanda ang code kung sakaling maantala o mapunta sa spam folder ang email.'
-                    : 'Code automatically prepared in case email delivery is delayed or filtered to spam.'}
-                </Text>
-              </View>
-            ) : null}
-
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>
               {otpDigits.map((digit, idx) => (
@@ -2404,52 +2361,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: 10,
     marginBottom: 12,
-  },
-  demoOtpBox: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1.5,
-    borderColor: '#86EFAC',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 16,
-  },
-  demoOtpHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  demoOtpTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#166534',
-  },
-  autoFillBtn: {
-    backgroundColor: '#16A34A',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 48,
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  autoFillBtnText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  demoOtpCodeText: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: 4,
-    color: '#15803D',
-    textAlign: 'center',
-    marginVertical: 4,
-  },
-  demoOtpSubText: {
-    fontSize: 11,
-    color: '#15803D',
-    textAlign: 'center',
-    lineHeight: 15,
   },
   otpInputsContainer: {
     flexDirection: 'row',

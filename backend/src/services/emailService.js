@@ -5,10 +5,10 @@
 const nodemailer = require('nodemailer');
 
 const sendEmailOTP = async (recipientEmail, otpCode) => {
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailPass = process.env.GMAIL_APP_PASSWORD;
+  const gmailUser = process.env.GMAIL_USER || 'ellicaonggoco19@gmail.com';
+  const gmailPass = process.env.GMAIL_APP_PASSWORD || 'hyokqixpcrowqhrt';
 
-  if (!gmailUser || !gmailPass || gmailUser === 'your_gmail@gmail.com') {
+  if (!gmailUser || !gmailPass) {
     console.log(`[EMAIL OTP DEMO MODE] Target: ${recipientEmail} | OTP Code: ${otpCode}`);
     return { success: true, mode: 'demo', message: 'Email OTP logged in demo mode (Add GMAIL_USER and GMAIL_APP_PASSWORD to .env for real email sending)' };
   }

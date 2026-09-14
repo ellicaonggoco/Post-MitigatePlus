@@ -94,7 +94,7 @@ app.use('/api/', globalLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 50,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many authentication attempts. Please try again after 10 minutes.' },
@@ -102,12 +102,12 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 
+// Unlimited OTP dispatch for evaluation and panel testing
 const otpLimiter = rateLimit({
-  windowMs: 3 * 60 * 1000, // 3 minutes cooldown window
-  max: 60, // allow up to 60 OTP requests per 3 minutes
+  windowMs: 1 * 60 * 1000,
+  max: 10000, // Unlimited OTP sending allowed
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Masyadong maraming OTP request. Mangyaring maghintay ng 3 minuto bago sumubok muli. (Too many OTP requests. Please wait 3 minutes before trying again.)' },
   validate: { trustProxy: false },
 });
 app.use('/api/auth/send-otp', otpLimiter);

@@ -10,7 +10,6 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
   const [stage, setStage] = useState(1); // 1: Find Account, 2: OTP Verification, 3: Reset Password, 4: Success
   const [identifier, setIdentifier] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
-  const [fallbackOtp, setFallbackOtp] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [newPassword, setNewPassword] = useState('');
@@ -67,12 +66,8 @@ export default function ForgotPasswordScreen({ onBack, onResetComplete, lang = '
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        if (data.otpCode) {
-          setOtpCode(data.otpCode.slice(0, 6).split(''));
-        } else {
-          setOtpCode(['', '', '', '', '', '']);
-        }
-        setResendCooldown(60);
+        setOtpCode(['', '', '', '', '', '']);
+        setResendCooldown(15);
         setStage(2);
       } else {
         setErrors({ identifier: data.message || (lang === 'tl' ? 'Hindi maipadala ang OTP. Pakisuri ang numero o email.' : 'Failed to send OTP. Please check phone number or email.') });
@@ -612,43 +607,6 @@ const styles = StyleSheet.create({
     color: '#3D5070',
     lineHeight: 16,
     marginBottom: 16,
-  },
-  demoOtpBox: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1.5,
-    borderColor: '#86EFAC',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 10,
-  },
-  demoOtpHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  demoOtpTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#166534',
-  },
-  autoFillBtn: {
-    backgroundColor: '#16A34A',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  autoFillBtnText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  demoOtpCodeText: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 4,
-    color: '#15803D',
-    textAlign: 'center',
   },
   otpGrid: {
     flexDirection: 'row',
