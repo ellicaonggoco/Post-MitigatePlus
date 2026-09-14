@@ -29,7 +29,32 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
     `,
   };
 
-  // Attempt 1: Port 465 (SSL) with forced IPv4
+  // Priority 1: HTTPS Webhook Relay (Bypasses cloud firewall & blocked SMTP ports 25, 465, 587)
+  const webhookUrl = process.env.GMAIL_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: `[MitigatePlus] Your Account Verification Code: ${otpCode}`,
+          otpCode,
+          html: mailOptions.html,
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok) {
+        console.log(`[EMAIL SENT - HTTPS RELAY] Dispatched OTP to ${recipientEmail} via Webhook`);
+        return { success: true, mode: 'live', relay: 'https', data };
+      }
+      console.warn('[EMAIL WEBHOOK FAILED]', data);
+    } catch (whErr) {
+      console.warn(`[EMAIL WEBHOOK EXCEPTION] ${whErr.message}. Falling back to SMTP...`);
+    }
+  }
+
+  // Priority 2: Port 465 (SSL) with forced IPv4
   try {
     const transporter465 = nodemailer.createTransport({
       host: 'smtp.gmail.com',
