@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HomeIcon, ShieldCheckIcon, ArrowRightIcon } from '../components/AppIcons';
-import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, TOUCH_TARGET, RESPONSIVE, wp, hp } from '../theme';
+import { RADIUS, FONT_WEIGHT, SPACING, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
 
 export default function AuthChoiceScreen({ onSelectRole }) {
   return (
