@@ -19,6 +19,8 @@ export default function VerificationQueue() {
   const isFil = lang === 'fil' || lang === 'tl';
   const [activeQueueTab, setActiveQueueTab] = useState('households'); // 'households' | 'damage_reports'
   const [households, setHouseholds] = useState([]);
+  const [householdStatusFilter, setHouseholdStatusFilter] = useState('pending'); // 'pending' | 'verified' | 'rejected' | 'all'
+  const [householdCounts, setHouseholdCounts] = useState({ pending: 0, verified: 0, rejected: 0, all: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedNotes, setSelectedNotes] = useState({});
   const [actionStatus, setActionStatus] = useState({ type: '', msg: '' });
@@ -53,9 +55,9 @@ export default function VerificationQueue() {
   useEffect(() => {
     setCurrentPage(1);
     setDamageCurrentPage(1);
-  }, [selectedBarangay, damageStatusFilter]);
+  }, [selectedBarangay, damageStatusFilter, householdStatusFilter]);
 
-  const totalPages = Math.ceil(households.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(households.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentQueueItems = households.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
@@ -63,20 +65,24 @@ export default function VerificationQueue() {
   const startDamageIndex = (damageCurrentPage - 1) * DAMAGE_ITEMS_PER_PAGE;
   const currentDamageItems = damageReports.slice(startDamageIndex, startDamageIndex + DAMAGE_ITEMS_PER_PAGE);
 
-  const fetchPendingQueue = async () => {
+  const fetchPendingQueue = async (overrideStatus) => {
     setLoading(true);
     try {
-      let url = `${API_BASE_URL}/households/pending`;
+      const activeStatus = overrideStatus !== undefined ? overrideStatus : householdStatusFilter;
+      const params = [`status=${activeStatus}`];
       if (canSeeCityWide(user) && selectedBarangay !== 'ALL') {
-        url += `?barangayCode=${selectedBarangay}`;
+        params.push(`barangayCode=${selectedBarangay}`);
       }
 
-      const res = await fetch(url, {
+      const res = await fetch(`${API_BASE_URL}/households/pending?${params.join('&')}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (res.ok && data.households) {
         setHouseholds(data.households);
+        if (data.counts) {
+          setHouseholdCounts(data.counts);
+        }
       } else {
         setHouseholds([]);
       }
@@ -113,15 +119,20 @@ export default function VerificationQueue() {
 
   useEffect(() => {
     fetchPendingQueue();
-    fetchDamageReports();
+  }, [token, selectedBarangay, householdStatusFilter]);
 
+  useEffect(() => {
+    fetchDamageReports();
+  }, [token, selectedBarangay]);
+
+  useEffect(() => {
     const socket = io(SOCKET_URL);
     const targetCode = canSeeCityWide(user) ? selectedBarangay : user?.barangayCode;
 
     if (targetCode && targetCode !== 'ALL') {
       socket.emit('join_barangay_room', targetCode);
       socket.on('new_pending_registration', () => {
-        setActionStatus({ type: 'info', msg: 'New pending registration received in real-time!' });
+        setActionStatus({ type: 'info', msg: 'New registration update received in real-time!' });
         fetchPendingQueue();
       });
       socket.on('new_pending_damage_report', (data) => {
@@ -131,6 +142,9 @@ export default function VerificationQueue() {
       });
       socket.on('damage_report_verified', () => {
         fetchDamageReports();
+        fetchPendingQueue();
+      });
+      socket.on('verification_updated', () => {
         fetchPendingQueue();
       });
     }
@@ -223,25 +237,31 @@ export default function VerificationQueue() {
         isOpen={modal.isOpen}
         title={
           modal.actionStatus === 'verified'
-            ? `I-approve ang Household ni ${modal.name}?`
+            ? (isFil ? `I-approve ang Household ni ${modal.name}?` : `Approve Household of ${modal.name}?`)
             : modal.actionStatus === 'needs_info'
-            ? `Humingi ng Karagdagang Impormasyon kay ${modal.name}?`
-            : `I-reject ang Household ni ${modal.name}?`
+            ? (isFil ? `Humingi ng Karagdagang Impormasyon kay ${modal.name}?` : `Request Additional Info from ${modal.name}?`)
+            : (isFil ? `I-reject ang Household ni ${modal.name}?` : `Reject Household of ${modal.name}?`)
         }
         message={
           modal.actionStatus === 'verified'
-            ? `Are you sure the household data of ${modal.name} is verified and accurate? They will immediately become eligible for relief distribution.`
+            ? (isFil
+                ? `Sigurado ka bang nais mong aprubahan ang sambahayan ni ${modal.name}? Magiging kwalipikado sila agad para sa pamamahagi ng ayuda at mabibigyan ng beripikadong QR pass.`
+                : `Are you sure you want to approve the household of ${modal.name}? They will immediately become eligible for relief distribution and receive an active QR pass.`)
             : modal.actionStatus === 'needs_info'
-            ? `I-notify si ${modal.name} upang magbigay ng kailangang dokumento o verification notes.`
-            : `I-reject ang aplikasyon ni ${modal.name}? Hindi sila makakatanggap ng relief pass hangga't hindi ito naayos.`
+            ? (isFil
+                ? `I-notify si ${modal.name} upang magbigay ng kailangang dokumento o verification notes.`
+                : `Notify ${modal.name} to submit required documents or clarification.`)
+            : (isFil
+                ? `I-reject ang aplikasyon ni ${modal.name}? Hindi sila makakatanggap ng relief pass hangga't hindi ito naayos.`
+                : `Reject the application of ${modal.name}? They will not be able to claim relief assistance until resolved.`)
         }
         type={modal.actionStatus === 'verified' ? 'success' : modal.actionStatus === 'needs_info' ? 'warning' : 'danger'}
         confirmText={
           modal.actionStatus === 'verified'
-            ? 'Oo, Approve Household'
+            ? (isFil ? 'Oo, Approve Household' : 'Yes, Approve Household')
             : modal.actionStatus === 'needs_info'
-            ? 'Oo, Request Info'
-            : 'Oo, Reject Application'
+            ? (isFil ? 'Oo, Request Info' : 'Yes, Request Info')
+            : (isFil ? 'Oo, Reject Application' : 'Yes, Reject Application')
         }
         onConfirm={handleVerify}
         onCancel={() => setModal({ isOpen: false, hhId: null, actionStatus: '', name: '' })}
@@ -302,7 +322,7 @@ export default function VerificationQueue() {
             <ClipboardList size={16} color="#ffffff" />
             <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
               {activeQueueTab === 'households'
-                ? `${households.length} ${isFil ? 'Nakabinbing Akawnt' : 'Pending Accounts'}`
+                ? `${householdCounts.pending} ${isFil ? 'Naghihintay ng Pagsusuri' : 'Pending Review'}`
                 : `${damageReports.filter(d => d.verificationStatus === 'pending').length} ${isFil ? 'Nakabinbing Ulat' : 'Pending Damage Reports'}`}
             </span>
           </div>
@@ -344,13 +364,13 @@ export default function VerificationQueue() {
         >
           <UserCheck size={18} />
           <span>{isFil ? 'Rehistrasyon ng Sambahayan' : 'Household Registrations'}</span>
-          {households.length > 0 && (
+          {householdCounts.pending > 0 && (
             <span style={{
               background: activeQueueTab === 'households' ? 'var(--manila-blue)' : 'var(--border)',
               color: activeQueueTab === 'households' ? '#FFFFFF' : 'var(--ink-soft)',
               fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: 999
             }}>
-              {households.length}
+              {householdCounts.pending}
             </span>
           )}
         </button>
@@ -415,6 +435,61 @@ export default function VerificationQueue() {
             </span>
           )}
         </div>
+
+        {/* Status Filter for Household Registrations Tab */}
+        {activeQueueTab === 'households' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)' }}>
+              {isFil ? 'Katayuan:' : 'Status:'}
+            </span>
+            {[
+              { key: 'pending', labelEn: 'Waiting / Pending', labelFil: 'Naghihintay', count: householdCounts.pending, color: '#D97706', bg: '#FFFBEB' },
+              { key: 'verified', labelEn: 'Verified', labelFil: 'Beripikado', count: householdCounts.verified, color: '#0D8A5A', bg: '#E6F6EF' },
+              { key: 'rejected', labelEn: 'Rejected', labelFil: 'Tinanggihan', count: householdCounts.rejected, color: '#DC2626', bg: '#FEF2F2' },
+              { key: 'all', labelEn: 'All Records', labelFil: 'Lahat', count: householdCounts.all, color: 'var(--manila-blue)', bg: '#EEF2FF' },
+            ].map((st) => {
+              const isActive = householdStatusFilter === st.key;
+              return (
+                <button
+                  key={st.key}
+                  type="button"
+                  onClick={() => {
+                    setHouseholdStatusFilter(st.key);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '5px 12px',
+                    borderRadius: 6,
+                    border: isActive ? `1.5px solid ${st.color}` : '1px solid var(--border)',
+                    background: isActive ? st.bg : 'var(--sampaguita)',
+                    color: isActive ? st.color : 'var(--ink)',
+                    fontSize: '11.5px',
+                    fontWeight: isActive ? 800 : 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>{isFil ? st.labelFil : st.labelEn}</span>
+                  <span
+                    style={{
+                      background: isActive ? st.color : '#E2E8F0',
+                      color: isActive ? '#FFFFFF' : '#475569',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '1px 5px',
+                      borderRadius: 999,
+                    }}
+                  >
+                    {st.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Status Filter for Damage Reports Tab */}
         {activeQueueTab === 'damage_reports' && (
@@ -501,16 +576,40 @@ export default function VerificationQueue() {
             <div className="clay-card workflow-empty-state" style={{ textAlign: 'center', padding: '64px 40px' }}>
               <div style={{
                 width: 72, height: 72, borderRadius: '50%',
-                background: 'rgba(21,138,100,0.1)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
+                background: householdStatusFilter === 'rejected' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(21,138,100,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
               }}>
-                <CheckCircle2 size={36} color="var(--bay-teal)" />
+                {householdStatusFilter === 'rejected' ? (
+                  <XCircle size={36} color="#DC2626" />
+                ) : (
+                  <CheckCircle2 size={36} color="var(--bay-teal)" />
+                )}
               </div>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 6px' }}>Queue Clear</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 6px' }}>
+                {householdStatusFilter === 'pending'
+                  ? (isFil ? 'Walang Nakabinbing Aplikasyon' : 'Queue Clear')
+                  : householdStatusFilter === 'rejected'
+                  ? (isFil ? 'Walang Tinanggihang Aplikasyon' : 'No Rejected Accounts')
+                  : householdStatusFilter === 'verified'
+                  ? (isFil ? 'Walang Beripikadong Aplikasyon' : 'No Verified Accounts')
+                  : (isFil ? 'Walang Nahanap na Rehistrasyon' : 'No Registrations Found')}
+              </h2>
               <p style={{ fontSize: '14px', color: 'var(--ink-soft)' }}>
-                All submitted registrations for {canSeeCityWide(user) ? (selectedBarangay === 'ALL' ? 'all barangays' : `Barangay ${selectedBarangay}`) : `Barangay ${user?.barangayCode || '291'}`} have been reviewed.
+                {householdStatusFilter === 'pending'
+                  ? (isFil
+                      ? `Lahat ng rehistrasyon para sa ${canSeeCityWide(user) ? (selectedBarangay === 'ALL' ? 'buong Maynila' : `Barangay ${selectedBarangay}`) : `Barangay ${user?.barangayCode || '291'}`} ay nasuri na.`
+                      : `All submitted registrations for ${canSeeCityWide(user) ? (selectedBarangay === 'ALL' ? 'all barangays' : `Barangay ${selectedBarangay}`) : `Barangay ${user?.barangayCode || '291'}`} have been reviewed.`)
+                  : householdStatusFilter === 'rejected'
+                  ? (isFil
+                      ? 'Walang tinanggihang sambahayan sa napiling saklaw ng barangay.'
+                      : 'No rejected households found in this barangay jurisdiction.')
+                  : (isFil
+                      ? 'Walang talaang tumugma sa kasalukuyang filter.'
+                      : 'No records match the current filter.')}
               </p>
-              <button onClick={fetchPendingQueue} className="clay-button-secondary workflow-empty-state__action"><RefreshCw size={15} /> Check for new registrations</button>
+              <button onClick={() => fetchPendingQueue()} className="clay-button-secondary workflow-empty-state__action">
+                <RefreshCw size={15} /> {isFil ? 'I-refresh ang Pila' : 'Refresh Queue'}
+              </button>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '16px' }}>
@@ -524,7 +623,17 @@ export default function VerificationQueue() {
                     key={hh._id}
                     delay={idx * 0.08}
                     className="clay-card"
-                    style={{ borderLeft: hasOverlap ? '4px solid var(--jeepney-amber)' : '4px solid var(--bay-teal)', transition: 'box-shadow 0.2s' }}
+                    style={{
+                      borderLeft:
+                        hh.verificationStatus === 'rejected'
+                          ? '4px solid #DC2626'
+                          : hh.verificationStatus === 'verified'
+                          ? '4px solid #0D8A5A'
+                          : hasOverlap
+                          ? '4px solid var(--jeepney-amber)'
+                          : '4px solid var(--bay-teal)',
+                      transition: 'box-shadow 0.2s',
+                    }}
                   >
                     {/* Card Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
@@ -543,6 +652,43 @@ export default function VerificationQueue() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* Status badge */}
+                        <span
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 999,
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            letterSpacing: '0.02em',
+                            textTransform: 'uppercase',
+                            background:
+                              hh.verificationStatus === 'verified'
+                                ? '#E6F6EF'
+                                : hh.verificationStatus === 'rejected'
+                                ? '#FEE2E2'
+                                : '#FEF3C7',
+                            color:
+                              hh.verificationStatus === 'verified'
+                                ? '#0D8A5A'
+                                : hh.verificationStatus === 'rejected'
+                                ? '#DC2626'
+                                : '#92400E',
+                            border:
+                              hh.verificationStatus === 'verified'
+                                ? '1px solid #A7F3D0'
+                                : hh.verificationStatus === 'rejected'
+                                ? '1px solid #FCA5A5'
+                                : '1px solid #FCD34D',
+                          }}
+                        >
+                          {hh.verificationStatus === 'verified'
+                            ? (isFil ? 'BERIPIKADO' : 'VERIFIED')
+                            : hh.verificationStatus === 'rejected'
+                            ? (isFil ? 'TINANGGIHAN (REJECTED)' : 'REJECTED')
+                            : hh.verificationStatus === 'needs_info'
+                            ? (isFil ? 'HUMIHINGI NG IMPORMASYON' : 'NEEDS INFO')
+                            : (isFil ? 'NAGHIHINTAY NG PAGSUSURI' : 'PENDING REVIEW')}
+                        </span>
                         {hasOverlap && (
                           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 700 }}>
                             <AlertTriangle size={12} /> Matching Address
@@ -556,6 +702,74 @@ export default function VerificationQueue() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Rejection Notice Banner */}
+                    {hh.verificationStatus === 'rejected' && (
+                      <div style={{
+                        background: '#FEF2F2',
+                        border: '1.5px solid #F87171',
+                        borderRadius: 'var(--radius-inner)',
+                        padding: '12px 16px',
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        color: '#991B1B',
+                        fontSize: '13px',
+                      }}>
+                        <XCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#DC2626' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, color: '#991B1B', marginBottom: '2px', fontSize: '13.5px' }}>
+                            {isFil ? 'Kasalukuyang Nakarehistro bilang Tinanggihan (Rejected)' : 'Account Registration Currently Rejected'}
+                          </div>
+                          <div>
+                            {hh.verificationNotes ? (
+                              <span><strong>{isFil ? 'Tala ng Opisyal / Dahilan:' : 'Official Notes / Reason:'}</strong> {hh.verificationNotes}</span>
+                            ) : (
+                              <span>{isFil ? 'Walang nakalagay na tiyak na dahilan ng rejection.' : 'No specific rejection notes recorded.'}</span>
+                            )}
+                            {hh.verifiedAt && (
+                              <span style={{ display: 'block', fontSize: '11px', color: '#B91C1C', marginTop: 4 }}>
+                                {isFil ? 'Tinanggihan noong: ' : 'Rejected on: '}
+                                {new Date(hh.verifiedAt).toLocaleString()}
+                                {hh.verifiedBy?.name ? ` (${hh.verifiedBy.name})` : ''}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ marginTop: 8, fontSize: '12px', color: '#7F1D1D' }}>
+                            {isFil
+                              ? 'Maaari mo itong muling suriin at i-approve gamit ang berdeng buton sa ibaba kapag naitama na ang kanilang impormasyon.'
+                              : 'You can re-evaluate and approve this household registration using the green button below if information has been corrected.'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verified Notice Banner */}
+                    {hh.verificationStatus === 'verified' && (
+                      <div style={{
+                        background: '#F0FDF4',
+                        border: '1.5px solid #86EFAC',
+                        borderRadius: 'var(--radius-inner)',
+                        padding: '10px 14px',
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        color: '#166534',
+                        fontSize: '13px',
+                      }}>
+                        <CheckCircle2 size={18} style={{ flexShrink: 0, color: '#16A34A' }} />
+                        <div style={{ flex: 1 }}>
+                          <strong>{isFil ? 'Opisyal na Beripikado:' : 'Officially Verified:'}</strong> {isFil ? 'Kwalipikado na ang pamilyang ito sa relief aid at may aktibong QR pass.' : 'This household is eligible for relief aid distribution with an active QR pass.'}
+                          {hh.verifiedAt && (
+                            <span style={{ display: 'inline-block', marginLeft: 8, fontSize: '11px', color: '#15803D' }}>
+                              ({new Date(hh.verifiedAt).toLocaleDateString()})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Pending Member Bump Alert */}
                     {hh.memberCountPendingUpdate && (
@@ -730,10 +944,16 @@ export default function VerificationQueue() {
                     </div>
 
                     {/* Action bar */}
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
                       <input
                         type="text"
-                        placeholder="Optional note for resident (reason for rejection, required docs, etc.)"
+                        placeholder={
+                          hh.verificationStatus === 'rejected'
+                            ? (isFil ? "Maglagay ng tala para sa muling pagsusuri o pag-apruba..." : "Add note for re-evaluation approval...")
+                            : hh.verificationStatus === 'verified'
+                            ? (isFil ? "Maglagay ng tala para sa pagbabago ng katayuan..." : "Add note for status update...")
+                            : (isFil ? "Opsyonal na tala para sa residente (dahilan ng desisyon, atbp.)..." : "Optional note for resident (reason for rejection, required docs, etc.)...")
+                        }
                         value={selectedNotes[hh._id] || ''}
                         onChange={e => setSelectedNotes({ ...selectedNotes, [hh._id]: e.target.value })}
                         style={{
@@ -743,15 +963,66 @@ export default function VerificationQueue() {
                           fontFamily: 'var(--font-sans)',
                         }}
                       />
-                      <button onClick={() => requestVerify(hh._id, 'verified', hh.headOfHouseholdUserId?.name)} className="clay-button-approve" style={{ padding: '0 18px', fontSize: '13px' }}>
-                        <CheckCircle2 size={15} /> Approve
-                      </button>
-                      <button onClick={() => requestVerify(hh._id, 'needs_info', hh.headOfHouseholdUserId?.name)} className="clay-button-secondary" style={{ padding: '0 18px', fontSize: '13px' }}>
-                        <Info size={15} /> Request Info
-                      </button>
-                      <button onClick={() => requestVerify(hh._id, 'rejected', hh.headOfHouseholdUserId?.name)} className="clay-button-danger" style={{ padding: '0 18px', fontSize: '13px' }}>
-                        <XCircle size={15} /> Reject
-                      </button>
+
+                      {hh.verificationStatus === 'rejected' ? (
+                        <>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'verified', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-approve"
+                            style={{ padding: '0 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <CheckCircle2 size={15} /> {isFil ? 'I-re-evaluate at I-approve' : 'Re-evaluate & Approve'}
+                          </button>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'needs_info', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-secondary"
+                            style={{ padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <Info size={15} /> {isFil ? 'Humingi ng Karagdagang Info' : 'Request More Info'}
+                          </button>
+                        </>
+                      ) : hh.verificationStatus === 'verified' ? (
+                        <>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'rejected', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-danger"
+                            style={{ padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <XCircle size={15} /> {isFil ? 'I-revoke / I-reject' : 'Revoke / Reject'}
+                          </button>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'needs_info', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-secondary"
+                            style={{ padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <Info size={15} /> {isFil ? 'Humingi ng Update' : 'Request Update'}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'verified', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-approve"
+                            style={{ padding: '0 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <CheckCircle2 size={15} /> {isFil ? 'Aprubahan' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'needs_info', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-secondary"
+                            style={{ padding: '0 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <Info size={15} /> {isFil ? 'Humingi ng Impormasyon' : 'Request Info'}
+                          </button>
+                          <button
+                            onClick={() => requestVerify(hh._id, 'rejected', hh.headOfHouseholdUserId?.name)}
+                            className="clay-button-danger"
+                            style={{ padding: '0 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <XCircle size={15} /> {isFil ? 'Tanggihan' : 'Reject'}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </MotionCard>
                 );
@@ -763,7 +1034,7 @@ export default function VerificationQueue() {
           {households.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, padding: '12px 18px', background: 'var(--card)', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)', flexWrap: 'wrap', gap: 12 }}>
               <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-                Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, households.length)}</strong> of <strong>{households.length}</strong> pending households
+                Showing <strong>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, households.length)}</strong> of <strong>{households.length}</strong> {householdStatusFilter === 'all' ? (isFil ? 'sambahayan' : 'households') : householdStatusFilter === 'pending' ? (isFil ? 'nakabinbing sambahayan' : 'pending households') : householdStatusFilter === 'rejected' ? (isFil ? 'tinanggihang sambahayan' : 'rejected households') : (isFil ? 'beripikadong sambahayan' : 'verified households')}
                 <span style={{ marginLeft: 8, color: 'var(--ink-soft)' }}>
                   (Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>)
                 </span>

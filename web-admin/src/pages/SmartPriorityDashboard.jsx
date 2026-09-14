@@ -30,6 +30,7 @@ export default function SmartPriorityDashboard() {
 
   // ── Executive Directive State for SuperAdmin ──
   const [directiveModal, setDirectiveModal] = useState({ isOpen: false, barangay: null });
+  const [reevaluateModal, setReevaluateModal] = useState({ isOpen: false, household: null });
   const [successToast, setSuccessToast] = useState('');
 
   const fetchHouseholds = async () => {
@@ -171,6 +172,33 @@ export default function SmartPriorityDashboard() {
     setDirectiveModal({ isOpen: false, barangay: null });
   };
 
+  const handleReevaluateHousehold = async () => {
+    if (!reevaluateModal.household) return;
+    const hhId = reevaluateModal.household._id;
+    const hhName = reevaluateModal.household.headOfHouseholdUserId?.name || 'Resident';
+    setReevaluateModal({ isOpen: false, household: null });
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/households/${hhId}/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: 'verified',
+          verificationNotes: 'Re-evaluated and approved via Smart Priority Dashboard.',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to approve household.');
+      setSuccessToast(`Household ni ${hhName} ay matagumpay na na-re-evaluate at na-approve!`);
+      fetchHouseholds();
+    } catch (err) {
+      alert(err.message || 'Failed to re-evaluate household.');
+    }
+  };
+
   return (
     <div className="page-container page-animate">
       {/* ── Universal Executive Directive Confirmation Modal ── */}
@@ -182,6 +210,17 @@ export default function SmartPriorityDashboard() {
         confirmText="Oo, Ipadala ang Directive"
         onConfirm={handleSendDirective}
         onCancel={() => setDirectiveModal({ isOpen: false, barangay: null })}
+      />
+
+      {/* ── Re-evaluate / Approve Household Confirmation Modal ── */}
+      <ConfirmModal
+        isOpen={reevaluateModal.isOpen}
+        title="I-re-evaluate at I-approve ang Household?"
+        message={`Kasalukuyang rejected ang rehistrasyon ni ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'}. Nais mo ba itong i-approve ngayon upang maging kwalipikado sa pamamahagi ng ayuda?`}
+        type="success"
+        confirmText="Oo, I-approve ang Sambahayan"
+        onConfirm={handleReevaluateHousehold}
+        onCancel={() => setReevaluateModal({ isOpen: false, household: null })}
       />
 
       {/* ── Success Toast Banner ── */}
@@ -528,6 +567,7 @@ export default function SmartPriorityDashboard() {
                     <th>Headcount & Vulnerabilities</th>
                     <th>Status</th>
                     <th>QR Identifier</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -586,6 +626,51 @@ export default function SmartPriorityDashboard() {
                         }}>
                           {hh.qrCode}
                         </code>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          {hh.verificationStatus === 'rejected' ? (
+                            <button
+                              onClick={() => setReevaluateModal({ isOpen: true, household: hh })}
+                              className="btn btn-sm"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                fontSize: '11.5px',
+                                padding: '5px 10px',
+                                background: '#158A64',
+                                color: '#FFFFFF',
+                                borderRadius: 6,
+                                fontWeight: 700,
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                              title="Re-evaluate & Approve this rejected resident"
+                            >
+                              <CheckCircle2 size={13} /> Re-evaluate / Approve
+                            </button>
+                          ) : hh.verificationStatus === 'pending' ? (
+                            <button
+                              onClick={() => navigate('/verification-queue')}
+                              className="btn btn-sm btn-secondary"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '11.5px',
+                                padding: '4px 8px',
+                              }}
+                              title="Go to verification queue"
+                            >
+                              Review Queue
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '11.5px', color: '#158A64', fontWeight: 700 }}>
+                              Beripikado
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

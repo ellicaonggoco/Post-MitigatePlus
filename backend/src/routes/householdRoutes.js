@@ -162,23 +162,44 @@ router.get('/check-address-collision', async (req, res) => {
 // @desc    Get pending verification queue (Barangay official approval queue with Matching Address Detection)
 router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), requireBarangayScope, async (req, res) => {
   try {
-    let query = { verificationStatus: 'pending' };
+    let baseQuery = {};
     
     // Strict scoping for Barangay Official
     if (req.user.role === 'barangay_official') {
-      query.barangayCode = req.user.barangayCode;
-    } else if (req.query.barangayCode) {
-      query.barangayCode = req.query.barangayCode;
+      baseQuery.barangayCode = req.user.barangayCode;
+    } else if (req.query.barangayCode && req.query.barangayCode !== 'ALL') {
+      baseQuery.barangayCode = req.query.barangayCode;
+    }
+
+    let query = { ...baseQuery };
+    const statusFilter = req.query.status || 'pending';
+    if (statusFilter === 'all') {
+      // no status filter
+    } else if (statusFilter === 'pending') {
+      query.verificationStatus = { $in: ['pending', 'needs_info'] };
+    } else if (['verified', 'rejected', 'needs_info'].includes(statusFilter)) {
+      query.verificationStatus = statusFilter;
+    } else {
+      query.verificationStatus = { $in: ['pending', 'needs_info'] };
     }
 
     const pendingHouseholds = await Household.find(query)
-      .populate('headOfHouseholdUserId', 'name emailOrPhone')
+      .populate('headOfHouseholdUserId', 'name emailOrPhone role')
+      .populate('verifiedBy', 'name role')
       .populate({
         path: 'linkedHouseholdId',
         select: 'address purok memberCount headOfHouseholdUserId verificationStatus',
         populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' },
       })
-      .sort({ priorityScore: -1, createdAt: 1 });
+      .sort({ updatedAt: -1, priorityScore: -1, createdAt: 1 });
+
+    // Status counts for UI tabs
+    const counts = {
+      pending: await Household.countDocuments({ ...baseQuery, verificationStatus: { $in: ['pending', 'needs_info'] } }),
+      verified: await Household.countDocuments({ ...baseQuery, verificationStatus: 'verified' }),
+      rejected: await Household.countDocuments({ ...baseQuery, verificationStatus: 'rejected' }),
+      all: await Household.countDocuments(baseQuery),
+    };
 
     // Automated Backend Engine: Detect matching resident addresses in the same barangay
     const enrichedHouseholds = await Promise.all(pendingHouseholds.map(async (hh) => {
@@ -220,11 +241,12 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 
     res.json({
       count: enrichedHouseholds.length,
+      counts,
       barangayCode: req.user.barangayCode || 'ALL',
       households: enrichedHouseholds,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching pending queue', error: error.message });
+    res.status(500).json({ message: 'Error fetching verification queue', error: error.message });
   }
 });
 
