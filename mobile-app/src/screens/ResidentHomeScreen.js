@@ -1111,6 +1111,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     }}
                     activeOpacity={0.85}
                   >
+                    <RefreshCwIcon size={14} color="#FFFFFF" />
                     <Text style={styles.refreshStatusBtnText}>
                       {lang === 'tl' ? 'I-refresh ang Katayuan' : 'Refresh Status'}
                     </Text>
@@ -1218,8 +1219,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       }}
                       activeOpacity={0.85}
                     >
+                      <RefreshCwIcon size={14} color="#FFFFFF" />
                       <Text style={styles.refreshStatusBtnText}>
-                        {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? '🔄 I-refresh' : '🔄 Refresh')}
+                        {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? 'I-refresh' : 'Refresh')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -1290,8 +1292,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         }}
                         activeOpacity={0.85}
                       >
+                        <RefreshCwIcon size={14} color="#FFFFFF" />
                         <Text style={styles.refreshStatusBtnText}>
-                          {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? '🔄 I-refresh' : '🔄 Refresh')}
+                          {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? 'I-refresh' : 'Refresh')}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -1362,10 +1365,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang i-refresh ang katayuan ng beripikasyon' : 'Double tap to refresh verification status'}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
+                    <RefreshCwIcon size={14} color="#FFFFFF" />
                     <Text style={styles.refreshStatusBtnText}>
                       {loadingProfile
                         ? (lang === 'tl' ? 'Sinusuri...' : 'Checking...')
-                        : (lang === 'tl' ? ' Muling I-check ang Katayuan' : ' Refresh Approval Status')}
+                        : (lang === 'tl' ? 'I-check ang Katayuan' : 'Refresh Approval Status')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -3415,8 +3419,10 @@ verifCheckCirclePending: {
     minHeight: 48,
     borderRadius: 10,
     width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 7,
     ...SHADOWS.button,
   },
   refreshStatusBtnText: {
