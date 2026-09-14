@@ -1380,15 +1380,15 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 label={lang === 'tl' ? 'Buong Legal na Pangalan' : 'Full Legal Name'}
                 value={memberNameInput}
                 onChangeText={setMemberNameInput}
-                placeholder="e.g. Maria Teresa Santos"
+                placeholder="Maria Teresa Santos"
                 required
               />
 
               <NeumorphicInput
-                label={lang === 'tl' ? 'Edad (Age)' : 'Age'}
+                label={lang === 'tl' ? 'Edad' : 'Age'}
                 value={memberAgeInput}
                 onChangeText={setMemberAgeInput}
-                placeholder="e.g. 28"
+                placeholder="28"
                 keyboardType="numeric"
                 required
               />
@@ -1754,7 +1754,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                   <View style={{ marginTop: 8 }}>
                     <NeumorphicInput
                       label={lang === 'tl' ? 'Pakisaad ang Ibang Dahilan' : 'Specify Other Reason'}
-                      placeholder={lang === 'tl' ? 'Hal. May ibang taong may hawak ng ID...' : 'e.g. Someone else has a copy of my card...'}
+                      placeholder={lang === 'tl' ? 'May ibang taong may hawak ng aking card...' : 'Someone else has a copy of my card...'}
                       value={customRenewReason}
                       onChangeText={(val) => {
                         setCustomRenewReason(val);

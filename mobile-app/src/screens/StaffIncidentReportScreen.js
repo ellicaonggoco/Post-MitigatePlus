@@ -161,7 +161,7 @@ export default function StaffIncidentReportScreen({ token }) {
           onChangeText={setBarangayCode}
           keyboardType="numeric"
           style={styles.input}
-          placeholder="e.g. 291"
+          placeholder="291"
           placeholderTextColor="#334155"
         />
 

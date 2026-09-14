@@ -326,7 +326,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
     if (!emailOrPhone.trim()) {
       errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang inyong Email Address para sa OTP verification.' : 'Please enter your Email Address for OTP verification.';
     } else if (!isEmail) {
-      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email address (hal. juan.delacruz@gmail.com).' : 'Please enter a valid email address (e.g. resident@gmail.com).';
+      errs.emailOrPhone = lang === 'tl' ? 'Pakilagay ang wastong email address tulad ng name@gmail.com.' : 'Please enter a valid email address like name@gmail.com.';
     }
     if (!password || !isPasswordValid) {
       errs.password = lang === 'tl' ? 'Pakisunod ang checklist sa password.' : 'Please fulfill all password requirements.';
@@ -668,7 +668,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Buong Pangalan ng Punong-Pamilya' : 'Full Name of Head of Household'}
                 value={name}
                 onChangeText={setName}
-                placeholder="e.g. Juan Dela Cruz"
+                placeholder="Juan Dela Cruz"
                 errorText={errors.name}
                 required
               />
@@ -680,10 +680,10 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   setHeadAge(val);
                   const num = parseInt(val, 10);
                   if (num >= 60 && headCondition === 'none') {
-                    setHeadCondition('senior');
+                     setHeadCondition('senior');
                   }
                 }}
-                placeholder={lang === 'tl' ? 'hal. 42' : 'e.g. 42'}
+                placeholder="42"
                 keyboardType="numeric"
                 errorText={errors.headAge}
                 required
@@ -729,7 +729,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 onChangeText={(val) => {
                   setEmailOrPhone(val);
                 }}
-                placeholder={lang === 'tl' ? 'hal. juan.delacruz@gmail.com' : 'e.g. juan.delacruz@gmail.com'}
+                placeholder="name@gmail.com"
                 errorText={errors.emailOrPhone}
                 required
                 keyboardType="email-address"
@@ -788,7 +788,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'ID Number (Opsyonal)' : 'ID Number (Optional)'}
                 value={idNumber}
                 onChangeText={setIdNumber}
-                placeholder="e.g. 1234-5678-9012-3456"
+                placeholder="1234-5678-9012-3456"
               />
 
               <View style={styles.idUploadSection}>
@@ -920,7 +920,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <SearchIcon size={15} color="#1C3F94" />
                       <TextInput
                         style={styles.brgySearchInput}
-                        placeholder={lang === 'tl' ? 'I-type ang barangay number o distrito (hal. 291)...' : 'Type barangay number or district (e.g. 291)...'}
+                        placeholder={lang === 'tl' ? 'Ilagay ang barangay number o distrito (291)...' : 'Type barangay number or district (291)...'}
                         placeholderTextColor="#334155"
                         value={brgySearch}
                         onChangeText={setBrgySearch}
@@ -964,7 +964,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Address ng Bahay (Kalye / House No.)' : 'Street Address (House No. & Street)'}
                 value={address}
                 onChangeText={setAddress}
-                placeholder="e.g. 123 Alvarez Street"
+                placeholder="123 Alvarez St."
                 errorText={errors.address}
                 required
               />
@@ -973,7 +973,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Purok / Zone / Area Landmark' : 'Purok / Zone / Area Landmark'}
                 value={purok}
                 onChangeText={setPurok}
-                placeholder="e.g. Purok 3 / Zone 27"
+                placeholder="Purok 3 / Zone 27"
                 errorText={errors.purok}
                 required
               />
@@ -1345,7 +1345,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Buong Pangalan ng Miyembro' : 'Full Name of Member'}
                 value={newMemberName}
                 onChangeText={setNewMemberName}
-                placeholder="e.g. Juanito Dela Cruz"
+                placeholder="Juanito Dela Cruz"
                 required
               />
 
@@ -1366,7 +1366,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   label={lang === 'tl' ? 'Edad (Taon)' : 'Age (Years)'}
                   value={newMemberAge}
                   onChangeText={setNewMemberAge}
-                  placeholder={newMemberCondition === 'senior' ? 'e.g. 65' : 'e.g. 24'}
+                  placeholder={newMemberCondition === 'senior' ? '65' : '24'}
                   keyboardType="numeric"
                   required
                 />
