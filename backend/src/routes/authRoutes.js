@@ -357,6 +357,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please fill in all required registration fields.' });
     }
 
+    if (!validIdImage) {
+      return res.status(400).json({
+        message: 'Kailangang mag-attach ng litrato ng Valid Government ID para sa opisyal na beripikasyon ng pamilya.'
+      });
+    }
+
     const existingUser = await findExistingUserWithIdentifier(emailOrPhone);
     if (existingUser) {
       return res.status(400).json({

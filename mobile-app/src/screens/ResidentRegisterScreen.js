@@ -429,6 +429,14 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
   // 1. Trigger OTP dispatch to mobile
   const handleInitiateRegistration = async () => {
+    if (!idPhoto) {
+      Alert.alert(
+        lang === 'tl' ? 'Kailangan ang Litrato ng ID' : 'ID Photo Required',
+        lang === 'tl' ? 'Kailangang mag-attach ng litrato ng inyong Valid Government ID bago magparehistro.' : 'Valid Government ID photo is strictly required.'
+      );
+      setStep(1);
+      return;
+    }
     if (!validateStep2()) return;
     setLoading(true);
     try {
