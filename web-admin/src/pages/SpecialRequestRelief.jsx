@@ -808,11 +808,11 @@ export default function SpecialRequestRelief() {
                   })
                 ) : (
                   <>
-                    <option value="Field Officer Juan Santos (Team Alpha)">
-                      Field Officer Juan Santos (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Juan Santos') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Juan Santos')} Active Deliveries`}
+                    <option value="Field Officer Danilo Mendoza (Team Alpha)">
+                      Field Officer Danilo Mendoza (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Danilo Mendoza') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Danilo Mendoza')} Active Deliveries`}
                     </option>
-                    <option value="Field Officer Maria Clara (Team Bravo)">
-                      Field Officer Maria Clara (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Maria Clara') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Maria Clara')} Active Deliveries`}
+                    <option value="Field Officer Ramon Santos (Team Bravo)">
+                      Field Officer Ramon Santos (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Ramon Santos') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Ramon Santos')} Active Deliveries`}
                     </option>
                     <option value="Quick Response Team 1">
                       Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
@@ -835,8 +835,8 @@ export default function SpecialRequestRelief() {
 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {(staffList.length > 0 ? staffList : [
-                    { id: '1', name: 'Juan Santos', teamName: 'Team Alpha' },
-                    { id: '2', name: 'Maria Clara', teamName: 'Team Bravo' },
+                    { id: '1', name: 'Danilo Mendoza', teamName: 'Team Alpha' },
+                    { id: '2', name: 'Ramon Santos', teamName: 'Team Bravo' },
                     { id: '3', name: 'QR Team 1', teamName: 'QR Unit' },
                   ])
                     .slice()

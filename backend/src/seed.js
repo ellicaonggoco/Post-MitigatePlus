@@ -39,7 +39,7 @@ const seedData = async () => {
 
     // 1. Create Default Users
     const superadmin = await User.create({
-      name: 'City Mayor / LGU SuperAdmin',
+      name: 'Hon. Maria Sheilah "Honey" Lacuna-Pangan',
       emailOrPhone: 'superadmin@manila.gov.ph',
       passwordHash: 'superadmin123',
       role: 'lgu_superadmin',
@@ -47,7 +47,7 @@ const seedData = async () => {
     });
 
     const admin = await User.create({
-      name: 'LGU MDRRMO Administrator',
+      name: 'Dir. Arnaldo "Arnel" M. Angeles',
       emailOrPhone: 'admin@manila.gov.ph',
       passwordHash: 'admin123',
       role: 'lgu_admin',
@@ -56,7 +56,7 @@ const seedData = async () => {
     });
 
     const official291 = await User.create({
-      name: 'Hon. Barangay Chairman (Brgy 291)',
+      name: 'Kap. Ernesto "Erning" V. Macapagal',
       emailOrPhone: 'official291@manila.gov.ph',
       passwordHash: 'official123',
       role: 'barangay_official',
@@ -65,7 +65,7 @@ const seedData = async () => {
     });
 
     const staff291 = await User.create({
-      name: 'Field Officer Cruz',
+      name: 'Officer Danilo "Danny" R. Mendoza',
       emailOrPhone: 'staff291@manila.gov.ph',
       passwordHash: 'staff123',
       role: 'field_staff',
@@ -74,7 +74,7 @@ const seedData = async () => {
     });
 
     const residentJuan = await User.create({
-      name: 'Juan Dela Cruz',
+      name: 'John Paul Cruz',
       emailOrPhone: 'juan@gmail.com',
       passwordHash: 'resident123',
       role: 'resident',
@@ -82,35 +82,37 @@ const seedData = async () => {
     });
 
     console.log('✓ Created Default Users:');
-    console.log('  - LGU SuperAdmin (Mayor/Executive): superadmin@manila.gov.ph / superadmin123');
-    console.log('  - LGU Admin (MDRRMO): admin@manila.gov.ph / admin123');
-    console.log('  - Barangay Official (291): official291@manila.gov.ph / official123');
-    console.log('  - Field Staff (291): staff291@manila.gov.ph / staff123');
+    console.log('  - LGU SuperAdmin (City Mayor): superadmin@manila.gov.ph / superadmin123');
+    console.log('  - LGU Admin (MDRRMO Director): admin@manila.gov.ph / admin123');
+    console.log('  - Barangay Official (291 Captain): official291@manila.gov.ph / official123');
+    console.log('  - Field Staff (Alpha Lead): staff291@manila.gov.ph / staff123');
     console.log('  - Resident: juan@gmail.com / resident123');
 
-    // 2. Create Sample Household for Juan
+    // 2. Create Sample Household for John Paul Cruz
     const membersJuan = [
-      { name: 'Juan Dela Cruz', relationship: 'Head', age: 45, specialConditions: [] },
-      { name: 'Maria Dela Cruz', relationship: 'Wife', age: 42, specialConditions: ['pregnant'] },
-      { name: 'Pedro Dela Cruz', relationship: 'Father', age: 70, specialConditions: ['senior', 'pwd'] },
-      { name: 'Ana Dela Cruz', relationship: 'Daughter', age: 10, specialConditions: ['child'] },
-      { name: 'Lito Dela Cruz', relationship: 'Son', age: 8, specialConditions: ['child'] },
-      { name: 'Rosa Dela Cruz', relationship: 'Daughter', age: 5, specialConditions: ['child'] },
-      { name: 'Baby Dela Cruz', relationship: 'Son', age: 2, specialConditions: ['child', 'medical'] },
+      { name: 'John Paul Cruz', relationship: 'Head', age: 42, specialConditions: [] },
+      { name: 'Maria Teresa Cruz', relationship: 'Wife', age: 40, specialConditions: ['pregnant'] },
+      { name: 'Eduardo Cruz', relationship: 'Father', age: 70, specialConditions: ['senior', 'pwd'] },
+      { name: 'Kristine Joy Cruz', relationship: 'Daughter', age: 15, specialConditions: ['child'] },
+      { name: 'Gabriel Cruz', relationship: 'Son', age: 11, specialConditions: ['child'] },
+      { name: 'Angelica Cruz', relationship: 'Daughter', age: 6, specialConditions: ['child'] },
+      { name: 'Liam Cruz', relationship: 'Son', age: 2, specialConditions: ['child', 'medical'] },
     ];
 
     const householdJuan = new Household({
       headOfHouseholdUserId: residentJuan._id,
-      address: '123 Calle Real',
-      purok: 'Purok 4',
+      address: '742 Severino Reyes St., Sta. Cruz, Manila',
+      purok: 'Purok 1',
       barangayCode: '291',
       memberCount: 7,
       members: membersJuan,
-      qrCode: 'MNL-291-JUAN-DEMO-2026',
+      qrCode: 'MNL-291-CRUZ-8402',
       verificationStatus: 'verified',
       verifiedBy: official291._id,
       verifiedAt: new Date(),
-      damageLevel: 'Severe',
+      validIdType: 'Philippine National ID (PhilSys / PhilID)',
+      validIdNumber: '1234-5678-9012',
+      damageLevel: 'Minor',
     });
 
     const { priorityScore, priorityLevel } = calculatePriorityIndex(householdJuan);
@@ -124,7 +126,7 @@ const seedData = async () => {
       updatedBy: staff291._id,
     });
 
-    console.log('✓ Created Household & Recovery Record for Juan Dela Cruz.');
+    console.log('✓ Created Household & Recovery Record for John Paul Cruz.');
 
     // 3. Seed Relief Items - names must match gapDetection.js STANDARD_RELIEF_ITEMS exactly
     await ReliefItemType.create([
@@ -141,11 +143,11 @@ const seedData = async () => {
 
     // 4. Seed Active Distribution Event
     const event = await DistributionEvent.create({
-      title: 'Post-Typhoon Relief Distribution Batch 1',
+      title: 'Pamamahagi ng Ayuda sa mga Biktima ng Habagat at Bagyo - District 3',
       itemType: 'Family Food Pack',
       batchId: 'BATCH-2026-08-01',
       barangayCode: '291',
-      location: 'Barangay 291 Covered Court',
+      location: 'Barangay 291 Covered Court, Sta. Cruz, Manila',
       openedBy: official291._id,
     });
 
@@ -153,8 +155,8 @@ const seedData = async () => {
 
     // 5. Seed Announcement
     await Announcement.create({
-      title: 'Relief Distribution Schedule - Barangay 291',
-      body: 'Distribution for Family Food Packs is ongoing at the Covered Court. Please present your household QR Code.',
+      title: 'Opisyal na Abiso: Pamamahagi ng Family Food Packs sa Brgy 291 Covered Court',
+      body: 'Ang pamamahagi ng Family Food Packs para sa mga apektadong pamilya ay kasalukuyang isinasagawa sa Barangay 291 Covered Court. Mangyaring dalhin at ihanda ang inyong opisyal na QR Code sa pag-claim.',
       barangayCode: '291',
       postedBy: official291._id,
     });

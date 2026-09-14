@@ -1723,7 +1723,7 @@ export default function ReportsPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="Hal. Juan Dela Cruz"
+                      placeholder="Hal. John Paul Cruz"
                       value={resBeneficiaryName}
                       onChange={(e) => setResBeneficiaryName(e.target.value)}
                       style={{

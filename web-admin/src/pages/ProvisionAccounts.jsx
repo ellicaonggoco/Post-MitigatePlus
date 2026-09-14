@@ -947,7 +947,7 @@ export default function ProvisionAccounts() {
                       <label style={labelStyle}>Head of Household Full Name *</label>
                       <input
                         type="text"
-                        placeholder="e.g. Juan M. Dela Cruz"
+                        placeholder="e.g. Chester Garcia"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         style={inputStyle}

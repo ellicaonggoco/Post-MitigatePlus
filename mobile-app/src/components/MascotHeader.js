@@ -4,7 +4,7 @@ import Svg, { Ellipse, Path, Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, RADIUS, FONT_WEIGHT, SPACING } from '../theme';
 
-export default function MascotHeader({ residentName = 'Juan', address = 'Purok 4, Barangay 291', priorityLevel = 'Medium' }) {
+export default function MascotHeader({ residentName = 'Chester', address = 'Purok 1, Barangay 291', priorityLevel = 'Medium' }) {
   return (
     <LinearGradient
       colors={[COLORS.manilaBlue, COLORS.manilaBlueDeep]}

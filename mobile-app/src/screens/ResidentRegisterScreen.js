@@ -659,7 +659,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Buong Pangalan ng Punong-Pamilya' : 'Full Name of Head of Household'}
                 value={name}
                 onChangeText={setName}
-                placeholder="Juan Dela Cruz"
+                placeholder="John Paul Cruz"
                 errorText={errors.name}
                 required
               />
@@ -1336,7 +1336,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                 label={lang === 'tl' ? 'Buong Pangalan ng Miyembro' : 'Full Name of Member'}
                 value={newMemberName}
                 onChangeText={setNewMemberName}
-                placeholder="Juanito Dela Cruz"
+                placeholder="Gabriel Cruz"
                 required
               />
 
