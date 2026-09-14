@@ -683,7 +683,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                      setHeadCondition('senior');
                   }
                 }}
-                placeholder="42"
+                placeholder={lang === 'tl' ? 'Edad' : 'Age'}
                 keyboardType="numeric"
                 errorText={errors.headAge}
                 required
@@ -1366,7 +1366,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                   label={lang === 'tl' ? 'Edad (Taon)' : 'Age (Years)'}
                   value={newMemberAge}
                   onChangeText={setNewMemberAge}
-                  placeholder={newMemberCondition === 'senior' ? '65' : '24'}
+                  placeholder={lang === 'tl' ? 'Edad' : 'Age'}
                   keyboardType="numeric"
                   required
                 />

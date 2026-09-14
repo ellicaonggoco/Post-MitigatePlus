@@ -1388,7 +1388,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 label={lang === 'tl' ? 'Edad' : 'Age'}
                 value={memberAgeInput}
                 onChangeText={setMemberAgeInput}
-                placeholder="28"
+                placeholder={lang === 'tl' ? 'Edad' : 'Age'}
                 keyboardType="numeric"
                 required
               />
