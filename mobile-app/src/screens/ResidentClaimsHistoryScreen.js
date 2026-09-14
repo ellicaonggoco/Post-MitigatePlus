@@ -311,11 +311,9 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
               <View style={styles.receiptDividerDashed} />
 
               <View style={styles.receiptSealBox}>
-                <View style={styles.receiptSealPill}>
-                  <Text style={styles.receiptSealText}>
-                    {lang === 'tl' ? '100% OPISYAL NA BERIPIKADO AT NAIPAMAHAGI' : '100% OFFICIALLY VERIFIED & RELEASED'}
-                  </Text>
-                </View>
+                <Text style={styles.receiptSealText}>
+                  {lang === 'tl' ? '100% OPISYAL NA BERIPIKADO AT NAIPAMAHAGI' : '100% OFFICIALLY VERIFIED & RELEASED'}
+                </Text>
                 <Text style={styles.receiptSecurityHint}>
                   {lang === 'tl'
                     ? 'Seguridad: Beripikado laban sa Central Ledger ng Maynila LGU.'
@@ -622,21 +620,14 @@ const styles = StyleSheet.create({
   },
   receiptSealBox: {
     alignItems: 'center',
-    marginVertical: 4,
-  },
-  receiptSealPill: {
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    marginVertical: 8,
   },
   receiptSealText: {
-    fontSize: 9.5,
+    fontSize: 11.5,
     fontWeight: '900',
     color: '#047857',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   receiptSecurityHint: {
     fontSize: 9,

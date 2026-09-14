@@ -3952,16 +3952,13 @@ navIconPillInactive: {
   modalPassScannablePill: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.pill,
     marginTop: 8,
   },
   modalPassScannableText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     color: '#059669',
   },
   modalPassCodeContainer: {
