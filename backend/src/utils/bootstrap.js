@@ -45,7 +45,7 @@ const bootstrapSystem = async () => {
     const officialExists = await User.findOne({ emailOrPhone: 'official291@manila.gov.ph' });
     if (!officialExists) {
       await User.create({
-        name: 'Kap. Ernesto "Erning" V. Macapagal',
+        name: 'Barangay 291 Official',
         emailOrPhone: 'official291@manila.gov.ph',
         email: 'official291@manila.gov.ph',
         passwordHash: 'official123',
@@ -53,8 +53,8 @@ const bootstrapSystem = async () => {
         barangayCode: '291',
       });
       console.log('✓ [Bootstrap] Created Default Official: official291@manila.gov.ph / official123');
-    } else if (officialExists.name.includes('Chairman') || officialExists.name.includes('Official')) {
-      officialExists.name = 'Kap. Ernesto "Erning" V. Macapagal';
+    } else if (officialExists.name !== 'Barangay 291 Official') {
+      officialExists.name = 'Barangay 291 Official';
       await officialExists.save();
     }
 
@@ -62,7 +62,7 @@ const bootstrapSystem = async () => {
     const staffExists = await User.findOne({ emailOrPhone: 'staff291@manila.gov.ph' });
     if (!staffExists) {
       await User.create({
-        name: 'Officer Danilo "Danny" R. Mendoza',
+        name: 'Team Leader - Alpha',
         emailOrPhone: 'staff291@manila.gov.ph',
         email: 'staff291@manila.gov.ph',
         passwordHash: 'staff123',
@@ -74,18 +74,27 @@ const bootstrapSystem = async () => {
         contactNum: '0917-889-2910',
       });
       console.log('✓ [Bootstrap] Created Default Field Staff (Team Alpha): staff291@manila.gov.ph / staff123');
-    } else if (staffExists.name === 'Field Officer Cruz') {
-      staffExists.name = 'Officer Danilo "Danny" R. Mendoza';
+    } else if (staffExists.name !== 'Team Leader - Alpha' || staffExists.teamName !== 'Field Team Alpha') {
+      staffExists.name = 'Team Leader - Alpha';
+      staffExists.teamName = 'Field Team Alpha';
+      staffExists.staffDesignation = 'team_leader';
       await staffExists.save();
     }
 
-    // 4b. Ensure Remaining Field Team Leaders exist
+    // 4b. Ensure Remaining Field Team Leaders and Officers exist
     const fieldTeamsConfig = [
-      { name: 'Officer John Paul Cruz', email: 'staff.bravo@manila.gov.ph', team: 'Field Team Bravo', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2911' },
-      { name: 'Officer Rafael Corpuz', email: 'staff.charlie@manila.gov.ph', team: 'Field Team Charlie', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2912' },
-      { name: 'Officer Chester Garcia', email: 'staff.delta@manila.gov.ph', team: 'Field Team Delta', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2913' },
-      { name: 'Officer John Herzsel Datul', email: 'staff.qru1@manila.gov.ph', team: 'Quick Response Unit 1', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2914' },
-      { name: 'Officer Luigi T. Francisco', email: 'staff.qru2@manila.gov.ph', team: 'Quick Response Unit 2', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2915' },
+      { name: 'Officer 1 - Alpha', email: 'officer1.alpha@manila.gov.ph', team: 'Field Team Alpha', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2911', designation: 'field_officer' },
+      { name: 'Officer 2 - Alpha', email: 'officer2.alpha@manila.gov.ph', team: 'Field Team Alpha', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2912', designation: 'field_officer' },
+      { name: 'Team Leader - Bravo', email: 'staff.bravo@manila.gov.ph', team: 'Field Team Bravo', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2920', designation: 'team_leader' },
+      { name: 'Officer 1 - Bravo', email: 'officer1.bravo@manila.gov.ph', team: 'Field Team Bravo', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2921', designation: 'field_officer' },
+      { name: 'Team Leader - Charlie', email: 'staff.charlie@manila.gov.ph', team: 'Field Team Charlie', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2930', designation: 'team_leader' },
+      { name: 'Officer 1 - Charlie', email: 'officer1.charlie@manila.gov.ph', team: 'Field Team Charlie', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2931', designation: 'field_officer' },
+      { name: 'Team Leader - Delta', email: 'staff.delta@manila.gov.ph', team: 'Field Team Delta', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2940', designation: 'team_leader' },
+      { name: 'Officer 1 - Delta', email: 'officer1.delta@manila.gov.ph', team: 'Field Team Delta', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2941', designation: 'field_officer' },
+      { name: 'Team Leader - QRU 1', email: 'staff.qru1@manila.gov.ph', team: 'Quick Response Unit 1', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2950', designation: 'team_leader' },
+      { name: 'Officer 1 - QRU 1', email: 'officer1.qru1@manila.gov.ph', team: 'Quick Response Unit 1', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2951', designation: 'field_officer' },
+      { name: 'Team Leader - QRU 2', email: 'staff.qru2@manila.gov.ph', team: 'Quick Response Unit 2', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2960', designation: 'team_leader' },
+      { name: 'Officer 1 - QRU 2', email: 'officer1.qru2@manila.gov.ph', team: 'Quick Response Unit 2', role: 'field_staff', brgy: 'City-Wide', phone: '0917-889-2961', designation: 'field_officer' },
     ];
 
     for (const stf of fieldTeamsConfig) {
@@ -98,12 +107,13 @@ const bootstrapSystem = async () => {
           role: stf.role,
           barangayCode: stf.brgy,
           teamName: stf.team,
-          staffDesignation: 'team_leader',
+          staffDesignation: stf.designation || 'team_leader',
           department: 'MDRRMO Field Operations',
           contactNum: stf.phone,
         });
       } else if (exists.name !== stf.name) {
         exists.name = stf.name;
+        exists.staffDesignation = stf.designation || exists.staffDesignation;
         await exists.save();
       }
     }

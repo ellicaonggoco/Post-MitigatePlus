@@ -808,14 +808,17 @@ export default function SpecialRequestRelief() {
                   })
                 ) : (
                   <>
-                    <option value="Field Officer Danilo Mendoza (Team Alpha)">
-                      Field Officer Danilo Mendoza (Team Alpha) {getStaffActiveDeliveriesCount(null, 'Danilo Mendoza') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Danilo Mendoza')} Active Deliveries`}
+                    <option value="Team Leader - Alpha (Field Team Alpha)">
+                      Team Leader - Alpha (Field Team Alpha) {getStaffActiveDeliveriesCount(null, 'Team Leader - Alpha') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Team Leader - Alpha')} Active Deliveries`}
                     </option>
-                    <option value="Field Officer Ramon Santos (Team Bravo)">
-                      Field Officer Ramon Santos (Team Bravo) {getStaffActiveDeliveriesCount(null, 'Ramon Santos') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Ramon Santos')} Active Deliveries`}
+                    <option value="Officer 1 - Alpha (Field Team Alpha)">
+                      Officer 1 - Alpha (Field Team Alpha) {getStaffActiveDeliveriesCount(null, 'Officer 1 - Alpha') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Officer 1 - Alpha')} Active Deliveries`}
                     </option>
-                    <option value="Quick Response Team 1">
-                      Quick Response Team 1 {getStaffActiveDeliveriesCount(null, 'Quick Response') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Quick Response')} Active Deliveries`}
+                    <option value="Team Leader - Bravo (Field Team Bravo)">
+                      Team Leader - Bravo (Field Team Bravo) {getStaffActiveDeliveriesCount(null, 'Team Leader - Bravo') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Team Leader - Bravo')} Active Deliveries`}
+                    </option>
+                    <option value="Team Leader - QRU 1 (Quick Response Unit 1)">
+                      Team Leader - QRU 1 (Quick Response Unit 1) {getStaffActiveDeliveriesCount(null, 'Team Leader - QRU 1') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Team Leader - QRU 1')} Active Deliveries`}
                     </option>
                     <option value="Barangay Health Worker On-Duty">
                       Barangay Health Worker On-Duty {getStaffActiveDeliveriesCount(null, 'Health Worker') === 0 ? '- 0 Active Deliveries (Recommended)' : `- ${getStaffActiveDeliveriesCount(null, 'Health Worker')} Active Deliveries`}
@@ -835,9 +838,9 @@ export default function SpecialRequestRelief() {
 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {(staffList.length > 0 ? staffList : [
-                    { id: '1', name: 'Danilo Mendoza', teamName: 'Team Alpha' },
-                    { id: '2', name: 'Ramon Santos', teamName: 'Team Bravo' },
-                    { id: '3', name: 'QR Team 1', teamName: 'QR Unit' },
+                    { id: '1', name: 'Team Leader - Alpha', teamName: 'Field Team Alpha' },
+                    { id: '2', name: 'Officer 1 - Alpha', teamName: 'Field Team Alpha' },
+                    { id: '3', name: 'Team Leader - QRU 1', teamName: 'Quick Response Unit 1' },
                   ])
                     .slice()
                     .sort((a, b) => getStaffActiveDeliveriesCount(a._id || a.id, a.name) - getStaffActiveDeliveriesCount(b._id || b.id, b.name))

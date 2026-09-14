@@ -56,7 +56,7 @@ const seedData = async () => {
     });
 
     const official291 = await User.create({
-      name: 'Kap. Ernesto "Erning" V. Macapagal',
+      name: 'Barangay 291 Official',
       emailOrPhone: 'official291@manila.gov.ph',
       passwordHash: 'official123',
       role: 'barangay_official',
@@ -65,7 +65,7 @@ const seedData = async () => {
     });
 
     const staff291 = await User.create({
-      name: 'Officer Danilo "Danny" R. Mendoza',
+      name: 'Team Leader - Alpha',
       emailOrPhone: 'staff291@manila.gov.ph',
       passwordHash: 'staff123',
       role: 'field_staff',
@@ -84,8 +84,8 @@ const seedData = async () => {
     console.log('✓ Created Default Users:');
     console.log('  - LGU SuperAdmin (City Mayor): superadmin@manila.gov.ph / superadmin123');
     console.log('  - LGU Admin (MDRRMO Director): admin@manila.gov.ph / admin123');
-    console.log('  - Barangay Official (291 Captain): official291@manila.gov.ph / official123');
-    console.log('  - Field Staff (Alpha Lead): staff291@manila.gov.ph / staff123');
+    console.log('  - Barangay Official (Barangay 291): official291@manila.gov.ph / official123');
+    console.log('  - Field Staff (Team Alpha Leader): staff291@manila.gov.ph / staff123');
     console.log('  - Resident: juan@gmail.com / resident123');
 
     // 2. Create Sample Household for John Paul Cruz
