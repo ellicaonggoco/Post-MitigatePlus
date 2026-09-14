@@ -126,12 +126,10 @@ router.post('/send-otp', async (req, res) => {
       ).catch(err => console.error('[ASYNC SMS ERROR]', err.message));
     }
 
-    // Instant sub-second response to mobile client (includes fallback code for defense demo & connectivity resilience)
+    // Instant sub-second response to mobile client
     res.json({
       success: true,
       message: `OTP verification code sent to ${rawTarget}.`,
-      otpCode: code,
-      debugOtp: code,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send OTP code', error: error.message });
