@@ -123,7 +123,7 @@ export default function StaffIncidentReportScreen({ token }) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: 95 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: 24 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text style={styles.title}>On-Ground Incident & Fraud Reporter</Text>
       <Text style={styles.sub}>Log field distribution incidents, lost QR passes, or stock issues to LGU Command Center.</Text>
 
@@ -221,7 +221,7 @@ export default function StaffIncidentReportScreen({ token }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F6FC' },
-  content: { padding: SPACING.base, paddingTop: 48, paddingBottom: SPACING.xxxl + 40 },
+  content: { padding: SPACING.base, paddingTop: 48, paddingBottom: 24 },
   title: { fontSize: 18, fontWeight: FONT_WEIGHT.black, color: '#0B1525', marginBottom: 4 },
   sub: { fontSize: 12, color: '#3D5070', lineHeight: 17, marginBottom: SPACING.base },
   card: { backgroundColor: '#FFFFFF', borderRadius: RADIUS.card, padding: SPACING.lg, borderWidth: 1, borderColor: '#DDE4F0' },

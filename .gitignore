@@ -1,4 +1,4 @@
-# Environment files — contain live credentials, never commit these
+# Environment files: contain live credentials, never commit these
 .env
 .env.local
 .env.*.local
@@ -25,7 +25,6 @@ Thumbs.db
 *.docx
 *.pdf
 
-
 # Editor
 .vscode/
 .idea/
@@ -33,3 +32,11 @@ Thumbs.db
 # Scratch & Temporary
 mitigateplus-web/
 user_manuscript.txt
+
+# Non-program files (diagrams, thesis documentation, utility scripts)
+*.drawio
+*.ps1
+MitigatePlus_Capstone_Diagrams/
+beta testing cycles/
+MITIGATEPLUS_SYSTEM_WORKFLOW_AND_FEATURE_MANUAL.*
+MitigatePlus_*.pdf

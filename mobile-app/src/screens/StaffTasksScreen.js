@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 110,
+    paddingBottom: 24,
   },
   taskManagerPill: {
     flexDirection: 'row',

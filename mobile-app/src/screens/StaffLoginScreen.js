@@ -109,7 +109,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
       </LinearGradient>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView ref={scrollRef} style={styles.scrollBody} contentContainerStyle={[styles.content, { paddingBottom: 90 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView ref={scrollRef} style={styles.scrollBody} contentContainerStyle={[styles.content, { paddingBottom: 24 + keyboardHeight }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {errorMsg ? (
           <View style={styles.errorBox}>
             <AlertTriangleIcon size={14} color="#DC2626" />
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: 20,
-    paddingBottom: 90,
+    paddingBottom: 24,
     maxWidth: 480,
     alignSelf: 'center',
     width: '100%',

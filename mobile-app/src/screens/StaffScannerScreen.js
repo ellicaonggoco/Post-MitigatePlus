@@ -3339,7 +3339,7 @@ const styles = StyleSheet.create({
   scrollInner: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 150,
+    paddingBottom: 24,
   },
   headerWrapper: {
     backgroundColor: '#071438',

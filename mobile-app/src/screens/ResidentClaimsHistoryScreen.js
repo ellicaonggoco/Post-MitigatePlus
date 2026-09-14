@@ -72,7 +72,7 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[{ paddingBottom: 120 }]}
+      contentContainerStyle={[{ paddingBottom: 20 }]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl

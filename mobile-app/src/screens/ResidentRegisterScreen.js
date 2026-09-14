@@ -596,7 +596,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: 120 + keyboardHeight }]}
+        contentContainerStyle={[styles.content, { paddingBottom: 24 + keyboardHeight }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
@@ -1292,7 +1292,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
 
             <ScrollView
               style={{ maxHeight: hp(58) }}
-              contentContainerStyle={{ paddingBottom: 140 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
               showsVerticalScrollIndicator={true}
               keyboardShouldPersistTaps="handled"
               nestedScrollEnabled={true}
@@ -1566,7 +1566,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: RESPONSIVE.padding,
     paddingTop: Math.max(RESPONSIVE.topSafe + 8, 20),
-    paddingBottom: 95,
+    paddingBottom: 24,
     alignItems: 'center',
   },
   topHeader: {
