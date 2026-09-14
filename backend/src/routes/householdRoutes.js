@@ -317,8 +317,8 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         title: 'Rehistrasyon Naaprubahan!',
         message: `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay ${priorityLevel}. Ang inyong Official QR Pass ay handa na para sa distribusyon ng ayuda.`,
         type: 'verification',
-        targetTab: 'home',
-        actionTab: 'home',
+        targetTab: 'pass',
+        actionTab: 'pass',
         createdAt: new Date(),
         isRead: false,
       });
@@ -330,8 +330,8 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
           ? `Hinihiling ng Barangay Official: "${verificationNotes}". Mangyaring magsumite ng malinaw na Valid ID o kailangang impormasyon.`
           : 'Hinihiling ng Barangay Official na magsumite o mag-upload ng bagong Valid ID para sa inyong rehistrasyon.',
         type: 'needs_info',
-        targetTab: 'home',
-        actionTab: 'home',
+        targetTab: 'needs_info_upload',
+        actionTab: 'needs_info_upload',
         createdAt: new Date(),
         isRead: false,
       });
@@ -419,8 +419,8 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         title: notifTitle,
         message: notifMessage,
         type: status === 'needs_info' ? 'needs_info' : 'verification',
-        targetTab: 'home',
-        actionTab: 'home',
+        targetTab: status === 'needs_info' ? 'needs_info_upload' : (status === 'verified' ? 'pass' : 'home'),
+        actionTab: status === 'needs_info' ? 'needs_info_upload' : (status === 'verified' ? 'pass' : 'home'),
         priorityLevel: household.priorityLevel,
         createdAt: new Date(),
       };

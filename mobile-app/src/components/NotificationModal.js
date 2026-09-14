@@ -151,27 +151,62 @@ export default function NotificationModal({
     onClose();
   };
 
+  const resolveTarget = (notif) => {
+    if (!notif) return 'home';
+    const notifType = String(notif.type || '').toLowerCase();
+    const notifTitle = String(notif.title || '').toLowerCase();
+    const notifTag = String(notif.tag || '').toLowerCase();
+    const notifBody = String(notif.body || notif.content || notif.message || '').toLowerCase();
+
+    // If notification asks for additional info / valid ID upload, resolve to needs_info_upload
+    if (
+      notifType === 'needs_info' ||
+      notifTitle.includes('karagdagang impormasyon') ||
+      notifTitle.includes('additional information') ||
+      notifTitle.includes('additional info') ||
+      notifTag.includes('action required') ||
+      notifTag.includes('kailangan ng aksyon') ||
+      (notifBody.includes('valid id') && (notifBody.includes('upload') || notifBody.includes('magsumite') || notifBody.includes('hinihiling') || notifBody.includes('accepted')))
+    ) {
+      return 'needs_info_upload';
+    }
+
+    if (
+      notifTitle.includes('naaprubahan') ||
+      notifTitle.includes('approved') ||
+      notifBody.includes('qr pass') ||
+      notifBody.includes('digital id')
+    ) {
+      return 'pass';
+    }
+
+    return notif.targetTab || notif.actionTab || 'home';
+  };
+
   const handleActionRoute = (targetTab) => {
     handleModalClose();
     if (targetTab && onNavigate) {
       const clean = String(targetTab).toLowerCase().trim();
-      // Pass needs_info_upload as-is so ResidentHomeScreen can intercept it and open the modal
-      if (clean === 'needs_info_upload') {
-        onNavigate('needs_info_upload');
-        return;
-      }
-      const destination = (clean === 'distribution' || clean === 'history' || clean === 'claim' || clean === 'claims' || clean === 'schedule')
-        ? 'history'
-        : (clean === 'request' || clean === 'assistance' || clean === 'livelihood')
-        ? 'assistance'
-        : (clean === 'damage' || clean === 'report')
-        ? 'damage'
-        : (clean === 'settings' || clean === 'profile' || clean === 'account')
-        ? 'settings'
-        : (clean === 'home' || clean === 'pass' || clean === 'qr')
-        ? 'home'
-        : clean;
-      onNavigate(destination);
+      setTimeout(() => {
+        if (clean === 'needs_info_upload') {
+          onNavigate('needs_info_upload');
+          return;
+        }
+        const destination = (clean === 'distribution' || clean === 'history' || clean === 'claim' || clean === 'claims' || clean === 'schedule')
+          ? 'history'
+          : (clean === 'request' || clean === 'assistance' || clean === 'livelihood')
+          ? 'assistance'
+          : (clean === 'damage' || clean === 'report')
+          ? 'damage'
+          : (clean === 'settings' || clean === 'profile' || clean === 'account')
+          ? 'settings'
+          : (clean === 'pass' || clean === 'qr' || clean === 'home_pass' || clean === 'home_qr')
+          ? 'pass'
+          : (clean === 'home')
+          ? 'home'
+          : clean;
+        onNavigate(destination);
+      }, 150);
     }
   };
 
@@ -183,7 +218,7 @@ export default function NotificationModal({
     if (clean === 'settings' || clean === 'profile' || clean === 'account') {
       return lang === 'tl' ? 'Pumunta sa Settings / Profile' : 'Go to Settings / Profile';
     }
-    if (clean === 'home' || clean === 'pass' || clean === 'qr') {
+    if (clean === 'home' || clean === 'pass' || clean === 'qr' || clean === 'home_pass' || clean === 'home_qr') {
       return lang === 'tl' ? 'Tingnan ang Digital ID / Pass' : 'View Digital ID / Pass';
     }
     if (clean === 'damage' || clean === 'report') {
@@ -293,20 +328,23 @@ export default function NotificationModal({
                   );
                 })()}
 
-                {(selectedNotif.targetTab || selectedNotif.actionTab) && (
-                  <TouchableOpacity
-                    style={styles.detailActionBtn}
-                    onPress={() => handleActionRoute(selectedNotif.targetTab || selectedNotif.actionTab)}
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
-                    accessibilityLabel={getActionLabel(selectedNotif.targetTab || selectedNotif.actionTab)}
-                    accessibilityHint="Navigates to the corresponding service"
-                  >
-                    <Text style={styles.detailActionBtnText}>
-                      {getActionLabel(selectedNotif.targetTab || selectedNotif.actionTab)}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                {(() => {
+                  const resolvedTarget = resolveTarget(selectedNotif);
+                  return (
+                    <TouchableOpacity
+                      style={styles.detailActionBtn}
+                      onPress={() => handleActionRoute(resolvedTarget)}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={getActionLabel(resolvedTarget)}
+                      accessibilityHint="Navigates to the corresponding service"
+                    >
+                      <Text style={styles.detailActionBtnText}>
+                        {getActionLabel(resolvedTarget)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })()}
               </ScrollView>
             </View>
           ) : (

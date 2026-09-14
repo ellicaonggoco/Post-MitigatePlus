@@ -129,8 +129,33 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       setActiveTab('damage');
     } else if (clean === 'settings' || clean === 'profile') {
       setActiveTab('settings');
+    } else if (clean === 'needs_info_upload') {
+      setActiveTab('home');
+      setTimeout(() => {
+        setShowResubmitIdModal(true);
+      }, 200);
+    } else if (clean === 'pass' || clean === 'qr' || clean === 'home_pass' || clean === 'home_qr') {
+      setActiveTab('home');
+      if (isNeedsInfo) {
+        setTimeout(() => {
+          setShowResubmitIdModal(true);
+        }, 200);
+      } else {
+        setTimeout(() => {
+          setShowQRModal(true);
+        }, 200);
+      }
     } else {
       setActiveTab('home');
+      if (isNeedsInfo) {
+        setTimeout(() => {
+          setShowResubmitIdModal(true);
+        }, 200);
+      } else if (isVerified) {
+        setTimeout(() => {
+          setShowQRModal(true);
+        }, 200);
+      }
     }
   };
 
@@ -567,14 +592,21 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         });
 
         inAppNotifHandler = (notif) => {
+          const cleanTitle = stripEmojis(notif.title || '');
+          const isNeedsInfoNotif = notif.type === 'needs_info' ||
+            cleanTitle.toLowerCase().includes('karagdagang impormasyon') ||
+            cleanTitle.toLowerCase().includes('additional info') ||
+            cleanTitle.toLowerCase().includes('valid id') ||
+            (notif.message && notif.message.toLowerCase().includes('valid id'));
+
           setInAppNotifs((prev) => [
             {
               id: notif.id || Date.now().toString(),
               title: notif.title || 'Notipikasyon',
               message: notif.message || (notif.priorityLevel ? `Priority: ${notif.priorityLevel}` : 'May bagong update sa inyong account'),
-              type: notif.type || 'info',
-              targetTab: notif.targetTab || notif.actionTab || 'home',
-              actionTab: notif.actionTab || notif.targetTab || 'home',
+              type: isNeedsInfoNotif ? 'needs_info' : (notif.type || 'info'),
+              targetTab: isNeedsInfoNotif ? 'needs_info_upload' : (notif.targetTab || notif.actionTab || 'home'),
+              actionTab: isNeedsInfoNotif ? 'needs_info_upload' : (notif.actionTab || notif.targetTab || 'home'),
               priorityLevel: notif.priorityLevel,
               createdAt: notif.createdAt || new Date(),
               isRead: false,
@@ -582,7 +614,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             ...prev
           ]);
           setHasUnreadNotifs(true);
-          if (notif.type === 'needs_info') {
+          if (notif.type === 'needs_info' || isNeedsInfoNotif) {
             refreshData(true);
             Alert.alert(
               lang === 'tl' ? 'Karagdagang Impormasyon Kailangan' : 'Additional Information Needed',
@@ -590,7 +622,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               [
                 {
                   text: lang === 'tl' ? 'Mag-upload ng Bagong ID' : 'Upload New ID',
-                  onPress: () => setShowResubmitIdModal(true),
+                  onPress: () => {
+                    setTimeout(() => {
+                      setShowResubmitIdModal(true);
+                    }, 200);
+                  },
                 },
                 {
                   text: lang === 'tl' ? 'Mamaya Na' : 'Later',
@@ -2688,21 +2724,30 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           setShowNotifModal(false);
         }}
         notifs={[
-          ...inAppNotifs.map((n) => ({
-            id: String(n.id || n._id || n.title),
-            title: stripEmojis(n.title),
-            body: stripEmojis(n.message),
-            time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (lang === 'tl' ? 'Kamakailan' : 'Recent'),
-            tag: n.type === 'priority_update'
-              ? 'Priority'
-              : n.type === 'needs_info'
-              ? (lang === 'tl' ? 'Kailangan ng Aksyon' : 'Action Required')
-              : (lang === 'tl' ? 'Opisyal' : 'Official'),
-            targetTab: n.targetTab || n.actionTab || (n.type === 'needs_info' ? 'needs_info_upload' : 'home'),
-            actionTab: n.actionTab || n.targetTab || (n.type === 'needs_info' ? 'needs_info_upload' : 'home'),
-            type: n.type === 'needs_info' ? 'urgent' : (n.type === 'priority_update' ? 'advisory' : 'urgent'),
-            unread: isNotifUnread(n),
-          })),
+          ...inAppNotifs.map((n) => {
+            const cleanTitle = stripEmojis(n.title);
+            const isNeedsInfoItem = n.type === 'needs_info' ||
+              cleanTitle.toLowerCase().includes('karagdagang impormasyon') ||
+              cleanTitle.toLowerCase().includes('additional info') ||
+              cleanTitle.toLowerCase().includes('valid id') ||
+              (n.message && n.message.toLowerCase().includes('valid id'));
+
+            return {
+              id: String(n.id || n._id || n.title),
+              title: cleanTitle,
+              body: stripEmojis(n.message),
+              time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (lang === 'tl' ? 'Kamakailan' : 'Recent'),
+              tag: n.type === 'priority_update'
+                ? 'Priority'
+                : isNeedsInfoItem
+                ? (lang === 'tl' ? 'Kailangan ng Aksyon' : 'Action Required')
+                : (lang === 'tl' ? 'Opisyal' : 'Official'),
+              targetTab: isNeedsInfoItem ? 'needs_info_upload' : (n.targetTab || n.actionTab || 'home'),
+              actionTab: isNeedsInfoItem ? 'needs_info_upload' : (n.actionTab || n.targetTab || 'home'),
+              type: isNeedsInfoItem ? 'needs_info' : (n.type === 'priority_update' ? 'priority_update' : (n.type || 'urgent')),
+              unread: isNotifUnread(n),
+            };
+          }),
           ...announcements.map((a, idx) => ({
             id: String(a._id || a.id || a.title),
             title: stripEmojis(a.title),
@@ -2717,12 +2762,26 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         onMarkAllRead={handleMarkAllAsRead}
         onMarkRead={handleMarkNotifAsRead}
         onNavigate={(targetTab) => {
-          if (targetTab === 'needs_info_upload') {
-            setShowNotifModal(false);
-            setShowResubmitIdModal(true);
-          } else if (targetTab) {
-            navigateToTab(targetTab);
-            setShowNotifModal(false);
+          const clean = String(targetTab || '').toLowerCase().trim();
+          setShowNotifModal(false);
+          if (clean === 'needs_info_upload' || (isNeedsInfo && (clean === 'home' || clean === 'pass' || clean === 'qr'))) {
+            setTimeout(() => {
+              setShowResubmitIdModal(true);
+            }, 250);
+          } else if (clean === 'pass' || clean === 'qr' || clean === 'home_pass' || clean === 'home_qr') {
+            setActiveTab('home');
+            setTimeout(() => {
+              setShowQRModal(true);
+            }, 250);
+          } else if (clean === 'home') {
+            setActiveTab('home');
+            if (isVerified) {
+              setTimeout(() => {
+                setShowQRModal(true);
+              }, 250);
+            }
+          } else if (clean) {
+            navigateToTab(clean);
           }
         }}
         lang={lang}
