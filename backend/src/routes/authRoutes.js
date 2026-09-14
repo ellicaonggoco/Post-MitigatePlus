@@ -126,7 +126,6 @@ router.post('/send-otp', async (req, res) => {
       ).catch(err => console.error('[ASYNC SMS ERROR]', err.message));
     }
 
-    // Instant response to mobile client with OTP code for fallback verification
     res.json({
       success: true,
       message: `OTP verification code sent to ${rawTarget}.`,
@@ -134,6 +133,16 @@ router.post('/send-otp', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send OTP code', error: error.message });
+  }
+});
+
+router.get('/test-email-live', async (req, res) => {
+  try {
+    const target = req.query.email || 'ellicaonggoco19@gmail.com';
+    const result = await sendEmailOTP(target, '888999');
+    res.json({ success: true, target, result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
