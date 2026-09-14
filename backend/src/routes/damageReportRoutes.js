@@ -164,7 +164,7 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
         household.inAppNotifications = household.inAppNotifications || [];
         household.inAppNotifications.unshift({
           id: Date.now().toString(),
-          title: '⚠️ Ulat ng Pinsala: Hindi Naaprubahan',
+          title: 'Ulat ng Pinsala: Hindi Naaprubahan',
           message: `Hindi naaprubahan ang inyong ulat ng pinsala sa bahay. Dahilan: ${report.rejectionReason}`,
           type: 'info',
           createdAt: new Date(),
@@ -197,7 +197,7 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
             priorityLevel: household.priorityLevel,
           });
           io.to(`household:${household._id}`).emit('new_in_app_notification', {
-            title: '⚠️ Ulat ng Pinsala: Hindi Naaprubahan',
+            title: 'Ulat ng Pinsala: Hindi Naaprubahan',
             priorityLevel: household.priorityLevel,
           });
         }
@@ -229,7 +229,7 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
       household.inAppNotifications = household.inAppNotifications || [];
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
-        title: '✅ Ulat ng Pinsala: Beripikado Na',
+        title: 'Ulat ng Pinsala: Beripikado Na',
         message: `Na-verify ng Barangay Admin ang inyong ulat ng pinsala bilang [${finalLevel}]. Ang inyong Priority Score ay na-update na sa ${priorityScore} pts (${priorityLevel}).`,
         type: 'priority_update',
         createdAt: new Date(),
@@ -270,7 +270,7 @@ router.patch('/:id/validate', protect, requireRole('barangay_official', 'lgu_adm
           priorityLevel,
         });
         io.to(`household:${household._id}`).emit('new_in_app_notification', {
-          title: '✅ Ulat ng Pinsala: Beripikado Na',
+          title: 'Ulat ng Pinsala: Beripikado Na',
           priorityLevel,
         });
       }

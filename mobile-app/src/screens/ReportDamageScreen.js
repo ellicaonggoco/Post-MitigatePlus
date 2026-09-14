@@ -761,8 +761,8 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
                 </Text>
                 <Text style={styles.adjustmentCalloutText}>
                   {lang === 'tl'
-                    ? `Isinumite: [${activeReport.damageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.damageLevel}] ➔ Inaprubahan ng Admin: [${activeReport.verifiedDamageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.verifiedDamageLevel}]`
-                    : `Reported: [${activeReport.damageLevel}] ➔ Approved by Admin: [${activeReport.verifiedDamageLevel}]`}
+                    ? `Isinumite: [${activeReport.damageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.damageLevel}] -> Inaprubahan ng Admin: [${activeReport.verifiedDamageLevel === 'Totally Damaged' ? 'Wasak' : activeReport.verifiedDamageLevel}]`
+                    : `Reported: [${activeReport.damageLevel}] -> Approved by Admin: [${activeReport.verifiedDamageLevel}]`}
                 </Text>
               </View>
             )}

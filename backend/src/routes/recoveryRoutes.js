@@ -52,7 +52,7 @@ router.get('/', protect, requireRole('lgu_admin', 'lgu_superadmin', 'barangay_of
       .populate({ path: 'householdId', populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' } })
       .populate('updatedBy', 'name role');
 
-    // ✅ Backend-level dedup: keep only one record per householdId (latest updatedAt wins)
+    // Backend-level dedup: keep only one record per householdId (latest updatedAt wins)
     const seenHhIds = new Map();
     for (const s of statuses) {
       const hh = s.householdId;

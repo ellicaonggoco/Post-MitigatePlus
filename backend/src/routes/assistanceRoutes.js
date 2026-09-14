@@ -262,11 +262,11 @@ router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_adm
       pendingCount: activeRequests.filter(r => r.status === 'pending').length,
       approvedCount: activeRequests.filter(r => r.status === 'approved' || r.status === 'under_review').length,
       categories: {
-        food: { id: 'food', name: 'Basic Food Pack', count: 0, icon: '🍚' },
-        water: { id: 'water', name: 'Drinking Water Pack', count: 0, icon: '💧' },
-        medical: { id: 'medical', name: 'Medical Kit', count: 0, icon: '💊' },
-        infant: { id: 'infant', name: 'Baby/Infant Pack', count: 0, icon: '👶' },
-        senior: { id: 'senior', name: 'Senior/Hygiene Kit', count: 0, icon: '🧓' },
+        food: { id: 'food', name: 'Basic Food Pack', count: 0, icon: 'food' },
+        water: { id: 'water', name: 'Drinking Water Pack', count: 0, icon: 'water' },
+        medical: { id: 'medical', name: 'Medical Kit', count: 0, icon: 'medical' },
+        infant: { id: 'infant', name: 'Baby/Infant Pack', count: 0, icon: 'infant' },
+        senior: { id: 'senior', name: 'Senior/Hygiene Kit', count: 0, icon: 'senior' },
       },
     };
 

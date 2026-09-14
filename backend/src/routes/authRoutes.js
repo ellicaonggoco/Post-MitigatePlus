@@ -1076,7 +1076,7 @@ router.post('/provision-resident', protect, requireRole('lgu_admin', 'lgu_supera
 
     newHousehold.inAppNotifications = [{
       id: Date.now().toString(),
-      title: '✅ Opisyal na Rehistrasyon at QR Pass Naaprubahan!',
+      title: 'Opisyal na Rehistrasyon at QR Pass Naaprubahan!',
       message: `Ang inyong resident profile at household ay opisyal nang na-verify ng Manila MDRRMO Command Center. Handa na ang inyong Official QR Pass para sa relief aid.`,
       type: 'verification',
       createdAt: new Date(),

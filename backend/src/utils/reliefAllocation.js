@@ -90,7 +90,7 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
     quantity: basePacks,
     unit: basePacks > 1 ? 'packs' : 'pack',
     badge: `Sakop ang ${Math.min(memberCount, basePacks * baseCoverage)} miyembro`,
-    icon: '🍱',
+    icon: 'food',
     color: '#1557B0',
     isBase: true,
   });
@@ -105,7 +105,7 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
       quantity: finalExtraUnits,
       unit: 'units',
       badge: `+${extraMemberTopUps} pax`,
-      icon: '🍚',
+      icon: 'rice',
       color: '#0284C7',
       isTopUp: true,
     });
@@ -121,7 +121,7 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
       quantity: finalSeniorUnits,
       unit: finalSeniorUnits > 1 ? 'packs' : 'pack',
       badge: `${seniorCount} Senior Citizen`,
-      icon: '🧓',
+      icon: 'senior',
       color: '#D97706',
       isTopUp: true,
     });
@@ -137,7 +137,7 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
       quantity: infantCount,
       unit: infantCount > 1 ? 'packs' : 'pack',
       badge: `${infantCount} Sanggol (0-2 yo)`,
-      icon: '👶',
+      icon: 'infant',
       color: '#EC4899',
       isTopUp: true,
     });
@@ -153,7 +153,7 @@ function calculateHouseholdEntitlement(household, customPolicy = null) {
       quantity: finalPwdUnits,
       unit: finalPwdUnits > 1 ? 'packs' : 'pack',
       badge: `${pwdCount} PWD Member`,
-      icon: '♿',
+      icon: 'pwd',
       color: '#7C3AED',
       isTopUp: true,
     });

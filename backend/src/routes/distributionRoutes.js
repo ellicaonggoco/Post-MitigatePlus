@@ -260,7 +260,7 @@ router.patch('/events/:id/announcement', protect, requireRole('barangay_official
     }).sort({ postedAt: -1 });
 
     if (ann) {
-      ann.title = `📢 Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`;
+      ann.title = `Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`;
       ann.body = announcementMessage;
       ann.tag = 'UPDATED';
       ann.edited = true;
@@ -268,7 +268,7 @@ router.patch('/events/:id/announcement', protect, requireRole('barangay_official
       await ann.save();
     } else {
       ann = await Announcement.create({
-        title: `📢 Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`,
+        title: `Relief Distribution Advisory: Barangay ${cleanCode} (Na-update)`,
         body: announcementMessage,
         barangayCode: cleanCode,
         category: 'Relief Distribution',
@@ -352,7 +352,7 @@ router.post('/events', protect, requireRole('barangay_official', 'lgu_admin', 'l
     try {
       const Announcement = require('../models/Announcement');
       const ann = await Announcement.create({
-        title: `📢 Relief Distribution Advisory: Barangay ${cleanCode}`,
+        title: `Relief Distribution Advisory: Barangay ${cleanCode}`,
         body: finalAnnouncementText,
         barangayCode: cleanCode,
         category: 'Relief Distribution',

@@ -1548,7 +1548,7 @@ export default function ReportsPage() {
                         textAlign: 'left',
                       }}
                     >
-                      🏢 Kumuha sa Office / Staging
+                      Kumuha sa Office / Staging
                       <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
                         Staff will pickup shortage at LGU office
                       </div>
@@ -1574,7 +1574,7 @@ export default function ReportsPage() {
                         textAlign: 'left',
                       }}
                     >
-                      🚚 Ipadala via Delivery Truck
+                      Ipadala via Delivery Truck
                       <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
                         Dispatch truck en route to site
                       </div>
@@ -1684,7 +1684,7 @@ export default function ReportsPage() {
                         textAlign: 'left',
                       }}
                     >
-                      🪪 Manual Masterlist Verification
+                      Manual Masterlist Verification
                       <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
                         Verify with Gov ID & issue single-use pass
                       </div>
@@ -1708,7 +1708,7 @@ export default function ReportsPage() {
                         textAlign: 'left',
                       }}
                     >
-                      🔄 Re-issue / Re-print QR Pass
+                      Re-issue / Re-print QR Pass
                       <div style={{ fontSize: 10.5, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
                         Renew QR security token & reprint card
                       </div>

@@ -8,9 +8,114 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { BellIcon, CloseIcon, ArrowLeftIcon, MegaphoneIcon, EditIcon, ArrowRightIcon, CheckIcon } from './AppIcons';
+import {
+  BellIcon,
+  CloseIcon,
+  ArrowLeftIcon,
+  MegaphoneIcon,
+  EditIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  ShieldCheckIcon,
+  AlertTriangleIcon,
+  CameraIcon,
+  PackageIcon,
+} from './AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, hp } from '../theme';
 import { MotionPressable } from './motion';
+
+export const stripEmojis = (str) => {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{FE00}-\u{FE0F}]/gu, '')
+    .trim();
+};
+
+const getNotifIcon = (notif) => {
+  const title = String(notif?.title || '').toLowerCase();
+  const body = String(notif?.body || notif?.message || '').toLowerCase();
+  const tag = String(notif?.tag || '').toLowerCase();
+  const type = String(notif?.type || '').toLowerCase();
+
+  if (
+    title.includes('beripikado') ||
+    title.includes('naaprubahan') ||
+    title.includes('approved') ||
+    title.includes('verified') ||
+    tag.includes('verified') ||
+    title.includes('qr pass')
+  ) {
+    return {
+      bgColor: '#E6F6EF',
+      borderColor: '#A7F3D0',
+      icon: <CheckCircleIcon size={16} color="#0D8A5A" strokeWidth={2.5} />,
+    };
+  }
+
+  if (
+    title.includes('hindi naaprubahan') ||
+    title.includes('rejected') ||
+    title.includes('disapproved') ||
+    body.includes('hindi naaprubahan')
+  ) {
+    return {
+      bgColor: '#FEF0F2',
+      borderColor: '#F5D0D6',
+      icon: <CloseIcon size={14} color="#C8102E" />,
+    };
+  }
+
+  if (
+    type === 'needs_info' ||
+    title.includes('valid id') ||
+    title.includes('kailangan') ||
+    title.includes('impormasyon') ||
+    tag.includes('action')
+  ) {
+    return {
+      bgColor: '#FEF3C7',
+      borderColor: '#FDE68A',
+      icon: <CameraIcon size={15} color="#B45309" />,
+    };
+  }
+
+  if (
+    tag.includes('distribution') ||
+    title.includes('distribution') ||
+    title.includes('ayuda') ||
+    title.includes('relief') ||
+    title.includes('pamamahagi')
+  ) {
+    return {
+      bgColor: '#EDF1FB',
+      borderColor: '#D6DEFA',
+      icon: <PackageIcon size={15} color="#1C3F94" />,
+    };
+  }
+
+  if (type === 'priority_update' || tag.includes('priority')) {
+    return {
+      bgColor: '#EDF1FB',
+      borderColor: '#D6DEFA',
+      icon: <ShieldCheckIcon size={16} color="#1C3F94" />,
+    };
+  }
+
+  if (type === 'urgent' || notif?.isUrgent) {
+    return {
+      bgColor: '#FEF0F2',
+      borderColor: '#F5D0D6',
+      icon: <AlertTriangleIcon size={15} color="#C8102E" />,
+    };
+  }
+
+  return {
+    bgColor: '#EDF1FB',
+    borderColor: '#D6DEFA',
+    icon: <MegaphoneIcon size={15} color="#1C3F94" />,
+  };
+};
 
 export default function NotificationModal({
   visible,
@@ -144,35 +249,49 @@ export default function NotificationModal({
                 contentContainerStyle={styles.detailContent}
                 showsVerticalScrollIndicator={false}
               >
-                <View style={styles.detailBadgeRow}>
-                  <View style={[styles.typeBadge, selectedNotif.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
-                    <Text style={[styles.typeBadgeText, selectedNotif.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
-                      {selectedNotif.tag || (selectedNotif.type === 'urgent' ? 'URGENT BULLETIN' : 'PUBLIC ADVISORY')}
-                    </Text>
-                  </View>
-                  {(selectedNotif.edited || selectedNotif.isEdited || selectedNotif.tag === 'UPDATED' || selectedNotif.title?.includes('Na-update') || selectedNotif.title?.includes('Updated')) && (
-                    <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2.5, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#FCD34D' }}>
-                      <EditIcon size={10} color="#B45309" />
-                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
-                        {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.detailTime}>{selectedNotif.time || 'Kamakailan'}</Text>
-                </View>
+                {(() => {
+                  const detailIcon = getNotifIcon(selectedNotif);
+                  return (
+                    <>
+                      <View style={styles.detailBadgeRow}>
+                        <View style={[styles.typeBadge, selectedNotif.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
+                          <Text style={[styles.typeBadgeText, selectedNotif.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
+                            {stripEmojis(selectedNotif.tag || (selectedNotif.type === 'urgent' ? 'URGENT BULLETIN' : 'PUBLIC ADVISORY'))}
+                          </Text>
+                        </View>
+                        {(selectedNotif.edited || selectedNotif.isEdited || selectedNotif.tag === 'UPDATED' || selectedNotif.title?.includes('Na-update') || selectedNotif.title?.includes('Updated')) && (
+                          <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2.5, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#FCD34D' }}>
+                            <EditIcon size={10} color="#B45309" />
+                            <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
+                              {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
+                            </Text>
+                          </View>
+                        )}
+                        <Text style={styles.detailTime}>{selectedNotif.time || 'Kamakailan'}</Text>
+                      </View>
 
-                <Text style={styles.detailTitle}>{selectedNotif.title}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <View style={[styles.notifIconWell, { backgroundColor: detailIcon.bgColor, borderColor: detailIcon.borderColor, width: 36, height: 36, borderRadius: 18 }]}>
+                          {detailIcon.icon}
+                        </View>
+                        <Text style={[styles.detailTitle, { flex: 1, marginBottom: 0 }]}>
+                          {stripEmojis(selectedNotif.title)}
+                        </Text>
+                      </View>
 
-                <View style={styles.issuerBox}>
-                  <Text style={styles.issuerLabel}>
-                    {lang === 'tl' ? 'Nag-isyu:' : 'Issued by:'}
-                  </Text>
-                  <Text style={styles.issuerName}>
-                    {selectedNotif.issuer || 'Pamahalaang Lungsod ng Maynila • Barangay Council'}
-                  </Text>
-                </View>
+                      <View style={styles.issuerBox}>
+                        <Text style={styles.issuerLabel}>
+                          {lang === 'tl' ? 'Nag-isyu:' : 'Issued by:'}
+                        </Text>
+                        <Text style={styles.issuerName}>
+                          {stripEmojis(selectedNotif.issuer || 'Pamahalaang Lungsod ng Maynila • Barangay Council')}
+                        </Text>
+                      </View>
 
-                <Text style={styles.detailBody}>{selectedNotif.body || selectedNotif.content || 'Walang karagdagang detalye.'}</Text>
+                      <Text style={styles.detailBody}>{stripEmojis(selectedNotif.body || selectedNotif.content || 'Walang karagdagang detalye.')}</Text>
+                    </>
+                  );
+                })()}
 
                 {(selectedNotif.targetTab || selectedNotif.actionTab) && (
                   <TouchableOpacity
@@ -250,59 +369,75 @@ export default function NotificationModal({
                     </Text>
                   </View>
                 ) : (
-                  notifs.map((n) => (
-                    <MotionPressable
-                      key={n.id}
-                      style={[
-                        styles.notifItem,
-                        n.unread && styles.notifItemUnread,
-                      ]}
-                      onPress={() => handleItemPress(n)}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${n.unread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${n.title}`}
-                      accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
-                    >
-                      <View style={styles.notifTopRow}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          {n.unread && (
-                            <View style={styles.notifRedDot} />
-                          )}
-                          <View style={[styles.typeBadge, n.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
-                            <Text style={[styles.typeBadgeText, n.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
-                              {n.tag || (n.type === 'urgent' ? 'URGENT' : 'ADVISORY')}
-                            </Text>
+                  notifs.map((n) => {
+                    const itemIcon = getNotifIcon(n);
+                    const cleanTitle = stripEmojis(n.title);
+                    const cleanBody = stripEmojis(n.body);
+                    const cleanTag = stripEmojis(n.tag || (n.type === 'urgent' ? 'URGENT' : 'ADVISORY'));
+
+                    return (
+                      <MotionPressable
+                        key={n.id}
+                        style={[
+                          styles.notifItem,
+                          n.unread && styles.notifItemUnread,
+                        ]}
+                        onPress={() => handleItemPress(n)}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${n.unread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${cleanTitle}`}
+                        accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
+                      >
+                        <View style={styles.notifTopRow}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            {n.unread && (
+                              <View style={styles.notifRedDot} />
+                            )}
+                            <View style={[styles.typeBadge, n.type === 'urgent' ? styles.typeUrgent : styles.typeNormal]}>
+                              <Text style={[styles.typeBadgeText, n.type === 'urgent' ? { color: '#DC2626' } : { color: '#1C3F94' }]}>
+                                {cleanTag}
+                              </Text>
+                            </View>
+                            {n.unread && (
+                              <View style={styles.notifNewBadge}>
+                                <Text style={styles.notifNewBadgeText}>
+                                  {lang === 'tl' ? 'BAGO' : 'NEW'}
+                                </Text>
+                              </View>
+                            )}
+                            {(n.edited || n.isEdited || n.tag === 'UPDATED' || n.title?.includes('Na-update') || n.title?.includes('Updated')) && (
+                              <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <EditIcon size={11} color="#B45309" />
+                                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
+                                  {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
+                                </Text>
+                              </View>
+                            )}
                           </View>
-                          {n.unread && (
-                            <View style={styles.notifNewBadge}>
-                              <Text style={styles.notifNewBadgeText}>
-                                {lang === 'tl' ? 'BAGO' : 'NEW'}
-                              </Text>
-                            </View>
-                          )}
-                          {(n.edited || n.isEdited || n.tag === 'UPDATED' || n.title?.includes('Na-update') || n.title?.includes('Updated')) && (
-                            <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                              <EditIcon size={11} color="#B45309" />
-                              <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
-                                {lang === 'tl' ? 'NA-UPDATE' : 'EDITED'}
-                              </Text>
-                            </View>
-                          )}
+                          <Text style={styles.notifTime}>{n.time}</Text>
                         </View>
-                        <Text style={styles.notifTime}>{n.time}</Text>
-                      </View>
 
-                      <Text style={[styles.notifTitle, n.unread && { fontWeight: '800', color: '#0B1525' }]}>{n.title}</Text>
-                      <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text>
+                        <View style={styles.notifItemBodyRow}>
+                          <View style={[styles.notifIconWell, { backgroundColor: itemIcon.bgColor, borderColor: itemIcon.borderColor }]}>
+                            {itemIcon.icon}
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={[styles.notifTitle, n.unread && { fontWeight: '800', color: '#0B1525' }]}>
+                              {cleanTitle}
+                            </Text>
+                            <Text style={styles.notifBody} numberOfLines={2}>{cleanBody}</Text>
+                          </View>
+                        </View>
 
-                      <View style={[styles.tapToReadRow, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
-                        <Text style={[styles.tapToReadText, n.unread && { color: '#C8102E', fontWeight: '700' }]}>
-                          {lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
-                        </Text>
-                        <ArrowRightIcon size={12} color={n.unread ? '#C8102E' : '#1C3F94'} />
-                      </View>
-                    </MotionPressable>
-                  ))
+                        <View style={[styles.tapToReadRow, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
+                          <Text style={[styles.tapToReadText, n.unread && { color: '#C8102E', fontWeight: '700' }]}>
+                            {lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Tap to read full announcement'}
+                          </Text>
+                          <ArrowRightIcon size={12} color={n.unread ? '#C8102E' : '#1C3F94'} />
+                        </View>
+                      </MotionPressable>
+                    );
+                  })
                 )}
               </ScrollView>
             </>
@@ -451,6 +586,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 6,
+  },
+  notifItemBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  notifIconWell: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 2,
   },
   typeBadge: {
     paddingHorizontal: 8,

@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
-import NotificationModal from '../components/NotificationModal';
+import NotificationModal, { stripEmojis } from '../components/NotificationModal';
 import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
@@ -1785,7 +1785,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                               <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8102E' }} />
                             )}
                             <View style={styles.annTagBadge}>
-                              <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
+                              <Text style={styles.annTagText}>{stripEmojis(ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory'))}</Text>
                             </View>
                             {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
                               <View style={[styles.annTagBadge, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
@@ -1805,8 +1805,26 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           </View>
                           <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
                         </View>
-                        <Text style={styles.annTitle}>{ann.title}</Text>
-                        <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4 }}>
+                          <View style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: '#EDF1FB',
+                            borderWidth: 1,
+                            borderColor: '#D6DEFA',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginTop: 2,
+                            flexShrink: 0,
+                          }}>
+                            <MegaphoneIcon size={15} color="#1C3F94" />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.annTitle}>{stripEmojis(ann.title)}</Text>
+                            <Text style={styles.annBody} numberOfLines={2}>{stripEmojis(ann.body)}</Text>
+                          </View>
+                        </View>
                       </TouchableOpacity>
                       {ann.targetTab && (
                         <TouchableOpacity
@@ -2559,9 +2577,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 borderRadius: 10,
                 padding: 10,
                 marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 8,
               }}>
-                <Text style={{ fontSize: 11, color: '#3D5070', lineHeight: 16 }}>
-                  💡 {lang === 'tl'
+                <InfoIcon size={14} color="#1C3F94" />
+                <Text style={{ flex: 1, fontSize: 11, color: '#3D5070', lineHeight: 16 }}>
+                  {lang === 'tl'
                     ? 'Tiyaking maliwanag, buo, at malinaw na nababasa ang inyong buong pangalan, petsa ng kapanganakan, at litrato upang maaprubahan agad ng opisyal.'
                     : 'Make sure your full name, date of birth, and photo are completely legible and without reflection for quick approval.'}
                 </Text>
@@ -2668,8 +2690,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         notifs={[
           ...inAppNotifs.map((n) => ({
             id: String(n.id || n._id || n.title),
-            title: n.title,
-            body: n.message,
+            title: stripEmojis(n.title),
+            body: stripEmojis(n.message),
             time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (lang === 'tl' ? 'Kamakailan' : 'Recent'),
             tag: n.type === 'priority_update'
               ? 'Priority'
@@ -2683,10 +2705,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           })),
           ...announcements.map((a, idx) => ({
             id: String(a._id || a.id || a.title),
-            title: a.title,
-            body: a.body,
+            title: stripEmojis(a.title),
+            body: stripEmojis(a.body),
             time: a.timestamp || (a.postedAt ? new Date(a.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''),
-            tag: a.tag,
+            tag: stripEmojis(a.tag),
             targetTab: a.targetTab || (idx === 0 ? 'request' : idx === 1 ? 'damage' : 'history'),
             type: a.isUrgent ? 'urgent' : 'advisory',
             unread: isAnnouncementUnread(a),

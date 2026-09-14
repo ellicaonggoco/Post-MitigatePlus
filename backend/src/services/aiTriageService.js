@@ -93,7 +93,7 @@ function analyzeHealthMessage(rawText, barangayCode = '291') {
     diseaseRisk = 'LEPTO_CRIT';
     prophylaxisRequired = true;
     recommendedMedicine = 'Doxycycline 200mg Capsules (Prophylaxis Protocol - 1 cap 2x daily x 7 days)';
-    medicalGuidance = '⚠️ CRITICAL LEPTOSPIROSIS ADVISORY: May mataas na banta ng Leptospirosis dahil sa kumbinasyon ng baha, lagnat, o pananakit ng binti. Agad na kunin ang libreng Doxycycline sa Health Center sa loob ng 24 oras upang maiwasan ang komplikasyon sa bato.';
+    medicalGuidance = 'CRITICAL LEPTOSPIROSIS ADVISORY: May mataas na banta ng Leptospirosis dahil sa kumbinasyon ng baha, lagnat, o pananakit ng binti. Agad na kunin ang libreng Doxycycline sa Health Center sa loob ng 24 oras upang maiwasan ang komplikasyon sa bato.';
   }
   // 2. Tetanus Puncture Risk
   else if (hasTetanus && hasWound) {
@@ -102,7 +102,7 @@ function analyzeHealthMessage(rawText, barangayCode = '291') {
     diseaseRisk = 'TETANUS';
     prophylaxisRequired = true;
     recommendedMedicine = 'Anti-Tetanus Serum (ATS) & Tetanus Toxoid Vaccine + Amoxicillin 500mg';
-    medicalGuidance = '⚠️ TETANUS URGENCY: Ang natusok ng kalawang o pako ay nangangailangan ng agarang Tetanus Toxoid shot at Antibiotic prophylaxis sa loob ng 24 oras upang maiwasan ang locked-jaw at muscular spasm.';
+    medicalGuidance = 'TETANUS URGENCY: Ang natusok ng kalawang o pako ay nangangailangan ng agarang Tetanus Toxoid shot at Antibiotic prophylaxis sa loob ng 24 oras upang maiwasan ang locked-jaw at muscular spasm.';
   }
   // 3. Flood Wound Exposure (Early Prophylaxis)
   else if (hasFlood && hasWound) {
@@ -111,7 +111,7 @@ function analyzeHealthMessage(rawText, barangayCode = '291') {
     diseaseRisk = 'LEPTO_EXP';
     prophylaxisRequired = true;
     recommendedMedicine = 'Doxycycline 200mg Single Dose + Povidone Iodine Wound Antiseptic';
-    medicalGuidance = '⚠️ HIGH EXPOSURE ADVISORY: Hugasang mabuti ng malinis na tubig at sabon ang sugat. Uminom ng single dose Doxycycline prophylaxis mula sa Barangay Health Center bago mag-manifest ang lagnat.';
+    medicalGuidance = 'HIGH EXPOSURE ADVISORY: Hugasang mabuti ng malinis na tubig at sabon ang sugat. Uminom ng single dose Doxycycline prophylaxis mula sa Barangay Health Center bago mag-manifest ang lagnat.';
   }
   // 4. Pediatric Gastroenteritis / Baby Dehydration
   else if (hasDiarrhea && hasInfant) {
@@ -120,7 +120,7 @@ function analyzeHealthMessage(rawText, barangayCode = '291') {
     diseaseRisk = 'GASTRO_PEDIA';
     prophylaxisRequired = true;
     recommendedMedicine = 'Pediatric Oral Rehydration Salts (ORS) + Zinc Sulfate Syrup (20mg/day)';
-    medicalGuidance = '⚠️ PEDIATRIC EMERGENCY: Painumin agad ng Oral Rehydration Salts (ORS) ang sanggol sa bawat pagdumi upang maiwasan ang hypovolemic shock. Huwag hayaang maubusan ng likido.';
+    medicalGuidance = 'PEDIATRIC EMERGENCY: Painumin agad ng Oral Rehydration Salts (ORS) ang sanggol sa bawat pagdumi upang maiwasan ang hypovolemic shock. Huwag hayaang maubusan ng likido.';
   }
   // 5. Adult Acute Diarrhea / Cholera Risk
   else if (hasDiarrhea) {
@@ -136,7 +136,7 @@ function analyzeHealthMessage(rawText, barangayCode = '291') {
     suspectedCondition = 'Suspected Vectorborne Dengue Viral Infection';
     diseaseRisk = 'DENGUE';
     recommendedMedicine = 'Paracetamol 500mg + Oral Hydration Protocol (STRICTLY NO NSAIDs / Aspirin)';
-    medicalGuidance = '⚠️ DENGUE PRECAUTION: Panatilihing umiinom ng maraming likido. HUWAG iinom ng Mefenamic Acid, Ibuprofen, o Aspirin dahil maaari itong magdulot ng pagdurugo sa tiyan. Magpasuri ng platelet count sa Health Center.';
+    medicalGuidance = 'DENGUE PRECAUTION: Panatilihing umiinom ng maraming likido. HUWAG iinom ng Mefenamic Acid, Ibuprofen, o Aspirin dahil maaari itong magdulot ng pagdurugo sa tiyan. Magpasuri ng platelet count sa Health Center.';
   }
   // 7. Asthma / Respiratory Emergency
   else if (hasAsthma) {

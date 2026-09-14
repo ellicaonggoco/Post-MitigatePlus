@@ -123,9 +123,9 @@ router.get('/outbreak-hotspots', protect, async (req, res) => {
     // Default seeded realistic post-disaster cluster data for Manila
     if (!alerts || alerts.length === 0) {
       const defaultClusters = [
-        { barangayCode: '105', riskScore: 92, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 18, localBhcStockDoxycycline: 8, floodDurationDays: 4, recommendedAction: '⚠️ CRITICAL: Dispatch 500 caps Doxycycline Buffer Restock from Central Warehouse' },
-        { barangayCode: '291', riskScore: 84, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 12, localBhcStockDoxycycline: 14, floodDurationDays: 3, recommendedAction: '⚠️ CRITICAL: Urgent Prophylaxis distribution at Brgy 291 Health Center' },
-        { barangayCode: '344', riskScore: 78, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 9, localBhcStockDoxycycline: 18, floodDurationDays: 2, recommendedAction: '⚠️ HIGH ALERT: Monitor fever cases and replenish BHC prophylaxis' },
+        { barangayCode: '105', riskScore: 92, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 18, localBhcStockDoxycycline: 8, floodDurationDays: 4, recommendedAction: 'CRITICAL: Dispatch 500 caps Doxycycline Buffer Restock from Central Warehouse' },
+        { barangayCode: '291', riskScore: 84, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 12, localBhcStockDoxycycline: 14, floodDurationDays: 3, recommendedAction: 'CRITICAL: Urgent Prophylaxis distribution at Brgy 291 Health Center' },
+        { barangayCode: '344', riskScore: 78, riskLevel: 'CRITICAL', diseaseType: 'leptospirosis', activeCasesCount: 9, localBhcStockDoxycycline: 18, floodDurationDays: 2, recommendedAction: 'HIGH ALERT: Monitor fever cases and replenish BHC prophylaxis' },
         { barangayCode: '128', riskScore: 65, riskLevel: 'MODERATE', diseaseType: 'gastroenteritis', activeCasesCount: 7, localBhcStockDoxycycline: 35, floodDurationDays: 2, recommendedAction: 'Distribute Chlorine Tablets & Oral Rehydration Salts' },
         { barangayCode: '587', riskScore: 42, riskLevel: 'MODERATE', diseaseType: 'dengue', activeCasesCount: 4, localBhcStockDoxycycline: 45, floodDurationDays: 1, recommendedAction: 'Conduct fogging and vector control in flood pockets' },
       ];

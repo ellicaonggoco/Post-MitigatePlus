@@ -307,7 +307,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     if (status === 'verified') {
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
-        title: '✅ Rehistrasyon Naaprubahan!',
+        title: 'Rehistrasyon Naaprubahan!',
         message: `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay ${priorityLevel}. Ang inyong Official QR Pass ay handa na para sa distribusyon ng ayuda.`,
         type: 'verification',
         targetTab: 'home',
@@ -318,7 +318,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     } else if (status === 'needs_info') {
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
-        title: 'ℹ️ Karagdagang Impormasyon Kailangan',
+        title: 'Karagdagang Impormasyon Kailangan',
         message: verificationNotes
           ? `Hinihiling ng Barangay Official: "${verificationNotes}". Mangyaring magsumite ng malinaw na Valid ID o kailangang impormasyon.`
           : 'Hinihiling ng Barangay Official na magsumite o mag-upload ng bagong Valid ID para sa inyong rehistrasyon.',
@@ -331,7 +331,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     } else if (status === 'rejected') {
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
-        title: '❌ Rehistrasyon Hindi Naaprubahan',
+        title: 'Rehistrasyon Hindi Naaprubahan',
         message: `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}. Mangyaring makipag-ugnayan sa Barangay Hall.`,
         type: 'verification',
         targetTab: 'settings',
@@ -342,7 +342,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     } else if (prevPriority !== priorityLevel) {
       household.inAppNotifications.unshift({
         id: Date.now().toString(),
-        title: '🔔 Na-update ang Priority Level',
+        title: 'Na-update ang Priority Level',
         message: `Ang inyong Priority Level ay na-update sa [${priorityLevel}] batay sa inyong na-verify na datos at assessment.`,
         type: 'priority_update',
         targetTab: 'home',
@@ -368,10 +368,10 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     const io = req.app.get('io');
     if (io) {
       const notifTitle = status === 'verified'
-        ? '✅ Rehistrasyon Naaprubahan!'
+        ? 'Rehistrasyon Naaprubahan!'
         : status === 'needs_info'
-        ? 'ℹ️ Karagdagang Impormasyon Kailangan'
-        : '❌ Rehistrasyon Hindi Naaprubahan';
+        ? 'Karagdagang Impormasyon Kailangan'
+        : 'Rehistrasyon Hindi Naaprubahan';
 
       const notifMessage = status === 'verified'
         ? `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay [${priorityLevel}]. Handa na ang inyong Official QR Pass.`
@@ -504,7 +504,7 @@ router.put('/me/resubmit-id', protect, requireRole('resident'), async (req, res)
     if (!household.inAppNotifications) household.inAppNotifications = [];
     household.inAppNotifications.unshift({
       id: Date.now().toString(),
-      title: '📷 Naisumite ang Bagong Valid ID',
+      title: 'Naisumite ang Bagong Valid ID',
       message: 'Ang inyong bagong Valid ID ay matagumpay na naisumite sa Barangay. Kasalukuyan itong sinusuri muli ng Barangay Admin.',
       type: 'verification',
       targetTab: 'home',
