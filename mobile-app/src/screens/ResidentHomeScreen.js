@@ -1759,7 +1759,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   const isUnread = isAnnouncementUnread(ann);
 
                   return (
-                    <TouchableOpacity
+                    <View
                       key={ann._id || ann.id || idx}
                       style={[
                         styles.announcementCard,
@@ -1770,41 +1770,44 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           backgroundColor: '#FFF8F8',
                         },
                       ]}
-                      onPress={() => handleOpenAnnouncement(ann)}
-                      activeOpacity={0.85}
-                      accessible={true}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${isUnread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${ann.tag || ''}, ${ann.title}. ${ann.body || ''}. ${ann.timestamp || ''}`}
-                      accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Double tap to read announcement details'}
                     >
-                      <View style={styles.annTopRow}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          {isUnread && (
-                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8102E' }} />
-                          )}
-                          <View style={styles.annTagBadge}>
-                            <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleOpenAnnouncement(ann)}
+                        activeOpacity={0.85}
+                        accessible={true}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${isUnread ? (lang === 'tl' ? 'Hindi pa nababasa: ' : 'Unread: ') : ''}${ann.tag || ''}, ${ann.title}. ${ann.body || ''}. ${ann.timestamp || ''}`}
+                        accessibilityHint={lang === 'tl' ? 'Pindutin upang basahin ang buong anunsyo' : 'Double tap to read announcement details'}
+                      >
+                        <View style={styles.annTopRow}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            {isUnread && (
+                              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8102E' }} />
+                            )}
+                            <View style={styles.annTagBadge}>
+                              <Text style={styles.annTagText}>{ann.tag || t.officialAdvisory || (lang === 'tl' ? 'Advisory' : 'Advisory')}</Text>
+                            </View>
+                            {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
+                              <View style={[styles.annTagBadge, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
+                                <EditIcon size={9} color="#B8932A" />
+                                <Text style={[styles.annTagText, { color: '#B8932A', fontWeight: '800' }]}>
+                                  {lang === 'tl' ? 'Nai-edit' : 'Edited'}
+                                </Text>
+                              </View>
+                            ) : null}
+                            {isUnread && (
+                              <View style={[styles.annTagBadge, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
+                                <Text style={[styles.annTagText, { color: '#C8102E', fontWeight: '800', fontSize: 9 }]}>
+                                  {lang === 'tl' ? 'BAGO' : 'NEW'}
+                                </Text>
+                              </View>
+                            )}
                           </View>
-                          {(ann.edited || ann.editedAt || ann.tag === 'UPDATED' || (ann.title && ann.title.includes('Na-update'))) ? (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#FBF5E4', borderColor: '#F0DFA0', flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
-                              <EditIcon size={9} color="#B8932A" />
-                              <Text style={[styles.annTagText, { color: '#B8932A', fontWeight: '800' }]}>
-                                {lang === 'tl' ? 'Nai-edit' : 'Edited'}
-                              </Text>
-                            </View>
-                          ) : null}
-                          {isUnread && (
-                            <View style={[styles.annTagBadge, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
-                              <Text style={[styles.annTagText, { color: '#C8102E', fontWeight: '800', fontSize: 9 }]}>
-                                {lang === 'tl' ? 'BAGO' : 'NEW'}
-                              </Text>
-                            </View>
-                          )}
+                          <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
                         </View>
-                        <Text style={styles.annTime}>{ann.timestamp || (ann.postedAt ? new Date(ann.postedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}</Text>
-                      </View>
-                      <Text style={styles.annTitle}>{ann.title}</Text>
-                      <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
+                        <Text style={styles.annTitle}>{ann.title}</Text>
+                        <Text style={styles.annBody} numberOfLines={2}>{ann.body}</Text>
+                      </TouchableOpacity>
                       {ann.targetTab && (
                         <TouchableOpacity
                           style={styles.annActionBtn}
@@ -1830,7 +1833,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           </Text>
                         </TouchableOpacity>
                       )}
-                    </TouchableOpacity>
+                    </View>
                   );
                 })
               )}
