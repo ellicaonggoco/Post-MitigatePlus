@@ -308,6 +308,21 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         title: '✅ Rehistrasyon Naaprubahan!',
         message: `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay ${priorityLevel}. Ang inyong Official QR Pass ay handa na para sa distribusyon ng ayuda.`,
         type: 'verification',
+        targetTab: 'home',
+        actionTab: 'home',
+        createdAt: new Date(),
+        isRead: false,
+      });
+    } else if (status === 'needs_info') {
+      household.inAppNotifications.unshift({
+        id: Date.now().toString(),
+        title: 'ℹ️ Karagdagang Impormasyon Kailangan',
+        message: verificationNotes
+          ? `Hinihiling ng Barangay Official: "${verificationNotes}". Mangyaring i-update ang inyong profile o magsumite ng kailangang impormasyon sa Barangay.`
+          : 'Hinihiling ng Barangay Official na magsumite o mag-update ng karagdagang impormasyon o dokumento para sa inyong rehistrasyon.',
+        type: 'needs_info',
+        targetTab: 'settings',
+        actionTab: 'settings',
         createdAt: new Date(),
         isRead: false,
       });
@@ -317,6 +332,8 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         title: '❌ Rehistrasyon Hindi Naaprubahan',
         message: `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}. Mangyaring makipag-ugnayan sa Barangay Hall.`,
         type: 'verification',
+        targetTab: 'settings',
+        actionTab: 'settings',
         createdAt: new Date(),
         isRead: false,
       });
@@ -326,6 +343,8 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         title: '🔔 Na-update ang Priority Level',
         message: `Ang inyong Priority Level ay na-update sa [${priorityLevel}] batay sa inyong na-verify na datos at assessment.`,
         type: 'priority_update',
+        targetTab: 'home',
+        actionTab: 'home',
         createdAt: new Date(),
         isRead: false,
       });
@@ -348,15 +367,34 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     if (io) {
       io.to(`household:${household._id}`).emit('verification_updated', {
         verificationStatus: status,
-        verificationNotes,
+        verificationNotes: household.verificationNotes,
         priorityLevel: household.priorityLevel,
         priorityScore: household.priorityScore,
         memberCount: household.memberCount,
         verifiedAt: household.verifiedAt,
       });
+
+      const notifTitle = status === 'verified'
+        ? '✅ Rehistrasyon Naaprubahan!'
+        : status === 'needs_info'
+        ? 'ℹ️ Karagdagang Impormasyon Kailangan'
+        : '❌ Rehistrasyon Hindi Naaprubahan';
+
+      const notifMessage = status === 'verified'
+        ? `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay [${priorityLevel}]. Handa na ang inyong Official QR Pass.`
+        : status === 'needs_info'
+        ? (verificationNotes ? `Hinihiling ng Barangay Official: "${verificationNotes}"` : 'Hinihiling ng Barangay Official na magsumite o mag-update ng karagdagang impormasyon o dokumento.')
+        : `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}.`;
+
       io.to(`household:${household._id}`).emit('new_in_app_notification', {
-        title: status === 'verified' ? '✅ Rehistrasyon Naaprubahan' : '🔔 Notipikasyon sa Account',
+        id: Date.now().toString(),
+        title: notifTitle,
+        message: notifMessage,
+        type: status === 'needs_info' ? 'needs_info' : 'verification',
+        targetTab: status === 'verified' ? 'home' : 'settings',
+        actionTab: status === 'verified' ? 'home' : 'settings',
         priorityLevel: household.priorityLevel,
+        createdAt: new Date(),
       });
     }
 

@@ -9,7 +9,7 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon, InfoIcon, AlertTriangleIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -416,7 +416,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         });
         socket.on('new_in_app_notification', (notif) => {
           setInAppNotifs((prev) => [
-            { id: Date.now().toString(), title: notif.title || 'Notipikasyon', message: `Priority: ${notif.priorityLevel || 'Updated'}`, createdAt: new Date() },
+            {
+              id: notif.id || Date.now().toString(),
+              title: notif.title || 'Notipikasyon',
+              message: notif.message || (notif.priorityLevel ? `Priority: ${notif.priorityLevel}` : 'May bagong update sa inyong account'),
+              type: notif.type || 'info',
+              targetTab: notif.targetTab || notif.actionTab || (notif.type === 'needs_info' ? 'settings' : 'home'),
+              actionTab: notif.actionTab || notif.targetTab || (notif.type === 'needs_info' ? 'settings' : 'home'),
+              priorityLevel: notif.priorityLevel,
+              createdAt: notif.createdAt || new Date(),
+              isRead: false,
+            },
             ...prev
           ]);
           setHasUnreadNotifs(true);
@@ -424,7 +434,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         onVerificationUpdated((payload) => {
           const newStatus = typeof payload === 'string' ? payload : (payload?.verificationStatus || 'verified');
           const newPriority = payload?.priorityLevel;
-          setHouseholdData((prev) => (prev ? { ...prev, verificationStatus: newStatus, priorityLevel: newPriority || prev.priorityLevel } : prev));
+          const notes = payload?.verificationNotes;
+          setHouseholdData((prev) => (prev ? {
+            ...prev,
+            verificationStatus: newStatus,
+            priorityLevel: newPriority || prev.priorityLevel,
+            verificationNotes: notes !== undefined ? notes : prev.verificationNotes,
+          } : prev));
           if (newStatus === 'verified') {
             Alert.alert(
               lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
@@ -432,8 +448,16 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 ? `Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong Priority Level ay [${newPriority || 'High'}]. Ang inyong QR Relief Pass ay aktibo na.`
                 : `Your account has been verified by the Barangay Admin! Your Priority Level is [${newPriority || 'High'}]. Your Relief QR Pass is now active.`
             );
+          } else if (newStatus === 'needs_info') {
+            const noteText = notes || (lang === 'tl' ? 'Mangyaring magsumite o mag-update ng karagdagang impormasyon o dokumento para sa inyong rehistrasyon.' : 'Please provide additional information or clear documents for your registration.');
+            Alert.alert(
+              lang === 'tl' ? 'Karagdagang Impormasyon Kailangan' : 'Additional Information Needed',
+              lang === 'tl'
+                ? `Hinihiling ng Barangay Official: "${noteText}". Pumunta sa Settings o makipag-ugnayan sa Barangay Hall upang makumpleto ang inyong aplikasyon.`
+                : `The Barangay Official requested: "${noteText}". Please visit Settings or contact your Barangay Hall to complete your application.`
+            );
           } else if (newStatus === 'rejected') {
-            const noteText = payload?.verificationNotes || (lang === 'tl' ? 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID.' : 'Incomplete proof of residency or unclear ID.');
+            const noteText = notes || (lang === 'tl' ? 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID.' : 'Incomplete proof of residency or unclear ID.');
             Alert.alert(
               lang === 'tl' ? 'Rehistrasyon Hindi Naaprubahan' : 'Registration Not Approved',
               lang === 'tl'
@@ -845,6 +869,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                             lang === 'tl' ? 'Katayuan mula sa Barangay' : 'Status from Barangay',
                             profile.household.verificationStatus === 'verified'
                               ? (lang === 'tl' ? 'Naaprubahan na ang inyong account!' : 'Your account is now verified!')
+                              : profile.household.verificationStatus === 'needs_info'
+                              ? (lang === 'tl' ? `Kailangan ng karagdagang impormasyon: ${profile.household.verificationNotes || 'Pakikumpleto ang kinakailangang dokumento'}.` : `Additional info needed: ${profile.household.verificationNotes || 'Please submit required documents'}.`)
                               : profile.household.verificationStatus === 'rejected'
                               ? (lang === 'tl' ? `Hindi naaprubahan. Dahilan: ${profile.household.verificationNotes || 'Kulang sa patunay o dokumento'}.` : `Registration rejected. Reason: ${profile.household.verificationNotes || 'Incomplete documents'}.`)
                               : (lang === 'tl' ? 'Nasa Verification Queue pa ang inyong rehistrasyon.' : 'Registration still pending review.')
@@ -862,6 +888,86 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       {lang === 'tl' ? '🔄 I-refresh ang Katayuan' : '🔄 Refresh Status'}
                     </Text>
                   </TouchableOpacity>
+                </View>
+              ) : householdData?.verificationStatus === 'needs_info' ? (
+                <View style={[styles.pendingVerificationFrame, { borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }]}>
+                  <View style={[styles.pendingIconWell, { backgroundColor: '#FEF3C7' }]}>
+                    <InfoIcon size={30} color="#D97706" />
+                  </View>
+                  <Text style={[styles.pendingNoticeTitle, { color: '#B45309' }]}>
+                    {lang === 'tl'
+                      ? 'KAILANGAN NG KARAGDAGANG IMPORMASYON'
+                      : 'ADDITIONAL INFORMATION NEEDED'}
+                  </Text>
+                  <Text style={[styles.pendingNoticeSub, { color: '#92400E' }]}>
+                    {householdData?.verificationNotes
+                      ? (lang === 'tl'
+                          ? `Hinihiling ng Barangay Official: "${householdData.verificationNotes}". Mangyaring i-update ang inyong profile o magsumite ng kailangang impormasyon.`
+                          : `Barangay Official Request: "${householdData.verificationNotes}". Please update your profile or submit requested documents.`)
+                      : (lang === 'tl'
+                          ? 'Hinihiling ng Barangay Official na magsumite o mag-update ng karagdagang impormasyon o malinaw na ID/dokumento upang maaprubahan ang inyong QR Relief Pass.'
+                          : 'The Barangay Official requested additional details or clearer documents before approving your Relief QR Pass.')}
+                  </Text>
+
+                  <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FDE68A', borderColor: '#F59E0B' }]}>
+                    <AlertTriangleIcon size={13} color="#B45309" />
+                    <Text style={[styles.pendingStatusBadgeText, { color: '#78350F' }]}>
+                      {lang === 'tl' ? 'KATAYUAN: KARAGDAGANG IMPORMASYON KAILANGAN' : 'STATUS: ADDITIONAL INFO REQUIRED'}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, width: '100%' }}>
+                    <TouchableOpacity
+                      style={[styles.refreshStatusBtn, { flex: 1, backgroundColor: '#1C3F94' }]}
+                      onPress={() => setActiveTab('settings')}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.refreshStatusBtnText, { color: '#FFFFFF' }]}>
+                        {lang === 'tl' ? '⚙️ Settings / Profile' : '⚙️ Settings / Profile'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.refreshStatusBtn, { flex: 1 }]}
+                      onPress={async () => {
+                        setLoadingProfile(true);
+                        try {
+                          const profile = await fetchHouseholdProfile(token);
+                          if (profile?.household) {
+                            setHouseholdData(profile.household);
+                            if (profile.household.verificationStatus === 'verified') {
+                              Alert.alert(
+                                lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
+                                lang === 'tl'
+                                  ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Handa na ang inyong QR Relief Pass.'
+                                  : 'Your account has been verified by the Barangay Admin! Your Relief QR Pass is ready.'
+                              );
+                            } else if (profile.household.verificationStatus === 'needs_info') {
+                              Alert.alert(
+                                lang === 'tl' ? 'Kailangan ng Impormasyon' : 'Needs Info',
+                                profile.household.verificationNotes
+                                  ? `Tala mula sa Barangay: "${profile.household.verificationNotes}"`
+                                  : (lang === 'tl' ? 'Pakisumite ang karagdagang dokumento o impormasyon sa Barangay.' : 'Please provide required info to the Barangay.')
+                              );
+                            } else {
+                              Alert.alert(
+                                lang === 'tl' ? 'Kasalukuyang Nakabinbin' : 'Still Pending',
+                                lang === 'tl' ? 'Nasa Verification Queue pa ang inyong rehistrasyon.' : 'Registration still pending review.'
+                              );
+                            }
+                          }
+                        } catch (err) {
+                          Alert.alert('Notice', 'Unable to sync status.');
+                        } finally {
+                          setLoadingProfile(false);
+                        }
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.refreshStatusBtnText}>
+                        {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? '🔄 I-refresh' : '🔄 Refresh')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ) : !isVerified ? (
                 <View style={styles.pendingVerificationFrame}>
@@ -900,6 +1006,13 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                               lang === 'tl'
                                 ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong relief allocation ay nakahanda na.'
                                 : 'Your account has been verified by the Barangay Admin! Your relief allocation is prepared.'
+                            );
+                          } else if (profile.household.verificationStatus === 'needs_info') {
+                            Alert.alert(
+                              lang === 'tl' ? 'Karagdagang Impormasyon Kailangan' : 'Additional Information Needed',
+                              profile.household.verificationNotes
+                                ? `Hinihiling ng Barangay: "${profile.household.verificationNotes}"`
+                                : (lang === 'tl' ? 'Pakisumite ang kinakailangang dokumento o impormasyon sa Barangay.' : 'Please provide required info to the Barangay.')
                             );
                           } else {
                             Alert.alert(
@@ -1899,9 +2012,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             title: n.title,
             body: n.message,
             time: n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (lang === 'tl' ? 'Kamakailan' : 'Recent'),
-            tag: n.type === 'priority_update' ? 'Priority' : (lang === 'tl' ? 'Opisyal' : 'Official'),
-            targetTab: 'history',
-            type: 'urgent',
+            tag: n.type === 'priority_update'
+              ? 'Priority'
+              : n.type === 'needs_info'
+              ? (lang === 'tl' ? 'Kailangan ng Aksyon' : 'Action Required')
+              : (lang === 'tl' ? 'Opisyal' : 'Official'),
+            targetTab: n.targetTab || n.actionTab || (n.type === 'needs_info' ? 'settings' : 'home'),
+            actionTab: n.actionTab || n.targetTab || (n.type === 'needs_info' ? 'settings' : 'home'),
+            type: n.type === 'needs_info' ? 'urgent' : (n.type === 'priority_update' ? 'advisory' : 'urgent'),
             unread: isNotifUnread(n),
           })),
           ...announcements.map((a, idx) => ({

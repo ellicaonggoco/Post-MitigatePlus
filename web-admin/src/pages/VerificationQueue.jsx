@@ -166,7 +166,12 @@ export default function VerificationQueue() {
     setModal({ isOpen: false, hhId: null, actionStatus: '', name: '' });
     setActionStatus({ type: '', msg: '' });
 
-    const notes = selectedNotes[id] || '';
+    let notes = (selectedNotes[id] || '').trim();
+    if (status === 'needs_info' && !notes) {
+      notes = isFil
+        ? 'Pakisumite o mag-upload ng malinaw na kopya ng Valid ID o patunay ng paninirahan para sa beripikasyon.'
+        : 'Please submit or upload a clearer copy of your Valid ID or proof of residency for verification.';
+    }
 
     try {
       const res = await fetch(`${API_BASE_URL}/households/${id}/verify`, {
@@ -249,8 +254,8 @@ export default function VerificationQueue() {
                 : `Are you sure you want to approve the household of ${modal.name}? They will immediately become eligible for relief distribution and receive an active QR pass.`)
             : modal.actionStatus === 'needs_info'
             ? (isFil
-                ? `I-notify si ${modal.name} upang magbigay ng kailangang dokumento o verification notes.`
-                : `Notify ${modal.name} to submit required documents or clarification.`)
+                ? `I-notify si ${modal.name} upang magsumite o mag-update ng kailangang dokumento o impormasyon sa kanilang rehistrasyon.`
+                : `Notify ${modal.name} to submit required documents or clarification for their registration.`)
             : (isFil
                 ? `I-reject ang aplikasyon ni ${modal.name}? Hindi sila makakatanggap ng relief pass hangga't hindi ito naayos.`
                 : `Reject the application of ${modal.name}? They will not be able to claim relief assistance until resolved.`)
@@ -260,12 +265,46 @@ export default function VerificationQueue() {
           modal.actionStatus === 'verified'
             ? (isFil ? 'Oo, Approve Household' : 'Yes, Approve Household')
             : modal.actionStatus === 'needs_info'
-            ? (isFil ? 'Oo, Request Info' : 'Yes, Request Info')
+            ? (isFil ? 'Ipadala ang Kahilingan' : 'Send Info Request')
             : (isFil ? 'Oo, Reject Application' : 'Yes, Reject Application')
         }
         onConfirm={handleVerify}
         onCancel={() => setModal({ isOpen: false, hhId: null, actionStatus: '', name: '' })}
-      />
+      >
+        {(modal.actionStatus === 'needs_info' || modal.actionStatus === 'rejected') && (
+          <div style={{ marginTop: 16 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
+              {modal.actionStatus === 'needs_info'
+                ? (isFil ? 'Tala o Hinihiling na Dokumento / Impormasyon (Ipadadala sa residente):' : 'Note or Requested Document / Information (Sent to resident):')
+                : (isFil ? 'Dahilan ng Hindi Pag-apruba (Ipadadala sa residente):' : 'Reason for Rejection (Sent to resident):')}
+            </label>
+            <textarea
+              rows={3}
+              value={selectedNotes[modal.hhId] || ''}
+              onChange={(e) => setSelectedNotes({ ...selectedNotes, [modal.hhId]: e.target.value })}
+              placeholder={
+                modal.actionStatus === 'needs_info'
+                  ? (isFil ? 'Halimbawa: Pakisumite muli ang malinaw na litrato ng Valid ID o patunay ng tirahan...' : 'E.g., Please submit a clearer photo of your Valid ID or proof of residence...')
+                  : (isFil ? 'Halimbawa: Hindi tumutugma ang tirahan sa Barangay o kulang sa patunay...' : 'E.g., Address does not match records or missing required documents...')
+              }
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-inner)',
+                border: '1.5px solid var(--border)',
+                fontSize: '13px',
+                fontFamily: 'var(--font-sans)',
+                boxSizing: 'border-box',
+                outline: 'none',
+                resize: 'vertical',
+                backgroundColor: 'var(--card-alt, #F8FAFC)',
+                color: 'var(--ink, #0B1525)',
+              }}
+              autoFocus
+            />
+          </div>
+        )}
+      </ConfirmModal>
       {!isBarangayOfficial && (
         <div className="clay-card" style={{ marginBottom: 24, borderLeft: '4px solid var(--manila-blue)', background: 'var(--manila-blue-light)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

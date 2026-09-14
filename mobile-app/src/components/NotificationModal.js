@@ -56,6 +56,10 @@ export default function NotificationModal({
         ? 'assistance'
         : (clean === 'damage' || clean === 'report')
         ? 'damage'
+        : (clean === 'settings' || clean === 'profile' || clean === 'account')
+        ? 'settings'
+        : (clean === 'home' || clean === 'pass' || clean === 'qr')
+        ? 'home'
         : clean;
       onNavigate(destination);
     }
@@ -63,6 +67,12 @@ export default function NotificationModal({
 
   const getActionLabel = (targetTab) => {
     const clean = String(targetTab || '').toLowerCase().trim();
+    if (clean === 'settings' || clean === 'profile' || clean === 'account') {
+      return lang === 'tl' ? 'Pumunta sa Settings / Profile' : 'Go to Settings / Profile';
+    }
+    if (clean === 'home' || clean === 'pass' || clean === 'qr') {
+      return lang === 'tl' ? 'Tingnan ang Digital ID / Pass' : 'View Digital ID / Pass';
+    }
     if (clean === 'damage' || clean === 'report') {
       return lang === 'tl' ? 'Pumunta sa Ulat ng Pinsala' : 'Go to Damage Report';
     }

@@ -12,6 +12,7 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
   onClose,
+  children,
 }) {
   const handleCancel = React.useCallback(() => {
     if (typeof onCancel === 'function') {
@@ -118,6 +119,7 @@ export default function ConfirmModal({
           <p style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.5, margin: 0 }}>
             {message}
           </p>
+          {children}
         </div>
 
         {/* Footer */}
