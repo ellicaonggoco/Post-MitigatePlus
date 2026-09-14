@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X } from 'lucide-react';
+import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X, AlertTriangle } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { IconlyShield } from '../components/Sidebar';
@@ -120,6 +120,18 @@ export default function SmartPriorityDashboard() {
     const brgyMatch = selectedBarangayFilter === 'ALL' || String(hh.barangayCode) === String(selectedBarangayFilter);
     return (addressMatch || nameMatch) && brgyMatch;
   });
+
+  // Anti-Duplicate Household / Matching Address Detection Map
+  const duplicateAddressMap = useMemo(() => {
+    const counts = {};
+    households.forEach((h) => {
+      const key = `${h.barangayCode || '291'}_${(h.address || '').toLowerCase().trim().replace(/[,.-]/g, ' ').replace(/\s+/g, ' ')}`;
+      if (key) {
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [households]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -592,8 +604,28 @@ export default function SmartPriorityDashboard() {
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '14px' }}>
-                          {hh.headOfHouseholdUserId?.name || 'Resident'}
+                        <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span>{hh.headOfHouseholdUserId?.name || 'Resident'}</span>
+                          {duplicateAddressMap[`${hh.barangayCode || '291'}_${(hh.address || '').toLowerCase().trim().replace(/[,.-]/g, ' ').replace(/\s+/g, ' ')}`] > 1 && (
+                            <span
+                              className="badge badge-warning"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                fontSize: '10.5px',
+                                background: '#FEF3C7',
+                                color: '#92400E',
+                                border: '1px solid #FCD34D',
+                                padding: '1px 7px',
+                                borderRadius: 999,
+                                fontWeight: 700,
+                              }}
+                              title="Anti-Duplicate Engine: May isa pang sambahayan na may kaparehong address sa barangay na ito."
+                            >
+                              <AlertTriangle size={11} color="#D97706" /> Matching Address
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--ink-soft)', marginTop: '2px' }}>
                           {hh.address}, Purok {hh.purok} (Brgy {hh.barangayCode})

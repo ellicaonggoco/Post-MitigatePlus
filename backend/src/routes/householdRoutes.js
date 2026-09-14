@@ -133,12 +133,11 @@ router.get('/check-address-collision', async (req, res) => {
     }
 
     const cleanAddress = address.trim();
-    const cleanPurok = (purok || '').trim();
+    const addressRegex = new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
 
     const existingMatch = await Household.findOne({
       barangayCode: String(barangayCode),
-      address: { $regex: new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-      ...(cleanPurok ? { purok: { $regex: new RegExp(`^${cleanPurok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } } : {}),
+      address: addressRegex,
     }).populate('headOfHouseholdUserId', 'name');
 
     if (existingMatch) {
@@ -214,13 +213,12 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 
       // Case B: Detect matching address across all other households in the same barangay
       const cleanAddress = (hh.address || '').trim();
-      const cleanPurok = (hh.purok || '').trim();
       if (cleanAddress) {
+        const addressRegex = new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
         const matchingRecord = await Household.findOne({
           _id: { $ne: hh._id },
           barangayCode: hh.barangayCode,
-          address: { $regex: new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-          ...(cleanPurok ? { purok: { $regex: new RegExp(`^${cleanPurok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } } : {}),
+          address: addressRegex,
         }).populate('headOfHouseholdUserId', 'name emailOrPhone');
 
         if (matchingRecord) {
