@@ -13,9 +13,29 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
     return { success: true, mode: 'demo', message: 'Email OTP logged in demo mode (Add GMAIL_USER and GMAIL_APP_PASSWORD to .env for real email sending)' };
   }
 
+  const mailOptions = {
+    from: `"MitigatePlus Manila LGU" <${gmailUser}>`,
+    to: recipientEmail,
+    subject: `[MitigatePlus] Your Account Verification Code: ${otpCode}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDEBE4; border-radius: 12px; background: #FAFAF7;">
+        <h2 style="color: #173F56; margin-top: 0;">MitigatePlus - Manila City LGU</h2>
+        <p style="color: #1B242B; font-size: 14px;">Your 6-digit account verification code is:</p>
+        <div style="background: #173F56; color: #FFFFFF; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 14px; text-align: center; border-radius: 8px; margin: 16px 0;">
+          ${otpCode}
+        </div>
+        <p style="color: #6B7680; font-size: 12px;">This code will expire in 10 minutes. Please do not share this code with anyone.</p>
+      </div>
+    `,
+  };
+
+  // Attempt 1: Port 465 (SSL) with forced IPv4
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
+    const transporter465 = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      family: 4,
       auth: {
         user: gmailUser,
         pass: gmailPass,
@@ -23,33 +43,40 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
       tls: {
         rejectUnauthorized: false,
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
       socketTimeout: 5000,
     });
-
-    const mailOptions = {
-      from: `"MitigatePlus Manila LGU" <${gmailUser}>`,
-      to: recipientEmail,
-      subject: `[MitigatePlus] Your Account Verification Code: ${otpCode}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EDEBE4; border-radius: 12px; background: #FAFAF7;">
-          <h2 style="color: #173F56; margin-top: 0;">MitigatePlus - Manila City LGU</h2>
-          <p style="color: #1B242B; font-size: 14px;">Your 6-digit account verification code is:</p>
-          <div style="background: #173F56; color: #FFFFFF; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 14px; text-align: center; border-radius: 8px; margin: 16px 0;">
-            ${otpCode}
-          </div>
-          <p style="color: #6B7680; font-size: 12px;">This code will expire in 10 minutes. Please do not share this code with anyone.</p>
-        </div>
-      `,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[EMAIL SENT] Successfully dispatched OTP to ${recipientEmail}:`, info.messageId);
-    return { success: true, mode: 'live', messageId: info.messageId };
-  } catch (error) {
-    console.error(`[EMAIL EXCEPTION] Failed to send email OTP:`, error.message);
-    return { success: false, mode: 'live', error: error.message };
+    const info = await transporter465.sendMail(mailOptions);
+    console.log(`[EMAIL SENT - PORT 465] Successfully dispatched OTP to ${recipientEmail}:`, info.messageId);
+    return { success: true, mode: 'live', port: 465, messageId: info.messageId };
+  } catch (err465) {
+    console.warn(`[EMAIL PORT 465 FAILED] ${err465.message}. Trying port 587...`);
+    // Attempt 2: Port 587 (STARTTLS) with forced IPv4
+    try {
+      const transporter587 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        family: 4,
+        auth: {
+          user: gmailUser,
+          pass: gmailPass,
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
+      });
+      const info = await transporter587.sendMail(mailOptions);
+      console.log(`[EMAIL SENT - PORT 587] Successfully dispatched OTP to ${recipientEmail}:`, info.messageId);
+      return { success: true, mode: 'live', port: 587, messageId: info.messageId };
+    } catch (err587) {
+      console.error(`[EMAIL EXCEPTION] Failed on both ports: 465(${err465.message}), 587(${err587.message})`);
+      return { success: false, mode: 'live', error: `465: ${err465.message} | 587: ${err587.message}` };
+    }
   }
 };
 
