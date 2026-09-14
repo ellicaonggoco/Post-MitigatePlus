@@ -1689,7 +1689,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               {/* Reason Selector Dropdown */}
               <View style={{ marginBottom: 12 }}>
                 <Text style={styles.formInputLabel}>
-                  {lang === 'tl' ? 'Dahilan ng Pagpapalit (Reason) *' : 'Reason for Renewal *'}
+                  {lang === 'tl' ? 'Dahilan ng Pagpapalit *' : 'Reason for Renewal *'}
                 </Text>
 
                 {/* Dropdown Trigger Button */}

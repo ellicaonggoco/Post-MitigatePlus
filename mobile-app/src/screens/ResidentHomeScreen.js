@@ -527,7 +527,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const brgyCode = householdData?.barangayCode || user?.barangayCode || '291';
   const headcount = householdData?.memberCount || householdData?.familyHeadcount || 1;
   const priorityScore = householdData?.priorityScore || 50;
-  const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas (High)' : 'High Priority');
+  const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas na Prayoridad' : 'High Priority');
   const isVerified = householdData?.verificationStatus === 'verified';
   const isRejected = householdData?.verificationStatus === 'rejected';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
@@ -829,7 +829,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }]}>
                     <CloseIcon size={12} color="#DC2626" />
                     <Text style={[styles.pendingStatusBadgeText, { color: '#991B1B' }]}>
-                      {lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN (REJECTED)' : 'STATUS: REGISTRATION REJECTED'}
+                      {lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN' : 'STATUS: REGISTRATION REJECTED'}
                     </Text>
                   </View>
 
@@ -1673,16 +1673,16 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     <ClockIcon size={40} color="#D97706" />
                   </View>
                   <Text style={styles.modalPendingTitle}>
-                    {lang === 'tl' ? 'PENDING VERIFICATION' : 'PENDING VERIFICATION'}
+                    {lang === 'tl' ? 'HINDI PA BERIPIKADO' : 'PENDING VERIFICATION'}
                   </Text>
                   <Text style={styles.modalPendingSubTitle}>
-                    {lang === 'tl' ? '(Hindi Pa Beripikado)' : '(Under Verification)'}
+                    {lang === 'tl' ? 'Kasalukuyang Sinusuri ng Barangay' : 'Under Barangay Review'}
                   </Text>
 
                   <View style={styles.modalPendingBadge}>
                     <ClockIcon size={12} color="#92400E" />
                     <Text style={styles.modalPendingBadgeText}>
-                      {lang === 'tl' ? 'KATAYUAN: NAKABINBIN SA PAGSUSURI' : 'STATUS: PENDING REVIEW'}
+                      {lang === 'tl' ? 'KATAYUAN: SINUSURI PA' : 'STATUS: PENDING REVIEW'}
                     </Text>
                   </View>
 
@@ -1744,8 +1744,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               {isVerified
                 ? (lang === 'tl' ? 'Beripikadong Residente' : 'Verified Household')
                 : isRejected
-                ? (lang === 'tl' ? 'Rehistrasyon Hindi Naaprubahan' : 'Registration Rejected')
-                : (lang === 'tl' ? 'Hindi Pa Beripikado' : 'Pending Verification')}
+                ? (lang === 'tl' ? 'Hindi Naaprubahan ang Rehistrasyon' : 'Registration Rejected')
+                : (lang === 'tl' ? 'Kasalukuyang Sinusuri' : 'Pending Verification')}
             </Text>
 
             <View style={[
@@ -1765,10 +1765,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   : { color: '#B45309' }
               ]}>
                 {isVerified
-                  ? 'STATUS: VERIFIED'
+                  ? (lang === 'tl' ? 'KATAYUAN: BERIPIKADO NA' : 'STATUS: VERIFIED')
                   : isRejected
-                  ? 'STATUS: REJECTED'
-                  : 'STATUS: PENDING REVIEW'}
+                  ? (lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN' : 'STATUS: REJECTED')
+                  : (lang === 'tl' ? 'KATAYUAN: SINUSURI PA' : 'STATUS: PENDING REVIEW')}
               </Text>
             </View>
 
