@@ -1438,6 +1438,34 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
               </Text>
             </View>
 
+            {/* Quick Auto-fill Hint / Fallback Badge */}
+            {fallbackOtp ? (
+              <TouchableOpacity
+                onPress={() => {
+                  const digits = String(fallbackOtp).slice(0, 6).split('');
+                  setOtpDigits(digits);
+                  otpInputRefs.current[5]?.focus();
+                }}
+                activeOpacity={0.8}
+                style={{
+                  backgroundColor: '#EFF6FF',
+                  borderWidth: 1,
+                  borderColor: '#BFDBFE',
+                  borderRadius: 10,
+                  paddingVertical: 8,
+                  paddingHorizontal: 14,
+                  marginBottom: 16,
+                  alignSelf: 'center',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Text style={{ fontSize: 12, color: '#1E40AF', fontWeight: '700' }}>
+                  Code: {fallbackOtp} (Tap to Auto-Fill)
+                </Text>
+              </TouchableOpacity>
+            ) : null}
 
             {/* 6 OTP DIGIT INPUT BOXES */}
             <View style={styles.otpInputsContainer}>
