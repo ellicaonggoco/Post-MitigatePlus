@@ -130,6 +130,11 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} joined room: household:${householdId}`);
   });
 
+  socket.on('join_user_room', (userId) => {
+    socket.join(`user:${userId}`);
+    console.log(`Socket ${socket.id} joined room: user:${userId}`);
+  });
+
   socket.on('join_admin_room', () => {
     socket.join('admin_room');
     console.log(`Socket ${socket.id} joined admin_room`);

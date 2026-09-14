@@ -95,6 +95,17 @@ export async function markNotificationAsRead(notifId, token) {
 }
 
 /**
+ * 4c. Resubmit Valid ID for Re-verification
+ */
+export async function resubmitValidId(payload, token) {
+  return request(`${API_BASE_URL}/households/me/resubmit-id`, {
+    method: 'PUT',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
  * 5. Submit Damage Report
  */
 export async function submitDamageReport(data, token) {

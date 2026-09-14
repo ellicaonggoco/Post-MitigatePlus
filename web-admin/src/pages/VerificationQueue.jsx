@@ -13,6 +13,51 @@ import { MotionCard, MotionButton } from '../components/motion';
 const ITEMS_PER_PAGE = 8;
 const DAMAGE_ITEMS_PER_PAGE = 6;
 
+const REASON_PRESETS = {
+  id_blurry: {
+    label: { tl: 'Malabo o Hindi Mabasa ang Valid ID', en: 'Valid ID is Blurry or Unreadable' },
+    note: {
+      tl: 'Malabo o hindi mabasa ang inyong isinumiteng Valid ID. Mangyaring mag-upload muli ng malinaw at maliwanag na litrato ng inyong Valid ID.',
+      en: 'Your submitted Valid ID is blurry or unreadable. Please upload a clear, well-lit photo of your Valid ID.',
+    },
+  },
+  id_wrong_type: {
+    label: { tl: 'Maling Uri ng Valid ID o Hindi Katanggap-tanggap', en: 'Invalid or Unacceptable ID Type' },
+    note: {
+      tl: 'Ang isinumiteng ID ay hindi kabilang sa mga tinatanggap na government-issued ID. Mangyaring mag-upload ng PhilSys National ID, Driver\'s License, UMID, Postal ID, o Barangay ID.',
+      en: 'The submitted ID is not an accepted government-issued ID. Please upload a PhilSys National ID, Driver\'s License, UMID, Postal ID, or Barangay ID.',
+    },
+  },
+  id_expired: {
+    label: { tl: 'Paso o Expired na ang Valid ID', en: 'Valid ID is Expired' },
+    note: {
+      tl: 'Paso o expired na ang inyong isinumiteng Valid ID. Mangyaring mag-upload ng aktibo at may bisang ID.',
+      en: 'Your submitted Valid ID has expired. Please upload an active and valid ID.',
+    },
+  },
+  residency_proof: {
+    label: { tl: 'Kulang sa Patunay ng Paninirahan (Barangay Cert / Utility Bill)', en: 'Missing Proof of Residency' },
+    note: {
+      tl: 'Kinakailangan ng karagdagang patunay ng paninirahan sa Barangay (hal. Barangay Certificate of Residency o Proof of Billing).',
+      en: 'Additional proof of residency is required (e.g., Barangay Certificate of Residency or utility bill).',
+    },
+  },
+  family_roster: {
+    label: { tl: 'Linawin o I-update ang Talaan ng Miyembro ng Pamilya', en: 'Clarify / Update Family Roster' },
+    note: {
+      tl: 'Mangyaring linawin o i-update ang talaan ng mga miyembro ng pamilya o magsumite ng supporting documents para sa mga may kapansanan o senior citizen.',
+      en: 'Please clarify or update your family member roster, or submit supporting documents for members with special conditions.',
+    },
+  },
+  custom: {
+    label: { tl: 'Iba Pa (Maglagay ng Sariling Tala)', en: 'Other / Custom Note' },
+    note: {
+      tl: '',
+      en: '',
+    },
+  },
+};
+
 export default function VerificationQueue() {
   const { token, user } = useContext(AuthContext);
   const { lang } = useContext(LanguageContext);
@@ -23,6 +68,7 @@ export default function VerificationQueue() {
   const [householdCounts, setHouseholdCounts] = useState({ pending: 0, verified: 0, rejected: 0, all: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedNotes, setSelectedNotes] = useState({});
+  const [requestedDocType, setRequestedDocType] = useState('id_blurry');
   const [actionStatus, setActionStatus] = useState({ type: '', msg: '' });
   const isCityWide = canSeeCityWide(user);
   const [selectedBarangay, setSelectedBarangay] = useState(isCityWide ? 'ALL' : (user?.barangayCode || '291'));
@@ -131,8 +177,18 @@ export default function VerificationQueue() {
 
     if (targetCode && targetCode !== 'ALL') {
       socket.emit('join_barangay_room', targetCode);
+      socket.emit('join_admin_room');
       socket.on('new_pending_registration', () => {
         setActionStatus({ type: 'info', msg: 'New registration update received in real-time!' });
+        fetchPendingQueue();
+      });
+      socket.on('household_id_resubmitted', (data) => {
+        setActionStatus({
+          type: 'info',
+          msg: isFil
+            ? `Nagsumite ng bagong Valid ID si ${data?.applicantName || 'residente'} para sa muling pagsusuri!`
+            : `New Valid ID resubmitted by ${data?.applicantName || 'resident'} for re-verification!`,
+        });
         fetchPendingQueue();
       });
       socket.on('new_pending_damage_report', (data) => {
@@ -157,6 +213,15 @@ export default function VerificationQueue() {
 
   const requestVerify = (id, status, name) => {
     setModal({ isOpen: true, hhId: id, actionStatus: status, name: name || 'applicant' });
+    if (status === 'needs_info') {
+      setRequestedDocType('id_blurry');
+      if (!selectedNotes[id]) {
+        setSelectedNotes((prev) => ({
+          ...prev,
+          [id]: REASON_PRESETS.id_blurry.note[isFil ? 'tl' : 'en'],
+        }));
+      }
+    }
   };
 
   const handleVerify = async () => {
@@ -180,7 +245,7 @@ export default function VerificationQueue() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status, verificationNotes: notes }),
+        body: JSON.stringify({ status, verificationNotes: notes, requestedDocType }),
       });
       const data = await res.json();
 
@@ -273,6 +338,41 @@ export default function VerificationQueue() {
       >
         {(modal.actionStatus === 'needs_info' || modal.actionStatus === 'rejected') && (
           <div style={{ marginTop: 16 }}>
+            {modal.actionStatus === 'needs_info' && (
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
+                  {isFil ? 'Piliin ang Uri ng Dokumento o Dahilan ng Kahilingan:' : 'Select Requested Document / Reason:'}
+                </label>
+                <select
+                  value={requestedDocType}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    setRequestedDocType(selected);
+                    const presetNote = REASON_PRESETS[selected]?.note?.[isFil ? 'tl' : 'en'] || '';
+                    setSelectedNotes((prev) => ({ ...prev, [modal.hhId]: presetNote }));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: 'var(--radius-inner)',
+                    border: '1.5px solid var(--border)',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    backgroundColor: '#FFFFFF',
+                    color: 'var(--ink, #0B1525)',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {Object.entries(REASON_PRESETS).map(([key, item]) => (
+                    <option key={key} value={key}>
+                      {item.label[isFil ? 'tl' : 'en']}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
               {modal.actionStatus === 'needs_info'
                 ? (isFil ? 'Tala o Hinihiling na Dokumento / Impormasyon (Ipadadala sa residente):' : 'Note or Requested Document / Information (Sent to resident):')
@@ -728,6 +828,24 @@ export default function VerificationQueue() {
                             ? (isFil ? 'HUMIHINGI NG IMPORMASYON' : 'NEEDS INFO')
                             : (isFil ? 'NAGHIHINTAY NG PAGSUSURI' : 'PENDING REVIEW')}
                         </span>
+                        {hh.idResubmitted && hh.verificationStatus === 'pending' && (
+                          <span
+                            style={{
+                              padding: '3px 10px',
+                              borderRadius: 999,
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              background: '#EFF6FF',
+                              color: '#1D4ED8',
+                              border: '1px solid #93C5FD',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            <Camera size={12} color="#1D4ED8" /> {isFil ? 'Bagong ID Naisumite' : 'New ID Resubmitted'}
+                          </span>
+                        )}
                         {hasOverlap && (
                           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 700 }}>
                             <AlertTriangle size={12} /> Matching Address
@@ -820,6 +938,61 @@ export default function VerificationQueue() {
                         <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px', color: '#D97706' }} />
                         <div>
                           <strong>Family Headcount Update Request:</strong> Nagsumite ang pamilyang ito ng karagdagang miyembro ({hh.memberCount} &rarr; {hh.memberCountPendingUpdate} members). Suriin ang kanilang mga pangalan sa ibaba bago aprubahan.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Resubmitted Valid ID Notice Banner */}
+                    {hh.idResubmitted && hh.verificationStatus === 'pending' && (
+                      <div style={{
+                        background: '#EFF6FF',
+                        border: '1.5px solid #93C5FD',
+                        borderRadius: 'var(--radius-inner)',
+                        padding: '12px 16px',
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        color: '#1E40AF',
+                        fontSize: '13px',
+                        boxShadow: '0 1px 3px rgba(37, 99, 235, 0.08)',
+                      }}>
+                        <Camera size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#1D4ED8' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, color: '#1D4ED8', marginBottom: '2px', fontSize: '13.5px' }}>
+                            {isFil ? '✨ Bagong Isinumiteng Valid ID para sa Pagsusuri' : '✨ New Valid ID Resubmitted for Review'}
+                          </div>
+                          <div>
+                            {isFil
+                              ? `Nag-upload ang residente ng bagong litrato ng kanilang Valid ID (${hh.validIdType || 'Valid ID'}) bilang tugon sa kahilingan. Pindutin ang litrato sa ibaba upang suriin at aprubahan kung malinaw na.`
+                              : `The resident uploaded a new photo of their Valid ID (${hh.validIdType || 'Valid ID'}) in response to your request. Inspect the ID below to evaluate and approve.`}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Needs Info Notice Banner */}
+                    {hh.verificationStatus === 'needs_info' && (
+                      <div style={{
+                        background: '#FFFBEB',
+                        border: '1.5px solid #FCD34D',
+                        borderRadius: 'var(--radius-inner)',
+                        padding: '12px 16px',
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        color: '#92400E',
+                        fontSize: '13px',
+                      }}>
+                        <Info size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, color: '#B45309', marginBottom: '2px', fontSize: '13.5px' }}>
+                            {isFil ? 'Kasalukuyang Humihingi ng Karagdagang Impormasyon' : 'Currently Requesting Additional Information'}
+                          </div>
+                          <div>
+                            <strong>{isFil ? 'Hinihiling sa Residente:' : 'Requested from Resident:'}</strong> {hh.verificationNotes || (isFil ? 'Magsumite ng malinaw na Valid ID.' : 'Please submit a clear Valid ID.')}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1280,7 +1453,7 @@ export default function VerificationQueue() {
                         "{report.rejectionReason || report.notes}"
                         {report.validatedBy?.name && (
                           <span style={{ display: 'block', fontSize: '11px', marginTop: 4, opacity: 0.8 }}>
-                            — Opisyal: {report.validatedBy.name}
+                            - Opisyal: {report.validatedBy.name}
                           </span>
                         )}
                       </div>

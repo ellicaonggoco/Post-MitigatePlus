@@ -42,6 +42,9 @@ const householdSchema = new mongoose.Schema({
   validIdType: { type: String, default: 'Government ID' },
   validIdImage: { type: String, default: null },
   validIdNumber: { type: String, default: '' },
+  idResubmitted: { type: Boolean, default: false },
+  idResubmittedAt: { type: Date, default: null },
+  requestedDocType: { type: String, default: null },
   damageLevel: {
     type: String,
     enum: ['None', 'Minor', 'Moderate', 'Severe', 'Totally Damaged'],

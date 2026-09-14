@@ -252,7 +252,7 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 // @desc    Approve / Request Info / Reject a household registration
 router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'), async (req, res) => {
   try {
-    const { status, verificationNotes } = req.body;
+    const { status, verificationNotes, requestedDocType } = req.body;
     if (!['verified', 'needs_info', 'rejected'].includes(status)) {
       return res.status(400).json({ message: 'Status must be verified, needs_info, or rejected.' });
     }
@@ -279,6 +279,7 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         household.members = household.pendingMembers;
         household.pendingMembers = [];
       }
+      household.idResubmitted = false;
     } else if (status === 'rejected') {
       // Revert any pending member update requests
       household.memberCountPendingUpdate = null;
@@ -289,6 +290,9 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
     household.verifiedBy = req.user._id;
     household.verifiedAt = new Date();
     household.verificationNotes = verificationNotes || '';
+    if (requestedDocType) {
+      household.requestedDocType = requestedDocType;
+    }
 
     // Recalculate priority index upon official verification
     const pastDistributionsCount = await Distribution.countDocuments({ householdId: household._id });
@@ -316,11 +320,11 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         id: Date.now().toString(),
         title: 'ℹ️ Karagdagang Impormasyon Kailangan',
         message: verificationNotes
-          ? `Hinihiling ng Barangay Official: "${verificationNotes}". Mangyaring i-update ang inyong profile o magsumite ng kailangang impormasyon sa Barangay.`
-          : 'Hinihiling ng Barangay Official na magsumite o mag-update ng karagdagang impormasyon o dokumento para sa inyong rehistrasyon.',
+          ? `Hinihiling ng Barangay Official: "${verificationNotes}". Mangyaring magsumite ng malinaw na Valid ID o kailangang impormasyon.`
+          : 'Hinihiling ng Barangay Official na magsumite o mag-upload ng bagong Valid ID para sa inyong rehistrasyon.',
         type: 'needs_info',
-        targetTab: 'settings',
-        actionTab: 'settings',
+        targetTab: 'home',
+        actionTab: 'home',
         createdAt: new Date(),
         isRead: false,
       });
@@ -357,21 +361,12 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       action: `VERIFICATION_${status.toUpperCase()}`,
       targetType: 'Household',
       targetId: household._id.toString(),
-      notes: `Verified status updated to ${status}. Priority: ${priorityLevel}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}`,
+      notes: `Verified status updated to ${status}. Priority: ${priorityLevel}. Members: ${household.memberCount}. Notes: ${verificationNotes || 'None'}. Requested Doc: ${household.requestedDocType || 'None'}`,
     });
 
-    // Notify resident via Socket.IO
+    // Notify resident via Socket.IO across all targeted rooms
     const io = req.app.get('io');
     if (io) {
-      io.to(`household:${household._id}`).emit('verification_updated', {
-        verificationStatus: status,
-        verificationNotes: household.verificationNotes,
-        priorityLevel: household.priorityLevel,
-        priorityScore: household.priorityScore,
-        memberCount: household.memberCount,
-        verifiedAt: household.verifiedAt,
-      });
-
       const notifTitle = status === 'verified'
         ? '✅ Rehistrasyon Naaprubahan!'
         : status === 'needs_info'
@@ -381,18 +376,41 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
       const notifMessage = status === 'verified'
         ? `Na-verify na ng Barangay Official ang inyong pamilya. Ang inyong Priority Level ay [${priorityLevel}]. Handa na ang inyong Official QR Pass.`
         : status === 'needs_info'
-        ? (verificationNotes ? `Hinihiling ng Barangay Official: "${verificationNotes}"` : 'Hinihiling ng Barangay Official na magsumite o mag-update ng karagdagang impormasyon o dokumento.')
+        ? (verificationNotes ? `Hinihiling ng Barangay Official: "${verificationNotes}"` : 'Hinihiling ng Barangay Official na magsumite ng malinaw na Valid ID.')
         : `Hindi naaprubahan ang inyong rehistrasyon. Dahilan: ${verificationNotes || 'Kulang sa patunay o dokumento'}.`;
 
-      io.to(`household:${household._id}`).emit('new_in_app_notification', {
+      const verificationPayload = {
+        verificationStatus: status,
+        verificationNotes: household.verificationNotes,
+        requestedDocType: household.requestedDocType,
+        priorityLevel: household.priorityLevel,
+        priorityScore: household.priorityScore,
+        memberCount: household.memberCount,
+        verifiedAt: household.verifiedAt,
+        householdId: household._id,
+      };
+
+      const notifPayload = {
         id: Date.now().toString(),
         title: notifTitle,
         message: notifMessage,
         type: status === 'needs_info' ? 'needs_info' : 'verification',
-        targetTab: status === 'verified' ? 'home' : 'settings',
-        actionTab: status === 'verified' ? 'home' : 'settings',
+        targetTab: 'home',
+        actionTab: 'home',
         priorityLevel: household.priorityLevel,
         createdAt: new Date(),
+      };
+
+      // Broadcast to household room, user room, and barangay room
+      const recipientRooms = [
+        `household:${household._id}`,
+        `user:${household.headOfHouseholdUserId}`,
+        `barangay:${household.barangayCode}`,
+      ];
+
+      recipientRooms.forEach((room) => {
+        io.to(room).emit('verification_updated', verificationPayload);
+        io.to(room).emit('new_in_app_notification', notifPayload);
       });
     }
 
@@ -449,6 +467,112 @@ router.put('/me/members', protect, requireRole('resident'), async (req, res) => 
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   PUT /api/households/me/resubmit-id
+// @desc    Resubmit a new or clearer Valid ID following a needs_info request
+router.put('/me/resubmit-id', protect, requireRole('resident'), async (req, res) => {
+  try {
+    const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    if (!household) {
+      return res.status(404).json({ message: 'No household record linked to this resident account.' });
+    }
+
+    const { validIdType, validIdNumber, validIdImage } = req.body;
+    if (!validIdImage) {
+      return res.status(400).json({ message: 'Kinakailangan ang litrato ng Valid ID para sa beripikasyon.' });
+    }
+
+    if (validIdType) household.validIdType = validIdType;
+    if (validIdNumber !== undefined) household.validIdNumber = validIdNumber;
+    household.validIdImage = validIdImage;
+
+    // Revert status to pending and flag as resubmitted
+    household.verificationStatus = 'pending';
+    household.idResubmitted = true;
+    household.idResubmittedAt = new Date();
+    household.verificationNotes = `Bagong ${validIdType || 'Valid ID'} naisumite. Naghihintay ng muling beripikasyon.`;
+
+    // Recalculate priority index if needed
+    const pastDistributionsCount = await Distribution.countDocuments({ householdId: household._id });
+    const { priorityScore, priorityLevel } = calculatePriorityIndex(household, household.createdAt, pastDistributionsCount);
+    household.priorityScore = priorityScore;
+    household.priorityLevel = priorityLevel;
+
+    // Add in-app notification to resident
+    if (!household.inAppNotifications) household.inAppNotifications = [];
+    household.inAppNotifications.unshift({
+      id: Date.now().toString(),
+      title: '📷 Naisumite ang Bagong Valid ID',
+      message: 'Ang inyong bagong Valid ID ay matagumpay na naisumite sa Barangay. Kasalukuyan itong sinusuri muli ng Barangay Admin.',
+      type: 'verification',
+      targetTab: 'home',
+      actionTab: 'home',
+      createdAt: new Date(),
+      isRead: false,
+    });
+
+    await household.save();
+
+    // Create Audit Log
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: 'resident',
+      action: 'RESUBMIT_VALID_ID',
+      targetType: 'Household',
+      targetId: household._id.toString(),
+      notes: `${req.user.name} resubmitted a new Valid ID (${household.validIdType}). Verification status reverted to pending.`,
+    });
+
+    // Real-time socket updates
+    const io = req.app.get('io');
+    if (io) {
+      // Alert Admin room
+      io.to('admin_room').emit('household_id_resubmitted', {
+        householdId: household._id,
+        applicantName: req.user.name,
+        barangayCode: household.barangayCode,
+        validIdType: household.validIdType,
+        submittedAt: household.idResubmittedAt,
+      });
+      io.to('admin_room').emit('new_pending_verification', {
+        householdId: household._id,
+        applicantName: req.user.name,
+        barangayCode: household.barangayCode,
+      });
+
+      // Alert Barangay room
+      io.to(`barangay:${household.barangayCode}`).emit('household_id_resubmitted', {
+        householdId: household._id,
+        applicantName: req.user.name,
+        barangayCode: household.barangayCode,
+        validIdType: household.validIdType,
+      });
+
+      // Notify Resident socket
+      const verificationPayload = {
+        verificationStatus: 'pending',
+        idResubmitted: true,
+        verificationNotes: household.verificationNotes,
+        priorityLevel: household.priorityLevel,
+        priorityScore: household.priorityScore,
+        validIdType: household.validIdType,
+        householdId: household._id,
+      };
+
+      io.to(`household:${household._id}`).emit('verification_updated', verificationPayload);
+      io.to(`user:${req.user._id}`).emit('verification_updated', verificationPayload);
+    }
+
+    res.json({
+      success: true,
+      message: 'Matagumpay na naisumite ang inyong bagong Valid ID! Kasalukuyan na itong naghihintay ng muling beripikasyon mula sa Barangay Admin.',
+      household,
+    });
+  } catch (err) {
+    console.error('Error in /me/resubmit-id:', err);
+    res.status(500).json({ message: err.message || 'Server error while resubmitting ID.' });
   }
 });
 
@@ -673,7 +797,7 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
     if (!queryEvId) {
       // Only ever resolve to an event for THIS household's own barangay (or an explicit
       // city-wide event with no barangayCode / barangayCode 'ALL'). Never borrow an
-      // unrelated barangay's active event just because it happens to be the only one open —
+      // unrelated barangay's active event just because it happens to be the only one open -
       // that produced confusing "wrong barangay" rejections downstream instead of a clear
       // "no active event for your barangay" message.
       const barangayOrCityWide = household.barangayCode

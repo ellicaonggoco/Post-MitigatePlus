@@ -5,26 +5,36 @@ import { API_BASE_URL } from '../config.js';
 const SERVER_URL = API_BASE_URL.replace('/api', '');
 
 let socket = null;
+let currentHouseholdId = null;
+let currentBarangayCode = null;
+let currentUserId = null;
 
 /**
  * Initialize Socket.IO connection
  */
-export function initSocket(householdId = null, barangayCode = null) {
+export function initSocket(householdId = null, barangayCode = null, userId = null) {
+  if (householdId) currentHouseholdId = householdId;
+  if (barangayCode) currentBarangayCode = barangayCode;
+  if (userId) currentUserId = userId;
+
   if (!socket) {
     try {
       socket = io(SERVER_URL, {
         transports: ['websocket', 'polling'],
         autoConnect: true,
-        reconnectionAttempts: 10,
+        reconnectionAttempts: 15,
       });
 
       socket.on('connect', () => {
         console.log('[Socket.IO Mobile] Connected to server ID:', socket.id);
-        if (householdId) {
-          socket.emit('join_household_room', householdId);
+        if (currentHouseholdId) {
+          socket.emit('join_household_room', currentHouseholdId);
         }
-        if (barangayCode) {
-          socket.emit('join_barangay_room', barangayCode);
+        if (currentBarangayCode) {
+          socket.emit('join_barangay_room', currentBarangayCode);
+        }
+        if (currentUserId) {
+          socket.emit('join_user_room', currentUserId);
         }
       });
 
@@ -35,11 +45,10 @@ export function initSocket(householdId = null, barangayCode = null) {
       console.warn('[Socket.IO Mobile Warning] Socket initialization failed:', err.message);
     }
   } else {
-    if (householdId) {
-      socket.emit('join_household_room', householdId);
-    }
-    if (barangayCode) {
-      socket.emit('join_barangay_room', barangayCode);
+    if (socket.connected) {
+      if (currentHouseholdId) socket.emit('join_household_room', currentHouseholdId);
+      if (currentBarangayCode) socket.emit('join_barangay_room', currentBarangayCode);
+      if (currentUserId) socket.emit('join_user_room', currentUserId);
     }
   }
 
@@ -47,14 +56,23 @@ export function initSocket(householdId = null, barangayCode = null) {
 }
 
 export function joinHouseholdRoom(householdId) {
-  if (socket && householdId) {
+  if (householdId) currentHouseholdId = householdId;
+  if (socket && socket.connected && householdId) {
     socket.emit('join_household_room', householdId);
   }
 }
 
 export function joinBarangayRoom(barangayCode) {
-  if (socket && barangayCode) {
+  if (barangayCode) currentBarangayCode = barangayCode;
+  if (socket && socket.connected && barangayCode) {
     socket.emit('join_barangay_room', barangayCode);
+  }
+}
+
+export function joinUserRoom(userId) {
+  if (userId) currentUserId = userId;
+  if (socket && socket.connected && userId) {
+    socket.emit('join_user_room', userId);
   }
 }
 

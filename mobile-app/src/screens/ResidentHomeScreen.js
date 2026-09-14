@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
 import QRCodeVisual from '../components/QRCodeVisual';
 import NotificationModal from '../components/NotificationModal';
@@ -9,11 +10,12 @@ import ReportDamageScreen from './ReportDamageScreen';
 import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
-import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon, InfoIcon, AlertTriangleIcon } from '../components/AppIcons';
+import { PHILIPPINE_GOVERNMENT_IDS } from './ResidentRegisterScreen';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon, InfoIcon, AlertTriangleIcon, CameraIcon, CheckCircleIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
-import { fetchAnnouncements, fetchHouseholdProfile, markNotificationAsRead } from '../services/api';
+import { fetchAnnouncements, fetchHouseholdProfile, markNotificationAsRead, resubmitValidId } from '../services/api';
 import { initSocket, onNewAnnouncement, onVerificationUpdated, onRecoveryStatusUpdated, onDamageReportUpdated } from '../services/socketService';
 
 const STATUSBAR_INSET = getStatusBarHeight();
@@ -154,13 +156,141 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [lang, setLang] = useState(propLang || 'en');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [checkingActiveEvent, setCheckingActiveEvent] = useState(false);
-  const lastBackPressRef = useRef(0);
+  const [showResubmitIdModal, setShowResubmitIdModal] = useState(false);
+  const [newIdType, setNewIdType] = useState(household?.validIdType || 'Philippine National ID (PhilSys / PhilID)');
+  const [newIdNumber, setNewIdNumber] = useState(household?.validIdNumber || '');
+  const [newIdImage, setNewIdImage] = useState(null);
+  const [isSubmittingId, setIsSubmittingId] = useState(false);
+  const [showIdTypePickerModal, setShowIdTypePickerModal] = useState(false);
+
+  const handlePickIdCamera = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Camera' : 'Camera Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa camera upang makunan ang Valid ID.' : 'Camera permission is required to capture your Valid ID.'
+          );
+          return;
+        }
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.4,
+        maxWidth: 900,
+        maxHeight: 900,
+        base64: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setNewIdImage(asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri);
+      }
+    } catch (err) {
+      console.warn('Camera error:', err);
+      Alert.alert('Camera Error', err.message || 'Hindi mabuksan ang camera.');
+    }
+  };
+
+  const handlePickIdGallery = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Gallery' : 'Gallery Permission',
+            lang === 'tl' ? 'Kailangan ng pahintulot sa gallery upang makapili ng litrato.' : 'Gallery permission is required to select a photo.'
+          );
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.4,
+        maxWidth: 900,
+        maxHeight: 900,
+        base64: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setNewIdImage(asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri);
+      }
+    } catch (err) {
+      console.warn('Gallery error:', err);
+      Alert.alert('Gallery Error', err.message || 'Hindi mabuksan ang photo gallery.');
+    }
+  };
+
+  const handleSubmitResubmission = async () => {
+    if (!newIdImage) {
+      Alert.alert(
+        lang === 'tl' ? 'Kulang ang Dokumento' : 'Missing Document',
+        lang === 'tl'
+          ? 'Mangyaring kumuha ng litrato o pumili mula sa gallery ng inyong bagong Valid ID.'
+          : 'Please capture or choose a photo of your new Valid ID.'
+      );
+      return;
+    }
+
+    setIsSubmittingId(true);
+    try {
+      const res = await resubmitValidId(
+        {
+          validIdType: newIdType,
+          validIdNumber: newIdNumber.trim(),
+          validIdImage: newIdImage,
+        },
+        token
+      );
+
+      setShowResubmitIdModal(false);
+      setNewIdImage(null);
+
+      if (res?.household) {
+        setHouseholdData(res.household);
+      } else {
+        setHouseholdData((prev) => (prev ? {
+          ...prev,
+          verificationStatus: 'pending',
+          idResubmitted: true,
+          validIdType: newIdType,
+          validIdNumber: newIdNumber.trim(),
+          validIdImage: newIdImage,
+        } : prev));
+      }
+
+      Alert.alert(
+        lang === 'tl' ? 'Matagumpay na Naisumite!' : 'Successfully Resubmitted!',
+        lang === 'tl'
+          ? 'Naisumite na sa Barangay ang inyong bagong Valid ID para sa muling beripikasyon. Makakatanggap kayo ng notipikasyon kapag ito ay na-verify na ng Barangay Admin.'
+          : 'Your new Valid ID was submitted to the Barangay for re-verification. You will receive a notification once verified.'
+      );
+
+      refreshData(true);
+    } catch (err) {
+      Alert.alert(
+        lang === 'tl' ? 'Hindi Naisumite' : 'Submission Failed',
+        err.message || (lang === 'tl' ? 'Hindi makonekta sa server. Pakisubukan muli.' : 'Could not connect to server. Please try again.')
+      );
+    } finally {
+      setIsSubmittingId(false);
+    }
+  };
 
   // Hardware Back Press Navigation for Resident App
   useEffect(() => {
     const onHardwareBackPress = () => {
       // 1. Close any open modal or viewer first
+      if (showIdTypePickerModal) {
+        setShowIdTypePickerModal(false);
+        return true;
+      }
+      if (showResubmitIdModal) {
+        setShowResubmitIdModal(false);
+        return true;
+      }
       if (selectedAnnouncement) {
         setSelectedAnnouncement(null);
         return true;
@@ -344,9 +474,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         if (profile.household.inAppNotifications) {
           setInAppNotifs(profile.household.inAppNotifications);
         }
-        initSocket(profile.household._id, profile.household.barangayCode || '291');
+        initSocket(profile.household._id, profile.household.barangayCode || '291', user?._id || profile.household.headOfHouseholdUserId);
       } else {
-        initSocket(null, user?.barangayCode || '291');
+        initSocket(null, user?.barangayCode || '291', user?._id);
       }
       const currentBrgy = profile?.household?.barangayCode || user?.barangayCode || '291';
       const liveAnnouncements = await fetchAnnouncements(currentBrgy);
@@ -408,7 +538,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
     refreshData(false);
 
     try {
-      const socket = initSocket(household?._id, household?.barangayCode || user?.barangayCode || '291');
+      const socket = initSocket(household?._id, household?.barangayCode || user?.barangayCode || '291', user?._id);
       if (socket) {
         onNewAnnouncement((newAnn) => {
           setAnnouncements((prev) => [newAnn, ...prev]);
@@ -421,8 +551,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               title: notif.title || 'Notipikasyon',
               message: notif.message || (notif.priorityLevel ? `Priority: ${notif.priorityLevel}` : 'May bagong update sa inyong account'),
               type: notif.type || 'info',
-              targetTab: notif.targetTab || notif.actionTab || (notif.type === 'needs_info' ? 'settings' : 'home'),
-              actionTab: notif.actionTab || notif.targetTab || (notif.type === 'needs_info' ? 'settings' : 'home'),
+              targetTab: notif.targetTab || notif.actionTab || 'home',
+              actionTab: notif.actionTab || notif.targetTab || 'home',
               priorityLevel: notif.priorityLevel,
               createdAt: notif.createdAt || new Date(),
               isRead: false,
@@ -430,6 +560,23 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             ...prev
           ]);
           setHasUnreadNotifs(true);
+          if (notif.type === 'needs_info') {
+            refreshData(true);
+            Alert.alert(
+              lang === 'tl' ? 'Karagdagang Impormasyon Kailangan' : 'Additional Information Needed',
+              `${lang === 'tl' ? 'Hinihiling ng Barangay Official' : 'Barangay Official Requested'}: "${notif.message || (lang === 'tl' ? 'Mag-upload ng malinaw na Valid ID.' : 'Please upload a clear Valid ID.')}"`,
+              [
+                {
+                  text: lang === 'tl' ? '📷 Mag-upload ng Bagong ID' : '📷 Upload New ID',
+                  onPress: () => setShowResubmitIdModal(true),
+                },
+                {
+                  text: lang === 'tl' ? 'Mamaya Na' : 'Later',
+                  style: 'cancel',
+                },
+              ]
+            );
+          }
         });
         onVerificationUpdated((payload) => {
           const newStatus = typeof payload === 'string' ? payload : (payload?.verificationStatus || 'verified');
@@ -440,6 +587,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             verificationStatus: newStatus,
             priorityLevel: newPriority || prev.priorityLevel,
             verificationNotes: notes !== undefined ? notes : prev.verificationNotes,
+            idResubmitted: payload?.idResubmitted !== undefined ? payload.idResubmitted : prev.idResubmitted,
           } : prev));
           if (newStatus === 'verified') {
             Alert.alert(
@@ -449,12 +597,20 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 : `Your account has been verified by the Barangay Admin! Your Priority Level is [${newPriority || 'High'}]. Your Relief QR Pass is now active.`
             );
           } else if (newStatus === 'needs_info') {
-            const noteText = notes || (lang === 'tl' ? 'Mangyaring magsumite o mag-update ng karagdagang impormasyon o dokumento para sa inyong rehistrasyon.' : 'Please provide additional information or clear documents for your registration.');
+            const noteText = notes || (lang === 'tl' ? 'Mangyaring magsumite ng malinaw na Valid ID para sa inyong rehistrasyon.' : 'Please provide a clearer Valid ID for your registration.');
             Alert.alert(
               lang === 'tl' ? 'Karagdagang Impormasyon Kailangan' : 'Additional Information Needed',
-              lang === 'tl'
-                ? `Hinihiling ng Barangay Official: "${noteText}". Pumunta sa Settings o makipag-ugnayan sa Barangay Hall upang makumpleto ang inyong aplikasyon.`
-                : `The Barangay Official requested: "${noteText}". Please visit Settings or contact your Barangay Hall to complete your application.`
+              `${lang === 'tl' ? 'Hinihiling ng Barangay Official' : 'Barangay Official Requested'}: "${noteText}"`,
+              [
+                {
+                  text: lang === 'tl' ? '📷 Mag-upload ng Bagong ID' : '📷 Upload New ID',
+                  onPress: () => setShowResubmitIdModal(true),
+                },
+                {
+                  text: lang === 'tl' ? 'Mamaya Na' : 'Later',
+                  style: 'cancel',
+                },
+              ]
             );
           } else if (newStatus === 'rejected') {
             const noteText = notes || (lang === 'tl' ? 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID.' : 'Incomplete proof of residency or unclear ID.');
@@ -920,14 +1076,42 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, width: '100%' }}>
+                  {/* Dedicated Primary Button to Open Upload New ID Screen */}
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: '#C8102E',
+                      borderRadius: 14,
+                      paddingVertical: 14,
+                      paddingHorizontal: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                      gap: 8,
+                      marginTop: 14,
+                      width: '100%',
+                      shadowColor: '#C8102E',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 10,
+                      elevation: 5,
+                    }}
+                    onPress={() => setShowResubmitIdModal(true)}
+                    activeOpacity={0.85}
+                  >
+                    <CameraIcon size={18} color="#FFFFFF" />
+                    <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.2 }}>
+                      {lang === 'tl' ? '📷 Mag-upload ng Bagong Valid ID' : '📷 Upload New Valid ID'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, width: '100%' }}>
                     <TouchableOpacity
                       style={[styles.refreshStatusBtn, { flex: 1, backgroundColor: '#1C3F94' }]}
                       onPress={() => setActiveTab('settings')}
                       activeOpacity={0.85}
                     >
                       <Text style={[styles.refreshStatusBtnText, { color: '#FFFFFF' }]}>
-                        {lang === 'tl' ? '⚙️ Settings / Profile' : '⚙️ Settings / Profile'}
+                        {lang === 'tl' ? '⚙️ Settings' : '⚙️ Settings'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -974,7 +1158,79 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </View>
                 </View>
               ) : !isVerified ? (
-                <View style={styles.pendingVerificationFrame}>
+                householdData?.idResubmitted ? (
+                  <View style={[styles.pendingVerificationFrame, { borderColor: '#93C5FD', backgroundColor: '#EFF6FF' }]}>
+                    <View style={[styles.pendingIconWell, { backgroundColor: '#DBEAFE', borderColor: '#BFDBFE' }]}>
+                      <CheckCircleIcon size={30} color="#1D4ED8" />
+                    </View>
+                    <Text style={[styles.pendingNoticeTitle, { color: '#1E40AF' }]}>
+                      {lang === 'tl'
+                        ? 'NAISUMITE NA ANG BAGONG VALID ID'
+                        : 'NEW VALID ID RESUBMITTED'}
+                    </Text>
+                    <Text style={[styles.pendingNoticeSub, { color: '#1E3A8A' }]}>
+                      {lang === 'tl'
+                        ? 'Ang inyong bagong Valid ID ay matagumpay na naisumite sa Barangay at kasalukuyang sinusuri muli ng opisyal sa Web Admin. Lalabas agad dito ang inyong QR Relief Pass sa oras na maaprubahan ito.'
+                        : 'Your new Valid ID was successfully resubmitted and is currently under review by the Barangay Administrator. Your official QR Relief Pass will automatically activate once approved.'}
+                    </Text>
+
+                    <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#DBEAFE', borderColor: '#93C5FD' }]}>
+                      <ClockIcon size={13} color="#1D4ED8" />
+                      <Text style={[styles.pendingStatusBadgeText, { color: '#1E40AF' }]}>
+                        {lang === 'tl' ? 'KATAYUAN: NAGHIHINTAY NG RE-BERIPIKASYON' : 'STATUS: PENDING RE-VERIFICATION'}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, width: '100%' }}>
+                      <TouchableOpacity
+                        style={[styles.refreshStatusBtn, { flex: 1, backgroundColor: '#1C3F94' }]}
+                        onPress={() => setShowResubmitIdModal(true)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.refreshStatusBtnText, { color: '#FFFFFF' }]}>
+                          {lang === 'tl' ? '📷 Palitan ang ID' : '📷 Change ID'}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.refreshStatusBtn, { flex: 1 }]}
+                        onPress={async () => {
+                          setLoadingProfile(true);
+                          try {
+                            const profile = await fetchHouseholdProfile(token);
+                            if (profile?.household) {
+                              setHouseholdData(profile.household);
+                              if (profile.household.verificationStatus === 'verified') {
+                                Alert.alert(
+                                  lang === 'tl' ? 'Naaprubahan Na!' : 'Approved!',
+                                  lang === 'tl'
+                                    ? 'Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong relief allocation ay nakahanda na.'
+                                    : 'Your account has been verified by the Barangay Admin! Your relief allocation is prepared.'
+                                );
+                              } else {
+                                Alert.alert(
+                                  lang === 'tl' ? 'Kasalukuyang Nakabinbin' : 'Still Pending Approval',
+                                  lang === 'tl'
+                                    ? 'Nasa Verification Queue pa ang inyong rehistrasyon sa Barangay. Pakihintay ang pag-apruba ng Barangay Official sa Web Admin.'
+                                    : 'Your registration is still pending review in the Barangay Verification Queue.'
+                                );
+                              }
+                            }
+                          } catch (err) {
+                            Alert.alert('Notice', 'Unable to sync status. Please check your network connection.');
+                          } finally {
+                            setLoadingProfile(false);
+                          }
+                        }}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.refreshStatusBtnText}>
+                          {loadingProfile ? (lang === 'tl' ? 'Nagsi-sync...' : 'Syncing...') : (lang === 'tl' ? '🔄 I-refresh' : '🔄 Refresh')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.pendingVerificationFrame}>
                   <View style={styles.pendingIconWell}>
                     <ShieldCheckIcon size={30} color="#D97706" />
                   </View>
@@ -1046,6 +1302,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     </Text>
                   </TouchableOpacity>
                 </View>
+                )
               ) : isClaimed ? (
                 /* Stage 5: Claim Completed State */
                 <View style={styles.claimedSuccessFrame}>
@@ -2000,6 +2257,327 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </Text>
               </TouchableOpacity>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* 8. Resubmit Valid ID Modal */}
+      <Modal
+        visible={showResubmitIdModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowResubmitIdModal(false)}
+      >
+        <View style={styles.verifModalOverlay}>
+          <TouchableOpacity
+            style={styles.verifModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowResubmitIdModal(false)}
+          />
+          <View style={[styles.announcementDetailCard, { maxHeight: '90%', paddingBottom: 24 }]}>
+            <View style={styles.annDetailTopRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={[styles.annTagBadge, { backgroundColor: '#FEF0F2', borderColor: '#F5E0E3' }]}>
+                  <CameraIcon size={12} color="#C8102E" />
+                  <Text style={[styles.annTagText, { color: '#C8102E', fontWeight: '800' }]}>
+                    {lang === 'tl' ? 'PAGSUSURI NG ID' : 'ID VERIFICATION'}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.annDetailCloseBtn}
+                onPress={() => setShowResubmitIdModal(false)}
+                activeOpacity={0.8}
+              >
+                <CloseIcon size={16} color="#172B4D" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.annDetailTitle, { fontSize: 18, marginBottom: 8 }]}>
+              {lang === 'tl' ? 'Muling Magsumite ng Valid ID' : 'Resubmit Valid ID'}
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ flexGrow: 0 }}>
+              {/* Barangay Request Note Banner */}
+              <View style={{
+                backgroundColor: '#FFFBEB',
+                borderColor: '#FCD34D',
+                borderWidth: 1.5,
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 16,
+              }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#B45309', textTransform: 'uppercase', marginBottom: 2 }}>
+                  {lang === 'tl' ? 'Tala mula sa Barangay Official:' : 'Note from Barangay Official:'}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#92400E', lineHeight: 18 }}>
+                  {householdData?.verificationNotes || (lang === 'tl' ? 'Pakisumite muli ang malinaw na litrato ng inyong Valid ID.' : 'Please resubmit a clear photo of your Valid ID.')}
+                </Text>
+              </View>
+
+              {/* ID Type Selector */}
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0B1525', marginBottom: 6 }}>
+                {lang === 'tl' ? 'Uri ng Valid ID *' : 'Valid ID Type *'}
+              </Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#DDE4F0',
+                  borderWidth: 1.5,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 14,
+                }}
+                onPress={() => setShowIdTypePickerModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#0B1525', flex: 1 }} numberOfLines={1}>
+                  {newIdType}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#1C3F94', fontWeight: '700', marginLeft: 8 }}>
+                  {lang === 'tl' ? 'Palitan ▾' : 'Change ▾'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* ID Number (Optional) */}
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0B1525', marginBottom: 6 }}>
+                {lang === 'tl' ? 'Numero ng Valid ID (Opsyonal)' : 'Valid ID Number (Optional)'}
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#DDE4F0',
+                  borderWidth: 1.5,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 13,
+                  color: '#0B1525',
+                  marginBottom: 16,
+                }}
+                placeholder={lang === 'tl' ? 'Hal. 1234-5678-9012' : 'E.g., 1234-5678-9012'}
+                placeholderTextColor="#8A9BB8"
+                value={newIdNumber}
+                onChangeText={setNewIdNumber}
+              />
+
+              {/* ID Photo Upload Section */}
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0B1525', marginBottom: 6 }}>
+                {lang === 'tl' ? 'Litrato ng Bagong Valid ID *' : 'New Valid ID Photo *'}
+              </Text>
+
+              {newIdImage ? (
+                <View style={{ marginBottom: 16, alignItems: 'center' }}>
+                  <View style={{
+                    width: '100%',
+                    height: 180,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    borderColor: '#0D8A5A',
+                    borderWidth: 2,
+                    backgroundColor: '#000',
+                  }}>
+                    <Image source={{ uri: newIdImage }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, width: '100%' }}>
+                    <TouchableOpacity
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        backgroundColor: '#EDF1FB',
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        gap: 6,
+                      }}
+                      onPress={handlePickIdCamera}
+                    >
+                      <CameraIcon size={14} color="#1C3F94" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#1C3F94' }}>
+                        {lang === 'tl' ? 'Kumuha Muli' : 'Retake'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        backgroundColor: '#FEF0F2',
+                        borderRadius: 10,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onPress={() => setNewIdImage(null)}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#C8102E' }}>
+                        {lang === 'tl' ? 'Tanggalin' : 'Remove'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#1C3F94',
+                      borderWidth: 1.5,
+                      borderStyle: 'dashed',
+                      borderRadius: 14,
+                      paddingVertical: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                    }}
+                    onPress={handlePickIdCamera}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#EDF1FB', alignItems: 'center', justifyContent: 'center' }}>
+                      <CameraIcon size={20} color="#1C3F94" />
+                    </View>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#1C3F94' }}>
+                      {lang === 'tl' ? 'Kumuha sa Camera' : 'Take Photo'}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: '#8A9BB8' }}>
+                      {lang === 'tl' ? 'Gamitin ang camera' : 'Use camera'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#DDE4F0',
+                      borderWidth: 1.5,
+                      borderRadius: 14,
+                      paddingVertical: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                    }}
+                    onPress={handlePickIdGallery}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F3F6FC', alignItems: 'center', justifyContent: 'center' }}>
+                      <DownloadIcon size={18} color="#3D5070" />
+                    </View>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1525' }}>
+                      {lang === 'tl' ? 'Pumili sa Gallery' : 'Upload File'}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: '#8A9BB8' }}>
+                      {lang === 'tl' ? 'Photo Library' : 'Photo Library'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Guidelines */}
+              <View style={{
+                backgroundColor: '#F3F6FC',
+                borderRadius: 10,
+                padding: 10,
+                marginBottom: 16,
+              }}>
+                <Text style={{ fontSize: 11, color: '#3D5070', lineHeight: 16 }}>
+                  💡 {lang === 'tl'
+                    ? 'Tiyaking maliwanag, buo, at malinaw na nababasa ang inyong buong pangalan, petsa ng kapanganakan, at litrato upang maaprubahan agad ng opisyal.'
+                    : 'Make sure your full name, date of birth, and photo are completely legible and without reflection for quick approval.'}
+                </Text>
+              </View>
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                style={{
+                  backgroundColor: isSubmittingId ? '#8A9BB8' : '#C8102E',
+                  borderRadius: 14,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                  shadowColor: '#C8102E',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: isSubmittingId ? 0 : 0.3,
+                  shadowRadius: 10,
+                  elevation: 5,
+                }}
+                onPress={handleSubmitResubmission}
+                disabled={isSubmittingId}
+                activeOpacity={0.85}
+              >
+                {isSubmittingId ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <CheckIcon size={16} color="#FFFFFF" />
+                    <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.2 }}>
+                      {lang === 'tl' ? 'Isumite ang Bagong Valid ID' : 'Submit New Valid ID'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 9. ID Type Selection Submodal */}
+      <Modal
+        visible={showIdTypePickerModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowIdTypePickerModal(false)}
+      >
+        <View style={styles.verifModalOverlay}>
+          <TouchableOpacity
+            style={styles.verifModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowIdTypePickerModal(false)}
+          />
+          <View style={[styles.announcementDetailCard, { maxHeight: 420, paddingBottom: 16 }]}>
+            <View style={styles.annDetailTopRow}>
+              <Text style={[styles.annDetailTitle, { fontSize: 16 }]}>
+                {lang === 'tl' ? 'Pumili ng Uri ng Valid ID' : 'Select Valid ID Type'}
+              </Text>
+              <TouchableOpacity
+                style={styles.annDetailCloseBtn}
+                onPress={() => setShowIdTypePickerModal(false)}
+              >
+                <CloseIcon size={16} color="#172B4D" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ marginTop: 8 }}>
+              {PHILIPPINE_GOVERNMENT_IDS.map((idItem) => (
+                <TouchableOpacity
+                  key={idItem}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#EDF1FB',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: newIdType === idItem ? '#EDF1FB' : 'transparent',
+                    borderRadius: 8,
+                  }}
+                  onPress={() => {
+                    setNewIdType(idItem);
+                    setShowIdTypePickerModal(false);
+                  }}
+                >
+                  <Text style={{ fontSize: 13, color: newIdType === idItem ? '#1C3F94' : '#0B1525', fontWeight: newIdType === idItem ? '700' : '500', flex: 1 }}>
+                    {idItem}
+                  </Text>
+                  {newIdType === idItem && <CheckIcon size={16} color="#1C3F94" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
