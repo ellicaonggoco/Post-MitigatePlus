@@ -432,6 +432,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 ? `Matagumpay na na-verify ng Barangay Admin ang inyong account! Ang inyong Priority Level ay [${newPriority || 'High'}]. Ang inyong QR Relief Pass ay aktibo na.`
                 : `Your account has been verified by the Barangay Admin! Your Priority Level is [${newPriority || 'High'}]. Your Relief QR Pass is now active.`
             );
+          } else if (newStatus === 'rejected') {
+            const noteText = payload?.verificationNotes || (lang === 'tl' ? 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID.' : 'Incomplete proof of residency or unclear ID.');
+            Alert.alert(
+              lang === 'tl' ? 'Rehistrasyon Hindi Naaprubahan' : 'Registration Not Approved',
+              lang === 'tl'
+                ? `Hindi naaprubahan ng Barangay Admin ang inyong rehistrasyon. Dahilan: ${noteText}. Mangyaring makipag-ugnayan sa Barangay Hall.`
+                : `Your registration was not approved by the Barangay Admin. Reason: ${noteText}. Please contact your local Barangay Hall.`
+            );
           }
         });
         onRecoveryStatusUpdated((status) => {
@@ -521,6 +529,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const priorityScore = householdData?.priorityScore || 50;
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas (High)' : 'High Priority');
   const isVerified = householdData?.verificationStatus === 'verified';
+  const isRejected = householdData?.verificationStatus === 'rejected';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
   const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
@@ -677,18 +686,20 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         <TouchableOpacity
           style={[
             styles.verifCheckCircleBtn,
-            isVerified ? styles.verifCheckCircleSuccess : styles.verifCheckCirclePending,
+            isVerified ? styles.verifCheckCircleSuccess : isRejected ? { backgroundColor: 'rgba(239, 68, 68, 0.25)', borderWidth: 1, borderColor: '#F87171' } : styles.verifCheckCirclePending,
           ]}
           onPress={() => setShowVerifInfoModal(true)}
           activeOpacity={0.7}
           accessible={true}
           accessibilityRole="button"
-          accessibilityLabel={isVerified ? (lang === 'tl' ? 'Katayuan: Beripikadong Residente' : 'Status: Verified Resident') : (lang === 'tl' ? 'Katayuan: Nakabinbing Beripikasyon' : 'Status: Pending Verification')}
+          accessibilityLabel={isVerified ? (lang === 'tl' ? 'Katayuan: Beripikadong Residente' : 'Status: Verified Resident') : isRejected ? (lang === 'tl' ? 'Katayuan: Hindi Naaprubahan' : 'Status: Registration Rejected') : (lang === 'tl' ? 'Katayuan: Nakabinbing Beripikasyon' : 'Status: Pending Verification')}
           accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang tingnan ang impormasyon sa beripikasyon' : 'Double tap to view verification info'}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           {isVerified ? (
             <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
+          ) : isRejected ? (
+            <CloseIcon size={14} color="#FCA5A5" strokeWidth={2.8} />
           ) : (
             <ClockIcon size={15} color="#FCD34D" strokeWidth={2.2} />
           )}
@@ -799,7 +810,60 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               </View>
 
               {/* High-Contrast Interactive QR Block or Standby / Pending Banner */}
-              {!isVerified ? (
+              {isRejected ? (
+                <View style={[styles.pendingVerificationFrame, { backgroundColor: 'rgba(254, 242, 242, 0.95)', borderColor: '#FCA5A5' }]}>
+                  <View style={[styles.pendingIconWell, { backgroundColor: '#FEE2E2', borderColor: '#F87171' }]}>
+                    <CloseIcon size={24} color="#DC2626" strokeWidth={2.5} />
+                  </View>
+                  <Text style={[styles.pendingNoticeTitle, { color: '#991B1B' }]}>
+                    {lang === 'tl'
+                      ? 'REHISTRASYON HINDI NAAPRUBAHAN'
+                      : 'REGISTRATION NOT APPROVED'}
+                  </Text>
+                  <Text style={[styles.pendingNoticeSub, { color: '#7F1D1D' }]}>
+                    {lang === 'tl'
+                      ? `Dahilan mula sa Barangay: "${householdData?.verificationNotes || 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID document.'}" Mangyaring makipag-ugnayan sa inyong Barangay Hall.`
+                      : `Reason from Barangay: "${householdData?.verificationNotes || 'Incomplete address proof or unclear ID document.'}" Please contact your local Barangay Hall.`}
+                  </Text>
+
+                  <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }]}>
+                    <CloseIcon size={12} color="#DC2626" />
+                    <Text style={[styles.pendingStatusBadgeText, { color: '#991B1B' }]}>
+                      {lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN (REJECTED)' : 'STATUS: REGISTRATION REJECTED'}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.refreshStatusBtn, { backgroundColor: '#DC2626' }]}
+                    onPress={async () => {
+                      setLoadingProfile(true);
+                      try {
+                        const profile = await fetchHouseholdProfile(token);
+                        if (profile?.household) {
+                          setHouseholdData(profile.household);
+                          Alert.alert(
+                            lang === 'tl' ? 'Katayuan mula sa Barangay' : 'Status from Barangay',
+                            profile.household.verificationStatus === 'verified'
+                              ? (lang === 'tl' ? 'Naaprubahan na ang inyong account!' : 'Your account is now verified!')
+                              : profile.household.verificationStatus === 'rejected'
+                              ? (lang === 'tl' ? `Hindi naaprubahan. Dahilan: ${profile.household.verificationNotes || 'Kulang sa patunay o dokumento'}.` : `Registration rejected. Reason: ${profile.household.verificationNotes || 'Incomplete documents'}.`)
+                              : (lang === 'tl' ? 'Nasa Verification Queue pa ang inyong rehistrasyon.' : 'Registration still pending review.')
+                          );
+                        }
+                      } catch (err) {
+                        Alert.alert('Notice', 'Unable to sync status.');
+                      } finally {
+                        setLoadingProfile(false);
+                      }
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.refreshStatusBtnText}>
+                      {lang === 'tl' ? '🔄 I-refresh ang Katayuan' : '🔄 Refresh Status'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : !isVerified ? (
                 <View style={styles.pendingVerificationFrame}>
                   <View style={styles.pendingIconWell}>
                     <ShieldCheckIcon size={30} color="#D97706" />
@@ -1659,9 +1723,18 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             onPress={() => setShowVerifInfoModal(false)}
           />
           <View style={styles.verifInfoCard}>
-            <View style={[styles.verifInfoIconCircle, isVerified ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' } : { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }]}>
+            <View style={[
+              styles.verifInfoIconCircle,
+              isVerified
+                ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' }
+                : isRejected
+                ? { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }
+                : { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }
+            ]}>
               {isVerified ? (
                 <CheckIcon size={24} color="#16A34A" strokeWidth={2.5} />
+              ) : isRejected ? (
+                <CloseIcon size={24} color="#DC2626" strokeWidth={2.5} />
               ) : (
                 <ClockIcon size={24} color="#D97706" strokeWidth={2.2} />
               )}
@@ -1670,12 +1743,32 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             <Text style={styles.verifInfoTitle}>
               {isVerified
                 ? (lang === 'tl' ? 'Beripikadong Residente' : 'Verified Household')
+                : isRejected
+                ? (lang === 'tl' ? 'Rehistrasyon Hindi Naaprubahan' : 'Registration Rejected')
                 : (lang === 'tl' ? 'Hindi Pa Beripikado' : 'Pending Verification')}
             </Text>
 
-            <View style={[styles.verifStatusTag, isVerified ? { backgroundColor: '#DCFCE7' } : { backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#FDE68A' }]}>
-              <Text style={[styles.verifStatusTagText, isVerified ? { color: '#15803D' } : { color: '#B45309' }]}>
-                {isVerified ? 'STATUS: VERIFIED' : 'STATUS: PENDING REVIEW'}
+            <View style={[
+              styles.verifStatusTag,
+              isVerified
+                ? { backgroundColor: '#DCFCE7' }
+                : isRejected
+                ? { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FCA5A5' }
+                : { backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#FDE68A' }
+            ]}>
+              <Text style={[
+                styles.verifStatusTagText,
+                isVerified
+                  ? { color: '#15803D' }
+                  : isRejected
+                  ? { color: '#B91C1C' }
+                  : { color: '#B45309' }
+              ]}>
+                {isVerified
+                  ? 'STATUS: VERIFIED'
+                  : isRejected
+                  ? 'STATUS: REJECTED'
+                  : 'STATUS: PENDING REVIEW'}
               </Text>
             </View>
 
@@ -1684,6 +1777,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 ? (lang === 'tl'
                     ? 'Ang inyong pamilya ay opisyal nang beripikado ng Barangay 291 at LGU Maynila. Aktibo ang inyong QR Pass para sa agarang pagtanggap ng ayuda at emergency services.'
                     : 'Your household is officially verified by Barangay 291 and City Government of Manila. Your Digital Relief Pass is fully active.')
+                : isRejected
+                ? (lang === 'tl'
+                    ? `Ang inyong rehistrasyon ay hindi naaprubahan ng Barangay Council.\n\nDahilan: "${householdData?.verificationNotes || 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID.'}"\n\nMangyaring bumisita sa inyong Barangay Hall dala ang inyong orihinal na Valid ID at patunay ng tirahan upang maasikaso ang inyong account.`
+                    : `Your registration was not approved by the Barangay Council.\n\nReason: "${householdData?.verificationNotes || 'Incomplete proof of residency or unclear ID document.'}"\n\nPlease visit your Barangay Hall with your original Valid ID and proof of residency to resolve your account.`)
                 : (lang === 'tl'
                     ? 'Kasalukuyang sinusuri ng Barangay Council ang inyong rehistrasyon sa Verification Queue sa Web Admin. Awtomatikong magiging beripikado at magiging aktibo ang inyong QR Pass oras na maaprubahan.'
                     : 'Your household registration is currently being reviewed by the Barangay Council in the Verification Queue on the Web Admin. Your Digital Relief QR Pass will automatically activate once approved by the Barangay Official.')}
