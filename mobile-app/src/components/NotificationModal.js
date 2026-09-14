@@ -50,6 +50,11 @@ export default function NotificationModal({
     handleModalClose();
     if (targetTab && onNavigate) {
       const clean = String(targetTab).toLowerCase().trim();
+      // Pass needs_info_upload as-is so ResidentHomeScreen can intercept it and open the modal
+      if (clean === 'needs_info_upload') {
+        onNavigate('needs_info_upload');
+        return;
+      }
       const destination = (clean === 'distribution' || clean === 'history' || clean === 'claim' || clean === 'claims' || clean === 'schedule')
         ? 'history'
         : (clean === 'request' || clean === 'assistance' || clean === 'livelihood')
@@ -67,6 +72,9 @@ export default function NotificationModal({
 
   const getActionLabel = (targetTab) => {
     const clean = String(targetTab || '').toLowerCase().trim();
+    if (clean === 'needs_info_upload') {
+      return lang === 'tl' ? 'Mag-upload ng Bagong Valid ID' : 'Upload New Valid ID';
+    }
     if (clean === 'settings' || clean === 'profile' || clean === 'account') {
       return lang === 'tl' ? 'Pumunta sa Settings / Profile' : 'Go to Settings / Profile';
     }

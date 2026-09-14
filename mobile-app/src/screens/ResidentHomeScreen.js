@@ -570,7 +570,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               `${lang === 'tl' ? 'Hinihiling ng Barangay Official' : 'Barangay Official Requested'}: "${notif.message || (lang === 'tl' ? 'Mag-upload ng malinaw na Valid ID.' : 'Please upload a clear Valid ID.')}"`,
               [
                 {
-                  text: lang === 'tl' ? '📷 Mag-upload ng Bagong ID' : '📷 Upload New ID',
+                  text: lang === 'tl' ? 'Mag-upload ng Bagong ID' : 'Upload New ID',
                   onPress: () => setShowResubmitIdModal(true),
                 },
                 {
@@ -606,7 +606,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               `${lang === 'tl' ? 'Hinihiling ng Barangay Official' : 'Barangay Official Requested'}: "${noteText}"`,
               [
                 {
-                  text: lang === 'tl' ? '📷 Mag-upload ng Bagong ID' : '📷 Upload New ID',
+                  text: lang === 'tl' ? 'Mag-upload ng Bagong ID' : 'Upload New ID',
                   onPress: () => setShowResubmitIdModal(true),
                 },
                 {
@@ -1069,7 +1069,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                     activeOpacity={0.85}
                   >
                     <Text style={styles.refreshStatusBtnText}>
-                      {lang === 'tl' ? '🔄 I-refresh ang Katayuan' : '🔄 Refresh Status'}
+                      {lang === 'tl' ? 'I-refresh ang Katayuan' : 'Refresh Status'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1124,7 +1124,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   >
                     <CameraIcon size={18} color="#FFFFFF" />
                     <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.2 }}>
-                      {lang === 'tl' ? '📷 Mag-upload ng Bagong Valid ID' : '📷 Upload New Valid ID'}
+                      {lang === 'tl' ? 'Mag-upload ng Bagong Valid ID' : 'Upload New Valid ID'}
                     </Text>
                   </TouchableOpacity>
 
@@ -1135,7 +1135,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                       activeOpacity={0.85}
                     >
                       <Text style={[styles.refreshStatusBtnText, { color: '#FFFFFF' }]}>
-                        {lang === 'tl' ? '⚙️ Settings' : '⚙️ Settings'}
+                        {lang === 'tl' ? 'Mga Setting' : 'Settings'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1212,7 +1212,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                         activeOpacity={0.85}
                       >
                         <Text style={[styles.refreshStatusBtnText, { color: '#FFFFFF' }]}>
-                          {lang === 'tl' ? '📷 Palitan ang ID' : '📷 Change ID'}
+                          {lang === 'tl' ? 'Palitan ang ID' : 'Change ID'}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -2623,8 +2623,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               : n.type === 'needs_info'
               ? (lang === 'tl' ? 'Kailangan ng Aksyon' : 'Action Required')
               : (lang === 'tl' ? 'Opisyal' : 'Official'),
-            targetTab: n.targetTab || n.actionTab || (n.type === 'needs_info' ? 'settings' : 'home'),
-            actionTab: n.actionTab || n.targetTab || (n.type === 'needs_info' ? 'settings' : 'home'),
+            targetTab: n.targetTab || n.actionTab || (n.type === 'needs_info' ? 'needs_info_upload' : 'home'),
+            actionTab: n.actionTab || n.targetTab || (n.type === 'needs_info' ? 'needs_info_upload' : 'home'),
             type: n.type === 'needs_info' ? 'urgent' : (n.type === 'priority_update' ? 'advisory' : 'urgent'),
             unread: isNotifUnread(n),
           })),
@@ -2642,7 +2642,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         onMarkAllRead={handleMarkAllAsRead}
         onMarkRead={handleMarkNotifAsRead}
         onNavigate={(targetTab) => {
-          if (targetTab) {
+          if (targetTab === 'needs_info_upload') {
+            setShowNotifModal(false);
+            setShowResubmitIdModal(true);
+          } else if (targetTab) {
             navigateToTab(targetTab);
             setShowNotifModal(false);
           }
