@@ -55,6 +55,18 @@ async function findExistingUserWithIdentifier(identifier, excludeUserId = null) 
 const { sendSMS } = require('../services/smsService');
 const { sendEmailOTP } = require('../services/emailService');
 
+// @route   GET /api/auth/test-email
+// @desc    Diagnostic to test Gmail SMTP on deployed server
+router.get('/test-email', async (req, res) => {
+  try {
+    const to = req.query.to || 'shandarating@gmail.com';
+    const result = await sendEmailOTP(to, '123456');
+    res.json({ to, result, envUser: process.env.GMAIL_USER });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // @route   POST /api/auth/send-otp
 // @desc    Send a 6-digit OTP code for registration or password reset
 router.post('/send-otp', async (req, res) => {
