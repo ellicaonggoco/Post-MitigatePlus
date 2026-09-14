@@ -123,7 +123,7 @@ export default function StaffLoginScreen({ onLoginSuccess, onBack }) {
             style={styles.input}
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
-            placeholder="Enter Username"
+            placeholder="Username"
             placeholderTextColor="#334155"
             keyboardType="email-address"
             autoCapitalize="none"

@@ -920,7 +920,7 @@ export default function ResidentRegisterScreen({ onRegisterSuccess, onBack, lang
                       <SearchIcon size={15} color="#1C3F94" />
                       <TextInput
                         style={styles.brgySearchInput}
-                        placeholder={lang === 'tl' ? 'Ilagay ang barangay number o distrito (291)...' : 'Type barangay number or district (291)...'}
+                        placeholder={lang === 'tl' ? 'Barangay 291 o distrito...' : 'Barangay 291 or district...'}
                         placeholderTextColor="#334155"
                         value={brgySearch}
                         onChangeText={setBrgySearch}

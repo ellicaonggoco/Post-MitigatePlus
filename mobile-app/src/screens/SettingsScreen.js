@@ -1674,7 +1674,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               <View style={{ marginTop: 6, marginBottom: 12 }}>
                 <NeumorphicInput
                   label={lang === 'tl' ? 'Kasalukuyang Account Password' : 'Current Account Password'}
-                  placeholder={lang === 'tl' ? 'Ilagay ang inyong password...' : 'Enter your account password...'}
+                  placeholder="••••••••"
                   secureTextEntry={true}
                   value={renewPassword}
                   onChangeText={(val) => {
