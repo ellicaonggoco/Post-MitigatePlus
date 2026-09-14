@@ -177,6 +177,9 @@ app.get('/api/health', (req, res) => {
     scope: 'Manila City Post-Disaster Recovery System',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
+    hasGmailUser: !!process.env.GMAIL_USER,
+    hasGmailPass: !!process.env.GMAIL_APP_PASSWORD,
+    gmailAccount: process.env.GMAIL_USER ? process.env.GMAIL_USER.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'none',
   });
 });
 
