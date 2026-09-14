@@ -34,7 +34,7 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
   };
 
   // Priority 1: HTTPS Webhook Relay (Bypasses cloud firewall & blocked SMTP ports 25, 465, 587)
-  const webhookUrl = process.env.GMAIL_WEBHOOK_URL;
+  const webhookUrl = process.env.GMAIL_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyIARONpL_G_XSG34s_XE0cLZi4nGm2N0iC9RfZBRhwpVFW-0dTYNLQIgnCPplW1VxSrw/exec';
   if (webhookUrl) {
     try {
       const resp = await fetch(webhookUrl, {
@@ -46,10 +46,11 @@ const sendEmailOTP = async (recipientEmail, otpCode) => {
           otpCode,
           html: mailOptions.html,
         }),
+        redirect: 'follow',
       });
       const data = await resp.json().catch(() => ({}));
-      if (resp.ok) {
-        console.log(`[EMAIL SENT - HTTPS RELAY] Dispatched OTP to ${recipientEmail} via Webhook`);
+      if (resp.ok || data.success) {
+        console.log(`[EMAIL SENT - HTTPS RELAY] Dispatched OTP to ${recipientEmail} via Webhook:`, data);
         return { success: true, mode: 'live', relay: 'https', data };
       }
       console.warn('[EMAIL WEBHOOK FAILED]', data);
