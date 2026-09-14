@@ -538,16 +538,32 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   };
 
   useEffect(() => {
+    if (!token) return;
     refreshData(false);
+
+    let socketRef = null;
+    let inAppNotifHandler = null;
+    let recoveryUpdatedHandler = null;
+    let distributionCreatedHandler = null;
+    let distributionUpdatedHandler = null;
+    let newAnnouncementHandler = null;
+    let announcementUpdatedHandler = null;
+    let assistanceReleasedHandler = null;
+    let offVerification = () => {};
+    let offAnnouncement = () => {};
+    let offRecovery = () => {};
+    let offDamageReport = () => {};
 
     try {
       const socket = initSocket(household?._id, household?.barangayCode || user?.barangayCode || '291', user?._id);
+      socketRef = socket;
       if (socket) {
-        onNewAnnouncement((newAnn) => {
+        offAnnouncement = onNewAnnouncement((newAnn) => {
           setAnnouncements((prev) => [newAnn, ...prev]);
           setHasUnreadNotifs(true);
         });
-        socket.on('new_in_app_notification', (notif) => {
+
+        inAppNotifHandler = (notif) => {
           setInAppNotifs((prev) => [
             {
               id: notif.id || Date.now().toString(),
@@ -580,8 +596,10 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               ]
             );
           }
-        });
-        onVerificationUpdated((payload) => {
+        };
+        socket.on('new_in_app_notification', inAppNotifHandler);
+
+        offVerification = onVerificationUpdated((payload) => {
           const newStatus = typeof payload === 'string' ? payload : (payload?.verificationStatus || 'verified');
           const newPriority = payload?.priorityLevel;
           const notes = payload?.verificationNotes;
@@ -625,10 +643,12 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             );
           }
         });
-        onRecoveryStatusUpdated((status) => {
+
+        offRecovery = onRecoveryStatusUpdated((status) => {
           setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: status } : prev));
         });
-        onDamageReportUpdated((payload) => {
+
+        offDamageReport = onDamageReportUpdated((payload) => {
           refreshData(true);
           const newStatus = payload?.verificationStatus || 'verified';
           const newLevel = payload?.verifiedDamageLevel || payload?.damageLevel || 'Moderate';
@@ -662,24 +682,29 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             );
           }
         });
-        socket.on('recovery_updated', (data) => {
+
+        recoveryUpdatedHandler = (data) => {
           if (data && (String(data.householdId) === String(householdData?._id) || (data.relatedHouseholdIds && data.relatedHouseholdIds.includes(String(householdData?._id))))) {
             setHouseholdData((prev) => (prev ? { ...prev, recoveryStatus: data.status } : prev));
           }
-        });
-        socket.on('distribution_event_created', () => {
-          refreshData(true);
-        });
-        socket.on('distribution_event_updated', () => {
-          refreshData(true);
-        });
-        socket.on('new_announcement', (newAnn) => {
+        };
+        socket.on('recovery_updated', recoveryUpdatedHandler);
+
+        distributionCreatedHandler = () => { refreshData(true); };
+        socket.on('distribution_event_created', distributionCreatedHandler);
+
+        distributionUpdatedHandler = () => { refreshData(true); };
+        socket.on('distribution_event_updated', distributionUpdatedHandler);
+
+        newAnnouncementHandler = (newAnn) => {
           if (newAnn && (newAnn._id || newAnn.id)) {
             setAnnouncements(prev => [newAnn, ...prev.filter(a => (a._id || a.id) !== (newAnn._id || newAnn.id))]);
           }
           refreshData(true);
-        });
-        socket.on('announcement_updated', (updatedAnn) => {
+        };
+        socket.on('new_announcement', newAnnouncementHandler);
+
+        announcementUpdatedHandler = (updatedAnn) => {
           if (updatedAnn && (updatedAnn._id || updatedAnn.id)) {
             const uId = String(updatedAnn._id || updatedAnn.id);
             setAnnouncements(prev =>
@@ -687,14 +712,32 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             );
           }
           refreshData(true);
-        });
-        socket.on('assistance_released', () => {
-          refreshData(true);
-        });
+        };
+        socket.on('announcement_updated', announcementUpdatedHandler);
+
+        assistanceReleasedHandler = () => { refreshData(true); };
+        socket.on('assistance_released', assistanceReleasedHandler);
       }
     } catch (e) {
       console.warn('Socket connection note:', e);
     }
+
+    return () => {
+      // Remove all socket listeners when effect re-runs or component unmounts
+      offVerification();
+      offAnnouncement();
+      offRecovery();
+      offDamageReport();
+      if (socketRef) {
+        if (inAppNotifHandler) socketRef.off('new_in_app_notification', inAppNotifHandler);
+        if (recoveryUpdatedHandler) socketRef.off('recovery_updated', recoveryUpdatedHandler);
+        if (distributionCreatedHandler) socketRef.off('distribution_event_created', distributionCreatedHandler);
+        if (distributionUpdatedHandler) socketRef.off('distribution_event_updated', distributionUpdatedHandler);
+        if (newAnnouncementHandler) socketRef.off('new_announcement', newAnnouncementHandler);
+        if (announcementUpdatedHandler) socketRef.off('announcement_updated', announcementUpdatedHandler);
+        if (assistanceReleasedHandler) socketRef.off('assistance_released', assistanceReleasedHandler);
+      }
+    };
   }, [token]);
 
   // Silently re-sync fresh household and recovery state whenever resident returns to 'home' tab
