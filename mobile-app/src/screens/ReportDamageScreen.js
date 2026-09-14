@@ -150,6 +150,8 @@ const getDamagePoints = (level) => {
   }
 };
 
+let _cachedDamageReports = null;
+
 export default function ReportDamageScreen({ token, user, householdData, lang = 'en', onBack, onSubmitSuccess }) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
@@ -160,9 +162,23 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       ? `${user.address}, Barangay ${user.barangayCode || '291'}, Manila`
       : '142 Quirino Ave, Purok 3, Barangay 291, Manila';
 
-  const [existingReports, setExistingReports] = useState([]);
+  const initialReports = (householdData?.damageReports && householdData.damageReports.length > 0)
+    ? householdData.damageReports
+    : (householdData?.latestDamageReport
+      ? [householdData.latestDamageReport]
+      : (_cachedDamageReports && _cachedDamageReports.length > 0 ? _cachedDamageReports : []));
+
+  const hasKnownNoReport = !!(
+    householdData &&
+    !householdData.latestDamageReport &&
+    (!householdData.damageReports || householdData.damageReports.length === 0) &&
+    (!householdData.damageReportStatus || householdData.damageReportStatus === 'none') &&
+    (!_cachedDamageReports || _cachedDamageReports.length === 0)
+  );
+
+  const [existingReports, setExistingReports] = useState(initialReports);
   const [selectedReportIndex, setSelectedReportIndex] = useState(0);
-  const [loadingExisting, setLoadingExisting] = useState(true);
+  const [loadingExisting, setLoadingExisting] = useState(initialReports.length === 0 && !hasKnownNoReport);
   const [showNewForm, setShowNewForm] = useState(false);
   const [previewPhotoModal, setPreviewPhotoModal] = useState(null);
 
@@ -185,9 +201,12 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       return;
     }
     try {
-      if (!isPull) setLoadingExisting(true);
+      if (!isPull && existingReports.length === 0 && !hasKnownNoReport) {
+        setLoadingExisting(true);
+      }
       const data = await fetchMyDamageReports(token);
       if (Array.isArray(data)) {
+        _cachedDamageReports = data;
         setExistingReports(data);
       }
     } catch (e) {
@@ -212,6 +231,20 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       if (typeof unsub === 'function') unsub();
     };
   }, [token]);
+
+  useEffect(() => {
+    if (existingReports.length === 0) {
+      if (householdData?.damageReports && householdData.damageReports.length > 0) {
+        _cachedDamageReports = householdData.damageReports;
+        setExistingReports(householdData.damageReports);
+        setLoadingExisting(false);
+      } else if (householdData?.latestDamageReport) {
+        _cachedDamageReports = [householdData.latestDamageReport];
+        setExistingReports([householdData.latestDamageReport]);
+        setLoadingExisting(false);
+      }
+    }
+  }, [householdData]);
 
   useEffect(() => {
     if (householdData?.address || user?.address) {
@@ -487,6 +520,54 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
     ? (existingReports[selectedReportIndex] || existingReports[0])
     : null;
   const hasExisting = !!activeReport;
+
+  // ── Render Case 0: Initial Loading Gate (Prevents premature flash of submission form) ──
+  if (loadingExisting && !hasExisting) {
+    return (
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#6E071A', '#C8102E', '#9E0B24']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ marginBottom: 20 }}
+        >
+          <View style={{ height: 3, backgroundColor: '#C9A84C' }} />
+          <View style={{ height: Platform.OS === 'web' ? 0 : RESPONSIVE.topSafe + 4 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 12 }}>
+            <TouchableOpacity
+              onPress={onBack}
+              style={styles.headerBackBtn}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Bumalik sa dashboard' : 'Go back to dashboard'}
+            >
+              <ArrowLeftIcon size={18} color="#FFFFFF" strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+                {lang === 'tl' ? 'Katayuan ng Pinsala' : 'Damage Assessment'}
+              </Text>
+            </View>
+            <View style={{ width: 36, height: 36 }} />
+          </View>
+          <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
+            <Text style={styles.headerKicker}>
+              {lang === 'tl' ? 'OPISYAL NA STATUS SA BARANGAY' : 'BARANGAY DISASTER AUDIT'}
+            </Text>
+            <Text style={styles.headerTitleLarge}>
+              {lang === 'tl' ? 'Pagsusuri sa Pinsala ng Bahay' : 'Structural Damage Assessment'}
+            </Text>
+          </View>
+        </LinearGradient>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 }}>
+          <ActivityIndicator size="large" color="#C8102E" />
+          <Text style={{ marginTop: 14, fontSize: 13.5, color: '#3D5070', fontWeight: '600' }}>
+            {lang === 'tl' ? 'Sinusuri ang rekord ng pinsala...' : 'Checking damage assessment records...'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   // ── Render Case 1: Existing Report Status View ──
   if (hasExisting && !showNewForm) {

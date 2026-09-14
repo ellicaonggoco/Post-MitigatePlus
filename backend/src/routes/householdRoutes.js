@@ -621,7 +621,9 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
       }
     }
 
-    const latestDamageReport = await DamageReport.findOne({ householdId: household._id }).sort({ reportedAt: -1 });
+    const damageReports = await DamageReport.find({ householdId: household._id }).sort({ reportedAt: -1 });
+    const latestDamageReport = damageReports && damageReports.length > 0 ? damageReports[0] : null;
+    householdObj.damageReports = damageReports || [];
     householdObj.latestDamageReport = latestDamageReport || null;
     householdObj.damageReportStatus = latestDamageReport ? latestDamageReport.verificationStatus : 'none';
 
