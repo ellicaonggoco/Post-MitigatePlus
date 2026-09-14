@@ -474,12 +474,15 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       const profile = await fetchHouseholdProfile(token);
       if (profile?.household) {
         setHouseholdData(profile.household);
-        if (profile.household.inAppNotifications) {
-          setInAppNotifs(profile.household.inAppNotifications);
+        if (Array.isArray(profile.household.inAppNotifications)) {
+          setInAppNotifs((prev) => {
+            const incoming = profile.household.inAppNotifications;
+            if (Array.isArray(prev) && prev.length === incoming.length && (incoming.length === 0 || incoming[0]?.id === prev[0]?.id || incoming[0]?._id === prev[0]?._id)) {
+              return prev;
+            }
+            return incoming;
+          });
         }
-        initSocket(profile.household._id, profile.household.barangayCode || '291', user?._id || profile.household.headOfHouseholdUserId);
-      } else {
-        initSocket(null, user?.barangayCode || '291', user?._id);
       }
       const currentBrgy = profile?.household?.barangayCode || user?.barangayCode || '291';
       const liveAnnouncements = await fetchAnnouncements(currentBrgy);
@@ -487,7 +490,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         setAnnouncements(liveAnnouncements);
       }
     } catch (err) {
-      console.warn('Profile sync fallback:', err);
+      console.warn('Profile sync fallback:', err?.message || err);
     } finally {
       setRefreshing(false);
       setLoadingProfile(false);

@@ -587,6 +587,7 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
 
     const pastRequests = await AssistanceRequest.find({ householdId: household._id });
     const pastDistributions = await Distribution.find({ householdId: household._id });
+    const hasPastClaims = Array.isArray(pastDistributions) && pastDistributions.length > 0;
 
     const PolicyConfig = require('../models/PolicyConfig');
     const policy = await PolicyConfig.findOne({ key: 'relief_allocation' });
