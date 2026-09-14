@@ -515,7 +515,10 @@ export default function VerificationQueue() {
           ) : (
             <div style={{ display: 'grid', gap: '16px' }}>
               {currentQueueItems.map((hh, idx) => {
-                const hasOverlap = hh.registrationType === 'join_existing' || hh.linkedHouseholdId;
+                const hasOverlap = hh.registrationType === 'join_existing' || hh.linkedHouseholdId || hh.addressOverlapDetected;
+                const matchedHeadName = hh.matchedHousehold?.headOfHouseholdUserId?.name || hh.linkedHouseholdId?.headOfHouseholdUserId?.name || 'Registered Resident';
+                const matchedAddress = hh.matchedHousehold?.address || hh.linkedHouseholdId?.address || hh.address;
+                const matchedPurok = hh.matchedHousehold?.purok || hh.linkedHouseholdId?.purok || hh.purok;
                 return (
                   <MotionCard
                     key={hh._id}
@@ -540,6 +543,11 @@ export default function VerificationQueue() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {hasOverlap && (
+                          <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 700 }}>
+                            <AlertTriangle size={12} /> Matching Address
+                          </span>
+                        )}
                         <span className={`badge badge-${hh.priorityLevel?.toLowerCase() === 'high' ? 'danger' : hh.priorityLevel?.toLowerCase() === 'medium' ? 'warning' : 'success'}`}>
                           {hh.priorityLevel} · {hh.priorityScore} pts
                         </span>
@@ -563,16 +571,26 @@ export default function VerificationQueue() {
                       </div>
                     )}
 
-                    {/* Overlap Warning */}
+                    {/* Overlap / Matching Resident Address Warning */}
                     {hasOverlap && (
                       <div style={{
-                        background: 'rgba(232,148,15,0.1)', border: '1px solid rgba(232,148,15,0.3)',
-                        borderRadius: 'var(--radius-inner)', padding: '10px 14px', marginBottom: '14px',
-                        display: 'flex', alignItems: 'flex-start', gap: '10px', color: '#8A5A08', fontSize: '13px',
+                        background: '#FFFBEB', border: '1.5px solid #FCD34D',
+                        borderRadius: 'var(--radius-inner)', padding: '12px 16px', marginBottom: '14px',
+                        display: 'flex', alignItems: 'flex-start', gap: '12px', color: '#92400E', fontSize: '13px',
+                        boxShadow: '0 1px 3px rgba(217, 119, 6, 0.08)',
                       }}>
-                        <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
-                        <div>
-                          <strong>Address overlap:</strong> another household record already exists at this exact address/purok. Confirm whether this is a genuinely separate family or a duplicate attempt before approving.
+                        <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, color: '#B45309', marginBottom: '3px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>⚠️ MATCHING RESIDENT ADDRESS DETECTED</span>
+                            <span style={{ fontSize: '10.5px', background: '#FDE68A', color: '#78350F', padding: '1px 7px', borderRadius: 999, fontWeight: 700 }}>
+                              Anti-Duplicate Address Engine
+                            </span>
+                          </div>
+                          <div>
+                            Natukoy ng backend address collision engine na ang tirahang ito (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) ay may katugmang rehistradong sambahayan sa ilalim ni <strong>{matchedHeadName}</strong>. 
+                            Suriin kung ito ay lehitimong hiwalay na pamilya/umuupa o duplicate aid registration bago aprubahan.
+                          </div>
                         </div>
                       </div>
                     )}

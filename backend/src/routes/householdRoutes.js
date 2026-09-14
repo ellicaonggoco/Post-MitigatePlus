@@ -123,8 +123,43 @@ function decodeViaQrServer(buffer) {
   });
 }
 
+// @route   GET /api/households/check-address-collision
+// @desc    Check if an address/purok is already registered in a barangay (Matching Address Engine)
+router.get('/check-address-collision', async (req, res) => {
+  try {
+    const { barangayCode, address, purok } = req.query;
+    if (!barangayCode || !address) {
+      return res.status(400).json({ message: 'barangayCode and address are required' });
+    }
+
+    const cleanAddress = address.trim();
+    const cleanPurok = (purok || '').trim();
+
+    const existingMatch = await Household.findOne({
+      barangayCode: String(barangayCode),
+      address: { $regex: new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      ...(cleanPurok ? { purok: { $regex: new RegExp(`^${cleanPurok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } } : {}),
+    }).populate('headOfHouseholdUserId', 'name');
+
+    if (existingMatch) {
+      return res.json({
+        hasCollision: true,
+        matchedHouseholdId: existingMatch._id,
+        matchedHeadName: existingMatch.headOfHouseholdUserId?.name || 'Registered Resident',
+        matchedAddress: existingMatch.address,
+        matchedPurok: existingMatch.purok,
+        message: `Ang address na ito ay may katugmang rehistradong sambahayan sa ilalim ni ${existingMatch.headOfHouseholdUserId?.name || 'residente'}. Ipa-flag ito para sa beripikasyon ng barangay.`,
+      });
+    }
+
+    return res.json({ hasCollision: false, message: 'Address is unique and available.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error checking address collision', error: error.message });
+  }
+});
+
 // @route   GET /api/households/pending
-// @desc    Get pending verification queue (Barangay official approval queue)
+// @desc    Get pending verification queue (Barangay official approval queue with Matching Address Detection)
 router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), requireBarangayScope, async (req, res) => {
   try {
     let query = { verificationStatus: 'pending' };
@@ -138,13 +173,55 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 
     const pendingHouseholds = await Household.find(query)
       .populate('headOfHouseholdUserId', 'name emailOrPhone')
-      .populate('linkedHouseholdId', 'address purok memberCount headOfHouseholdUserId')
+      .populate({
+        path: 'linkedHouseholdId',
+        select: 'address purok memberCount headOfHouseholdUserId verificationStatus',
+        populate: { path: 'headOfHouseholdUserId', select: 'name emailOrPhone' },
+      })
       .sort({ priorityScore: -1, createdAt: 1 });
 
+    // Automated Backend Engine: Detect matching resident addresses in the same barangay
+    const enrichedHouseholds = await Promise.all(pendingHouseholds.map(async (hh) => {
+      const hhObj = hh.toObject();
+
+      // Case A: Explicitly linked or requested join
+      if (hhObj.linkedHouseholdId) {
+        hhObj.addressOverlapDetected = true;
+        hhObj.matchedHousehold = hhObj.linkedHouseholdId;
+        return hhObj;
+      }
+
+      // Case B: Detect matching address across all other households in the same barangay
+      const cleanAddress = (hh.address || '').trim();
+      const cleanPurok = (hh.purok || '').trim();
+      if (cleanAddress) {
+        const matchingRecord = await Household.findOne({
+          _id: { $ne: hh._id },
+          barangayCode: hh.barangayCode,
+          address: { $regex: new RegExp(`^${cleanAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+          ...(cleanPurok ? { purok: { $regex: new RegExp(`^${cleanPurok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } } : {}),
+        }).populate('headOfHouseholdUserId', 'name emailOrPhone');
+
+        if (matchingRecord) {
+          hhObj.addressOverlapDetected = true;
+          hhObj.matchedHousehold = {
+            _id: matchingRecord._id,
+            address: matchingRecord.address,
+            purok: matchingRecord.purok,
+            memberCount: matchingRecord.memberCount,
+            headOfHouseholdUserId: matchingRecord.headOfHouseholdUserId,
+            verificationStatus: matchingRecord.verificationStatus,
+          };
+        }
+      }
+
+      return hhObj;
+    }));
+
     res.json({
-      count: pendingHouseholds.length,
+      count: enrichedHouseholds.length,
       barangayCode: req.user.barangayCode || 'ALL',
-      households: pendingHouseholds,
+      households: enrichedHouseholds,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching pending queue', error: error.message });
