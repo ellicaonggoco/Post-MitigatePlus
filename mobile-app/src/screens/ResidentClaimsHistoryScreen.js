@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Platform, RefreshControl } from 'react-native';
 import { fetchClaimsHistory } from '../services/api';
 import { CalendarIcon, MapPinIcon, ShieldCheckIcon, PackageIcon, ArrowLeftIcon, CloseIcon, ArrowRightIcon, ClockIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SHADOWS, RESPONSIVE, wp, hp } from '../theme';
@@ -19,50 +19,70 @@ export default function ResidentClaimsHistoryScreen({ token, user, household, la
   const residentQr = household?.qrCode || `MNL-${residentBrgy}-PASS`;
   const residentMembers = household?.memberCount || 1;
 
-  useEffect(() => {
-    async function loadHistory() {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const liveData = await fetchClaimsHistory(token);
-        const list = Array.isArray(liveData)
-          ? liveData
-          : [...(liveData?.distributions || []), ...(liveData?.requests || [])];
+  const [refreshing, setRefreshing] = useState(false);
 
-        if (list.length > 0) {
-          setClaims(list.map((c, i) => {
-            const rawId = c._id || c.id || String(i);
-            const receiptNo = c.receiptNumber || `RCPT-${new Date(c.claimedAt || c.releasedAt || Date.now()).getFullYear()}-${rawId.slice(-6).toUpperCase()}`;
-            return {
-              id: rawId,
-              receiptNumber: receiptNo,
-              beneficiaryName: c.householdId?.headOfHouseholdUserId?.name || residentName,
-              address: c.householdId?.address || residentAddress,
-              barangay: c.householdId?.barangayCode || residentBrgy,
-              qrCode: c.householdId?.qrCode || residentQr,
-              familySize: c.householdSizeAtDistribution || c.householdId?.memberCount || residentMembers,
-              type: c.itemType || (c.items ? c.items.join(', ') : 'Family Food Pack'),
-              status: c.status || 'CLAIMED',
-              quantity: (c.baseUnitsGiven || 1) + (c.topUpUnitsGiven || 0),
-              date: c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt ? new Date(c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : 'Recent',
-              location: c.location || (c.distributionEventId?.location) || `Barangay ${residentBrgy} Distribution Center`,
-              verifiedBy: typeof c.releasedBy === 'object' ? (c.releasedBy?.name || 'Field Officer') : (c.verifiedBy || c.releasedBy || 'MDRRMO Field Staff'),
-              team: typeof c.releasedBy === 'object' ? (c.releasedBy?.teamName || 'Field Operations') : 'MDRRMO Field Operations',
-            };
-          }));
-        }
-      } catch (err) {
-        setClaims([]);
-      } finally {
-        setLoading(false);
+  const loadHistory = async (isPull = false) => {
+    if (!token) return;
+    if (!isPull) setLoading(true);
+    try {
+      const liveData = await fetchClaimsHistory(token);
+      const list = Array.isArray(liveData)
+        ? liveData
+        : [...(liveData?.distributions || []), ...(liveData?.requests || [])];
+
+      if (list.length > 0) {
+        setClaims(list.map((c, i) => {
+          const rawId = c._id || c.id || String(i);
+          const receiptNo = c.receiptNumber || `RCPT-${new Date(c.claimedAt || c.releasedAt || Date.now()).getFullYear()}-${rawId.slice(-6).toUpperCase()}`;
+          return {
+            id: rawId,
+            receiptNumber: receiptNo,
+            beneficiaryName: c.householdId?.headOfHouseholdUserId?.name || residentName,
+            address: c.householdId?.address || residentAddress,
+            barangay: c.householdId?.barangayCode || residentBrgy,
+            qrCode: c.householdId?.qrCode || residentQr,
+            familySize: c.householdSizeAtDistribution || c.householdId?.memberCount || residentMembers,
+            type: c.itemType || (c.items ? c.items.join(', ') : 'Family Food Pack'),
+            status: c.status || 'CLAIMED',
+            quantity: (c.baseUnitsGiven || 1) + (c.topUpUnitsGiven || 0),
+            date: c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt ? new Date(c.claimedAt || c.releasedAt || c.requestedAt || c.createdAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : 'Recent',
+            location: c.location || (c.distributionEventId?.location) || `Barangay ${residentBrgy} Distribution Center`,
+            verifiedBy: typeof c.releasedBy === 'object' ? (c.releasedBy?.name || 'Field Officer') : (c.verifiedBy || c.releasedBy || 'MDRRMO Field Staff'),
+            team: typeof c.releasedBy === 'object' ? (c.releasedBy?.teamName || 'Field Operations') : 'MDRRMO Field Operations',
+          };
+        }));
       }
+    } catch (err) {
+      setClaims([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
+  useEffect(() => {
     loadHistory();
   }, [token]);
 
+  const handlePullRefresh = async () => {
+    setRefreshing(true);
+    await loadHistory(true);
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[{ paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[{ paddingBottom: 120 }]}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handlePullRefresh}
+          colors={['#1C3F94']}
+          tintColor="#1C3F94"
+        />
+      }
+    >
       {/* Header */}
       <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{x:0, y:0}} end={{x:1, y:1}} style={{marginBottom: 20}}>
         <View style={{height: 3, backgroundColor: '#C9A84C'}} />

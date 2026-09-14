@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Modal,
+  RefreshControl,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -176,14 +177,15 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
 
   const [geoCoords, setGeoCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadReports = async () => {
+  const loadReports = async (isPull = false) => {
     if (!token) {
       setLoadingExisting(false);
       return;
     }
     try {
-      setLoadingExisting(true);
+      if (!isPull) setLoadingExisting(true);
       const data = await fetchMyDamageReports(token);
       if (Array.isArray(data)) {
         setExistingReports(data);
@@ -192,7 +194,13 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
       console.warn('Error fetching damage reports:', e);
     } finally {
       setLoadingExisting(false);
+      setRefreshing(false);
     }
+  };
+
+  const handlePullRefresh = async () => {
+    setRefreshing(true);
+    await loadReports(true);
   };
 
   useEffect(() => {
@@ -491,6 +499,14 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
         style={styles.container}
         contentContainerStyle={[{ paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handlePullRefresh}
+            colors={['#C8102E']}
+            tintColor="#C8102E"
+          />
+        }
       >
         <LinearGradient
           colors={['#6E071A', '#C8102E', '#9E0B24']}
@@ -515,19 +531,7 @@ export default function ReportDamageScreen({ token, user, householdData, lang = 
                 {lang === 'tl' ? 'Katayuan ng Pinsala' : 'Damage Assessment'}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={loadReports}
-              style={styles.headerRefreshBtn}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel={lang === 'tl' ? 'I-refresh' : 'Refresh'}
-            >
-              {loadingExisting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <RefreshCwIcon size={16} color="#FFFFFF" />
-              )}
-            </TouchableOpacity>
+            <View style={{ width: 36, height: 36 }} />
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 20 }}>
             <Text style={styles.headerKicker}>

@@ -13,6 +13,7 @@ import {
   TextInput,
   Modal,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import QRCodeVisual from '../components/QRCodeVisual';
 import {
@@ -130,6 +131,8 @@ export default function AssistanceRequestScreen({
   }, [token, householdData?.barangayCode, user?.barangayCode]);
 
   // ── FETCH CASH-FOR-WORK DATA ──────────────────────────────────────
+  const [refreshing, setRefreshing] = useState(false);
+
   const fetchCFWData = async () => {
     if (!token) return;
     try {
@@ -161,7 +164,13 @@ export default function AssistanceRequestScreen({
       console.warn('Fetch CFW data warning:', err);
     } finally {
       setLoadingCFW(false);
+      setRefreshing(false);
     }
+  };
+
+  const handlePullRefresh = async () => {
+    setRefreshing(true);
+    await fetchCFWData();
   };
 
   // ── REAL-TIME SOCKET LISTENER (STATUS & ATTENDANCE) ───────────────
@@ -335,6 +344,14 @@ export default function AssistanceRequestScreen({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handlePullRefresh}
+            colors={['#1C3F94']}
+            tintColor="#1C3F94"
+          />
+        }
       >
         {/* HEADER GRADIENT WITH CIVIC LIVELIHOOD BRANDING */}
         <LinearGradient colors={['#0B1D4E', '#1C3F94']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
