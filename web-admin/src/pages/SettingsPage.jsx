@@ -81,16 +81,18 @@ export default function SettingsPage() {
   const avatarKey = `mitigateplus_avatar_${userKey}`;
 
   // ── Profile state ───────────────────────────────────────────────────────────
-  const [displayName, setDisplayName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.emailOrPhone || user?.email || '');
+  const [displayName, setDisplayName] = useState(() => user?.name || '');
+  const [email, setEmail] = useState(() => user?.email || user?.emailOrPhone || '');
   const [avatarSrc, setAvatarSrc] = useState(() => localStorage.getItem(avatarKey) || null);
 
-  // Sync state if logged-in user changes
+  // Sync state if logged-in user changes or loads
   useEffect(() => {
-    setDisplayName(user?.name || '');
-    setEmail(user?.emailOrPhone || user?.email || '');
-    setAvatarSrc(localStorage.getItem(avatarKey) || null);
-  }, [userKey]);
+    if (user) {
+      setDisplayName(user.name || '');
+      setEmail(user.email || user.emailOrPhone || '');
+      setAvatarSrc(localStorage.getItem(avatarKey) || null);
+    }
+  }, [user, userKey, avatarKey]);
 
   // ── Notification prefs ──────────────────────────────────────────────────────
   const [notifRealtime, setNotifRealtime] = useState(true);
@@ -483,7 +485,7 @@ export default function SettingsPage() {
               </div>
             </div>
             {[
-              { label: 'Account ID', value: user?.id || 'USR-2026-0001' },
+              { label: 'Account ID', value: user?._id || user?.id || 'USR-2026-0001' },
               { label: 'Role', value: getRoleLabel(user?.role) },
               { label: 'Barangay', value: user?.barangayCode ? `Barangay ${user.barangayCode}` : 'City-Wide' },
               { label: 'System Version', value: 'MitigatePlus v2.0' },
