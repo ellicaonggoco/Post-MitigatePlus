@@ -1199,6 +1199,9 @@ const styles = StyleSheet.create({
   statusViewBody: {
     paddingHorizontal: 16,
     paddingBottom: 24,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   statusHeroCard: {
     backgroundColor: '#FFFFFF',
@@ -1465,6 +1468,8 @@ const styles = StyleSheet.create({
   },
   progressionContainer: {
     marginBottom: 16,
+    width: '100%',
+    overflow: 'hidden',
   },
   progressionHeaderRow: {
     marginBottom: 8,
@@ -1484,6 +1489,7 @@ const styles = StyleSheet.create({
   progressionChipsScroll: {
     gap: 10,
     paddingVertical: 2,
+    paddingRight: 20,
   },
   progressionChip: {
     backgroundColor: '#FFFFFF',
@@ -1492,7 +1498,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDE4F0',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    minWidth: 160,
+    minWidth: 150,
     ...SHADOWS.sm,
   },
   progressionChipSelected: {
