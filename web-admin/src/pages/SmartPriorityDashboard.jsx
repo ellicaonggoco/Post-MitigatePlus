@@ -621,7 +621,7 @@ export default function SmartPriorityDashboard() {
                                 borderRadius: 999,
                                 fontWeight: 700,
                               }}
-                              title="Anti-Duplicate Engine: May isa pang sambahayan na may kaparehong address sa barangay na ito."
+                              title="Natukoy ng sistema na may kaparehong address ang sambahayang ito."
                             >
                               <AlertTriangle size={11} color="#D97706" /> Matching Address
                             </span>

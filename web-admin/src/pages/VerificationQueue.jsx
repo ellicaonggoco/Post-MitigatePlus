@@ -1008,14 +1008,14 @@ export default function VerificationQueue() {
                         <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 800, color: '#B45309', marginBottom: '3px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>⚠️ MATCHING RESIDENT ADDRESS DETECTED</span>
+                            <span>⚠️ KATUGMANG ADDRESS NG RESIDENTE</span>
                             <span style={{ fontSize: '10.5px', background: '#FDE68A', color: '#78350F', padding: '1px 7px', borderRadius: 999, fontWeight: 700 }}>
-                              Anti-Duplicate Address Engine
+                              Pagsusuri ng Address
                             </span>
                           </div>
                           <div>
-                            Natukoy ng backend address collision engine na ang tirahang ito (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) ay may katugmang rehistradong sambahayan sa ilalim ni <strong>{matchedHeadName}</strong>. 
-                            Suriin kung ito ay lehitimong hiwalay na pamilya/umuupa o duplicate aid registration bago aprubahan.
+                            Natukoy ng sistema na ang tirahang ito (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) ay may katugmang rehistradong sambahayan sa ilalim ni <strong>{matchedHeadName}</strong>.
+                            Suriin kung ito ay lehitimong hiwalay na pamilya o nangungupahan bago aprubahan.
                           </div>
                         </div>
                       </div>

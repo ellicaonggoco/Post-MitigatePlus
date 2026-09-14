@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert, Animated, Linking, Image, Share, Platform, StatusBar, BackHandler, ToastAndroid, AppState } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import RecoveryPhaseStepper from '../components/RecoveryPhaseStepper';
@@ -700,6 +700,27 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
       refreshData(true);
     }
   }, [activeTab]);
+
+  // AppState listener: re-sync whenever the resident brings the app back to foreground
+  useEffect(() => {
+    const appStateSub = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && token) {
+        refreshData(true);
+      }
+    });
+    return () => appStateSub.remove();
+  }, [token]);
+
+  // Safety-net polling: every 12 s while status is pending or needs_info
+  // (covers cases where WebSocket event was missed due to carrier, background, or cold start)
+  useEffect(() => {
+    const verStatus = householdData?.verificationStatus;
+    if (!token || (verStatus !== 'pending' && verStatus !== 'needs_info')) return;
+    const pollId = setInterval(() => {
+      refreshData(false);
+    }, 12000);
+    return () => clearInterval(pollId);
+  }, [token, householdData?.verificationStatus]);
 
   const rawName = householdData?.name || user?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
   const householdName = formatCapitalizeWords(rawName);

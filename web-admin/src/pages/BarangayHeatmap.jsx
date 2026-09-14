@@ -491,7 +491,7 @@ export default function BarangayHeatmap() {
             <MapPin size={24} color="var(--manila-blue)" /> Manila City GIS Command Map & Risk Heatmap
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '4px' }}>
-            Interactive vector map engine with real-time evacuation beacons, flood inundation hazard zones, and GPS damage telemetry.
+            Mapa ng Lungsod ng Maynila na may real-time na mga lugar ng ebakuasyon, mga lugar na may panganib ng baha, at ulat ng pinsala.
           </p>
         </div>
 

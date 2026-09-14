@@ -343,7 +343,7 @@ export default function ReliefAllocationPage() {
             Right-Sized Relief Allocation & Distribution
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
-            Right-sized relief math engine + real-time anti-duplicate claim prevention across all Manila distribution posts.
+            Kalkulasyon ng tamang dami ng ayuda at pag-iwas sa paulit-ulit na pagkuha sa lahat ng distribution posts ng Maynila.
           </p>
         </div>
       </div>
@@ -410,7 +410,7 @@ export default function ReliefAllocationPage() {
       {/* ── Main Executive Relief Allocation Policy & Math Engine (Full-Width with Detailed Field Descriptions) ── */}
       <div className="clay-card" style={{ marginBottom: '28px' }}>
         <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--manila-blue)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}>
-          <Calculator size={20} /> Executive Relief Allocation Engine Policy & Configuration
+          <Calculator size={20} /> Opisyal na Patakaran sa Paglalaan ng Ayuda
         </h2>
         <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginBottom: '24px' }}>
           Konpigurasyon ng opisyal na formula ng ayuda para sa pamilyang <strong>lumalagpas sa 5 miyembro</strong>, Senior Citizens, at PWDs sa buong Maynila.

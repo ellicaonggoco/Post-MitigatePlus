@@ -18,7 +18,7 @@ export const TRANSLATIONS = {
     heatmap: 'Barangay Heatmap',
     distributionEvents: 'Distribution / Announcement',
     warehouseInventory: 'Warehouse Inventory',
-    reliefAllocation: 'Relief Allocation Engine',
+    reliefAllocation: 'Paglalaan ng Ayuda',
     fraudInterception: 'Fraud Interception',
     specialRelief: 'Special Relief Requests',
     livelihoodAssistance: 'Livelihood Assistance',

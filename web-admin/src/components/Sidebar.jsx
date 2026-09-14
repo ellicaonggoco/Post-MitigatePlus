@@ -192,7 +192,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       title: t.execTools || 'EXECUTIVE INTELLIGENCE',
       items: [
         { label: t.heatmap || 'Barangay Heatmap', path: '/heatmap', icon: IconlyMapPin },
-        { label: t.reliefAllocation || 'Relief Allocation Engine', path: '/relief-allocation', icon: IconlyPackage },
+        { label: t.reliefAllocation || 'Paglalaan ng Ayuda', path: '/relief-allocation', icon: IconlyPackage },
         { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },
       ],
