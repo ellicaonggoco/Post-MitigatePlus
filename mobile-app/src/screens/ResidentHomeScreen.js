@@ -162,6 +162,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const [newIdImage, setNewIdImage] = useState(null);
   const [isSubmittingId, setIsSubmittingId] = useState(false);
   const [showIdTypePickerModal, setShowIdTypePickerModal] = useState(false);
+  const [checkingActiveEvent, setCheckingActiveEvent] = useState(false);
 
   const handlePickIdCamera = async () => {
     try {
