@@ -3,6 +3,10 @@
  */
 
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch (e) {}
 
 const sendEmailOTP = async (recipientEmail, otpCode) => {
   const gmailUser = process.env.GMAIL_USER || 'ellicaonggoco19@gmail.com';
