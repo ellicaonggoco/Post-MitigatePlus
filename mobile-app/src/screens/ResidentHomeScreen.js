@@ -1062,24 +1062,24 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
               {/* High-Contrast Interactive QR Block or Standby / Pending Banner */}
               {isRejected ? (
-                <View style={[styles.pendingVerificationFrame, { backgroundColor: 'rgba(254, 242, 242, 0.95)', borderColor: '#FCA5A5' }]}>
-                  <View style={[styles.pendingIconWell, { backgroundColor: '#FEE2E2', borderColor: '#F87171' }]}>
-                    <CloseIcon size={24} color="#DC2626" strokeWidth={2.5} />
+                <View style={[styles.pendingVerificationFrame, { borderColor: 'rgba(239, 68, 68, 0.4)' }]}>
+                  <View style={[styles.pendingIconWell, { backgroundColor: 'rgba(239, 68, 68, 0.18)', borderColor: 'rgba(239, 68, 68, 0.35)' }]}>
+                    <CloseIcon size={24} color="#F87171" strokeWidth={2.5} />
                   </View>
-                  <Text style={[styles.pendingNoticeTitle, { color: '#991B1B' }]}>
+                  <Text style={[styles.pendingNoticeTitle, { color: '#FCA5A5' }]}>
                     {lang === 'tl'
                       ? 'REHISTRASYON HINDI NAAPRUBAHAN'
                       : 'REGISTRATION NOT APPROVED'}
                   </Text>
-                  <Text style={[styles.pendingNoticeSub, { color: '#7F1D1D' }]}>
+                  <Text style={[styles.pendingNoticeSub, { color: '#94A3B8' }]}>
                     {lang === 'tl'
                       ? `Dahilan mula sa Barangay: "${householdData?.verificationNotes || 'Kulang sa patunay ng tirahan o hindi malinaw ang isinumiteng ID document.'}" Mangyaring makipag-ugnayan sa inyong Barangay Hall.`
                       : `Reason from Barangay: "${householdData?.verificationNotes || 'Incomplete address proof or unclear ID document.'}" Please contact your local Barangay Hall.`}
                   </Text>
 
-                  <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }]}>
-                    <CloseIcon size={12} color="#DC2626" />
-                    <Text style={[styles.pendingStatusBadgeText, { color: '#991B1B' }]}>
+                  <View style={[styles.pendingStatusBadgeRow, { borderColor: 'rgba(239, 68, 68, 0.35)' }]}>
+                    <CloseIcon size={12} color="#F87171" />
+                    <Text style={[styles.pendingStatusBadgeText, { color: '#FCA5A5' }]}>
                       {lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN' : 'STATUS: REGISTRATION REJECTED'}
                     </Text>
                   </View>
@@ -1118,16 +1118,16 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </TouchableOpacity>
                 </View>
               ) : householdData?.verificationStatus === 'needs_info' ? (
-                <View style={[styles.pendingVerificationFrame, { borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }]}>
-                  <View style={[styles.pendingIconWell, { backgroundColor: '#FEF3C7' }]}>
-                    <InfoIcon size={30} color="#D97706" />
+                <View style={[styles.pendingVerificationFrame, { borderColor: 'rgba(239, 68, 68, 0.35)' }]}>
+                  <View style={[styles.pendingIconWell, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
+                    <InfoIcon size={30} color="#FCA5A5" />
                   </View>
-                  <Text style={[styles.pendingNoticeTitle, { color: '#B45309' }]}>
+                  <Text style={[styles.pendingNoticeTitle, { color: '#FCA5A5' }]}>
                     {lang === 'tl'
                       ? 'KAILANGAN NG KARAGDAGANG IMPORMASYON'
                       : 'ADDITIONAL INFORMATION NEEDED'}
                   </Text>
-                  <Text style={[styles.pendingNoticeSub, { color: '#92400E' }]}>
+                  <Text style={[styles.pendingNoticeSub, { color: '#94A3B8' }]}>
                     {householdData?.verificationNotes
                       ? (lang === 'tl'
                           ? `Hinihiling ng Barangay Official: "${householdData.verificationNotes}". Mangyaring i-update ang inyong profile o magsumite ng kailangang impormasyon.`
@@ -1137,9 +1137,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                           : 'The Barangay Official requested additional details or clearer documents before approving your Relief QR Pass.')}
                   </Text>
 
-                  <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FDE68A', borderColor: '#F59E0B' }]}>
-                    <AlertTriangleIcon size={13} color="#B45309" />
-                    <Text style={[styles.pendingStatusBadgeText, { color: '#78350F' }]}>
+                  <View style={[styles.pendingStatusBadgeRow, { borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
+                    <AlertTriangleIcon size={13} color="#FCA5A5" />
+                    <Text style={[styles.pendingStatusBadgeText, { color: '#FCA5A5' }]}>
                       {lang === 'tl' ? 'KATAYUAN: KARAGDAGANG IMPORMASYON KAILANGAN' : 'STATUS: ADDITIONAL INFO REQUIRED'}
                     </Text>
                   </View>
@@ -1228,24 +1228,24 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 </View>
               ) : !isVerified ? (
                 householdData?.idResubmitted ? (
-                  <View style={[styles.pendingVerificationFrame, { borderColor: '#93C5FD', backgroundColor: '#EFF6FF' }]}>
-                    <View style={[styles.pendingIconWell, { backgroundColor: '#DBEAFE', borderColor: '#BFDBFE' }]}>
-                      <CheckCircleIcon size={30} color="#1D4ED8" />
+                  <View style={[styles.pendingVerificationFrame, { borderColor: 'rgba(147, 197, 253, 0.3)' }]}>
+                    <View style={[styles.pendingIconWell, { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: 'rgba(147, 197, 253, 0.3)' }]}>
+                      <CheckCircleIcon size={30} color="#93C5FD" />
                     </View>
-                    <Text style={[styles.pendingNoticeTitle, { color: '#1E40AF' }]}>
+                    <Text style={[styles.pendingNoticeTitle, { color: '#93C5FD' }]}>
                       {lang === 'tl'
                         ? 'NAISUMITE NA ANG BAGONG VALID ID'
                         : 'NEW VALID ID RESUBMITTED'}
                     </Text>
-                    <Text style={[styles.pendingNoticeSub, { color: '#1E3A8A' }]}>
+                    <Text style={[styles.pendingNoticeSub, { color: '#94A3B8' }]}>
                       {lang === 'tl'
                         ? 'Ang inyong bagong Valid ID ay matagumpay na naisumite sa Barangay at kasalukuyang sinusuri muli ng opisyal sa Web Admin. Lalabas agad dito ang inyong QR Relief Pass sa oras na maaprubahan ito.'
                         : 'Your new Valid ID was successfully resubmitted and is currently under review by the Barangay Administrator. Your official QR Relief Pass will automatically activate once approved.'}
                     </Text>
 
-                    <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#DBEAFE', borderColor: '#93C5FD' }]}>
-                      <ClockIcon size={13} color="#1D4ED8" />
-                      <Text style={[styles.pendingStatusBadgeText, { color: '#1E40AF' }]}>
+                    <View style={[styles.pendingStatusBadgeRow, { borderColor: 'rgba(147, 197, 253, 0.25)' }]}>
+                      <ClockIcon size={13} color="#93C5FD" />
+                      <Text style={[styles.pendingStatusBadgeText, { color: '#93C5FD' }]}>
                         {lang === 'tl' ? 'KATAYUAN: NAGHIHINTAY NG RE-BERIPIKASYON' : 'STATUS: PENDING RE-VERIFICATION'}
                       </Text>
                     </View>
@@ -1302,7 +1302,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                 ) : (
                   <View style={styles.pendingVerificationFrame}>
                   <View style={styles.pendingIconWell}>
-                    <ShieldCheckIcon size={30} color="#D97706" />
+                    <ShieldCheckIcon size={30} color="#93C5FD" />
                   </View>
                   <Text style={styles.pendingNoticeTitle}>
                     {lang === 'tl'
@@ -1316,7 +1316,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   </Text>
 
                   <View style={styles.pendingStatusBadgeRow}>
-                    <ClockIcon size={13} color="#92400E" />
+                    <ClockIcon size={13} color="#94A3B8" />
                     <Text style={styles.pendingStatusBadgeText}>
                       {lang === 'tl' ? 'KATAYUAN: NAKABINBIN SA VERIFICATION QUEUE' : 'STATUS: PENDING VERIFICATION QUEUE'}
                     </Text>
@@ -3367,17 +3367,19 @@ verifCheckCirclePending: {
   },
   pendingVerificationFrame: {
     alignItems: 'center',
-    backgroundColor: '#FFFDF5',
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#FDE68A',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 16,
   },
   pendingIconWell: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -3385,20 +3387,20 @@ verifCheckCirclePending: {
   pendingNoticeTitle: {
     fontSize: 13,
     fontWeight: FONT_WEIGHT.black,
-    color: '#92400E',
+    color: '#F1F5F9',
     textAlign: 'center',
     letterSpacing: -0.2,
   },
   pendingNoticeSub: {
     fontSize: 11,
-    color: '#78350F',
+    color: '#94A3B8',
     textAlign: 'center',
     lineHeight: 15,
     marginTop: 4,
     marginBottom: 10,
   },
   pendingStatusBadgeRow: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -3406,11 +3408,13 @@ verifCheckCirclePending: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
   },
   pendingStatusBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#B45309',
+    color: '#CBD5E1',
   },
   refreshStatusBtn: {
     backgroundColor: '#1C3F94',
