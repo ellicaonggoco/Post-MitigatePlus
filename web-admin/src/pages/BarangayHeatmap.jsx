@@ -169,31 +169,6 @@ export default function BarangayHeatmap() {
       console.error(err);
     }
 
-    try {
-      const savedPending = localStorage.getItem('mitigateplus_pending_households');
-      if (savedPending) {
-        const parsed = JSON.parse(savedPending);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const formattedLocal = parsed.map(h => ({
-            _id: h._id || `local-${h.id}`,
-            barangayCode: String(h.barangayCode || '291'),
-            address: h.address || 'Purok 1',
-            damageLevel: h.damageLevel || 'Severe',
-            headName: h.headOfHouseholdUserId?.name || h.headName || 'Resident Household',
-            priorityScore: h.priorityScore || 85,
-            priorityLevel: h.priorityLevel || 'High',
-            latitude: h.latitude || null,
-            longitude: h.longitude || null,
-          }));
-          const existingIds = new Set(fetched.map(f => f._id));
-          const newEntries = formattedLocal.filter(l => !existingIds.has(l._id));
-          fetched = [...newEntries, ...fetched];
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
     setHouseholds(fetched);
     setLoading(false);
   };

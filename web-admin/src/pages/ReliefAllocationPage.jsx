@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Package, ShieldAlert, Shield, Plus, Calculator, Info, CheckCircle2, Zap } from 'lucide-react';
 import { IconlyPackage } from '../components/Sidebar';
-import ConfirmModal from '../components/ConfirmModal';
 import io from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
@@ -63,14 +62,6 @@ export default function ReliefAllocationPage() {
   const [testSeniors, setTestSeniors] = useState(1);
   const [testPWDs, setTestPWDs] = useState(0);
 
-  const [title, setTitle] = useState('');
-  const [itemType, setItemType] = useState('Family Food Pack');
-  const [batchId, setBatchId] = useState(`BATCH-${Date.now().toString().slice(-4)}`);
-  const [location, setLocation] = useState('Barangay 291 Covered Court');
-  const [msg, setMsg] = useState('');
-
-  // ── Confirmation Modal State ──
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, eventData: null });
   // ── Triple Security Policy Modal State ──
   const [policyModalStep, setPolicyModalStep] = useState(0); // 0: closed, 1: Step 1 warning, 2: Step 2 Security PIN
   const [secPin, setSecPin] = useState('');
@@ -105,49 +96,6 @@ export default function ReliefAllocationPage() {
 
     return () => socket.disconnect();
   }, [token]);
-
-  const requestCreateEvent = (e) => {
-    e.preventDefault();
-    if (!title.trim() || !location.trim()) return;
-
-    setConfirmModal({
-      isOpen: true,
-      eventData: {
-        title,
-        itemType,
-        batchId,
-        barangayCode: user?.barangayCode || '291',
-        location,
-      },
-    });
-  };
-
-  const executeCreateEvent = async () => {
-    const dataToPost = confirmModal.eventData;
-    setMsg('');
-    try {
-      const res = await fetch(`${API_BASE_URL}/distributions/events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(dataToPost),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMsg('Distribution event opened successfully!');
-        setTitle('');
-        fetchEvents();
-      } else {
-        setMsg(`Failed to launch event: ${dataToPost.title}`);
-      }
-    } catch (err) {
-      setMsg(`Failed to launch event due to network error.`);
-    } finally {
-      setConfirmModal({ isOpen: false, eventData: null });
-    }
-  };
 
   // ── Triple Confirmation Step 1 Trigger ──
   const handleSavePolicyRequest = () => {
@@ -232,17 +180,6 @@ export default function ReliefAllocationPage() {
 
   return (
     <div className="page-container page-animate">
-      {/* Universal Double Confirmation Modal for Event Launch */}
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        title={confirmModal.title || "I-lunsod ang Distribution Event?"}
-        message={confirmModal.message || (confirmModal.eventData ? `Are you sure you want to open "${confirmModal.eventData?.title}" at ${confirmModal.eventData?.location}? It will immediately become active for Field Staff QR scanning.` : '')}
-        type={confirmModal.type || "success"}
-        confirmText={confirmModal.confirmText || "Oo, I-launch na Event"}
-        onConfirm={confirmModal.onConfirm || executeCreateEvent}
-        onCancel={confirmModal.onCancel || (() => setConfirmModal({ isOpen: false, eventData: null }))}
-      />
-
       {/* ── Triple Confirmation Step 1: Warning Modal ── */}
       {policyModalStep === 1 && ReactDOM.createPortal(
         <div style={{

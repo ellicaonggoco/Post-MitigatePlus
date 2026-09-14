@@ -400,16 +400,12 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
                     </TouchableOpacity>
                   ) : (
                     <View style={{ gap: 6 }}>
-                      <TouchableOpacity
-                        style={styles.disabledStartBtn}
-                        disabled={true}
-                        activeOpacity={1}
-                      >
+                      <View style={styles.disabledStartBtn}>
                         <LockIcon size={14} color="#64748B" />
                         <Text style={styles.disabledStartBtnText}>
                           {lang === 'tl' ? `Nakatalaga sa ${item.assignedTeam || 'Ibang Team'}` : `Assigned to ${item.assignedTeam || 'Other Team'}`}
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                       <Text style={styles.disabledLeaderHelperText}>
                         {lang === 'tl'
                           ? `Ang distribusyong ito ay nakatalaga para sa ${item.assignedTeam}. Ang iyong naka-assign na team ay ${user?.teamName || 'Field Team Bravo'}.`
