@@ -219,7 +219,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         { label: t.distributionEvents || 'Distribution / Announcement', path: '/distribution-events', icon: IconlyTruck },
         { label: t.specialRelief || 'Special Relief Requests', path: '/special-request-relief', icon: IconlySpecial },
         { label: t.livelihoodAssistance || 'Livelihood Assistance', path: '/livelihood-assistance', icon: IconlyBriefcase },
-        { label: t.recoveryProgress || 'Recovery Progress', path: '/recovery-progress', icon: IconlyProgress },
         { label: t.announcements || 'Announcements', path: '/announcements', icon: IconlyAnnounce },
         { label: t.fraudInterception || 'Fraud Interception', path: '/fraud-interception', icon: IconlyFraud },
         { label: t.reports || 'Reports & Audit', path: '/reports', icon: IconlyFileText },

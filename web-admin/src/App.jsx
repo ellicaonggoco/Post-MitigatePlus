@@ -684,7 +684,7 @@ function AppRoutes() {
               <Route path="/special-request-relief" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><SpecialRequestRelief /></RoleProtectedRoute>} />
               <Route path="/livelihood-assistance" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><LivelihoodAssistance /></RoleProtectedRoute>} />
               <Route path="/announcements" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><AnnouncementsPage /></RoleProtectedRoute>} />
-              <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_ADMIN, ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
+              <Route path="/recovery-progress" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL]}><RecoveryProgressTracker /></RoleProtectedRoute>} />
               <Route path="/provision-accounts" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><ProvisionAccounts /></RoleProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/global-policy" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN]}><GlobalPolicyConfig /></RoleProtectedRoute>} />
