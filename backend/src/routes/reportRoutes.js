@@ -105,6 +105,9 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
       distMap['Food Packs'] = totalDistributions;
     }
 
+    const totalReliefUnits = Object.values(distMap).reduce((a, b) => a + b, 0);
+    const resolvedTotalDistributions = Math.max(totalReliefUnits, totalDistributions);
+
     const baseNeed = Math.max(verifiedHouseholds || totalHouseholds || 12, 12);
     const reliefBreakdown = [
       { name: 'Food Packs', Target: Math.round(baseNeed * 1.5), Distributed: distMap['Food Packs'] },
@@ -148,7 +151,9 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
       totalMembers,
       totalBarangays: 897,
       duplicateAttemptsCount,
-      totalDistributions,
+      totalDistributions: resolvedTotalDistributions,
+      totalReliefUnits,
+      totalClaimsCount: totalDistributions,
       activeEvents,
       waitingAyuda: stageMap['waiting'] || 0,
       assistanceReceived: stageMap['assistance_received'] || 0,

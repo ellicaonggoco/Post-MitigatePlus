@@ -55,10 +55,15 @@ function SuperAdminDashboard({ token, user }) {
     if (token) fetch_();
   }, [token]);
 
+  const totalReliefDistributed = (summary?.reliefBreakdown && summary.reliefBreakdown.length > 0)
+    ? summary.reliefBreakdown.reduce((acc, r) => acc + (Number(r.Distributed) || 0), 0)
+    : (summary?.totalDistributions ?? 0);
+  const resolvedSuperAdminRelief = Math.max(totalReliefDistributed, summary?.totalDistributions || 0);
+
   const kpis = [
     { label: 'Total Barangays Covered', value: summary?.totalBarangays ?? 897, icon: MapPin, color: '#173F56', bg: 'var(--manila-blue-light)' },
     { label: 'Total Verified Beneficiaries', value: summary?.verifiedHouseholds ?? 0, icon: UserCheck, color: '#0F6B4E', bg: 'var(--bay-teal-light)' },
-    { label: 'Total Relief Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#6D28D9', bg: '#F5F3FF' },
+    { label: 'Total Relief Distributed', value: resolvedSuperAdminRelief, icon: Package, color: '#6D28D9', bg: '#F5F3FF' },
     { label: 'Executive Audit Flags', value: summary?.duplicateAttemptsCount ?? 0, icon: AlertTriangle, color: '#B91C1C', bg: '#FEF2F2' },
   ];
 
@@ -155,13 +160,6 @@ function LguAdminDashboard({ token, user }) {
     if (token) fetch_();
   }, [token]);
 
-  const kpis = [
-    { label: 'Active Distribution Events', value: summary?.activeEvents ?? 0, icon: Truck, color: '#173F56', bg: 'var(--manila-blue-light)', link: '/distribution-events' },
-    { label: 'Pending Verifications (City)', value: summary?.pendingVerifications ?? 0, icon: UserCheck, color: '#B45309', bg: '#FFFBEB', link: '/verification-queue' },
-    { label: 'Fraud Interceptions Today', value: summary?.duplicateAttemptsCount ?? 0, icon: Shield, color: '#B91C1C', bg: '#FEF2F2', link: '/fraud-interception' },
-    { label: 'Total Distributed', value: summary?.totalDistributions ?? 0, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/distribution-events' },
-  ];
-
   // Derive relief chart from real API summary with dynamic proportional targets
   const reliefData = (summary?.reliefBreakdown && summary.reliefBreakdown.some(r => r.Target > 0 || r.Distributed > 0))
     ? summary.reliefBreakdown
@@ -176,6 +174,16 @@ function LguAdminDashboard({ token, user }) {
           { name: 'Shelter Tents', Target: Math.max(Math.round(base * 0.25), 3), Distributed: Math.round(dist * 0.2) },
         ];
       })();
+
+  const totalDistributedUnits = reliefData.reduce((acc, r) => acc + (Number(r.Distributed) || 0), 0);
+  const resolvedTotalDistributed = Math.max(totalDistributedUnits, summary?.totalDistributions || 0);
+
+  const kpis = [
+    { label: 'Active Distribution Events', value: summary?.activeEvents ?? 0, icon: Truck, color: '#173F56', bg: 'var(--manila-blue-light)', link: '/distribution-events' },
+    { label: 'Pending Verifications (City)', value: summary?.pendingVerifications ?? 0, icon: UserCheck, color: '#B45309', bg: '#FFFBEB', link: '/verification-queue' },
+    { label: 'Fraud Interceptions Today', value: summary?.duplicateAttemptsCount ?? 0, icon: Shield, color: '#B91C1C', bg: '#FEF2F2', link: '/fraud-interception' },
+    { label: 'Total Distributed', value: resolvedTotalDistributed, icon: Package, color: '#0F6B4E', bg: 'var(--bay-teal-light)', link: '/distribution-events' },
+  ];
 
 
 
