@@ -258,7 +258,7 @@ export default function BarangayHeatmap() {
     });
   }, [incidentDots, selectedBarangayFilter, filterSeverity]);
 
-  // Mapcn-style Polygon Styling with Flood Hazard Color Accents
+  // Mapcn-style Polygon Styling with Real-Time Damage Heatmap & Flood Hazard Accents
   const styleFeature = (feature) => {
     if (!feature || !feature.properties) {
       return { fillColor: 'transparent', weight: 0, opacity: 0, fillOpacity: 0 };
@@ -270,7 +270,71 @@ export default function BarangayHeatmap() {
     const isSelectedBrgy = selected?.code === code;
     const isFilteredBrgy = selectedBarangayFilter === 'ALL' || code === selectedBarangayFilter;
     const floodStatus = FLOOD_SUSCEPTIBILITY_MAP[code];
+    const stat = barangayStats[code];
 
+    // Check damage telemetry from verified household reports
+    const hasDamageReports = stat && stat.count > 0;
+    const isSevereOrCritical = hasDamageReports && (stat.maxLevel === 'Totally Damaged' || stat.maxLevel === 'Severe' || stat.count >= 3);
+    const isModerate = hasDamageReports && (stat.maxLevel === 'Moderate' || stat.count >= 2);
+    const isMinor = hasDamageReports && (stat.maxLevel === 'Minor' || stat.count >= 1);
+
+    // 1. Damage reports take highest priority in the Disaster Damage Heatmap
+    if (hasDamageReports) {
+      if (isSevereOrCritical) {
+        return {
+          fillColor: '#EF4444',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 2.0 : 1.2,
+          color: isSelectedBrgy ? '#F59E0B' : '#DC2626',
+          fillOpacity: isSelectedBrgy ? 0.55 : isFilteredBrgy ? 0.38 : 0.28,
+        };
+      }
+      if (isModerate) {
+        return {
+          fillColor: '#F59E0B',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 1.8 : 1.0,
+          color: isSelectedBrgy ? '#002BB8' : '#D97706',
+          fillOpacity: isSelectedBrgy ? 0.50 : isFilteredBrgy ? 0.32 : 0.22,
+        };
+      }
+      if (isMinor) {
+        return {
+          fillColor: '#FCD34D',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 1.6 : 0.9,
+          color: isSelectedBrgy ? '#002BB8' : '#B45309',
+          fillOpacity: isSelectedBrgy ? 0.45 : isFilteredBrgy ? 0.28 : 0.18,
+        };
+      }
+    }
+
+    // 2. Flood Inundation Susceptibility Zones (Secondary Environmental Layer)
+    if (showFloodZones && floodStatus) {
+      if (floodStatus.includes('Deep Flood') || floodStatus.includes('Coastal')) {
+        return {
+          fillColor: '#EF4444',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 1.8 : 1,
+          color: isSelectedBrgy ? '#F59E0B' : '#DC2626',
+          fillOpacity: isSelectedBrgy ? 0.55 : 0.35,
+        };
+      }
+      if (floodStatus.includes('High Inundation') || floodStatus.includes('Critical')) {
+        return {
+          fillColor: '#F59E0B',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 1.6 : 0.8,
+          color: isSelectedBrgy ? '#002BB8' : '#D97706',
+          fillOpacity: isSelectedBrgy ? 0.50 : 0.28,
+        };
+      }
+      if (floodStatus.includes('Moderate')) {
+        return {
+          fillColor: '#FDE68A',
+          weight: isSelectedBrgy ? 3.5 : isFilteredBrgy ? 1.5 : 0.8,
+          color: isSelectedBrgy ? '#002BB8' : '#D97706',
+          fillOpacity: isSelectedBrgy ? 0.45 : 0.22,
+        };
+      }
+    }
+
+    // 3. Selected Barangay with no reports
     if (isSelectedBrgy) {
       return {
         fillColor: '#002BB8',
@@ -280,30 +344,12 @@ export default function BarangayHeatmap() {
       };
     }
 
-    if (showFloodZones && floodStatus) {
-      if (floodStatus.includes('Deep Flood') || floodStatus.includes('Coastal')) {
-        return {
-          fillColor: '#EF4444',
-          weight: isFilteredBrgy ? 1.8 : 1,
-          color: '#DC2626',
-          fillOpacity: 0.35,
-        };
-      }
-      if (floodStatus.includes('High Inundation') || floodStatus.includes('Critical')) {
-        return {
-          fillColor: '#F59E0B',
-          weight: isFilteredBrgy ? 1.6 : 0.8,
-          color: '#D97706',
-          fillOpacity: 0.28,
-        };
-      }
-    }
-
+    // 4. Default Neutral State
     return {
       fillColor: isFilteredBrgy ? 'rgba(0, 43, 184, 0.15)' : 'rgba(100, 116, 139, 0.08)',
       weight: isFilteredBrgy ? 1.5 : 0.8,
       color: isFilteredBrgy ? 'rgba(0, 43, 184, 0.6)' : 'rgba(100, 116, 139, 0.35)',
-      fillOpacity: isSelectedBrgy ? 0.45 : isFilteredBrgy ? 0.22 : 0.12,
+      fillOpacity: isFilteredBrgy ? 0.22 : 0.12,
     };
   };
 
@@ -438,11 +484,40 @@ export default function BarangayHeatmap() {
           color: #DC2626 !important;
           font-weight: 900 !important;
         }
-        .brgy-micro-num--selected {
+        .brgy-micro-num--moderate {
           color: #D97706 !important;
-          font-size: 12px !important;
           font-weight: 900 !important;
+        }
+        .brgy-micro-num--minor {
+          color: #B45309 !important;
+          font-weight: 800 !important;
+        }
+        .brgy-micro-num--selected {
+          color: #FFFFFF !important;
+          font-size: 11px !important;
+          font-weight: 900 !important;
+          background: #002BB8 !important;
+          padding: 3px 8px !important;
+          border-radius: 999px !important;
+          border: 2px solid #0E2A3A !important;
+          box-shadow: 0 0 16px rgba(0, 43, 184, 0.95) !important;
           transform: scale(1.25);
+          text-shadow: none !important;
+        }
+        .brgy-micro-num--selected-severe {
+          background: #DC2626 !important;
+          border-color: #7F1D1D !important;
+          box-shadow: 0 0 16px rgba(220, 38, 38, 0.95), 0 0 0 4px rgba(220, 38, 38, 0.3) !important;
+        }
+        .brgy-micro-num--selected-moderate {
+          background: #D97706 !important;
+          border-color: #78350F !important;
+          box-shadow: 0 0 16px rgba(217, 119, 6, 0.95), 0 0 0 4px rgba(217, 119, 6, 0.3) !important;
+        }
+        .brgy-micro-num--selected-minor {
+          background: #F59E0B !important;
+          border-color: #92400E !important;
+          box-shadow: 0 0 16px rgba(245, 158, 11, 0.95), 0 0 0 4px rgba(245, 158, 11, 0.3) !important;
         }
         .leaflet-interactive {
           cursor: pointer !important;
@@ -629,7 +704,7 @@ export default function BarangayHeatmap() {
 
               {/* Barangay Boundaries Layer with Flood Inundation Colors */}
               <GeoJSON
-                key={(selected?.code || 'none') + '-' + filterSeverity + '-' + selectedBarangayFilter + '-' + showFloodZones}
+                key={(selected?.code || 'none') + '-' + filterSeverity + '-' + selectedBarangayFilter + '-' + showFloodZones + '-' + households.length}
                 data={manilaGeoJSON}
                 style={styleFeature}
                 onEachFeature={onEachFeature}
@@ -638,12 +713,26 @@ export default function BarangayHeatmap() {
               {/* Micro Barangay Number Labels */}
               {Object.values(barangayCentroids).map((b) => {
                 const stat = barangayStats[b.code];
-                const hasSevere = stat?.maxLevel === 'Severe' || stat?.maxLevel === 'Totally Damaged';
                 const isSelected = selected?.code === b.code;
+                const isSevere = stat?.maxLevel === 'Severe' || stat?.maxLevel === 'Totally Damaged' || (stat?.count >= 3);
+                const isModerate = stat?.maxLevel === 'Moderate' || (stat?.count >= 2);
+                const isMinor = stat?.maxLevel === 'Minor' || (stat?.count >= 1);
+
+                let markerClass = 'brgy-micro-num';
+                if (isSelected) {
+                  markerClass += ' brgy-micro-num--selected';
+                  if (isSevere) markerClass += ' brgy-micro-num--selected-severe';
+                  else if (isModerate) markerClass += ' brgy-micro-num--selected-moderate';
+                  else if (isMinor) markerClass += ' brgy-micro-num--selected-minor';
+                } else {
+                  if (isSevere) markerClass += ' brgy-micro-num--severe';
+                  else if (isModerate) markerClass += ' brgy-micro-num--moderate';
+                  else if (isMinor) markerClass += ' brgy-micro-num--minor';
+                }
 
                 const customIcon = L.divIcon({
                   className: 'brgy-number-marker',
-                  html: `<div class="brgy-micro-num ${isSelected ? 'brgy-micro-num--selected' : hasSevere ? 'brgy-micro-num--severe' : ''}">${b.code}</div>`,
+                  html: `<div class="${markerClass}">${b.code}</div>`,
                   iconSize: [28, 14],
                   iconAnchor: [14, 7],
                 });
