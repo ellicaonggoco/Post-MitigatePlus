@@ -133,10 +133,22 @@ function LguAdminDashboard({ token, user }) {
   useEffect(() => {
     const fetch_ = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/reports/summary`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) setSummary(await res.json());
+        const [resSummary, resQueue] = await Promise.all([
+          fetch(`${API_BASE_URL}/reports/summary`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/households/pending?status=pending`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        let sumData = resSummary.ok ? await resSummary.json() : {};
+        if (resQueue.ok) {
+          const queueData = await resQueue.json();
+          if (typeof queueData?.counts?.pending === 'number') {
+            sumData.pendingVerifications = queueData.counts.pending;
+          }
+        }
+        setSummary(sumData);
       } catch (e) { console.error(e); } finally { setLoading(false); }
     };
     if (token) fetch_();
@@ -222,10 +234,22 @@ function BarangayDashboard({ token, user }) {
   useEffect(() => {
     const fetch_ = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/reports/summary?barangayCode=${barangayCode}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) setSummary(await res.json());
+        const [resSummary, resQueue] = await Promise.all([
+          fetch(`${API_BASE_URL}/reports/summary?barangayCode=${barangayCode}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/households/pending?status=pending&barangayCode=${barangayCode}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        let sumData = resSummary.ok ? await resSummary.json() : {};
+        if (resQueue.ok) {
+          const queueData = await resQueue.json();
+          if (typeof queueData?.counts?.pending === 'number') {
+            sumData.pendingVerifications = queueData.counts.pending;
+          }
+        }
+        setSummary(sumData);
       } catch (e) { console.error(e); } finally { setLoading(false); }
     };
     if (token) fetch_();

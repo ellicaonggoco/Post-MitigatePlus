@@ -40,7 +40,7 @@ router.get('/summary', protect, requireRole('barangay_official', 'lgu_admin', 'l
       activeEvents,
     ] = await Promise.all([
       isUnfiltered ? Household.estimatedDocumentCount() : Household.countDocuments(query),
-      Household.countDocuments({ ...query, verificationStatus: 'pending' }),
+      Household.countDocuments({ ...query, verificationStatus: { $in: ['pending', 'needs_info'] } }),
       Household.countDocuments({ ...query, verificationStatus: 'verified' }),
       Household.countDocuments({ ...query, priorityLevel: 'High' }),
       Household.aggregate([
