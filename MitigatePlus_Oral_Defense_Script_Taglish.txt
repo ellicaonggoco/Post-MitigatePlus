@@ -1,0 +1,1503 @@
+NATIONAL UNIVERSITY
+COLLEGE OF COMPUTING AND INFORMATION TECHNOLOGIES
+BSIT with Specialization in Mobile and Web Application (BSIT-MWA / INF235)
+
+CAPSTONE PROJECT 2: OFFICIAL ORAL DEFENSE PRESENTATION SCRIPT (ENGLISH-DOMINANT TAGLISH)
+Project Title: MitigatePlus: A Community Disaster Risk Mitigation Information System
+Total Defense Time: 60 Minutes (1 Hour)
+Slide Deck Reference: 39 Slides
+Manuscript Reference: Capstone 2 Final Manuscript (Chapters 1 to 4)
+Capstone Adviser: Mr. John Ivan C. Maurat
+Panel of Evaluators: Dean Emeliza Yabut (Chair) | Prof. Lalaine Abad | Prof. Julieanne Cristal
+
+================================================================================
+OFFICIAL SPEAKER ROSTER AND ASSIGNED SLIDES
+================================================================================
+* Opening Prayer: Datul (John Herszel Datul)
+* JM (John Michael Nolasco): Slides 1 to 12, Slide 17, Slide 20
+* Ellica (Enica Chris Onggoco): Slides 13, 14, 15, 16, 18 + Lead Live Software Demonstration
+* Datul (John Herszel Datul): Slides 19, 21, 22, 23, 24, 25
+* Chester (Neil Chester Mari Garcia): Slides 26, 27, 28, 29, 30, 31, 32
+* Raf (John Rafael Corpuz): Slides 33, 34, 35, 36, 37, 38, 39
+
+TIME ALLOCATION (60 MINUTES TOTAL):
+1. Opening Prayer and Formal Presentation (Slides 1 to 39): 25 to 27 Minutes
+2. Live Software Demonstration (5 Acts): 15 to 16 Minutes
+3. Panel Q&A and Technical Deliberation: 17 to 20 Minutes
+
+================================================================================
+OPENING PRAYER
+================================================================================
+Speaker: Datul
+Spoken Script:
+"Before we begin our formal defense, let us first pause for a moment and place ourselves before God who gives us wisdom and strength.
+
+Heavenly Father, we come before You with grateful hearts. Thank You po for this day and for this opportunity to present the work that we have poured our time and effort into. We ask for clarity of mind, calmness of spirit, and confidence as we stand before this respected panel today.
+
+Lord, guide our words. Remind us of everything we have prepared, and help us explain our ideas clearly and honestly.
+
+We also ask that You bless our respected panel of evaluators: our Panel Chair, Dean Emeliza Yabut; Prof. Lalaine Abad; and Prof. Julieanne Cristal. May they be given wisdom and fairness as they evaluate our work, and may their feedback continue to make us better.
+
+Bless our Capstone Adviser, Mr. John Ivan Maurat, for his patience and guidance throughout this entire journey.
+
+May this presentation serve not just as our academic requirement, but as a meaningful contribution to the communities of Manila during times of disaster.
+
+In Your most holy Name, Amen."
+
+================================================================================
+PART 1: SLIDE-BY-SLIDE PRESENTATION SCRIPT (SLIDES 1 TO 39)
+================================================================================
+
+SLIDE 1: Title Slide
+Visual Cue: Title, Group Name OnTheWay, Proponents, NU CCIT Seal.
+Speaker: JM
+Spoken Script:
+"A pleasant morning po to our respected panel of evaluators. To our Panel Chair, Dean Emeliza Yabut; to Prof. Lalaine Abad; to Prof. Julieanne Cristal; and to our Capstone Adviser, Mr. John Ivan Maurat. Good morning po.
+
+We are Group OnTheWay from the College of Computing and Information Technologies, National University. And we are honored to present our Capstone 2 Project: MitigatePlus: A Community Disaster Risk Mitigation Information System.
+
+Let us start with a quick context on why we built this.
+
+The City of Manila is hit by typhoons almost every year. The storm comes, the floods rise, families lose their homes and their food. But through our observation and research, we found that the biggest problem is not the typhoon itself. It is what happens AFTER. Yung relief distribution, po.
+
+Barangay workers are using handwritten paper lists. Residents stand in long lines under the rain. Some households claim relief twice because of palakasan, while elderly residents deep inside alleyways receive nothing at all.
+
+MitigatePlus was created to solve exactly that: to bring digital fairness, speed, and accountability into post-disaster relief distribution across Manila's 897 barangays.
+
+We will now walk you through our complete presentation, beginning with our compliance with your panel's recommendations from Capstone 1."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 2: Team Introduction
+Visual Cue: Proponents Roster.
+Speaker: JM
+Spoken Script:
+"Allow us to introduce ourselves.
+
+We are Team OnTheWay, five students from the BSIT program with specialization in Mobile and Web Application:
+
+John Rafael Corpuz handled our system architecture and backend development.
+John Herszel Datul led accessibility design and system testing.
+Neil Chester Mari Garcia managed usability evaluation and data collection.
+John Michael Nolasco, that is me, led system planning and manuscript documentation.
+And Enica Chris Onggoco served as lead front-end developer and live demonstration coordinator.
+
+We were guided throughout this project by our Capstone Adviser, Mr. John Ivan Maurat, whose feedback shaped both our manuscript and our system.
+
+Together, we spent months researching, prototyping, field-consulting, and testing MitigatePlus to ensure that it is not just academically sound but actually useful to the people of Manila."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 3: Panel Recommendations Compliance (Title Divider)
+Visual Cue: Section Divider: Panel's List of Recommendations Compliance.
+Speaker: JM
+Spoken Script:
+"This section is very important to us and we want to present it with full transparency.
+
+After our Capstone 1 defense, our three panelists gave us specific and constructive recommendations. We did not treat those as minor corrections. We treated them as a full mandate to rebuild and strengthen our project from the ground up.
+
+We will now walk through our compliance with each panelist's recommendations, one by one, as formally documented in our Appendix C compliance matrix."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 4: Compliance - Prof. Lalaine Abad
+Visual Cue: Compliance Table for Prof. Lalaine Abad (2 rows).
+Speaker: JM
+Spoken Script:
+"First, for the recommendations of Prof. Lalaine Abad.
+
+Recommendation 1: Focus on mitigation after disaster.
+
+Prof. Abad directed us to narrow the scope of MitigatePlus strictly to post-disaster mitigation. In compliance, we completely redesigned our system architecture to focus exclusively on three post-disaster workflows: damage reporting and triage, algorithmic relief priority ranking, and real-time distribution tracking.
+
+All pre-disaster features that were originally in our Capstone 1 scope were removed. Those resources were redirected to strengthening our core verification and distribution modules.
+
+This is formally documented in Section 1.3, Pages 5 to 6, which covers our Scope and Limitations, and in Section 3.2, Pages 25 to 33, which covers our Technical Architecture.
+
+Recommendation 2: Revise objectives, scope, and other sections to align with the mitigation focus.
+
+In compliance, we restructured our General Objective and all five Specific Objectives to focus exclusively on QR-based resident verification, post-disaster relief governance, and ISO 25010 quality evaluation. The revised objectives are found in Section 1.2, Pages 4 to 5.
+
+All references to pre-disaster features were removed from the manuscript scope table to ensure full alignment with this recommendation."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 5: Compliance - Dean Emeliza Yabut
+Visual Cue: Compliance Table for Dean Emeliza Yabut (2 rows).
+Speaker: JM
+Spoken Script:
+"Next, for the recommendations of our Panel Chair, Dean Emeliza Yabut.
+
+Recommendation 1: Revise the whole manuscript.
+
+Dean Yabut directed us to overhaul our entire manuscript to meet CCIT academic and technical standards. In compliance, we restructured all four chapters from Page 1 to Page 76.
+
+Chapter 1 now contains an updated problem statement, objectives, and scope aligned with post-disaster mitigation. Chapter 2 features an expanded Review of Related Literature with an original Gap Analysis Matrix. Chapter 3 presents our complete system architecture, data flow diagrams, use case specifications, and security models. Chapter 4 contains all testing data and ISO 25010 evaluation results.
+
+Every section was written through original synthesis grounded in Philippine disaster laws, verified Manila data, and field research.
+
+Recommendation 2: Focus on mitigation after disaster.
+
+This was implemented by engineering four post-disaster operational pillars into the system: household damage triage through geotagged reports, algorithmic priority ranking to prevent favoritism, headcount-scaled relief allocation for fair distribution, and real-time QR duplicate interception to prevent fraud.
+
+These are explained in full in Section 1.3 and Section 3.2 of our manuscript."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 6: Compliance - Prof. Julieanne Cristal
+Visual Cue: Compliance Table for Prof. Julieanne Cristal (3 rows).
+Speaker: JM
+Spoken Script:
+"Finally, for Prof. Julieanne Cristal, who gave us three very specific directives.
+
+Recommendation 1: The objectives on the presentation are different from the document.
+
+In compliance, we did a complete side-by-side comparison of every objective statement between our presentation deck and our manuscript. We then rewrote both so that they are verbatim identical. The General Objective and all five Specific Objectives in our slides match Section 1.2, Pages 4 to 5 of our manuscript word-for-word.
+
+Recommendation 2: The document appears to be copy-pasted. Modify it to become original.
+
+Ma'am Janne, we took this very seriously. We went through every paragraph of our manuscript and rewrote the content from scratch through original critical synthesis. Our literature review now draws directly from verified Philippine government sources: Republic Act 10121, DSWD-DILG Joint Memorandum Circular No. 1, and actual Manila flood hazard studies published by PAGASA and NAMRIA. No paragraph was taken from any existing source without proper academic citation.
+
+Recommendation 3: Revise the whole manuscript.
+
+We fully rebuilt Chapters 1 to 4: new Use Case Specifications with actor tables, redesigned Activity and Sequence Diagrams, a complete set of beta testing data tables, and an updated ISO 25010 benchmark evaluation. Lahat po ng compliance actions namin are formally listed in our printed Appendix C, which is available for your reference."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 7: Project Context (Title Divider)
+Visual Cue: Section Divider: Project Context.
+Speaker: JM
+Spoken Script:
+"We will now discuss the Project Context: the real situation in Manila that made it necessary to build MitigatePlus.
+
+Understanding the problem clearly will help explain every design and technical decision we made in this project."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 8: Project Context - Urban Disaster Vulnerability
+Visual Cue: Manila disaster vulnerability, RA 10121, frontline barangay challenges.
+Speaker: JM
+Spoken Script:
+"The City of Manila is one of the most densely populated and disaster-vulnerable cities in the Philippines.
+
+Manila has a population density of over 43,000 residents per square kilometer, making it among the most crowded urban areas in the world. The city sits along several bodies of water including Manila Bay, the Pasig River, and several esteros. These create extreme flood risk during typhoons and heavy monsoon rainfall.
+
+On average, the Philippines is struck by 20 tropical cyclones per year. Manila barangays along waterways can submerge within just a few hours of heavy rainfall, leaving families with little time to evacuate.
+
+Under Republic Act No. 10121, the Philippine Disaster Risk Reduction and Management Act of 2010, local Barangay DRRMC units are legally mandated to serve as the primary frontline responders in every disaster event. They are responsible for identifying affected families, distributing relief goods, and coordinating with city-level agencies.
+
+However, these barangay-level operations face serious structural challenges that a paper-based system simply cannot handle at scale. That is the gap MitigatePlus was built to address."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 9: Project Context - Operational Bottlenecks
+Visual Cue: 897 barangays, damp logbooks, repeat claimants vs unserved families.
+Speaker: JM
+Spoken Script:
+"Through our direct field interviews with relief workers and barangay officials across Manila, we identified three critical operational bottlenecks that appear every single time a disaster strikes.
+
+Bottleneck 1: Resident Verification Failure.
+Barangay volunteers at distribution tables cannot quickly verify whether the person in front of them is actually a registered resident. Without real-time digital verification, it is nearly impossible to catch imposters during a high-pressure distribution event.
+
+Bottleneck 2: The One Pack Fits All Problem.
+Almost all relief distributions use a flat system: every household receives one standardized pack regardless of family size. For a family of 12 people living in Tondo, one bag runs out within 24 hours, creating a nutrition crisis in the middle of an ongoing disaster.
+
+Bottleneck 3: Duplicate Claims and Palakasan.
+Without a real-time digital log, repeat claimants walk from one table to another and collect multiple packs. Meanwhile, vulnerable residents: seniors, bedridden PWDs, and families in interior alleys, often receive nothing.
+
+Each feature of MitigatePlus was designed specifically to eliminate one of these three bottlenecks."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 10: General Objective
+Visual Cue: General Objective statement under RA 10121.
+Speaker: JM
+Spoken Script:
+"This is our General Objective, stated verbatim on Page 4, Section 1.2 of our manuscript, which matches this slide word-for-word:
+
+To develop MitigatePlus, an integrated web and mobile community disaster risk mitigation and recovery information system for the City of Manila under Republic Act No. 10121, that provides digital resident verification through QR codes, geotagged damage reporting, algorithmic relief priority ranking, headcount-scaled supply allocation, and real-time anti-duplicate distribution tracking to promote transparency and operational efficiency across all 897 barangays of Manila.
+
+In simple terms: MitigatePlus ensures that the right amount of relief goods reaches the right families quickly, safely, and fairly, without fraud and without favoritism.
+
+That is the core promise of our system."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 11: Specific Objectives (Part 1 - Applications)
+Visual Cue: Resident Mobile App, Staff Scanner App, Web Admin Portal.
+Speaker: JM
+Spoken Script:
+"To achieve our General Objective, we defined five Specific Objectives. The first three involve the three applications we developed.
+
+Specific Objective 1: Resident Mobile Application.
+An Android mobile app for Manila residents to register their household, upload a government ID for verification, report home damage using their phone's GPS, display a secure digital QR Relief Pass, and apply for Cash-for-Work livelihood assistance.
+
+Specific Objective 2: Field Staff Scanner Application.
+A mobile scanner app for barangay tanods and relief marshals to authenticate resident QR passes in under 0.3 seconds, view the verified headcount and exact allocation on screen, confirm the relief release with one tap, and log the transaction into the cloud database in real-time.
+
+Specific Objective 3: Web Administrative Portal.
+A full web dashboard for Barangay Captains and city coordinators to review and approve resident IDs, schedule distribution drives, monitor a live damage map across Manila, view real-time fraud alerts, manage warehouse inventory, and export one-click COA-compliant liquidation reports."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 12: Specific Objectives (Part 2 - Engines & Quality Testing)
+Visual Cue: Core Engines (Algorithms 1 & 2), ISO 25010 Benchmark (85%).
+Speaker: JM
+Spoken Script:
+"Our fourth and fifth Specific Objectives are the most technically innovative parts of our system.
+
+Specific Objective 4: Two Core Algorithmic Engines.
+
+Algorithm 1 is our Smart Recovery Priority Index. It calculates a priority score for each household based on structural damage severity, vulnerable household members such as seniors, infants, and PWDs, and the number of days they have been waiting without relief. The formula is: RPI equals Damage times 0.40, plus Vulnerability times 0.40, plus Waiting Factor times 0.20. This produces a numerical ranking that tells coordinators exactly which families to serve first, removing all human bias from the decision.
+
+Algorithm 2 is our Right-Sized Relief Allocation Engine. It calculates the exact number of food packs and additional rice and canned goods based on each household's verified headcount, ensuring that large families receive proportionally more than small families.
+
+Specific Objective 5: ISO 25010 Quality Evaluation.
+We evaluated MitigatePlus across six quality dimensions: Functional Suitability, Usability, Performance Efficiency, Security, Compatibility, and Accessibility, measured against an 85% benchmark.
+
+I now turn the floor over to Ellica to present our testing and evaluation results."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 13: Summary Results of System Test (Title Divider)
+Visual Cue: Section Divider: Summary Results of System Test.
+Speaker: Ellica
+Spoken Script:
+"Thank you, JM. Good morning once again to our panel. I am Ellica, Enica Chris Onggoco, and I will present the comprehensive results of our system testing and evaluation.
+
+This section provides the empirical evidence that MitigatePlus is not just theoretically sound, but is functionally reliable, technically performant, and ready for real-world use.
+
+We tested across six quality dimensions under ISO/IEC 25010. I will walk you through each one."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 14: Web Functionality Testing
+Visual Cue: Web Functionality Test Table (Alpha vs Beta, Modules, Pass Rates).
+Speaker: Ellica
+Spoken Script:
+"For the Web Admin Application, we conducted two complete rounds of testing across all 14 administrative modules.
+
+Our 14 web modules include: Login and Authentication, Resident Verification Queue, Distribution Events Manager, Warehouse Inventory System, Smart Priority Dashboard, Fraud Interception Stream, Barangay Damage Heatmap, Special Request Relief, Recovery Progress Tracker, Livelihood Assistance Portal, Reports and COA Export, Account Provisioning, System Audit Logs, and Admin Settings.
+
+During Alpha testing, module pass rates ranged between 91.7% and 100%. The most common issue was loading delay in the resident approval table when processing large batches of pending IDs simultaneously. Minor form validation errors were also caught during this phase.
+
+After our team addressed these through code refactoring and MongoDB query optimization using compound indexes, we proceeded to Beta testing. In the Beta cycle, all 14 web modules achieved a perfect 100% pass rate, covering a total of 78 distinct functional test cases.
+
+Every administrative feature in MitigatePlus performs exactly as designed, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 15: Mobile Functionality Testing
+Visual Cue: Mobile Functionality Test Table (Resident App & Staff Scanner).
+Speaker: Ellica
+Spoken Script:
+"For the Mobile Application, we conducted our functional testing using Android Studio, which is Google's official integrated development environment for Android applications. Android Studio includes a built-in Android Emulator that allowed us to simulate different Android device configurations, screen sizes, and OS versions in a controlled testing environment.
+
+We tested two separate applications: the Resident App and the Staff Scanner Suite.
+
+During Alpha testing, scores ranged between 92.5% and 100%. The most notable issue was a camera permission handling behavior within the emulator environment, where the Expo BarCodeScanner module required additional configuration to properly handle camera access requests on simulated Android 13 and 14 device profiles.
+
+We resolved this by implementing an explicit runtime permission request flow using Expo's permissions API, and added AsyncStorage cache fallbacks to preserve scanner session data in case of unexpected app closure during a live distribution event.
+
+After these fixes, our Beta testing cycle for both mobile applications achieved a perfect 100% pass rate. The QR scanning flow, the damage report submission, the relief pass display, and the claim history view all performed correctly and consistently across all tested Android emulator configurations, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 16: Integration Testing
+Visual Cue: Integration Testing Metrics (API endpoints, MongoDB Atlas, Socket.IO, Cloudinary).
+Speaker: Ellica
+Spoken Script:
+"Beyond testing each module individually, we verified that all components of MitigatePlus communicate correctly with each other through Integration Testing.
+
+Our system has three client layers: the React.js Web Admin Portal, the React Native Resident App, and the React Native Staff Scanner App. All three connect to a shared Express.js REST API hosted on Render, backed by MongoDB Atlas on Google Cloud Platform.
+
+The two most critical integration flows we tested:
+
+First, the Resident Approval to QR Generation flow. When a Barangay Captain approves a resident on the Web Admin, a Socket.io WebSocket event fires. In under 200 milliseconds, the resident's mobile app receives the approval and their QR Relief Pass is automatically generated on their screen, without them needing to refresh or do anything.
+
+Second, the QR Scan to Fraud Interception flow. When a field officer scans a QR pass, the API checks the MongoDB database using our compound unique index on distributionEventId and householdId. If valid, the release is logged and inventory decrements. If a duplicate is detected, the transaction is rejected at the database engine level and a real-time Socket.io alert fires on both the scanner and the web admin dashboard within milliseconds.
+
+All integration flows tested successfully with zero transactional discrepancies."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 17: Web Application Performance
+Visual Cue: Web Performance Metrics (Speed Index, Load Times, Lighthouse Score).
+Speaker: JM
+Spoken Script:
+"We evaluated the performance of our Web Admin portal using Google Lighthouse, the industry-standard auditing tool used by Google to measure application speed, responsiveness, and best practices.
+
+Our overall Lighthouse Performance score is 87.8%, exceeding our 85% benchmark.
+
+The Speed Index, which measures how quickly page content becomes visible, is 1.72 seconds. The industry threshold for a good user experience is under 2.0 seconds, so we are well within that range.
+
+First Contentful Paint achieved 1.1 seconds. Time to Interactive was 2.3 seconds.
+
+These results are strong even though our Web Admin handles multiple data-intensive operations simultaneously: live maps, real-time WebSocket fraud alerts, large household data tables, and inventory counters. This speed is made possible by our Vite.js code-splitting build system and MongoDB compound database indexes that reduce average query execution to under 45 milliseconds."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 18: Mobile Application Performance
+Visual Cue: Mobile Performance Test Table (CPU, Memory, FPS, Crash Rate, 3 Cycles).
+Speaker: Ellica
+Spoken Script:
+"For Mobile Application Performance, we conducted our evaluation using the React Native and Expo In-App Performance Monitor across three distinct operational cycles, measuring against four strict CCIT performance thresholds: CPU usage under 15%, Memory under 250 MB, Render frame rate of at least 55 to 60 FPS, and a 0% Crash Rate.
+
+Here are our actual testing results across the three cycles:
+
+In Cycle 1, evaluating the Citizen Relief Pass dashboard, CPU usage averaged 8.5%, well within the 15% threshold. Memory consumption stabilized at 220.93 MB, and the UI thread maintained 57 FPS with an efficient 1.0 millisecond layout execution latency and zero crashes.
+
+In Cycle 2, testing the Field Staff QR Verification and Relief Release module, CPU usage remained between 6.5% and 9.2%. Memory dropped to 200.77 MB, and UI frame rate reached 71 FPS, with JavaScript thread execution peaking at 80 FPS, operating with zero runtime crashes.
+
+In Cycle 3, evaluating the Resident Livelihood and Rehabilitation module, CPU usage stayed low between 5.9% and 8.8%. Memory peaked at 222.42 MB with no memory leaks, and both UI and JavaScript threads achieved a synchronized 108 FPS on high-refresh display profiles, again with zero crashes.
+
+Across all cycles, our crash rate was exactly 0%, and layout latency consistently held at 1.0 millisecond.
+
+Additionally, po: even without an internet connection, the resident's QR Relief Pass remains accessible because it is cached in local storage using AsyncStorage upon approval. So in an evacuation center with zero signal, residents can still present their pass immediately."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 19: Mobile Accessibility
+Visual Cue: WCAG 2.1 Level AA Assessment Table, Google Accessibility Scanner (0 Suggestions across 12 Interfaces).
+Speaker: Datul
+Spoken Script:
+"Good morning again to our panel. I am Datul, John Herszel Datul, and I will be presenting our Accessibility, Compatibility, and Security testing results.
+
+Let us start with Mobile Accessibility. We evaluated our mobile application using the official Accessibility Scanner developed by Google LLC, auditing against the international Web Content Accessibility Guidelines 2.1 at Level AA.
+
+We evaluated a total of twelve distinct mobile interfaces across both the Resident App and the Staff Scanner Suite: including the Resident Home Dashboard, Livelihood Cash-for-Work portal, Structural Damage Assessment, Claims History Ledger, Settings and Security, Staff QR Scanner, Duty Profile, Incident Logger, Tasks Management, Special Delivery Execution, Authentication screens, and the Household Registration flow.
+
+Across all twelve interfaces, Google Accessibility Scanner reported exactly zero suggestions and zero compliance violations.
+
+Every interactive touch target meets or exceeds the required 48 by 48 density-independent pixel standard. Text-to-background contrast ratios strictly satisfy the 4.5 to 1 threshold for outdoor readability. All forms and controls provide explicit screen-reader accessibility labels, ensuring full usability for senior citizens and persons with disabilities, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 20: Web Accessibility
+Visual Cue: Web Accessibility Dashboard, keyboard navigation, color contrast.
+Speaker: JM
+Spoken Script:
+"On the Web Administration Portal, our Lighthouse Accessibility audit returned a score of 93%.
+
+Full Keyboard Navigation: Every function in the web portal, including approving residents, scheduling distribution events, viewing fraud alerts, and exporting reports, can be performed entirely using keyboard keys without a mouse. This is important for operators with motor disabilities or those working quickly during an emergency.
+
+Status Icons and Color-Independent Alerts: All critical system notifications are displayed with both a distinct color AND a unique geometric icon. Color-blind administrators will not miss any important alert because the information is communicated through shape and text, not only color.
+
+ARIA Labels: Interactive elements include proper ARIA attribute labels compatible with assistive screen reader tools.
+
+This level of compliance ensures that MitigatePlus is usable by a wide range of barangay staff regardless of individual limitations, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 21: Browser Compatibility
+Visual Cue: Cross-browser matrix (Chrome, Edge, Firefox, Brave, Safari).
+Speaker: Datul
+Spoken Script:
+"For Browser Compatibility, we verified that the MitigatePlus Web Admin Portal functions correctly across all five major web browsers: Google Chrome, which is the most widely used browser by government and barangay staff in the Philippines; Microsoft Edge, the default browser on most Windows computers; Mozilla Firefox; Brave Browser; and Apple Safari on macOS.
+
+Across all five browsers, we verified correct rendering and full functionality of: the interactive Leaflet.js hazard map with barangay pins and flood overlays, modal dialogs for resident approval and distribution scheduling, sortable and paginated data tables, the real-time WebSocket fraud alert feed, and all chart visualizations.
+
+No layout errors or functional failures were observed in any browser. The Web Admin Portal renders consistently and reliably across all environments."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 22: Mobile OS Compatibility
+Visual Cue: Android OS Compatibility Table (Android Studio AVD, API Levels 31, 33, 34).
+Speaker: Datul
+Spoken Script:
+"For Mobile OS Compatibility, we conducted structured cross-platform evaluations using the Android Studio Virtual Device Manager, or AVD, together with the Android Debug Bridge and Metro Bundler.
+
+Because we utilized the Android Studio emulator environment, we were able to systematically test our builds across baseline, intermediate, and target Android OS versions:
+
+First, Android 12, Codename Snow Cone, at API Level 31, serving as our project's Minimum SDK. Build stability and core modules passed completely.
+
+Second, Android 13, Codename Tiramisu, at API Level 33, specifically evaluating runtime notification permissions and the modern photo picker architecture used during government ID and damage report uploads. Both passed without issues.
+
+And third, Android 14, Codename Upside Down Cake, at API Level 34, representing our Target and Compile SDK. All background tasks, camera scanner integrations, and layout rendering passed with 100% compliance.
+
+Across all tested virtual device configurations, the application resources, fonts, and responsive layout designs rendered cleanly with zero overlapping elements, zero memory allocation errors, and seamless runtime permission handling, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 23 & 24: Security Testing (Pre vs Post Remediation)
+Visual Cue: Security Audit Results, OWASP Top 10 checks, resolved vulnerabilities.
+Speaker: Datul
+Spoken Script:
+"Security is one of the most critical requirements of MitigatePlus, because the system handles sensitive personal data of disaster-affected residents: household member names, home addresses, government ID photos, and relief claim records.
+
+We evaluated security under ISO 25010 and validated against the OWASP Top 10, the globally recognized list of the most critical web application security vulnerabilities.
+
+On Slide 23, our Pre-Remediation audit identified several issues: no rate limiting on login endpoints, making them vulnerable to brute-force attacks; JWT tokens lacking a server-side revocation mechanism; and some API endpoints missing input validation middleware.
+
+On Slide 24, Post-Remediation, all patches were implemented:
+
+Password Encryption: All passwords are hashed using Bcrypt with 10 salt rounds before storage. Even if an unauthorized party accessed our database, they cannot read any user's actual password.
+
+Brute-Force Prevention: We deployed express-rate-limit middleware on all authentication endpoints. After 5 failed attempts, the account is temporarily locked and the IP is throttled.
+
+Duplicate Prevention at Database Level: In MongoDB, we enforced a Compound Unique Index on distributionEventId and householdId. This is enforced at the storage engine level, making it mathematically impossible for the same household to have two release records for the same distribution event. No application-level logic can be bypassed because the database itself rejects the duplicate write."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 25: Usability Evaluation - Data Collection and Methodology
+Visual Cue: 108 survey participants + 2 IT professionals summary.
+Speaker: Datul
+Spoken Script:
+"For our Usability Evaluation, we designed and implemented a structured data collection process that follows ethical and academic standards.
+
+Let me explain our methodology clearly.
+
+Data Collection Procedure:
+Our usability survey was conducted online through a Google Forms survey, which was shared with residents, college students, barangay staff, and IT professionals connected to the target communities in Manila. Before answering the survey, all participants were briefed on the purpose of MitigatePlus and voluntarily agreed to participate after being given the opportunity to explore the system.
+
+The survey consisted of 20 Likert-scale items grouped into four usability categories: Ease of Use, Performance and Efficiency, Learnability, and Satisfaction. Each item was rated on a 5-point scale, where 1 means Strongly Disagree and 5 means Strongly Agree. After the Likert items, two open-ended questions asked respondents to describe the system's strengths and suggest improvements. Responses were collected digitally, ensuring convenience and accuracy for all participants.
+
+Data Management:
+All responses were automatically stored in a linked, password-protected Google Sheets spreadsheet. To protect participant confidentiality, identifying details were used only for internal record-keeping and were excluded from all aggregated reports. Only the research team had access to the raw dataset. Raw data will be retained until the manuscript's final defense and archived afterward for record-keeping purposes.
+
+Data Interpretation:
+Survey responses were coded numerically using the five-point Likert scale. For each item and category, we calculated the mean, which is the arithmetic average of all responses, and the standard deviation, which measures how spread out the responses are from the mean.
+
+A low standard deviation means most participants closely agreed in their ratings, indicating strong consensus. A high standard deviation means there were more varied opinions among respondents.
+
+Our results were then interpreted using a standardized mean score table, which Chester will now present."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 26: Usability Evaluation - Demographic Breakdown
+Visual Cue: Demographic breakdown charts.
+Speaker: Chester
+Spoken Script:
+"Good morning po to our panel. I am Chester, Neil Chester Mari Garcia. I will now present the usability evaluation results of MitigatePlus.
+
+On Slide 26, let me show you the demographic breakdown of our 108 respondents.
+
+49 respondents, or 45.4%, were ordinary Manila Residents: the direct beneficiaries of the system, the people who would actually use the Resident App to register and claim relief.
+
+33 respondents, or 30.6%, were College Students and Youth Volunteers, representing the next generation of barangay emergency responders.
+
+14 respondents, or 13.0%, were Barangay Relief Staff and BDRRMC Personnel: the frontline operators who would use the Staff Scanner App during actual distribution events.
+
+7 respondents, or 6.5%, were Barangay Council Officials and Community Leaders: the decision-makers who would use the Web Admin portal.
+
+5 respondents, or 4.6%, were IT Practitioners included in our community survey, separate from the 2 senior IT professionals who provided a dedicated expert-level technical evaluation.
+
+The distribution of our sample is intentional. More than 76% of our evaluators are grassroots community members: actual residents and barangay workers from the same environment where MitigatePlus would be deployed. Their ratings reflect real-world usability, not just technical opinion."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 27: Usability - Ease of Use
+Visual Cue: Ease of Use chart.
+Speaker: Chester
+Spoken Script:
+"Under the Ease of Use dimension on Slide 27, MitigatePlus achieved a rating interpreted as Very High under our mean score scale.
+
+This category measures how simple and straightforward the system is to use without prior training.
+
+Respondents consistently praised the resident registration process, describing the step-by-step form for adding household members as easy to understand even without instructions.
+
+The one-tap QR Relief Pass display was highlighted as a major improvement over traditional paper stub systems. Residents said they could open the app and show their pass in under 5 seconds, much faster than searching through physical paperwork in a busy distribution line.
+
+Barangay staff evaluators also rated the Staff Scanner's interface as very easy to operate. They specifically mentioned that the bright green confirmation and the red rejection screens made it immediately clear whether a claim was valid or a duplicate, with no confusion even under pressure."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 28: Usability - Performance and Efficiency
+Visual Cue: Performance and Efficiency chart.
+Speaker: Chester
+Spoken Script:
+"For Performance and Efficiency on Slide 28, we achieved a mean score of 4.35 out of 5.00, interpreted as Very High under our evaluation scale.
+
+This is our highest individual usability score across all dimensions, telling us that respondents strongly felt the system performed its tasks quickly and without wasting their time.
+
+Barangay relief staff respondents were particularly enthusiastic about the QR scanning speed. In a traditional paper-based distribution, verifying one household can take 1 to 3 minutes as the volunteer searches through handwritten lists, checks for prior claims, and manually notes the release.
+
+With MitigatePlus, the entire process from scan to confirmed release takes under 3 seconds. Respondents noted that this speed means significantly shorter lines and less waiting time for families who just lost their homes during a typhoon."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 29: Usability - Learnability
+Visual Cue: Learnability chart.
+Speaker: Chester
+Spoken Script:
+"Under Learnability on Slide 29, MitigatePlus also received a Very High rating.
+
+Learnability measures how quickly a new user can independently use the system without formal training. This is especially important for a disaster relief system that may be deployed in emergency conditions where there is no time for lengthy orientation sessions.
+
+During our evaluation, respondents used MitigatePlus for the first time without any tutorial. Multiple elderly respondents in the 55 to 70 age group, who described themselves as not very comfortable with smartphones, were able to register their household and display their QR pass within 3 minutes of first use.
+
+Similarly, barangay staff who had never seen the system before were able to perform a full QR scan and confirm a release within 2 minutes of being handed the device.
+
+This confirms that MitigatePlus has a very low learning curve across all age groups and user types."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 30: Usability - User Satisfaction
+Visual Cue: Satisfaction chart.
+Speaker: Chester
+Spoken Script:
+"Under User Satisfaction on Slide 30, MitigatePlus also scored Very High.
+
+This dimension captures the overall perception of users: whether they feel the system is trustworthy, fair, and worth using again.
+
+Three notable feedback points stood out from our open-ended survey responses:
+
+First, barangay officials emphasized that the automated priority ranking through Algorithm 1 gives them a data-driven basis for deciding which families to serve first. This removes the pressure of accusations of favoritism from community members because the system, not a person, makes the decision.
+
+Second, relief staff expressed strong appreciation for the fraud interception feature, saying it removes the awkward and sometimes dangerous confrontation they currently face when trying to manually stop repeat claimants.
+
+Third, ordinary residents said they felt more dignified and respected presenting a proper digital QR pass rather than relying on a scrap of paper that could be lost, wet, or duplicated."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 31: Usability Overall Summary
+Visual Cue: Overall Summary score chart (4.35 / 5.00).
+Speaker: Chester
+Spoken Script:
+"On Slide 31, we present our overall composite usability score.
+
+After calculating the mean and standard deviation across all 20 Likert-scale items, across all four categories, from all 108 respondents and 2 IT professionals, MitigatePlus achieved an overall composite mean score of 4.35 out of 5.00.
+
+Using the standard mean interpretation scale in Table 24 of our manuscript:
+A mean of 4.20 to 4.59 is interpreted as Very High.
+A mean of 4.60 to 5.00 is interpreted as Exceptional.
+
+Our score of 4.35 places MitigatePlus firmly in the Very High category.
+
+The low standard deviation across most items indicates strong consensus among respondents: most participants closely agreed in their ratings, which further validates the reliability of our results.
+
+Our score exceeds the 4.00 benchmark by 0.35 points, confirming that MitigatePlus not only meets but meaningfully surpasses the usability standard we set for this project."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 32: Consultation with Manila DRRMD
+Visual Cue: Photo documentation with Sir Ceasar Salvacion of Manila DRRMD.
+Speaker: Chester
+Spoken Script:
+"To ensure that every workflow in MitigatePlus reflects actual government disaster response procedures, our team conducted formal consultations with the Manila Disaster Risk Reduction and Management Office.
+
+We worked specifically with Sir Ceasar Salvacion, Planning and Operations Specialist of the Manila Disaster Risk Reduction and Management Department.
+
+During our consultations, Sir Ceasar provided three key contributions:
+
+First, he confirmed that the three operational bottlenecks we identified: verification failure, one-size-fits-all distribution, and duplicate claims, are real and recurring problems in every major relief operation in Manila.
+
+Second, he provided us with documentation on the DSWD Disaster Assistance Family Access Card guidelines, which became the formal basis for our Algorithm 1 weighting formula.
+
+Third, he reviewed our 3-Phase Barangay Training Plan and confirmed that it aligns with how Manila DRRMD actually onboards barangay relief personnel.
+
+This consultation validated that MitigatePlus is not just an academic exercise but an operationally relevant system for Manila's actual disaster response needs.
+
+I now turn the floor over to Raf."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 33: Barangay Training Plan
+Visual Cue: 3-Phase Training Plan.
+Speaker: Raf
+Spoken Script:
+"Good morning, respected panelists. I am Raf, John Rafael Corpuz. I will now present our Training Plan, Conclusions, and Recommendations.
+
+Based on our consultations with Sir Ceasar Salvacion and on the actual operational cycles of disaster relief in Manila, we formulated a 3-Phase Barangay Training and Knowledge Transfer Plan for MitigatePlus deployment.
+
+Phase 1: Pre-Disaster Preparedness Training.
+This phase happens before any typhoon. Barangay staff are trained on the Web Admin portal: how to manage the resident registration queue, approve household registrations, and update community baseline data. Residents are encouraged to pre-register during non-emergency periods so their QR passes are ready before any disaster strikes.
+
+Phase 2: Post-Disaster Activation and Damage Assessment.
+Triggered when a disaster occurs. Personnel activate the Damage Reporting module and guide residents to submit geotagged damage reports through the mobile app. Algorithm 1 begins automatically generating priority rankings as reports come in, and coordinators dispatch relief teams to highest-priority households first.
+
+Phase 3: Distribution Operations and COA Liquidation.
+Field staff deploy with the Staff Scanner App, scan QR passes, confirm releases, and the system logs every transaction in real-time. At the end of the event, the Barangay Captain exports the complete COA-compliant liquidation report with a single click."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 34: IT Professionals Usability Evaluation
+Visual Cue: Expert feedback from 2 Senior IT Professionals.
+Speaker: Raf
+Spoken Script:
+"Beyond our community respondents, we also sought a technical evaluation from two Senior Software Engineers with professional experience in enterprise web and mobile application development.
+
+These IT professionals evaluated MitigatePlus from a software engineering and architecture perspective.
+
+Their key feedback points:
+
+First, they confirmed that our 3-tier decoupled architecture follows enterprise best practices for scalable cloud-native application design.
+
+Second, they noted that our MongoDB Compound Unique Index strategy for duplicate prevention is a robust and production-grade solution they would themselves use in similar real-time transaction systems.
+
+Third, they commended our use of Socket.io for real-time WebSocket events to push instant fraud alerts and approval notifications, saying this pattern is well-suited for rapid-response disaster operations.
+
+Fourth, they recommended that future versions explore offline-first architecture for the mobile app to further improve resilience during extended connectivity loss during major disasters.
+
+Overall, both IT professionals gave MitigatePlus positive expert evaluations confirming that the system architecture is sound, scalable, and appropriate for real-world deployment."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 35 & 36: Summary of the Study & ISO 25010 Metrics Table
+Visual Cue: Summary table of all metrics across ISO 25010 benchmarks.
+Speaker: Raf
+Spoken Script:
+"On Slides 35 and 36, we present the complete summary of all our ISO 25010 evaluation results against the 85% benchmark.
+
+Functional Suitability: 100% Beta pass rate across all 14 web modules covering 78 test cases, and 100% Beta pass rate across both mobile applications. Every intended function performs correctly and completely.
+
+Usability: A mean score of 4.35 out of 5.00, interpreted as Very High, validated across 110 evaluators including 108 community respondents and 2 senior IT professionals. Low standard deviation confirmed strong consensus among evaluators.
+
+Performance Efficiency: 87.8% Lighthouse Performance score with a 1.72-second Speed Index on web. On mobile, evaluated using React Native and Expo In-App Performance Monitor: CPU usage remained low between 5.9% and 11.4% against the 15% threshold; memory consumption stayed between 200.77 MB and 222.42 MB against the 250 MB threshold; rendering maintained 57 to 108 FPS with an ultra-responsive 1.0 millisecond layout execution latency; and crash rate was 0% across all cycles.
+
+Security: All OWASP Top 10 vulnerabilities addressed. Bcrypt with 10 salt rounds protects all passwords. Express-rate-limit blocks brute-force attacks. MongoDB Compound Unique Index prevents duplicate claims at the database engine level.
+
+Compatibility: 100% verified across 5 major web browsers, and on mobile, fully verified on the Android Studio Virtual Device Manager emulator across Android 12, 13, and 14, covering API levels 31, 33, and 34.
+
+Accessibility: 93% Lighthouse Accessibility score on the web portal, and exactly zero suggestions across twelve mobile interfaces audited using Google Accessibility Scanner, achieving 100% WCAG 2.1 Level AA compliance.
+
+In every dimension, MitigatePlus met or exceeded the 85% benchmark, po."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 37: Conclusion
+Visual Cue: Conclusion statement highlighting novelty and policy impact.
+Speaker: Raf
+Spoken Script:
+"In conclusion, MitigatePlus proves that software engineering can modernize post-disaster relief governance in the City of Manila.
+
+Our system transforms the relief distribution process from a chaotic, paper-based struggle into a fast, transparent, and mathematically fair operation.
+
+MitigatePlus contributes three original innovations:
+
+First, an Algorithmic Priority Index that removes human bias from the relief dispatch decision by producing a numerical score based on damage severity, household vulnerability, and waiting time. No more palakasan. The data decides who gets served first.
+
+Second, a Headcount-Scaled Relief Allocation Engine that guarantees every family receives the right amount of food based on their verified household size. A family of 12 will never again receive the same pack as a family of 2.
+
+Third, a Real-Time QR Duplicate Interception mechanism enforced at the MongoDB database engine level, making it mathematically impossible for any household to receive double relief during a single distribution event.
+
+Together, these three innovations create a relief system that is fair to every family, fast for every relief worker, and accountable to every official who needs to verify that aid truly reached the right people."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 38: Recommendations for Future Work
+Visual Cue: Future enhancements (offline mesh, PhilSys, drone mapping).
+Speaker: Raf
+Spoken Script:
+"For future researchers and developers who may continue building on MitigatePlus, we offer three concrete technical recommendations informed by our IT professional evaluators and by Sir Ceasar Salvacion of Manila DRRMD.
+
+Recommendation 1: Offline-First Architecture with Peer-to-Peer Mesh Networking.
+In major disaster scenarios where cellular towers fail entirely, we recommend exploring Bluetooth Low Energy or Wi-Fi Direct communication between Staff Scanner devices so they can synchronize claim records without any internet connection. When any device reconnects, the full dataset syncs to the cloud automatically.
+
+Recommendation 2: PhilSys National ID API Integration.
+The PSA's PhilSys National ID is being rolled out to all Filipino citizens. Integrating MitigatePlus with the PhilSys API would allow automatic real-time identity verification by cross-referencing a resident's national ID number, removing the need for manual photo review by a Barangay Captain.
+
+Recommendation 3: Aerial Drone Orthomosaic Imagery for Damage Assessment.
+Rather than relying only on individual household damage reports, future versions of the system could integrate aerial drone mapping to automatically generate neighborhood-wide damage heat maps. This would give coordinators a real-time bird's-eye view of the most severely affected zones in the hours immediately following a disaster."
+[NEXT SLIDE]
+
+--------------------------------------------------------------------------------
+
+SLIDE 39: System Demonstration Transition
+Visual Cue: System Demonstration Title Slide.
+Speaker: Raf
+Spoken Script:
+"Respected members of the panel, we have now presented our complete documentation, testing methodology, and evaluation results.
+
+But software is best evaluated in live action. Numbers and scores on slides only tell part of the story. The rest of the story is in the operational system.
+
+We now turn over the floor to Ellica, who will be sharing her screen to personally conduct our Live System Demonstration. She will walk you through our complete software ecosystem: starting with the full Web Administration Portal, followed by our Mobile Applications.
+
+Ellica, the screen and the floor are yours po."
+
+================================================================================
+PART 2: LIVE SYSTEM DEMONSTRATION SCRIPT (SOLO SCREEN SHARE - ELLICA)
+================================================================================
+Solo Demonstrator & Screen-Sharer: Ellica (Enica Chris Onggoco)
+Demonstration Structure:
+  Account 1: Web Portal - Barangay Official Level (Modules 1 to 8: Grassroots Operations)
+  Account 2: Web Portal - City LGU Admin Level (Modules 9 to 16: City Operations & Logistics)
+  Account 3: Web Portal - LGU Super Admin Level (Modules 17 to 20: Executive Governance & Policy)
+  Account 4: Mobile Applications Suite (Resident Experience & Field Staff QR Scanner)
+Estimated Total Demonstration Time: 15 to 16 Minutes
+
+================================================================================
+OFFICIAL LIVE DEMO USER ACCOUNTS & LOGIN CREDENTIALS CHEAT SHEET
+================================================================================
+
+[REFERENCE TABLE: 5 USER ACCOUNTS FOR LIVE DEMONSTRATION]
+Before presenting, ensure all 5 demo user accounts and login credentials are ready:
+
+1. ACCOUNT 1: BARANGAY OFFICIAL (Grassroots Operations - Barangay 291)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: official291@manila.gov.ph
+   - Password: official123
+   - Official Name: Barangay 291 Official
+   - Jurisdiction: Barangay 291, District 3, Sta. Cruz, Manila
+   - Scope in Demo: Modules 1 to 8 (Verification Queue, Resident Roster, Incident Reports, Damage Assessment, Distribution Events, Cash-for-Work Livelihood, Barangay Announcements, Barangay Recovery Tracker).
+
+2. ACCOUNT 2: CITY LGU ADMIN (City Operations & Logistics Level)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: admin@manila.gov.ph
+   - Password: admin123
+   - Official Name: Dir. Arnaldo "Arnel" M. Angeles (MDRRMO Director)
+   - Jurisdiction: City-Wide (All 897 Barangays in Districts 1 to 6)
+   - Scope in Demo: Modules 9 to 16 (Operational Command Center, Barangay Risk Heatmap, Central Warehouse Inventory, Distribution Events, Fraud Interception Stream, Emergency Livelihood Coordination).
+
+3. ACCOUNT 3: LGU SUPER ADMIN (Executive Governance & City Mayor)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: superadmin@manila.gov.ph
+   - Password: superadmin123
+   - Official Name: Hon. Maria Sheilah "Honey" Lacuna-Pangan (City Mayor)
+   - Jurisdiction: City-Wide Executive Authority
+   - Scope in Demo: Modules 17 to 20 (City Executive Dashboard, Global Policy Configuration, Account Security & Deactivation, System Audit Logs, 1-Click COA Liquidation Reports).
+
+4. ACCOUNT 4: MOBILE FIELD STAFF (QR Release Scanner & Field Validation)
+   - Portal: MitigatePlus Android Mobile App Suite
+   - Email: staff291@manila.gov.ph
+   - Password: staff123
+   - Official Name: Team Leader - Alpha (Field Officer Juan Santos)
+   - Assignment: Barangay 291 Covered Court Distribution Event
+   - Scope in Demo: Mobile Step 2 (Live Camera QR Scanner, Algorithm 2 Dynamic Entitlement Calculator, 1-Click Offline-Ready Claim Release, Field Incident Geotagging).
+
+5. ACCOUNT 5: MOBILE CITIZEN RESIDENT (Beneficiary Experience)
+   - Portal: MitigatePlus Android Mobile App Suite
+   - Primary Account (Verified Beneficiary):
+     * Email / Phone: juan@gmail.com (or 09171234567)
+     * Password: resident123
+     * Resident Name: John Paul Cruz (Head of 7-member family, 2 seniors, 1 infant)
+     * Digital QR Pass: MNL-291-CRUZ-8402
+     * Scope in Demo: Mobile Step 1 (Digital QR Pass display, Structural Damage Photo Reporting, 5-Stage Recovery Stepper, Cash-for-Work Emergency Employment Application).
+   - Secondary Account (Pending / Resubmitted ID Applicant):
+     * Email / Phone: ellica@gmail.com (or 09175550291)
+     * Password: resident123
+     * Resident Name: Ellica Onggoco (4 members, 2 seniors: Larry and Bibeng Masangkay)
+     * Scope in Demo: Target applicant verified during Module 1.
+
+================================================================================
+DEMONSTRATION INTRODUCTION
+================================================================================
+Speaker: Ellica
+Spoken Script:
+
+"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Cristal, a pleasant morning po.
+
+Ako po si Ellica, and today I will personally conduct our live system demonstration for MitigatePlus. I will be sharing my screen to walk you through our complete software ecosystem, deployed live at post-mitigate-plus.vercel.app and connected to our cloud database on MongoDB Atlas.
+
+Our live demonstration follows a strict, end-to-end account-by-account workflow:
+
+First, we will complete all eight grassroots modules under the Barangay Official account for Barangay 291.
+
+Second, we will log in to our City LGU Admin account under the Manila DRRMO to demonstrate city-wide logistics, warehouse monitoring, and distribution events across all 897 barangays.
+
+Third, we will access the LGU Super Admin account under City Mayor Honey Lacuna for policy configuration, system audit logs, and 1-click COA liquidation.
+
+And fourth, we will switch to our Mobile Applications Suite for resident self-service and field staff QR verification with live fraud interception.
+
+Let us begin with our first account: the Barangay Official."
+
+================================================================================
+PART 1: ACCOUNT 1 - BARANGAY OFFICIAL (official291@manila.gov.ph)
+[COMPLETE ALL 8 BARANGAY MODULES BEFORE LOGGING OUT]
+================================================================================
+[SCREEN SHARE: Chrome Browser - Signing in as Barangay Official (official291@manila.gov.ph)]
+
+--------------------------------------------------------------------------------
+MODULE 1: Administrative Login and Barangay Command Dashboard
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa aking screen, I will now sign in using our official Barangay credentials: official291@manila.gov.ph.
+
+[ACTION: I sign in and display the Barangay 291 Command Dashboard]
+
+Looking at our live dashboard data for Barangay 291:
+We currently have 1 pending verification,
+2 high-priority households requiring urgent disaster assistance,
+5 verified beneficiary households,
+and a total headcount of 19 individual family members within the barangay.
+
+All resident registrations, document uploads, and status changes update this dashboard in real time through Socket.io WebSockets, completely removing manual tallying for our barangay leadership po."
+
+--------------------------------------------------------------------------------
+MODULE 2: Resident Verification Queue (Live Cloud Data at /verification-queue)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will open the Verification Queue in our sidebar.
+
+[ACTION: I click 'Verification Queue' in the sidebar - URL: /verification-queue]
+
+In MitigatePlus, no resident can claim relief goods without prior identity verification. Every applicant must be verified by the barangay official to eliminate ghost beneficiaries.
+
+[ACTION: I open the pending applicant record of Ellica Onggoco]
+
+Here is our live pending record from MongoDB:
+The applicant is Ellica Onggoco residing at 1959 B Oroquieta Street, Santa Cruz, Manila, under Purok 35, Barangay 291.
+
+Reviewing her household roster, there are 4 registered members:
+Ellica Onggoco as Head, age 21;
+Liyah Mallari as Spouse, age 22;
+and two elderly dependents: Larry Masangkay, age 68, and Bibeng Masangkay, age 62, both tagged as Senior Citizens.
+
+Notice that our system automatically flagged two critical items:
+First, 'Naisumite ang Bagong Valid ID' confirming that a legible ID photo was resubmitted.
+And second, an automated fraud alert: 'Address Overlap Detected', warning the official that an existing record in the database shares this exact street address. This prevents duplicate household entries for the same residence.
+
+After inspecting her uploaded Barangay ID photo on Cloudinary CDN to confirm her residency, I will now click APPROVE.
+
+[ACTION: I click the green APPROVE button]
+
+In less than 200 milliseconds, her status becomes Verified in MongoDB, and the backend cryptographically generates a unique QR Relief Pass for her household. Ready na po siyang tumanggap ng ayuda."
+
+--------------------------------------------------------------------------------
+MODULE 3: Recovery Priority Index (Algorithm 1 at /priority-index)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is our Priority Index module.
+
+[ACTION: I click 'Priority Index' in the sidebar - URL: /priority-index]
+
+Here, our Smart Recovery Priority Index automatically ranks all households using the formula:
+RPI equals 40% Structural Damage, plus 40% Household Vulnerability, plus 20% Waiting Time.
+
+For this household at 1959 B Oroquieta Street, because they reported severe structural damage and have 2 senior citizen dependents, the system calculated a high RPI score, placing them directly into Tier 1 High Priority.
+
+This guarantees that families with the greatest damage and vulnerability receive emergency relief first. Purely objective data determines the dispatch order po."
+
+--------------------------------------------------------------------------------
+MODULE 4: Recovery Progress Tracker (at /recovery-progress)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next under Barangay Tools is the Recovery Progress Tracker.
+
+[ACTION: I click 'Recovery Progress' in the sidebar - URL: /recovery-progress]
+
+Dito po, our barangay leadership tracks the ongoing rehabilitation status of all households in Barangay 291 across our 5 stages: Verification, Damage Assessed, Allocated, Ready for Claim, and Ayuda Claimed.
+
+Currently in Barangay 291, our verified families are staged for relief claim, while newly approved households immediately enter the assessment pipeline. This provides the Punong Barangay with an automated recovery status without manual house-to-house inspections."
+
+--------------------------------------------------------------------------------
+MODULE 5: Special Relief Requests (Grassroots Intake at /special-request-relief)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Special Relief Requests.
+
+[ACTION: I click 'Special Relief Requests' in the sidebar - URL: /special-request-relief]
+
+Para po ito sa ating mga bedridden senior citizens, persons with disability, at mga may karamdaman sa Purok 35 at Oroquieta Street na hindi pisikal na makapunta sa covered court.
+
+The barangay official logs these special door-to-door delivery requests directly into the system, tagging the resident's specific medical conditions and home location so city distribution teams can deliver directly to their doorstep."
+
+--------------------------------------------------------------------------------
+MODULE 6: Livelihood Assistance (Barangay Intake at /livelihood-assistance)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Livelihood Assistance.
+
+[ACTION: I click 'Livelihood Assistance' in the sidebar - URL: /livelihood-assistance]
+
+Dito po, the barangay monitors our post-disaster Cash-for-Work program. Displaced residents and daily wage earners are registered for local community rehabilitation projects, such as clearing and drainage desilting along Oroquieta Street, providing them with an immediate income of ₱610 per day during the recovery period."
+
+--------------------------------------------------------------------------------
+MODULE 7: Barangay Announcements (Community Broadcasts at /announcements)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Barangay Announcements.
+
+[ACTION: I click 'Announcements' in the sidebar - URL: /announcements]
+
+Dito po, the barangay official broadcasts emergency bulletins, evacuation alerts, and relief distribution schedules.
+
+Every bulletin posted here pushes real-time notifications to the mobile devices of all registered residents in Barangay 291 through Socket.io WebSockets, completely eliminating reliance on printed flyers or word-of-mouth."
+
+--------------------------------------------------------------------------------
+MODULE 8: Barangay Reports & Official Logout (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under Barangay Tools, is the Reports module.
+
+[ACTION: I click 'Reports' in the sidebar - URL: /reports]
+
+This provides our barangay leadership with localized claim summaries, verification totals, and operational logs, keeping grassroots records fully transparent and synchronized with the City LGU.
+
+That completely concludes all eight grassroots modules under our first account, the Barangay Official. I will now log out of Barangay 291 to access our second account: the City LGU Admin.
+
+[ACTION: I click the logout button to return to the login screen]"
+
+================================================================================
+PART 2: ACCOUNT 2 - CITY LGU ADMIN (admin@manila.gov.ph - Dir. Arnaldo Angeles)
+[COMPLETE ALL 8 CITY LOGISTICS MODULES BEFORE LOGGING OUT]
+================================================================================
+[SCREEN SHARE: Signing in as City LGU Admin (admin@manila.gov.ph - Dir. Arnaldo Angeles)]
+
+--------------------------------------------------------------------------------
+MODULE 9: City LGU Admin Command Dashboard (City-Wide Scope)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will sign in as our City LGU Admin: admin@manila.gov.ph, representing Director Arnaldo Angeles of the Manila DRRMO.
+
+[ACTION: I sign in and display the City LGU Admin Command Dashboard]
+
+While the barangay handles local resident intake, the City LGU Admin oversees macro operations across the entire City of Manila.
+
+Looking at our live operational telemetry on the screen:
+Our four primary KPI cards show:
+First, 0 Active Distribution Events currently ongoing;
+Second, 3 Pending Verifications across the city awaiting barangay review;
+Third, 17 Fraud Interceptions Today successfully blocked at the gates;
+And fourth, 14 Total Relief Distributions completed to date.
+
+Across all 897 Barangays in Districts 1 to 6, we have 12 total registered households with 39 individual members, and 8 verified beneficiary households.
+
+Below our KPI cards, our Right-Sized Relief Allocation Status chart monitors our live supply dispatches against computed quotas for Food Packs, Drinking Water, Medical Kits, Hygiene Kits, and Shelter Tents."
+
+--------------------------------------------------------------------------------
+MODULE 10: Barangay Damage Heatmap (Geospatial Intelligence at /heatmap)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa ating Barangay Damage Heatmap under City Operations:
+
+[ACTION: I click 'Barangay Heatmap' under City Operations - URL: /heatmap]
+
+This Leaflet.js map aggregates real-time geospatial damage reports across all 897 barangays in Manila.
+
+[ACTION: I zoom into District 3 and click on Barangay 291]
+
+Clicking Barangay 291 opens our live Barangay Assessment sidebar panel:
+At the top, our hazard assessment identifies Barangay 291 as a 'Moderate Flood Zone (0.5m)'.
+Directly below, the system logs '6 reported household incident(s)'.
+
+Looking at the incident breakdown boxes:
+- Critical: 2
+- High Risk: 0
+- Moderate: 0
+- Minor: 1
+
+Right below, the inspector displays our live 'PRIORITY BENEFICIARIES IN THIS BARANGAY', ranked by Algorithm 1:
+First is John Paul Cruz with 79 points at 742 Severino Reyes St., Sta. Cruz, Manila, tagged as Totally Damaged.
+Second is Ellica Onggoco with 56 points at 1959 B Oroquieta St Sta Cruz Manila, also tagged as Totally Damaged.
+
+Directly below the beneficiary list is our green action button: 'Schedule Relief Event for Brgy 291'.
+With a single click, city coordinators can instantly schedule an emergency relief event targeted specifically for these verified families without manual data re-entry."
+
+--------------------------------------------------------------------------------
+MODULE 11: Central Warehouse Inventory Management (at /warehouse-inventory)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is our Warehouse Inventory module.
+
+[ACTION: I click 'Warehouse Inventory' in the sidebar - URL: /warehouse-inventory]
+
+Dito po, the City Admin monitors our central stockpile of official Manila DRRMD relief goods:
+Currently, our live stock shows:
+2,350 All-in-One Family Relief Packs, with a minimum buffer of 500;
+750 Senior Maintenance & Nutrition Packs, with a minimum buffer of 150;
+600 Infant & Toddler Care Packs;
+950 Emergency Medical Kits;
+and 1,800 5-Gallon Potable Drinking Water units.
+
+Our inventory features automated real-time decrementing. Every time a relief package is released at any distribution site, the database decrements the count automatically. If stock falls below the minimum buffer, the system flags an immediate alert for restocking."
+
+--------------------------------------------------------------------------------
+MODULE 12: Distribution Events Manager (Algorithm 2 at /distribution-events)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"In Distribution Events, the City Admin schedules relief drives and assigns field teams, such as Field Team Alpha and Field Team Bravo for Barangay 291 Covered Court.
+
+[ACTION: I open the active distribution event for Barangay 291 Covered Court]
+
+This is where Algorithm 2, our Right-Sized Relief Allocation Engine, computes customized package quantities based on household data:
+A small household like John Michael Nolasco with 1 member receives 1 Base Family Food Pack.
+A 4-member household with 2 seniors, like Ellica Onggoco's, receives 1 Base Family Food Pack plus 1 Senior Maintenance & Nutrition Pack.
+And a 7-member household with an infant, like John Paul Cruz's, receives 2 Base Family Food Packs, plus 2.5 kilograms of extra rice, 4 extra canned goods, and 1 Infant Care Pack.
+
+Algorithm 2 uses the formula: Base Packs equals Ceiling of Headcount divided by 5, plus supplementary nutrition for vulnerable members. This completely eliminates unfair flat distribution."
+
+--------------------------------------------------------------------------------
+MODULE 13: Special Relief Delivery Dispatch (at /special-request-relief)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next under City Operations is Special Relief Requests.
+
+[ACTION: I click 'Special Relief Requests' - URL: /special-request-relief]
+
+Dito po, the City Admin reviews the door-to-door requests escalated by barangays. The city disaster coordinator assigns specific mobile field teams, such as Quick Response Unit 1, to deliver customized medical and nutritional supplies directly to bedridden citizens."
+
+--------------------------------------------------------------------------------
+MODULE 14: City Livelihood & Cash-for-Work Coordination (at /livelihood-assistance)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Livelihood Assistance.
+
+[ACTION: I click 'Livelihood Assistance' - URL: /livelihood-assistance]
+
+At the city level, the LGU manages emergency employment projects under RA 10121. Currently, our active project is drainage desilting along Oroquieta Street with an allocated budget and daily wage of ₱610 per day, providing livelihood rehabilitation for displaced workers."
+
+--------------------------------------------------------------------------------
+MODULE 15: Fraud Interception Live Stream (at /fraud-interception)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is the Fraud Interception Stream.
+
+[ACTION: I click 'Fraud Interception' - URL: /fraud-interception]
+
+Dito po, the City Admin monitors live duplicate claim attempts and suspicious registration overlaps across all 897 barangays in real time.
+
+Our system has already intercepted and logged 17 duplicate claim attempts across Manila, protecting government resources before supplies leave the gates."
+
+--------------------------------------------------------------------------------
+MODULE 16: City Reports, Account Provisioning, & Logout (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under City Operations, we have Reports and Manage Field Accounts.
+
+[ACTION: I show Reports & Audit and the Provision Accounts directory]
+
+Dito po, the City Admin provisions official credentials for on-duty field scanners and verifies city-wide distribution reports.
+
+That completely finishes all city-wide logistics, warehouse monitoring, and distribution operations under our second account: the City LGU Admin. I will now log out and proceed to our third account: the LGU Super Admin.
+
+[ACTION: I click the logout button to return to the login screen]"
+
+================================================================================
+PART 3: ACCOUNT 3 - LGU SUPER ADMIN (superadmin@manila.gov.ph - Mayor Honey Lacuna)
+[COMPLETE ALL 4 EXECUTIVE GOVERNANCE MODULES BEFORE SWITCHING TO MOBILE]
+================================================================================
+[SCREEN SHARE: Signing in as LGU Super Admin (superadmin@manila.gov.ph - Mayor Honey Lacuna)]
+
+--------------------------------------------------------------------------------
+MODULE 17: Executive Command Dashboard (City Mayor's View)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will sign in as our LGU Super Admin: superadmin@manila.gov.ph, representing City Mayor Honey Lacuna.
+
+[ACTION: I sign in and display the Executive Dashboard]
+
+This executive portal provides the City Mayor with high-level intelligence: total barangays covered, city-wide verified beneficiary counts, total relief distributed, and executive audit flags across Manila."
+
+--------------------------------------------------------------------------------
+MODULE 18: Global Policy Configuration (at /global-policy)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Global Policy Configuration.
+
+[ACTION: I click 'Global Policy Config' in the sidebar - URL: /global-policy]
+
+Dito po, executive leadership dynamically calibrates the operational rules of the entire system:
+The Base Coverage is set to 5 members per food pack;
+Supplementary top-ups are set to +0.5 for seniors and pregnant members;
+The High Priority RPI threshold is set to 50;
+And the fraud lockout threshold is set to 2 consecutive unauthorized attempts.
+
+These parameters update the business logic across all 897 barangays in real time without modifying a single line of code."
+
+--------------------------------------------------------------------------------
+MODULE 19: System Audit Logs (Full Transparency at /system-audit-logs)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is System Audit Logs.
+
+[ACTION: I click 'System Audit Logs' in the sidebar - URL: /system-audit-logs]
+
+Every single administrative action across the city, from logins, verifications, to relief releases, is permanently recorded with immutable timestamps, IP addresses, and user credentials for complete transparency."
+
+--------------------------------------------------------------------------------
+MODULE 20: 1-Click COA Liquidation Export & Transition (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under Reports & Audit, we have our 1-Click COA Liquidation Export.
+
+[ACTION: I click 'Reports & Audit' and click EXPORT COA LIQUIDATION REPORT]
+
+In less than two seconds, the system downloads an audit-ready spreadsheet containing every beneficiary's name, verified address, claim timestamp, releasing officer ID, and itemized supply quantities, fully compliant with Commission on Audit standards.
+
+This successfully completes all three administrative web accounts: from Barangay Official, to City LGU Admin, to LGU Super Admin.
+
+Now po, for our fourth and final component, I will transition directly to our Mobile Applications Suite to demonstrate live field operations on resident devices and field scanner hardware.
+
+[ACTION: I switch focus to the Android Studio Emulator running the MitigatePlus Mobile Suite]"
+
+================================================================================
+PART 4: ACCOUNT 4 - THE MOBILE APPLICATION SUITE (FIELD WORKFLOWS)
+[COMPLETE ALL MOBILE RESIDENT & FIELD SCANNER WORKFLOWS]
+================================================================================
+[SCREEN SHARE: Android Studio Emulator running the MitigatePlus Mobile Suite]
+
+--------------------------------------------------------------------------------
+MOBILE STEP 1: Resident Registration & Household Profiling
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa aking screen, we are now looking at our Mobile Application running on the Android emulator.
+
+[ACTION: I tap 'Register Household' on the mobile screen]
+
+A resident living at 1959 B Oroquieta Street registers her household under Barangay 291.
+She inputs her address, adds her 4 household members, and toggles the Senior Citizen status for Larry and Bibeng Masangkay.
+
+[ACTION: I attach the Barangay ID photo and tap Submit]
+
+She uploads her Barangay ID and submits. Her screen displays: 'Registration Submitted, Pending Verification'.
+Once approved by the barangay official on the web, her digital pass is activated immediately."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 2: The Digital QR Relief Pass & Offline Caching
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Here is the verified resident's home screen.
+
+[ACTION: I display the Resident Home Screen and the QR Relief Pass]
+
+It shows her verified household name, headcount of 4 members with 2 seniors, and her cryptographic QR Relief Pass.
+
+Crucially po, this QR pass is cached locally in device storage using AsyncStorage at the moment of approval. Even if cell towers go down or there is zero internet in an evacuation center, the resident can still open the app and present her QR pass to the field officer immediately."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 3: Structural Damage Reporting with GPS Geotagging
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"If the household suffered structural damage, the resident opens Report Damage.
+
+[ACTION: I tap the 'Report' tab, select Severe Damage, attach a photo, and tap Submit]
+
+The app automatically captures her native GPS coordinates: 14.6085 North, 121.0104 East at 1959 B Oroquieta Street.
+She selects Severe Damage, attaches a photo of the cracked wall, enters 'sira wall namin', and submits.
+This report instantly updates the web Priority Index and Heatmap."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 4: Field Staff Scanner - Valid QR Scan & Release (SUCCESS)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, at the distribution site at the covered court, Officer Juan of Field Team Alpha opens the Staff Scanner App.
+
+[ACTION: I switch to the Staff Scanner App and execute the scan of the QR code]
+
+The resident presents her QR pass at Gate 1.
+I will now scan the QR code.
+
+[The scanner validates and confirms]
+
+In 0.3 seconds, the scanner validates the pass and displays:
+'Resident Verified: Ellica Onggoco, Headcount 4, Allocation: 1 All-in-One Family Relief Pack, 1 Senior Maintenance & Nutrition Pack'.
+
+Officer Juan hands over the supplies and taps CONFIRM RELEASE.
+
+[ACTION: I tap Confirm Release on the scanner]
+
+The release is confirmed. In the background, our Central Warehouse stock decrements from 2,350 to 2,349, and the transaction is permanently logged with Officer Juan's credentials."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 5: THE CLIMAX - Duplicate Claim Attempt (FRAUD INTERCEPTED)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"And now po, for the ultimate test of our system: Real-Time Fraud Interception.
+
+Imagine that ten minutes later, a relative takes the same phone over to Gate 2, attempting to claim a second set of relief goods using the exact same QR code.
+The volunteer at Gate 2 points his scanner and scans the pass.
+
+[ACTION: I deliberately scan the exact same QR code a SECOND time]
+
+[The mobile screen flashes a high-priority warning alarm]
+
+LOOK AT THE SCANNER SCREEN PO!
+
+The scanner immediately rejects the transaction:
+'WARNING! DUPLICATE CLAIM DETECTED! Relief already claimed today at Gate 1 by Officer Juan. Transaction REJECTED!'
+
+The second release was never written to our database. Our MongoDB Compound Unique Index on distributionEventId and householdId rejected the write operation at the database engine level.
+
+Kahit sampung beses pa i-scan ang QR code sa iba't ibang gate, the database will reject every attempt after the first confirmed release. Double claiming in MitigatePlus is mathematically impossible po."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 6: Ending the Distribution Session & Conclusion
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"After all residents are served, Officer Juan taps End Session.
+
+[ACTION: I tap End Session on the scanner screen]
+
+The app displays the operational summary: total residents scanned, total packages released, and duplicate fraud attempts intercepted, fully synchronized to the cloud.
+
+This concludes our live system demonstration of MitigatePlus.
+We showed you localized barangay intake, city-wide LGU logistics, executive policy governance, and offline-resilient mobile operations with foolproof fraud interception.
+
+Thank you po, and our entire team is now ready and honored to answer questions from the panel."
+
+===============================================================================
+ELLICA'S QUICK STEP-BY-STEP ACTION SHEET (PRINT & KEEP BESIDE LAPTOP)
+================================================================================
+
+PART 1: ACCOUNT 1 - BARANGAY OFFICIAL (official291@manila.gov.ph) - ~3 mins
+[COMPLETE ALL 8 BARANGAY MODULES BEFORE LOGGING OUT]
+Step 1: Sign in as official291@manila.gov.ph -> Show Dashboard KPIs (1 pending, 2 high-priority, 5 verified, 19 members).
+Step 2: Open /verification-queue -> Review Ellica Onggoco (1959 B Oroquieta St, 4 members, 2 seniors) -> Point out 'ID Resubmitted' & 'Address Overlap Detected' -> Click green APPROVE button.
+Step 3: Open Priority Index (/priority-index) -> Explain Algorithm 1 RPI ranking (40% Damage + 40% Vuln + 20% Wait) placing household in Tier 1.
+Step 4: Open Recovery Progress (/recovery-progress) -> Show 5-stage household rehabilitation pipeline.
+Step 5: Open Special Relief Requests (/special-request-relief) -> Show grassroots bedridden/PWD requests.
+Step 6: Open Livelihood Assistance (/livelihood-assistance) -> Show Cash-for-Work applicants at ₱610/day.
+Step 7: Open Announcements (/announcements) -> Show community emergency broadcasts.
+Step 8: Open Reports (/reports) -> Show local barangay distribution records.
+Step 9: Conclude Barangay Official account -> CLICK LOGOUT.
+
+PART 2: ACCOUNT 2 - CITY LGU ADMIN (admin@manila.gov.ph) - ~4 mins
+[COMPLETE ALL 8 CITY LOGISTICS MODULES BEFORE LOGGING OUT]
+Step 10: Sign in as admin@manila.gov.ph (Dir. Arnaldo Angeles) -> State the 4 KPI cards: 0 active events, 3 pending city verifications, 17 fraud attempts blocked, 14 total distributed (897 barangays, 12 registered households, 39 members, 8 verified).
+Step 11: Open Heatmap (/heatmap) -> Zoom District 3 / Brgy 291 -> Show popup: Moderate Flood Zone (0.5m), 6 incidents (2 Critical, 0 High Risk, 0 Moderate, 1 Minor), Priority Beneficiaries: John Paul Cruz (79 pts, Totally Damaged) & Ellica Onggoco (56 pts, Totally Damaged) -> Point out 'Schedule Relief Event for Brgy 291' button.
+Step 12: Open Warehouse (/warehouse-inventory) -> State stock counts: 2,350 Family Packs, 750 Senior Packs, 600 Infant Packs, 1,800 Water -> Explain auto-decrementing.
+Step 13: Open Distribution Events (/distribution-events) -> Show Algorithm 2 allocations (1 pack small, Family+Senior for Ellica, 2 packs+rice/cans for John Paul Cruz).
+Step 14: Show Special Relief Requests (/special-request-relief) -> Show city-wide field delivery dispatch.
+Step 15: Show Livelihood Assistance (/livelihood-assistance) -> Show active drainage desilting project at ₱610/day.
+Step 16: Show Fraud Interception (/fraud-interception) -> Show live duplicate claims stream across Manila.
+Step 17: Show Reports & Field Accounts (/reports & /provision-accounts) -> Show city audit logs & field staff credentials.
+Step 18: Conclude City LGU Admin account -> CLICK LOGOUT.
+
+PART 3: ACCOUNT 3 - LGU SUPER ADMIN (superadmin@manila.gov.ph) - ~2 mins
+[COMPLETE ALL 4 EXECUTIVE GOVERNANCE MODULES BEFORE SWITCHING TO MOBILE]
+Step 19: Sign in as superadmin@manila.gov.ph (Mayor Honey Lacuna) -> Show Executive Dashboard.
+Step 20: Open Global Policy Config (/global-policy) -> State parameters: 5 base coverage, +0.5 senior/pregnant top-up, RPI 50 threshold, 2 fraud strike limit.
+Step 21: Show System Audit Logs (/system-audit-logs) -> Show immutable transaction trail.
+Step 22: Open Reports & Audit (/reports) -> Click EXPORT COA LIQUIDATION REPORT -> Show downloaded spreadsheet in 2 seconds.
+Step 23: Conclude all web accounts -> Switch screen share to Android Studio Emulator!
+
+PART 4: ACCOUNT 4 - MOBILE APPLICATIONS SUITE (Android Studio Emulator) - ~6 mins
+[COMPLETE ALL MOBILE RESIDENT & FIELD SCANNER WORKFLOWS]
+Step 24: Resident App -> Register at 1959 B Oroquieta St with 2 senior toggles -> Upload ID -> Show 'Pending Verification'.
+Step 25: Show Verified Home Screen & QR Relief Pass -> Explain offline AsyncStorage caching.
+Step 26: Report Damage -> Show auto GPS (14.6085, 121.0104) -> Select Severe Damage ('sira wall namin') -> Submit.
+Step 27: Switch to Staff Scanner (Officer Juan, Gate 1) -> Scan QR code -> Valid release: 1 Family Pack + 1 Senior Pack -> Confirm Release -> Warehouse stock drops 2,350 to 2,349.
+Step 28: THE CLIMAX: Deliberately scan SAME QR code a SECOND TIME at Gate 2 -> DUPLICATE CLAIM DETECTED rejection alarm -> Explain MongoDB Compound Unique Index!
+Step 29: Tap End Session on Scanner -> Deliver Conclusion & Handover to Panel Q&A!
+
+================================================================================
+PART 3: PANEL Q&A CHEAT SHEET (STRATEGIC DEFENSE DIRECTORY)
+================================================================================
+
+QUESTION 1 (For Prof. Lalaine Abad - Scope & Post-Disaster Focus):
+"Bakit post-disaster mitigation lang ang focus ninyo? Bakit hindi ninyo sinama ang evacuation center tracking?"
+Lead Responder: JM / Ellica
+Spoken Defense:
+"Thank you po, Prof. Abad. We deliberately delimited our scope to the post-disaster phase based on your own Capstone 1 recommendation, and for two specific reasons.
+
+First, pre-disaster warning systems and evacuation center management are already addressed at the national level by PAGASA, NDRRMC, and DSWD's existing platforms. Adding those features to MitigatePlus would create unnecessary redundancy with systems that already exist.
+
+Second, our field consultations with Sir Ceasar Salvacion of Manila DRRMD confirmed that the primary operational breakdown in Manila disasters happens AFTER the disaster: during damage triage, relief rationing, and beneficiary tracking. By focusing exclusively on post-disaster operations, we engineered specialized algorithms and database structures tuned precisely for that phase.
+
+A system that tries to do everything often does nothing well. MitigatePlus does post-disaster relief governance well, validated by testing data and direct government consultation."
+
+--------------------------------------------------------------------------------
+
+QUESTION 2 (For Dean Emeliza Yabut - Manuscript Integrity & Architectural Scalability):
+"How did you ensure that Chapters 1 to 4 comply with CCIT standards, and how does your architecture support scaling across all 897 barangays of Manila?"
+Lead Responder: Datul / Raf
+Spoken Defense:
+"Thank you po, Dean Yabut. For the manuscript, we followed CCIT standards by structuring all four chapters with formal Use Case Specifications, Activity Diagrams, Process Sequence Diagrams, Entity Relationship Diagrams, and ISO 25010 test matrices, covering Pages 1 to 76.
+
+For scalability: our 3-tier architecture consists of a React.js Web Admin as the presentation layer, a React Native mobile layer, and a stateless Express.js REST API backed by a sharded MongoDB Atlas database cluster on Google Cloud Platform.
+
+Because our API is stateless, it can be horizontally scaled by deploying additional API instances behind a load balancer at any time. Our compound database indexes reduce average query execution to under 45 milliseconds. Theoretically, if MitigatePlus were deployed across all 897 barangays simultaneously, the architecture can handle thousands of concurrent relief transactions across all six legislative districts without bottlenecks."
+
+--------------------------------------------------------------------------------
+
+QUESTION 3 (For Prof. Julieanne Cristal - Originality & Verbatim Objectives):
+"Noong Capstone 1, magkaiba ang objectives sa presentation at sa document, at halatang copy-paste ang ilang bahagi. Paano ninyo ito inayos?"
+Lead Responder: JM / Chester
+Spoken Defense:
+"Thank you po, Ma'am Janne. We addressed both issues systematically.
+
+For objective synchronization: we performed a line-by-line verification of every objective between our slide deck and manuscript. The General Objective and all five Specific Objectives are now verbatim identical in both documents, which you can verify right now by comparing Slides 10 to 12 with Section 1.2, Pages 4 to 5.
+
+For originality: we completely rebuilt the literature foundation of our manuscript. We removed all generic definitions and replaced them with original critical synthesis drawn from Philippine primary sources: Republic Act 10121, DSWD-DILG Joint Memorandum Circular No. 1, PAGASA flood hazard maps, NAMRIA geospatial data, and verified Manila DRRMD operational documents. Our Table 1 on Page 15 presents an original Comparative Gap Analysis Matrix showing exactly what gap our system fills that platforms like PhilSys and DSWD DROMIC do not cover."
+
+--------------------------------------------------------------------------------
+
+QUESTION 4 (Technical - Usability Methodology):
+"Bakit Google Forms lang ang ginamit ninyo for data collection? Hindi ba pwedeng mas rigorous ang methodology?"
+Lead Responder: Chester / Datul
+Spoken Defense:
+"Thank you po for that question. The use of Google Forms was a deliberate and justified methodological choice for several reasons.
+
+First, our target population spans multiple locations across Manila. An online survey platform allowed us to reach residents, barangay staff, and IT professionals without requiring them to travel or gather at one location, which is especially practical given the disaster-context nature of our study.
+
+Second, Google Forms automatically stores responses in a linked Google Sheets spreadsheet, which minimizes transcription errors that occur in paper-based data entry. This actually improves data accuracy compared to manual collection.
+
+Third, before answering the survey, all participants were briefed on the purpose of the study and voluntarily agreed to participate after exploring the system. This informed consent process follows ethical research standards.
+
+Our survey instrument itself is the rigorous part: 20 Likert-scale items across 4 usability categories aligned with ISO/IEC 25010, supplemented by two open-ended qualitative questions, producing both quantitative means and standard deviations. The delivery method, being Google Forms, is a tool, not a substitute for the methodology itself."
+
+--------------------------------------------------------------------------------
+
+QUESTION 5 (Technical - Race Conditions & Simultaneous Scans):
+"What happens if two volunteers scan the exact same QR pass at the exact same millisecond at two different gates?"
+Lead Responder: Datul / Raf
+Spoken Defense:
+"This is a race condition scenario, and we handle it at the database engine level, not at the application level.
+
+In MongoDB, we created a Compound Unique Index on distributionEventId and householdId, enforced at the storage engine level.
+
+When two simultaneous release requests arrive at the API at the same millisecond, MongoDB processes them using atomic document locking. The first request successfully writes the release record. The second request is immediately rejected by the database engine itself with an E11000 Duplicate Key Error before any data is written.
+
+Our backend catches this specific error code, prevents the duplicate release, and fires a real-time Socket.io alert to both scanner devices and the Web Admin fraud stream simultaneously. The panel member's family receives exactly one set of relief goods regardless of how many operators processed the same QR pass at the same time."
+
+--------------------------------------------------------------------------------
+
+QUESTION 6 (Technical - Zero-Connectivity Contingency):
+"Paano kung mawalan ng internet sa evacuation area? Makakapag-scan pa ba ang mga tanod?"
+Lead Responder: Ellica / Datul
+Spoken Defense:
+"Yes po, and this is a scenario we specifically planned for.
+
+For residents: the QR Relief Pass is cached in the phone's local AsyncStorage immediately upon approval. Even if the phone is in Airplane Mode or a zero-signal zone, the resident can open and present their QR pass instantly.
+
+For field staff: if the network drops during a distribution event, the scanner app switches to offline mode automatically. Scan records are queued in local device storage. The scanner continues processing claims using the last synchronized household data. When the device reconnects to any network, the offline queue automatically synchronizes with the cloud database in the background.
+
+We acknowledge that the MongoDB-level duplicate interception cannot be enforced in true offline mode. The offline queue is designed to reconcile with the server upon reconnection and flag any conflicts for manual administrator review."
+
+--------------------------------------------------------------------------------
+
+QUESTION 7 (Algorithm 1 - Weighting Justification):
+"Bakit 40-40-20 ang weights ng Algorithm 1 ninyo?"
+Lead Responder: Chester / JM
+Spoken Defense:
+"The 40-40-20 weight distribution was not arbitrary. It was derived from DSWD Disaster Assistance Family Access Card guidelines and validated with Sir Ceasar Salvacion of Manila DRRMD.
+
+According to DAFAC guidelines and our consultation, structural damage at 40% and life-safety vulnerability at 40%, which covers bedridden seniors, infants, and PWDs, are the two primary determinants of survival urgency in the immediate post-disaster period.
+
+The 20% Waiting Factor ensures that households with moderate damage are not permanently deprioritized if higher-severity cases keep arriving. It provides a time-based escalation so that no household waits indefinitely, even if their initial damage score is lower."
+
+--------------------------------------------------------------------------------
+
+QUESTION 8 (Algorithm 2 - Why Not Just One Pack Per Family):
+"Bakit kailangan pa ng Algorithm 2? Pwede namang tig-iisang pack na lang bawat pamilya?"
+Lead Responder: Raf / Chester
+Spoken Defense:
+"Because household sizes in Manila vary drastically, and a flat one-pack policy causes real nutritional harm to large families.
+
+A family of 2 and a family of 12 do not have the same food requirement. Giving both the same single pack is inequitable: the 12-person family runs out within 24 hours and is forced to re-enter distribution lines, creating chaos and potential repeat claims.
+
+Algorithm 2 scales relief to verified headcount: 1 to 5 members receive 1 base pack, 6 to 10 members receive 2 base packs, 11 and above receive 3 base packs, plus 2.0 additional kg of rice and 3 additional canned goods per extra member.
+
+Every allocation is based on verified household headcount stored in our database, not on a volunteer's estimate. The scaling is automatic, transparent, and documented for COA verification."
+
+--------------------------------------------------------------------------------
+
+QUESTION 9 (System Novelty & Gap Analysis - Dean Yabut / Prof. Abad / Prof. Cristal):
+"Ano ang novelty ng MitigatePlus at paano ito naging novelty? Ano ang pinagkaiba nito sa mga umiiral na sistema tulad ng DSWD DROMIC, PlanSmart, o KoboToolbox?"
+Lead Responder: Ellica / John Michael / Herszel
+Spoken Defense:
+"Thank you po for that critical question. As documented in Chapter 1 Section 1.1 (Lines 128-134) and Chapter 2 Table 1 (Page 15) of our manuscript, the novelty of MitigatePlus is grounded in our Four Core Features supported by our Anti-Duplicate-Claim Interception System:
+
+First: Barangay-Verified Household Registration. Unlike self-registration portals, every applicant must be validated by a barangay official who inspects uploaded valid IDs, while our backend regex engine flags Address Overlaps to prevent duplicate household registrations for the exact same residence.
+
+Second: Smart Recovery Priority Index (Algorithm 1). We eliminate the padrino and palakasan system by mathematically calculating an RPI score from 40% Structural Damage, 40% Life-Safety Vulnerability (seniors, PWDs, infants, pregnant members), and 20% Waiting Time, placing the most critically affected families in Tier 1.
+
+Third: Right-Sized Relief Allocation Engine (Algorithm 2). We replace the traditional, unfair '1-box-per-household' flat policy with dynamic allocation: Ceiling(Headcount/5) base packs plus 2.0 kg rice and 3 canned goods per extra member, alongside dedicated Senior and Infant care kits.
+
+Fourth: Assistance Gap Detection Engine. Unlike systems where monitoring ends once a box is handed over, MitigatePlus tracks household-level unmet recovery needs across 5 post-disaster stages until full recovery is achieved.
+
+And supporting all four is our Anti-Duplicate-Claim Interception, enforced at the database engine level via a MongoDB Compound Unique Index on { distributionEventId: 1, householdId: 1 }, which rejects duplicate write operations in sub-milliseconds and triggers instant audio-visual alarms on mobile scanners.
+
+As shown in our Gap Analysis Table 1:
+- DSWD DROMIC is strictly a macro summary reporting tool with no ground mobile apps or QR validation.
+- PlanSmart Ready to Rebuild is designed for multi-year municipal planning, not distribution queues.
+- KoboToolbox is a generic survey tool without allocation math or real-time duplicate interception.
+- Red Cross RCSTAT relies on organization-specific paper stubs disconnected from LGU barangay governance.
+- And e-Balangay relies on fixed flat distribution without algorithmic priority triage.
+
+MitigatePlus is the first closed-loop, data-driven post-disaster mitigation platform in the Philippines that connects resident damage telemetry directly to verified, right-sized, and fraud-proof relief distribution."
+
+--------------------------------------------------------------------------------
+
+CLOSING STATEMENT:
+Speaker: Raf
+Spoken Script:
+"Respected members of the panel: Dean Emeliza Yabut, Prof. Lalaine Abad, Prof. Julieanne Cristal, and Adviser Maurat.
+
+We cannot stop typhoons from making landfall in Manila. But the chaos, the palakasan, the lost paper records, and the inequity of disaster relief can be solved through software.
+
+With MitigatePlus, we have demonstrated that five BSIT students from National University can build a system that is technically sound, usability-validated, government-consulted, and genuinely useful to the most vulnerable people in this city during their worst moments.
+
+We do not claim this is a perfect solution. But we believe it is a meaningful and honest first step toward bringing digital fairness and accountability into post-disaster relief governance in Manila.
+
+We are Team OnTheWay. And we respectfully submit MitigatePlus for your final evaluation.
+
+Maraming salamat po. We are ready for your questions."

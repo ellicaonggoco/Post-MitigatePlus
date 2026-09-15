@@ -1,0 +1,629 @@
+NATIONAL UNIVERSITY
+COLLEGE OF COMPUTING AND INFORMATION TECHNOLOGIES
+
+MITIGATEPLUS: A COMMUNITY DISASTER RISK MITIGATION INFORMATION SYSTEM
+OFFICIAL LIVE SYSTEM DEMONSTRATION SCRIPT (DATA-DRIVEN & OPERATIONAL)
+Solo Demonstrator & Screen-Sharer: Ellica (Enica Chris Onggoco)
+Demonstration Structure:
+  Account 1: Web Portal - Barangay Official Level (Modules 1 to 8: Grassroots Operations)
+  Account 2: Web Portal - City LGU Admin Level (Modules 9 to 16: City Operations & Logistics)
+  Account 3: Web Portal - LGU Super Admin Level (Modules 17 to 20: Executive Governance & Policy)
+  Account 4: Mobile Applications Suite (Resident Experience & Field Staff QR Scanner)
+Estimated Demonstration Time: 15 to 16 Minutes
+Live Web URL: https://post-mitigate-plus.vercel.app/
+Live Database: MongoDB Atlas (Cluster mitigateplus.zcblqbq.mongodb.net)
+
+================================================================================
+ELLICA'S PRE-DEMO SETUP & SCREEN CONFIGURATION
+================================================================================
+
+Screen Setup:
+- Window 1: Google Chrome browser at https://post-mitigate-plus.vercel.app/ (ready at login screen).
+- Window 2: Android Studio Virtual Device (AVD) running the MitigatePlus Mobile Suite.
+
+Key Operational Data on Screen:
+- Barangay 291 Data: 1 pending verification, 2 high-priority households, 5 verified households, 19 total resident members.
+- Pending Applicant: Ellica Onggoco (1959 B Oroquieta St, Sta. Cruz, Manila, Purok 35, Barangay 291) with 4 members (2 seniors: Larry Masangkay, 68, and Bibeng Masangkay, 62).
+- Alerts: 'ID Resubmitted' and 'Address Overlap Detected'.
+- City-Wide Metrics: 897 Barangays in Districts 1 to 6, 12 total registered households, 39 total headcount, 14 completed distributions, 17 duplicate fraud attempts blocked.
+- Barangay 291 Heatmap Assessment: Moderate Flood Zone (0.5m), 6 reported incidents (2 Critical, 0 High Risk, 0 Moderate, 1 Minor), Priority Beneficiaries: John Paul Cruz (79 pts, Totally Damaged) & Ellica Onggoco (56 pts, Totally Damaged), 'Schedule Relief Event for Brgy 291' button.
+- Central Warehouse Stock: 2,350 Family Relief Packs, 750 Senior Packs, 600 Infant Packs, 950 Medical Kits, 1,800 Water units.
+- Distribution Event: Barangay 291 Covered Court, Field Team Alpha & Bravo, Algorithm 2 dynamic allocations.
+- Global Policy: Base coverage 5 members, +0.5 senior top-up, +0.5 pregnant top-up, 2 fraud strike threshold.
+
+================================================================================
+OFFICIAL LIVE DEMO USER ACCOUNTS & LOGIN CREDENTIALS CHEAT SHEET
+================================================================================
+
+[REFERENCE TABLE: 5 USER ACCOUNTS FOR LIVE DEMONSTRATION]
+Before presenting, ensure all 5 demo user accounts and login credentials are ready:
+
+1. ACCOUNT 1: BARANGAY OFFICIAL (Grassroots Operations - Barangay 291)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: official291@manila.gov.ph
+   - Password: official123
+   - Official Name: Barangay 291 Official
+   - Jurisdiction: Barangay 291, District 3, Sta. Cruz, Manila
+   - Scope in Demo: Modules 1 to 8 (Verification Queue, Resident Roster, Incident Reports, Damage Assessment, Distribution Events, Cash-for-Work Livelihood, Barangay Announcements, Barangay Recovery Tracker).
+
+2. ACCOUNT 2: CITY LGU ADMIN (City Operations & Logistics Level)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: admin@manila.gov.ph
+   - Password: admin123
+   - Official Name: Dir. Arnaldo "Arnel" M. Angeles (MDRRMO Director)
+   - Jurisdiction: City-Wide (All 897 Barangays in Districts 1 to 6)
+   - Scope in Demo: Modules 9 to 16 (Operational Command Center, Barangay Risk Heatmap, Central Warehouse Inventory, Distribution Events, Fraud Interception Stream, Emergency Livelihood Coordination).
+
+3. ACCOUNT 3: LGU SUPER ADMIN (Executive Governance & City Mayor)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: superadmin@manila.gov.ph
+   - Password: superadmin123
+   - Official Name: Hon. Maria Sheilah "Honey" Lacuna-Pangan (City Mayor)
+   - Jurisdiction: City-Wide Executive Authority
+   - Scope in Demo: Modules 17 to 20 (City Executive Dashboard, Global Policy Configuration, Account Security & Deactivation, System Audit Logs, 1-Click COA Liquidation Reports).
+
+4. ACCOUNT 4: MOBILE FIELD STAFF (QR Release Scanner & Field Validation)
+   - Portal: MitigatePlus Android Mobile App Suite
+   - Email: staff291@manila.gov.ph
+   - Password: staff123
+   - Official Name: Team Leader - Alpha (Field Officer Juan Santos)
+   - Assignment: Barangay 291 Covered Court Distribution Event
+   - Scope in Demo: Mobile Step 2 (Live Camera QR Scanner, Algorithm 2 Dynamic Entitlement Calculator, 1-Click Offline-Ready Claim Release, Field Incident Geotagging).
+
+5. ACCOUNT 5: MOBILE CITIZEN RESIDENT (Beneficiary Experience)
+   - Portal: MitigatePlus Android Mobile App Suite
+   - Primary Account (Verified Beneficiary):
+     * Email / Phone: juan@gmail.com (or 09171234567)
+     * Password: resident123
+     * Resident Name: John Paul Cruz (Head of 7-member family, 2 seniors, 1 infant)
+     * Digital QR Pass: MNL-291-CRUZ-8402
+     * Scope in Demo: Mobile Step 1 (Digital QR Pass display, Structural Damage Photo Reporting, 5-Stage Recovery Stepper, Cash-for-Work Emergency Employment Application).
+   - Secondary Account (Pending / Resubmitted ID Applicant):
+     * Email / Phone: ellica@gmail.com (or 09175550291)
+     * Password: resident123
+     * Resident Name: Ellica Onggoco (4 members, 2 seniors: Larry and Bibeng Masangkay)
+     * Scope in Demo: Target applicant verified during Module 1.
+
+================================================================================
+DEMONSTRATION INTRODUCTION
+================================================================================
+Speaker: Ellica
+Spoken Script:
+
+"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Cristal, a pleasant morning po.
+
+Ako po si Ellica, and today I will personally conduct our live system demonstration for MitigatePlus. I will be sharing my screen to walk you through our complete software ecosystem, deployed live at post-mitigate-plus.vercel.app and connected to our cloud database on MongoDB Atlas.
+
+Our live demonstration follows a strict, end-to-end account-by-account workflow:
+
+First, we will complete all eight grassroots modules under the Barangay Official account for Barangay 291.
+
+Second, we will log in to our City LGU Admin account under the Manila DRRMO to demonstrate city-wide logistics, warehouse monitoring, and distribution events across all 897 barangays.
+
+Third, we will access the LGU Super Admin account under City Mayor Honey Lacuna for policy configuration, system audit logs, and 1-click COA liquidation.
+
+And fourth, we will switch to our Mobile Applications Suite for resident self-service and field staff QR verification with live fraud interception.
+
+Let us begin with our first account: the Barangay Official."
+
+================================================================================
+PART 1: ACCOUNT 1 - BARANGAY OFFICIAL (official291@manila.gov.ph)
+[COMPLETE ALL 8 BARANGAY MODULES BEFORE LOGGING OUT]
+================================================================================
+[SCREEN SHARE: Chrome Browser - Signing in as Barangay Official (official291@manila.gov.ph)]
+
+--------------------------------------------------------------------------------
+MODULE 1: Administrative Login and Barangay Command Dashboard
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa aking screen, I will now sign in using our official Barangay credentials: official291@manila.gov.ph.
+
+[ACTION: I sign in and display the Barangay 291 Command Dashboard]
+
+Looking at our live dashboard data for Barangay 291:
+We currently have 1 pending verification,
+2 high-priority households requiring urgent disaster assistance,
+5 verified beneficiary households,
+and a total headcount of 19 individual family members within the barangay.
+
+All resident registrations, document uploads, and status changes update this dashboard in real time through Socket.io WebSockets, completely removing manual tallying for our barangay leadership po."
+
+--------------------------------------------------------------------------------
+MODULE 2: Resident Verification Queue (Live Cloud Data at /verification-queue)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will open the Verification Queue in our sidebar.
+
+[ACTION: I click 'Verification Queue' in the sidebar - URL: /verification-queue]
+
+In MitigatePlus, no resident can claim relief goods without prior identity verification. Every applicant must be verified by the barangay official to eliminate ghost beneficiaries.
+
+[ACTION: I open the pending applicant record of Ellica Onggoco]
+
+Here is our live pending record from MongoDB:
+The applicant is Ellica Onggoco residing at 1959 B Oroquieta Street, Santa Cruz, Manila, under Purok 35, Barangay 291.
+
+Reviewing her household roster, there are 4 registered members:
+Ellica Onggoco as Head, age 21;
+Liyah Mallari as Spouse, age 22;
+and two elderly dependents: Larry Masangkay, age 68, and Bibeng Masangkay, age 62, both tagged as Senior Citizens.
+
+Notice that our system automatically flagged two critical items:
+First, 'Naisumite ang Bagong Valid ID' confirming that a legible ID photo was resubmitted.
+And second, an automated fraud alert: 'Address Overlap Detected', warning the official that an existing record in the database shares this exact street address. This prevents duplicate household entries for the same residence.
+
+After inspecting her uploaded Barangay ID photo on Cloudinary CDN to confirm her residency, I will now click APPROVE.
+
+[ACTION: I click the green APPROVE button]
+
+In less than 200 milliseconds, her status becomes Verified in MongoDB, and the backend cryptographically generates a unique QR Relief Pass for her household. Ready na po siyang tumanggap ng ayuda."
+
+--------------------------------------------------------------------------------
+MODULE 3: Recovery Priority Index (Algorithm 1 at /priority-index)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is our Priority Index module.
+
+[ACTION: I click 'Priority Index' in the sidebar - URL: /priority-index]
+
+Here, our Smart Recovery Priority Index automatically ranks all households using the formula:
+RPI equals 40% Structural Damage, plus 40% Household Vulnerability, plus 20% Waiting Time.
+
+For this household at 1959 B Oroquieta Street, because they reported severe structural damage and have 2 senior citizen dependents, the system calculated a high RPI score, placing them directly into Tier 1 High Priority.
+
+This guarantees that families with the greatest damage and vulnerability receive emergency relief first. Purely objective data determines the dispatch order po."
+
+--------------------------------------------------------------------------------
+MODULE 4: Recovery Progress Tracker (at /recovery-progress)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next under Barangay Tools is the Recovery Progress Tracker.
+
+[ACTION: I click 'Recovery Progress' in the sidebar - URL: /recovery-progress]
+
+Dito po, our barangay leadership tracks the ongoing rehabilitation status of all households in Barangay 291 across our 5 stages: Verification, Damage Assessed, Allocated, Ready for Claim, and Ayuda Claimed.
+
+Currently in Barangay 291, our verified families are staged for relief claim, while newly approved households immediately enter the assessment pipeline. This provides the Punong Barangay with an automated recovery status without manual house-to-house inspections."
+
+--------------------------------------------------------------------------------
+MODULE 5: Special Relief Requests (Grassroots Intake at /special-request-relief)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Special Relief Requests.
+
+[ACTION: I click 'Special Relief Requests' in the sidebar - URL: /special-request-relief]
+
+Para po ito sa ating mga bedridden senior citizens, persons with disability, at mga may karamdaman sa Purok 35 at Oroquieta Street na hindi pisikal na makapunta sa covered court.
+
+The barangay official logs these special door-to-door delivery requests directly into the system, tagging the resident's specific medical conditions and home location so city distribution teams can deliver directly to their doorstep."
+
+--------------------------------------------------------------------------------
+MODULE 6: Livelihood Assistance (Barangay Intake at /livelihood-assistance)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Livelihood Assistance.
+
+[ACTION: I click 'Livelihood Assistance' in the sidebar - URL: /livelihood-assistance]
+
+Dito po, the barangay monitors our post-disaster Cash-for-Work program. Displaced residents and daily wage earners are registered for local community rehabilitation projects, such as clearing and drainage desilting along Oroquieta Street, providing them with an immediate income of ₱610 per day during the recovery period."
+
+--------------------------------------------------------------------------------
+MODULE 7: Barangay Announcements (Community Broadcasts at /announcements)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Barangay Announcements.
+
+[ACTION: I click 'Announcements' in the sidebar - URL: /announcements]
+
+Dito po, the barangay official broadcasts emergency bulletins, evacuation alerts, and relief distribution schedules.
+
+Every bulletin posted here pushes real-time notifications to the mobile devices of all registered residents in Barangay 291 through Socket.io WebSockets, completely eliminating reliance on printed flyers or word-of-mouth."
+
+--------------------------------------------------------------------------------
+MODULE 8: Barangay Reports & Official Logout (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under Barangay Tools, is the Reports module.
+
+[ACTION: I click 'Reports' in the sidebar - URL: /reports]
+
+This provides our barangay leadership with localized claim summaries, verification totals, and operational logs, keeping grassroots records fully transparent and synchronized with the City LGU.
+
+That completely concludes all eight grassroots modules under our first account, the Barangay Official. I will now log out of Barangay 291 to access our second account: the City LGU Admin.
+
+[ACTION: I click the logout button to return to the login screen]"
+
+================================================================================
+PART 2: ACCOUNT 2 - CITY LGU ADMIN (admin@manila.gov.ph - Dir. Arnaldo Angeles)
+[COMPLETE ALL 8 CITY LOGISTICS MODULES BEFORE LOGGING OUT]
+================================================================================
+[SCREEN SHARE: Signing in as City LGU Admin (admin@manila.gov.ph - Dir. Arnaldo Angeles)]
+
+--------------------------------------------------------------------------------
+MODULE 9: City LGU Admin Command Dashboard (City-Wide Scope)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will sign in as our City LGU Admin: admin@manila.gov.ph, representing Director Arnaldo Angeles of the Manila DRRMO.
+
+[ACTION: I sign in and display the City LGU Admin Command Dashboard]
+
+While the barangay handles local resident intake, the City LGU Admin oversees macro operations across the entire City of Manila.
+
+Looking at our live operational telemetry on the screen:
+Our four primary KPI cards show:
+First, 0 Active Distribution Events currently ongoing;
+Second, 3 Pending Verifications across the city awaiting barangay review;
+Third, 17 Fraud Interceptions Today successfully blocked at the gates;
+And fourth, 14 Total Relief Distributions completed to date.
+
+Across all 897 Barangays in Districts 1 to 6, we have 12 total registered households with 39 individual members, and 8 verified beneficiary households.
+
+Below our KPI cards, our Right-Sized Relief Allocation Status chart monitors our live supply dispatches against computed quotas for Food Packs, Drinking Water, Medical Kits, Hygiene Kits, and Shelter Tents."
+
+--------------------------------------------------------------------------------
+MODULE 10: Barangay Damage Heatmap (Geospatial Intelligence at /heatmap)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa ating Barangay Damage Heatmap under City Operations:
+
+[ACTION: I click 'Barangay Heatmap' under City Operations - URL: /heatmap]
+
+This Leaflet.js map aggregates real-time geospatial damage reports across all 897 barangays in Manila.
+
+[ACTION: I zoom into District 3 and click on Barangay 291]
+
+Clicking Barangay 291 opens our live Barangay Assessment sidebar panel:
+At the top, our hazard assessment identifies Barangay 291 as a 'Moderate Flood Zone (0.5m)'.
+Directly below, the system logs '6 reported household incident(s)'.
+
+Looking at the incident breakdown boxes:
+- Critical: 2
+- High Risk: 0
+- Moderate: 0
+- Minor: 1
+
+Right below, the inspector displays our live 'PRIORITY BENEFICIARIES IN THIS BARANGAY', ranked by Algorithm 1:
+First is John Paul Cruz with 79 points at 742 Severino Reyes St., Sta. Cruz, Manila, tagged as Totally Damaged.
+Second is Ellica Onggoco with 56 points at 1959 B Oroquieta St Sta Cruz Manila, also tagged as Totally Damaged.
+
+Directly below the beneficiary list is our green action button: 'Schedule Relief Event for Brgy 291'.
+With a single click, city coordinators can instantly schedule an emergency relief event targeted specifically for these verified families without manual data re-entry."
+
+--------------------------------------------------------------------------------
+MODULE 11: Central Warehouse Inventory Management (at /warehouse-inventory)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is our Warehouse Inventory module.
+
+[ACTION: I click 'Warehouse Inventory' in the sidebar - URL: /warehouse-inventory]
+
+Dito po, the City Admin monitors our central stockpile of official Manila DRRMD relief goods:
+Currently, our live stock shows:
+2,350 All-in-One Family Relief Packs, with a minimum buffer of 500;
+750 Senior Maintenance & Nutrition Packs, with a minimum buffer of 150;
+600 Infant & Toddler Care Packs;
+950 Emergency Medical Kits;
+and 1,800 5-Gallon Potable Drinking Water units.
+
+Our inventory features automated real-time decrementing. Every time a relief package is released at any distribution site, the database decrements the count automatically. If stock falls below the minimum buffer, the system flags an immediate alert for restocking."
+
+--------------------------------------------------------------------------------
+MODULE 12: Distribution Events Manager (Algorithm 2 at /distribution-events)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"In Distribution Events, the City Admin schedules relief drives and assigns field teams, such as Field Team Alpha and Field Team Bravo for Barangay 291 Covered Court.
+
+[ACTION: I open the active distribution event for Barangay 291 Covered Court]
+
+This is where Algorithm 2, our Right-Sized Relief Allocation Engine, computes customized package quantities based on household data:
+A small household like John Michael Nolasco with 1 member receives 1 Base Family Food Pack.
+A 4-member household with 2 seniors, like Ellica Onggoco's, receives 1 Base Family Food Pack plus 1 Senior Maintenance & Nutrition Pack.
+And a 7-member household with an infant, like John Paul Cruz's, receives 2 Base Family Food Packs, plus 2.5 kilograms of extra rice, 4 extra canned goods, and 1 Infant Care Pack.
+
+Algorithm 2 uses the formula: Base Packs equals Ceiling of Headcount divided by 5, plus supplementary nutrition for vulnerable members. This completely eliminates unfair flat distribution."
+
+--------------------------------------------------------------------------------
+MODULE 13: Special Relief Delivery Dispatch (at /special-request-relief)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next under City Operations is Special Relief Requests.
+
+[ACTION: I click 'Special Relief Requests' - URL: /special-request-relief]
+
+Dito po, the City Admin reviews the door-to-door requests escalated by barangays. The city disaster coordinator assigns specific mobile field teams, such as Quick Response Unit 1, to deliver customized medical and nutritional supplies directly to bedridden citizens."
+
+--------------------------------------------------------------------------------
+MODULE 14: City Livelihood & Cash-for-Work Coordination (at /livelihood-assistance)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Livelihood Assistance.
+
+[ACTION: I click 'Livelihood Assistance' - URL: /livelihood-assistance]
+
+At the city level, the LGU manages emergency employment projects under RA 10121. Currently, our active project is drainage desilting along Oroquieta Street with an allocated budget and daily wage of ₱610 per day, providing livelihood rehabilitation for displaced workers."
+
+--------------------------------------------------------------------------------
+MODULE 15: Fraud Interception Live Stream (at /fraud-interception)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is the Fraud Interception Stream.
+
+[ACTION: I click 'Fraud Interception' - URL: /fraud-interception]
+
+Dito po, the City Admin monitors live duplicate claim attempts and suspicious registration overlaps across all 897 barangays in real time.
+
+Our system has already intercepted and logged 17 duplicate claim attempts across Manila, protecting government resources before supplies leave the gates."
+
+--------------------------------------------------------------------------------
+MODULE 16: City Reports, Account Provisioning, & Logout (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under City Operations, we have Reports and Manage Field Accounts.
+
+[ACTION: I show Reports & Audit and the Provision Accounts directory]
+
+Dito po, the City Admin provisions official credentials for on-duty field scanners and verifies city-wide distribution reports.
+
+That completely finishes all city-wide logistics, warehouse monitoring, and distribution operations under our second account: the City LGU Admin. I will now log out and proceed to our third account: the LGU Super Admin.
+
+[ACTION: I click the logout button to return to the login screen]"
+
+================================================================================
+PART 3: ACCOUNT 3 - LGU SUPER ADMIN (superadmin@manila.gov.ph - Mayor Honey Lacuna)
+[COMPLETE ALL 4 EXECUTIVE GOVERNANCE MODULES BEFORE SWITCHING TO MOBILE]
+================================================================================
+[SCREEN SHARE: Signing in as LGU Super Admin (superadmin@manila.gov.ph - Mayor Honey Lacuna)]
+
+--------------------------------------------------------------------------------
+MODULE 17: Executive Command Dashboard (City Mayor's View)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, I will sign in as our LGU Super Admin: superadmin@manila.gov.ph, representing City Mayor Honey Lacuna.
+
+[ACTION: I sign in and display the Executive Dashboard]
+
+This executive portal provides the City Mayor with high-level intelligence: total barangays covered, city-wide verified beneficiary counts, total relief distributed, and executive audit flags across Manila."
+
+--------------------------------------------------------------------------------
+MODULE 18: Global Policy Configuration (at /global-policy)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is Global Policy Configuration.
+
+[ACTION: I click 'Global Policy Config' in the sidebar - URL: /global-policy]
+
+Dito po, executive leadership dynamically calibrates the operational rules of the entire system:
+The Base Coverage is set to 5 members per food pack;
+Supplementary top-ups are set to +0.5 for seniors and pregnant members;
+The High Priority RPI threshold is set to 50;
+And the fraud lockout threshold is set to 2 consecutive unauthorized attempts.
+
+These parameters update the business logic across all 897 barangays in real time without modifying a single line of code."
+
+--------------------------------------------------------------------------------
+MODULE 19: System Audit Logs (Full Transparency at /system-audit-logs)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Next po is System Audit Logs.
+
+[ACTION: I click 'System Audit Logs' in the sidebar - URL: /system-audit-logs]
+
+Every single administrative action across the city, from logins, verifications, to relief releases, is permanently recorded with immutable timestamps, IP addresses, and user credentials for complete transparency."
+
+--------------------------------------------------------------------------------
+MODULE 20: 1-Click COA Liquidation Export & Transition (at /reports)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Finally, under Reports & Audit, we have our 1-Click COA Liquidation Export.
+
+[ACTION: I click 'Reports & Audit' and click EXPORT COA LIQUIDATION REPORT]
+
+In less than two seconds, the system downloads an audit-ready spreadsheet containing every beneficiary's name, verified address, claim timestamp, releasing officer ID, and itemized supply quantities, fully compliant with Commission on Audit standards.
+
+This successfully completes all three administrative web accounts: from Barangay Official, to City LGU Admin, to LGU Super Admin.
+
+Now po, for our fourth and final component, I will transition directly to our Mobile Applications Suite to demonstrate live field operations on resident devices and field scanner hardware.
+
+[ACTION: I switch focus to the Android Studio Emulator running the MitigatePlus Mobile Suite]"
+
+================================================================================
+PART 4: ACCOUNT 4 - THE MOBILE APPLICATION SUITE (FIELD WORKFLOWS)
+[COMPLETE ALL MOBILE RESIDENT & FIELD SCANNER WORKFLOWS]
+================================================================================
+[SCREEN SHARE: Android Studio Emulator running the MitigatePlus Mobile Suite]
+
+--------------------------------------------------------------------------------
+MOBILE STEP 1: Resident Registration & Household Profiling
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Dito po sa aking screen, we are now looking at our Mobile Application running on the Android emulator.
+
+[ACTION: I tap 'Register Household' on the mobile screen]
+
+A resident living at 1959 B Oroquieta Street registers her household under Barangay 291.
+She inputs her address, adds her 4 household members, and toggles the Senior Citizen status for Larry and Bibeng Masangkay.
+
+[ACTION: I attach the Barangay ID photo and tap Submit]
+
+She uploads her Barangay ID and submits. Her screen displays: 'Registration Submitted, Pending Verification'.
+Once approved by the barangay official on the web, her digital pass is activated immediately."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 2: The Digital QR Relief Pass & Offline Caching
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Here is the verified resident's home screen.
+
+[ACTION: I display the Resident Home Screen and the QR Relief Pass]
+
+It shows her verified household name, headcount of 4 members with 2 seniors, and her cryptographic QR Relief Pass.
+
+Crucially po, this QR pass is cached locally in device storage using AsyncStorage at the moment of approval. Even if cell towers go down or there is zero internet in an evacuation center, the resident can still open the app and present her QR pass to the field officer immediately."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 3: Structural Damage Reporting with GPS Geotagging
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"If the household suffered structural damage, the resident opens Report Damage.
+
+[ACTION: I tap the 'Report' tab, select Severe Damage, attach a photo, and tap Submit]
+
+The app automatically captures her native GPS coordinates: 14.6085 North, 121.0104 East at 1959 B Oroquieta Street.
+She selects Severe Damage, attaches a photo of the cracked wall, enters 'sira wall namin', and submits.
+This report instantly updates the web Priority Index and Heatmap."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 4: Field Staff Scanner - Valid QR Scan & Release (SUCCESS)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"Now po, at the distribution site at the covered court, Officer Juan of Field Team Alpha opens the Staff Scanner App.
+
+[ACTION: I switch to the Staff Scanner App and execute the scan of the QR code]
+
+The resident presents her QR pass at Gate 1.
+I will now scan the QR code.
+
+[The scanner validates and confirms]
+
+In 0.3 seconds, the scanner validates the pass and displays:
+'Resident Verified: Ellica Onggoco, Headcount 4, Allocation: 1 All-in-One Family Relief Pack, 1 Senior Maintenance & Nutrition Pack'.
+
+Officer Juan hands over the supplies and taps CONFIRM RELEASE.
+
+[ACTION: I tap Confirm Release on the scanner]
+
+The release is confirmed. In the background, our Central Warehouse stock decrements from 2,350 to 2,349, and the transaction is permanently logged with Officer Juan's credentials."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 5: THE CLIMAX - Duplicate Claim Attempt (FRAUD INTERCEPTED)
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"And now po, for the ultimate test of our system: Real-Time Fraud Interception.
+
+Imagine that ten minutes later, a relative takes the same phone over to Gate 2, attempting to claim a second set of relief goods using the exact same QR code.
+The volunteer at Gate 2 points his scanner and scans the pass.
+
+[ACTION: I deliberately scan the exact same QR code a SECOND time]
+
+[The mobile screen flashes a high-priority warning alarm]
+
+LOOK AT THE SCANNER SCREEN PO!
+
+The scanner immediately rejects the transaction:
+'WARNING! DUPLICATE CLAIM DETECTED! Relief already claimed today at Gate 1 by Officer Juan. Transaction REJECTED!'
+
+The second release was never written to our database. Our MongoDB Compound Unique Index on distributionEventId and householdId rejected the write operation at the database engine level.
+
+Kahit sampung beses pa i-scan ang QR code sa iba't ibang gate, the database will reject every attempt after the first confirmed release. Double claiming in MitigatePlus is mathematically impossible po."
+
+--------------------------------------------------------------------------------
+MOBILE STEP 6: Ending the Distribution Session & Conclusion
+--------------------------------------------------------------------------------
+Speaker: Ellica
+Spoken Script:
+
+"After all residents are served, Officer Juan taps End Session.
+
+[ACTION: I tap End Session on the scanner screen]
+
+The app displays the operational summary: total residents scanned, total packages released, and duplicate fraud attempts intercepted, fully synchronized to the cloud.
+
+This concludes our live system demonstration of MitigatePlus.
+We showed you localized barangay intake, city-wide LGU logistics, executive policy governance, and offline-resilient mobile operations with foolproof fraud interception.
+
+Thank you po, and our entire team is now ready and honored to answer questions from the panel."
+
+===============================================================================
+ELLICA'S QUICK STEP-BY-STEP ACTION SHEET (PRINT & KEEP BESIDE LAPTOP)
+================================================================================
+
+PART 1: ACCOUNT 1 - BARANGAY OFFICIAL (official291@manila.gov.ph) - ~3 mins
+[COMPLETE ALL 8 BARANGAY MODULES BEFORE LOGGING OUT]
+Step 1: Sign in as official291@manila.gov.ph -> Show Dashboard KPIs (1 pending, 2 high-priority, 5 verified, 19 members).
+Step 2: Open /verification-queue -> Review Ellica Onggoco (1959 B Oroquieta St, 4 members, 2 seniors) -> Point out 'ID Resubmitted' & 'Address Overlap Detected' -> Click green APPROVE button.
+Step 3: Open Priority Index (/priority-index) -> Explain Algorithm 1 RPI ranking (40% Damage + 40% Vuln + 20% Wait) placing household in Tier 1.
+Step 4: Open Recovery Progress (/recovery-progress) -> Show 5-stage household rehabilitation pipeline.
+Step 5: Open Special Relief Requests (/special-request-relief) -> Show grassroots bedridden/PWD requests.
+Step 6: Open Livelihood Assistance (/livelihood-assistance) -> Show Cash-for-Work applicants at ₱610/day.
+Step 7: Open Announcements (/announcements) -> Show community emergency broadcasts.
+Step 8: Open Reports (/reports) -> Show local barangay distribution records.
+Step 9: Conclude Barangay Official account -> CLICK LOGOUT.
+
+PART 2: ACCOUNT 2 - CITY LGU ADMIN (admin@manila.gov.ph) - ~4 mins
+[COMPLETE ALL 8 CITY LOGISTICS MODULES BEFORE LOGGING OUT]
+Step 10: Sign in as admin@manila.gov.ph (Dir. Arnaldo Angeles) -> State the 4 KPI cards: 0 active events, 3 pending city verifications, 17 fraud attempts blocked, 14 total distributed (897 barangays, 12 registered households, 39 members, 8 verified).
+Step 11: Open Heatmap (/heatmap) -> Zoom District 3 / Brgy 291 -> Show popup: Moderate Flood Zone (0.5m), 6 incidents (2 Critical, 0 High Risk, 0 Moderate, 1 Minor), Priority Beneficiaries: John Paul Cruz (79 pts, Totally Damaged) & Ellica Onggoco (56 pts, Totally Damaged) -> Point out 'Schedule Relief Event for Brgy 291' button.
+Step 12: Open Warehouse (/warehouse-inventory) -> State stock counts: 2,350 Family Packs, 750 Senior Packs, 600 Infant Packs, 1,800 Water -> Explain auto-decrementing.
+Step 13: Open Distribution Events (/distribution-events) -> Show Algorithm 2 allocations (1 pack small, Family+Senior for Ellica, 2 packs+rice/cans for John Paul Cruz).
+Step 14: Show Special Relief Requests (/special-request-relief) -> Show city-wide field delivery dispatch.
+Step 15: Show Livelihood Assistance (/livelihood-assistance) -> Show active drainage desilting project at ₱610/day.
+Step 16: Show Fraud Interception (/fraud-interception) -> Show live duplicate claims stream across Manila.
+Step 17: Show Reports & Field Accounts (/reports & /provision-accounts) -> Show city audit logs & field staff credentials.
+Step 18: Conclude City LGU Admin account -> CLICK LOGOUT.
+
+PART 3: ACCOUNT 3 - LGU SUPER ADMIN (superadmin@manila.gov.ph) - ~2 mins
+[COMPLETE ALL 4 EXECUTIVE GOVERNANCE MODULES BEFORE SWITCHING TO MOBILE]
+Step 19: Sign in as superadmin@manila.gov.ph (Mayor Honey Lacuna) -> Show Executive Dashboard.
+Step 20: Open Global Policy Config (/global-policy) -> State parameters: 5 base coverage, +0.5 senior/pregnant top-up, RPI 50 threshold, 2 fraud strike limit.
+Step 21: Show System Audit Logs (/system-audit-logs) -> Show immutable transaction trail.
+Step 22: Open Reports & Audit (/reports) -> Click EXPORT COA LIQUIDATION REPORT -> Show downloaded spreadsheet in 2 seconds.
+Step 23: Conclude all web accounts -> Switch screen share to Android Studio Emulator!
+
+PART 4: ACCOUNT 4 - MOBILE APPLICATIONS SUITE (Android Studio Emulator) - ~6 mins
+[COMPLETE ALL MOBILE RESIDENT & FIELD SCANNER WORKFLOWS]
+Step 24: Resident App -> Register at 1959 B Oroquieta St with 2 senior toggles -> Upload ID -> Show 'Pending Verification'.
+Step 25: Show Verified Home Screen & QR Relief Pass -> Explain offline AsyncStorage caching.
+Step 26: Report Damage -> Show auto GPS (14.6085, 121.0104) -> Select Severe Damage ('sira wall namin') -> Submit.
+Step 27: Switch to Staff Scanner (Officer Juan, Gate 1) -> Scan QR code -> Valid release: 1 Family Pack + 1 Senior Pack -> Confirm Release -> Warehouse stock drops 2,350 to 2,349.
+Step 28: THE CLIMAX: Deliberately scan SAME QR code a SECOND TIME at Gate 2 -> DUPLICATE CLAIM DETECTED rejection alarm -> Explain MongoDB Compound Unique Index!
+Step 29: Tap End Session on Scanner -> Deliver Conclusion & Handover to Panel Q&A!

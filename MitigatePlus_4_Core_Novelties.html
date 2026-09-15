@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MitigatePlus - The 4 Core System Novelties</title>
+<style>
+  @page {
+    size: letter portrait;
+    margin: 14mm 14mm 16mm 14mm;
+    @bottom-right {
+      content: "Page " counter(page);
+      font-size: 8pt;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #64748b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    line-height: 1.45;
+    font-size: 9.5pt;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+  .header {
+    text-align: center;
+    border-bottom: 3px double #1e3a8a;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .inst-title {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0 0 2px;
+  }
+  .doc-title {
+    font-size: 15pt;
+    font-weight: 900;
+    color: #1e3a8a;
+    margin: 4px 0 2px;
+    letter-spacing: -0.3px;
+  }
+  .doc-sub {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #b91c1c;
+    margin: 0 0 4px;
+  }
+  .meta-bar {
+    font-size: 8pt;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  .summary-banner {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .summary-banner h3 {
+    margin: 0 0 6px;
+    font-size: 10pt;
+    color: #1e3a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .summary-banner p {
+    margin: 0;
+    font-size: 8.5pt;
+    color: #334155;
+    line-height: 1.4;
+  }
+
+  .novelty-card {
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    page-break-inside: avoid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .novelty-card.c1 { border-top: 4px solid #b91c1c; }
+  .novelty-card.c2 { border-top: 4px solid #1e3a8a; }
+  .novelty-card.c3 { border-top: 4px solid #047857; }
+  .novelty-card.c4 { border-top: 4px solid #b45309; }
+
+  .card-head {
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    font-size: 11pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+  }
+  .card-badge {
+    font-size: 7.5pt;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+  }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+
+  .card-body {
+    padding: 10px 12px;
+  }
+  .grid-2 {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .col {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .col-title {
+    font-size: 8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .col-title.flaw { color: #dc2626; }
+  .col-title.innov { color: #047857; }
+  .col p, .col ul {
+    margin: 0;
+    padding-left: 14px;
+    font-size: 8.2pt;
+    color: #334155;
+  }
+  .col li { margin-bottom: 3px; }
+
+  .formula-box {
+    background: #f0fdf4;
+    border: 1.5px dashed #16a34a;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 8px 0;
+  }
+  .formula-title {
+    font-size: 8pt;
+    font-weight: 800;
+    color: #15803d;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .formula-math {
+    font-family: 'Consolas', monospace;
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #14532d;
+    background: #ffffff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #bbf7d0;
+    display: inline-block;
+    margin: 2px 0 4px;
+  }
+  .formula-desc {
+    font-size: 8pt;
+    color: #166534;
+    margin: 2px 0 0;
+  }
+
+  .script-box {
+    background: #fffbeb;
+    border-left: 3.5px solid #d97706;
+    padding: 6px 10px;
+    margin-top: 6px;
+    border-radius: 0 4px 4px 0;
+  }
+  .script-label {
+    font-size: 7.5pt;
+    font-weight: 800;
+    color: #92400e;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .script-text {
+    font-size: 8.3pt;
+    color: #78350f;
+    font-style: italic;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  .codebase-tag {
+    margin-top: 6px;
+    font-size: 7.5pt;
+    color: #64748b;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .code-badge {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    font-family: 'Consolas', monospace;
+    color: #334155;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 8pt;
+  }
+  .comparison-table th {
+    background: #1e3a8a;
+    color: #ffffff;
+    text-align: left;
+    padding: 6px 8px;
+    font-weight: 700;
+    border: 1px solid #1e3a8a;
+  }
+  .comparison-table td {
+    padding: 5px 8px;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    vertical-align: top;
+  }
+  .comparison-table tr:nth-child(even) {
+    background: #f8fafc;
+  }
+
+  .footer-note {
+    margin-top: 14px;
+    padding-top: 8px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 7.5pt;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="inst-title">National University &bull; College of Computing and Information Technologies</div>
+  <div class="doc-title">MITIGATEPLUS: THE 4 SYSTEM NOVELTIES & ARCHITECTURAL HIGHLIGHTS</div>
+  <div class="doc-sub">Official Defense Quick Reference Guide (Manuscript Sections 1.1, 2.3, and 3.2)</div>
+  <div class="meta-bar">
+    Cap-Project: Post-Disaster Mitigation & Relief Operations System &bull; Deployed: post-mitigate-plus.vercel.app &bull; Mobile: MitigatePlus Android APK
+  </div>
+</div>
+
+<div class="summary-banner">
+  <h3>Executive Summary: Why MitigatePlus is Groundbreaking</h3>
+  <p>
+    Existing government disaster management platforms (such as DSWD DROMIC and local LGU relief portals) rely on macro-level aggregate summaries, first-come first-served queueing, and flat-rate food packages regardless of family headcount. <strong>MitigatePlus introduces four mathematically grounded, client-auditable innovations</strong> that transform emergency relief from an arbitrary political distribution into a transparent, right-sized, and accountable pipeline.
+  </p>
+</div>
+
+<!-- NOVELTY 1 -->
+<div class="novelty-card c1">
+  <div class="card-head">
+    <div class="card-title">1. Foundational Security: Anti-Duplicate-Claim Interception System</div>
+    <span class="card-badge badge-red">Security Core</span>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div class="col">
+        <div class="col-title flaw">&cross; Traditional LGU & DSWD Flaw</div>
+        <ul>
+          <li><strong>Double-Dipping & Ghost Claimants:</strong> Individuals queue multiple times across different distribution points or barangays using fake IDs.</li>
+          <li><strong>Paper-based logs:</strong> Hand-written signatures cannot be validated in real-time across concurrent distribution stations.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="col-title innov">&check; MitigatePlus Innovation</div>
+        <ul>
+          <li><strong>Dynamic Cryptographic QR Tokens:</strong> Each verified household is assigned a single-use, digitally signed QR pass tied to MongoDB Atlas.</li>
+          <li><strong>Millisecond Cross-Station Lock:</strong> Once scanned, status flips to claimed; secondary scan attempts trigger real-time blocked fraud alerts.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="script-box">
+      <div class="script-label">Panel Spoken Defense Line (Taglish):</div>
+      <div class="script-text">
+        "Sir/Ma'am, ang Foundational Security ng MitigatePlus ay ang Anti-Duplicate-Claim Interception System. Sa tradisyonal na pamamahagi, laganap ang 'double-dipping' o pagpila nang paulit-ulit sa iba't ibang barangay. Sa MitigatePlus, bawat pamilya ay may cryptographic QR token na instant-invalidated sa cloud sa sandaling ma-scan ng field officer, kaya imposible ang multiple claims."
+      </div>
+    </div>
+    <div class="codebase-tag">
+      <span>Codebase Mapping:</span>
+      <span class="code-badge">mobile: StaffScannerScreen.js</span>
+      <span class="code-badge">web: FraudInterception.jsx</span>
+      <span class="code-badge">backend: auditRoutes.js & distributionRoutes.js</span>
+    </div>
+  </div>
+</div>
+
+<!-- NOVELTY 2 -->
+<div class="novelty-card c2">
+  <div class="card-head">
+    <div class="card-title">2. Core Novelty 2: Smart Recovery Priority Index (RPI) Engine (Algorithm 1)</div>
+    <span class="card-badge badge-blue">Algorithm 1 (Manuscript Sec 3.2 L343-356)</span>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div class="col">
+        <div class="col-title flaw">&cross; Traditional LGU & DSWD Flaw</div>
+        <ul>
+          <li><strong>First-Come, First-Served / Palakasan:</strong> Relief is given to whoever lines up first or knows officials, leaving bedridden seniors and totally damaged homes unserved.</li>
+          <li><strong>Macro Only:</strong> DSWD DROMIC shows only city totals without household ranking.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="col-title innov">&check; MitigatePlus Innovation</div>
+        <ul>
+          <li><strong>Objective Scoring (0 to 100):</strong> Ranks all families mathematically without human bias or political favoritism.</li>
+          <li><strong>Prioritization Tiers:</strong> Tier 1 High (&ge;75 pts), Tier 2 Medium (&ge;50 pts), Tier 3 Low (&lt;50 pts) for prioritized dispatching.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="formula-box">
+      <div class="formula-title">Algorithm 1: RPI Mathematical Formulation</div>
+      <div class="formula-math">RPI = (Damage Points &times; 0.40) + (Vulnerability Points &times; 0.40) + (Waiting Factor &times; 0.20)</div>
+      <div class="formula-desc">
+        &bull; <strong>Damage Points:</strong> Total Destruction = 100 | Severe = 75 | Moderate = 50 | Minor = 25<br>
+        &bull; <strong>Vulnerability Points:</strong> (Senior &times; 20) + (PWD &times; 25) + (Infant &times; 20) + (Pregnant &times; 15), capped at 100<br>
+        &bull; <strong>Waiting Factor:</strong> min(Days Pending &times; 10, 100)
+      </div>
+    </div>
+    <div class="script-box">
+      <div class="script-label">Panel Spoken Defense Line (Taglish):</div>
+      <div class="script-text">
+        "Sa halip na first-come, first-served o palakasan sa barangay, binuo namin ang Algorithm 1: Smart Recovery Priority Index. Awtomatiko nitong kinakalkula ang 0 hanggang 100 score batay sa 40% Structural Damage, 40% Demographic Vulnerabilities tulad ng seniors at PWDs, at 20% Waiting Time upang matiyak na ang pinaka-nangangailangan ang unang maabutan ng ayuda."
+      </div>
+    </div>
+    <div class="codebase-tag">
+      <span>Codebase Mapping:</span>
+      <span class="code-badge">web: SmartPriorityDashboard.jsx (/priority-index)</span>
+      <span class="code-badge">mobile: ReportDamageScreen.js</span>
+      <span class="code-badge">backend: aiTriageRoutes.js & householdRoutes.js</span>
+    </div>
+  </div>
+</div>
+
+<!-- NOVELTY 3 -->
+<div class="novelty-card c3">
+  <div class="card-head">
+    <div class="card-title">3. Core Novelty 3: Right-Sized Relief Allocation Engine (Algorithm 2)</div>
+    <span class="card-badge badge-green">Algorithm 2 (Manuscript Sec 3.2 L357-366)</span>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div class="col">
+        <div class="col-title flaw">&cross; Traditional LGU & DSWD Flaw</div>
+        <ul>
+          <li><strong>Flat 1-Box Rule:</strong> Ang pamilyang may 1 miyembro ay tumatanggap ng 1 kahon, at ang pamilyang may 8 hanggang 10 miyembro ay 1 kahon din!</li>
+          <li><strong>Malnutrition & Wastage:</strong> Nagdudulot ng gutom sa malalaking pamilya habang labis sa maliliit na kabahayan.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="col-title innov">&check; MitigatePlus Innovation</div>
+        <ul>
+          <li><strong>Dynamic Scaled Entitlement:</strong> Awtomatikong kinakalkula sa scanner kung ilang base packs at dagdag na kilo ng bigas at de-lata ang ibibigay.</li>
+          <li><strong>Demographic Nutrition Add-ons:</strong> Awtomatikong may +1 Senior Pack at +1 Infant Care Pack para sa mga may sanggol o lolo/lola.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="formula-box" style="background:#eff6ff; border-color:#2563eb;">
+      <div class="formula-title" style="color:#1d4ed8;">Algorithm 2: Right-Sizing Mathematical Formulation</div>
+      <div class="formula-math" style="color:#1e3a8a; border-color:#bfdbfe;">
+        Base Food Packs = &lceil; Headcount / 5 &rceil;<br>
+        Extra Rice (kg) = Max(0, Headcount - 5) &times; 2.0 kg<br>
+        Extra Canned Goods = Max(0, Headcount - 5) &times; 3.0 cans
+      </div>
+      <div class="formula-desc" style="color:#1e40af;">
+        &bull; <strong>Demographic Add-Ons:</strong> +1 Senior Nutrition Pack (if age &ge; 60) | +1 Infant Care Kit (if age 0-2 yo)
+      </div>
+    </div>
+    <div class="script-box">
+      <div class="script-label">Panel Spoken Defense Line (Taglish):</div>
+      <div class="script-text">
+        "Ang aming ikatlong novelty ay ang Algorithm 2: Right-Sized Relief Allocation Engine. Binasag namin ang lumang 'Flat 1-Box Rule' kung saan parehong 1 kahon lang ang natatanggap ng 2-member at 10-member family. Sa MitigatePlus, kapag lumagpas sa 5 members, awtomatikong nagko-compute ang scanner ng base food packs plus 2 kg extra rice at 3 extra canned goods bawat dagdag na tao, kasama ang nakalaang maintenance packs para sa seniors at sanggol."
+      </div>
+    </div>
+    <div class="codebase-tag">
+      <span>Codebase Mapping:</span>
+      <span class="code-badge">web: DistributionEvents.jsx & SpecialRequestRelief.jsx</span>
+      <span class="code-badge">mobile: StaffScannerScreen.js</span>
+      <span class="code-badge">backend: distributionRoutes.js</span>
+    </div>
+  </div>
+</div>
+
+<!-- NOVELTY 4 -->
+<div class="novelty-card c4">
+  <div class="card-head">
+    <div class="card-title">4. Core Novelty 4: Assistance Gap Detection & 5-Stage Recovery Tracker</div>
+    <span class="card-badge badge-amber">Post-Distribution Telemetry</span>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div class="col">
+        <div class="col-title flaw">&cross; Traditional LGU & DSWD Flaw</div>
+        <ul>
+          <li><strong>One-and-Done Distribution:</strong> Pagkatapos mamahagi sa covered court, tapos na ang tungkulin ng LGU. Walang tracking kung nakabangon ba ang pamilya.</li>
+          <li><strong>Zero Longitudinal Data:</strong> Walang visual dashboard na nagpapakita kung sino pa ang walang trabaho o wasak pa ang bubong.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="col-title innov">&check; MitigatePlus Innovation</div>
+        <ul>
+          <li><strong>Longitudinal 5-Stage Tracking:</strong> Sinusubaybayan ang bawat kabahayan mula Stage 1 hanggang Stage 5:
+            <em>Displaced &rarr; Temporary Shelter &rarr; Repairing Home &rarr; Livelihood Transition &rarr; Fully Recovered</em>.
+          </li>
+          <li><strong>Integrated Cash-for-Work & Rehabilitation:</strong> Direktang nagtutugma sa mga nawalan ng hanapbuhay patungo sa barangay cleanup at rehabilitation jobs.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="script-box">
+      <div class="script-label">Panel Spoken Defense Line (Taglish):</div>
+      <div class="script-text">
+        "Hindi natatapos ang MitigatePlus sa pamamahagi ng de-lata. Ang ikaapat naming novelty ay ang 5-Stage Longitudinal Recovery Tracker. Sinusubaybayan ng admin dashboard ang telemetry ng bawat pamilya mula sa pagiging 'Displaced' hanggang sa maideklara silang 'Fully Recovered' sa tulong ng shelter kits at Cash-for-Work livelihood coordination."
+      </div>
+    </div>
+    <div class="codebase-tag">
+      <span>Codebase Mapping:</span>
+      <span class="code-badge">web: RecoveryProgressTracker.jsx & ReportsPage.jsx</span>
+      <span class="code-badge">mobile: ResidentHomeScreen.js (Stepper) & AssistanceRequestScreen.js</span>
+      <span class="code-badge">backend: reportRoutes.js (/reports/gap-analysis) & recoveryRoutes.js</span>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON MATRIX -->
+<div style="page-break-inside: avoid; margin-top: 14px;">
+  <div style="font-size: 10pt; font-weight: 800; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px;">
+    Feature Comparison Matrix: MitigatePlus vs. Existing Solutions
+  </div>
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th style="width: 25%;">Capability / Feature</th>
+        <th style="width: 25%;">Traditional LGU Process</th>
+        <th style="width: 25%;">DSWD DROMIC / e-Balangay</th>
+        <th style="width: 25%;">MitigatePlus Platform</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Beneficiary Queueing</strong></td>
+        <td>First-come, first-served / Palakasan</td>
+        <td>Macro aggregates only (no queue)</td>
+        <td><strong>Algorithm 1: Smart RPI (0-100 pts)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Food Package Sizing</strong></td>
+        <td>Flat 1-box per family rule</td>
+        <td>Flat standard box guidelines</td>
+        <td><strong>Algorithm 2: Right-Sized Scaled Top-ups</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Vulnerability Add-ons</strong></td>
+        <td>Random / subjective</td>
+        <td>None (not automated at release)</td>
+        <td><strong>Automated Senior & Infant Care Kits</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Anti-Fraud Defense</strong></td>
+        <td>Visual / Paper ID inspection</td>
+        <td>Manual cross-checking in spreadsheets</td>
+        <td><strong>Dynamic Cryptographic QR & Audit Alerts</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Post-Relief Tracking</strong></td>
+        <td>None (ends at covered court)</td>
+        <td>Macro disbursement reports</td>
+        <td><strong>5-Stage Recovery Stepper & Gap Analytics</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer-note">
+  <strong>MitigatePlus Research & Development Team &bull; National University Manila CCIT &bull; Academic Year 2025-2026</strong><br>
+  Designed in compliance with Philippine Disaster Risk Reduction and Management Act (RA 10121) and DSWD Disaster Response Standards.
+</div>
+
+</body>
+</html>
