@@ -11,7 +11,7 @@ import AssistanceRequestScreen from './AssistanceRequestScreen';
 import ResidentClaimsHistoryScreen from './ResidentClaimsHistoryScreen';
 import SettingsScreen from './SettingsScreen';
 import { PHILIPPINE_GOVERNMENT_IDS } from './ResidentRegisterScreen';
-import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon, InfoIcon, AlertTriangleIcon, CameraIcon, CheckCircleIcon } from '../components/AppIcons';
+import { ArrowLeftIcon, HomeIcon, DamageIcon, PackageIcon, HistoryIcon, SettingsIcon, PhoneCallIcon, UsersIcon, ShieldCheckIcon, MapPinIcon, BellIcon, CloseIcon, DownloadIcon, MedicineIcon, BriefcaseIcon, WrenchIcon, BoxPackageIcon, CheckIcon, QrCodeIcon, FileTextIcon, PrinterIcon, ClockIcon, HourglassIcon, CopyIcon, EditIcon, RefreshCwIcon, InfoIcon, AlertTriangleIcon, CameraIcon, CheckCircleIcon, MegaphoneIcon } from '../components/AppIcons';
 import { COLORS, FONT_WEIGHT, SPACING, RADIUS, SHADOWS, RESPONSIVE, wp, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
 import { TRANSLATIONS } from '../i18n/translations';
 import { MotionShimmerCard, MotionPulseBadge, MotionPressable } from '../components/motion';
@@ -816,6 +816,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas na Prayoridad' : 'High Priority');
   const isVerified = householdData?.verificationStatus === 'verified';
   const isRejected = householdData?.verificationStatus === 'rejected';
+  const isNeedsInfo = householdData?.verificationStatus === 'needs_info';
   const qrCodeString = householdData?.qrCode || `MNL-${brgyCode}-PASS-${user?._id || 'OFFICIAL'}`;
   const baseCoverage = 5; // 1 Base All-in-One Pack covers up to 5 members
   const basePacks = Math.max(1, Math.floor(headcount / baseCoverage));
