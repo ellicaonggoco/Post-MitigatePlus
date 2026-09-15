@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, lazy, Suspense } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ROLES } from '../utils/roleUtils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import {
   UserCheck, Shield, Package, AlertTriangle, ArrowRight,
@@ -127,6 +127,7 @@ function SuperAdminDashboard({ token, user }) {
 // LGU ADMIN - City-Wide Operational Dashboard
 // ─────────────────────────────────────────────────────────────────────────────
 function LguAdminDashboard({ token, user }) {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -189,7 +190,17 @@ function LguAdminDashboard({ token, user }) {
 
       <div className="grid-4 stagger-children dashboard-kpis" style={{ marginBottom: '32px' }}>
         {kpis.map((k, i) => (
-          <MotionCard key={i} delay={i * 0.04} className="clay-card" style={{ borderTop: `3px solid ${k.color}` }}>
+          <MotionCard
+            key={i}
+            delay={i * 0.04}
+            className="clay-card"
+            onClick={() => k.link && navigate(k.link)}
+            style={{
+              borderTop: `3px solid ${k.color}`,
+              cursor: k.link ? 'pointer' : 'default',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <span style={{ fontSize: '12px', color: 'var(--ink-soft)', fontWeight: 600 }}>{k.label}</span>
@@ -201,7 +212,11 @@ function LguAdminDashboard({ token, user }) {
                 <k.icon size={20} color={k.color} />
               </div>
             </div>
-            {k.link && <Link to={k.link} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)', textDecoration: 'none', marginTop: 10 }}>Manage <ArrowRight size={13} /></Link>}
+            {k.link && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)', marginTop: 10 }}>
+                Manage <ArrowRight size={13} />
+              </div>
+            )}
           </MotionCard>
         ))}
       </div>
@@ -227,6 +242,7 @@ function LguAdminDashboard({ token, user }) {
 // BARANGAY OFFICIAL - Own Barangay Dashboard Only
 // ─────────────────────────────────────────────────────────────────────────────
 function BarangayDashboard({ token, user }) {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const barangayCode = user?.barangayCode || '291';
@@ -281,7 +297,17 @@ function BarangayDashboard({ token, user }) {
 
       <div className="grid-4 stagger-children dashboard-kpis" style={{ marginBottom: '32px' }}>
         {kpis.map((k, i) => (
-          <MotionCard key={i} delay={i * 0.04} className="clay-card" style={{ borderTop: `3px solid ${k.color}` }}>
+          <MotionCard
+            key={i}
+            delay={i * 0.04}
+            className="clay-card"
+            onClick={() => k.link && navigate(k.link)}
+            style={{
+              borderTop: `3px solid ${k.color}`,
+              cursor: k.link ? 'pointer' : 'default',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <span style={{ fontSize: '12px', color: 'var(--ink-soft)', fontWeight: 600 }}>{k.label}</span>
@@ -293,7 +319,11 @@ function BarangayDashboard({ token, user }) {
                 <k.icon size={20} color={k.color} />
               </div>
             </div>
-            {k.link && <Link to={k.link} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)', textDecoration: 'none', marginTop: 10 }}>{k.linkLabel} <ArrowRight size={13} /></Link>}
+            {k.link && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--manila-blue)', marginTop: 10 }}>
+                {k.linkLabel || 'Manage'} <ArrowRight size={13} />
+              </div>
+            )}
             {k.sub && <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10 }}>{k.sub}</div>}
           </MotionCard>
         ))}

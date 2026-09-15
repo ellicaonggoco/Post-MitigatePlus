@@ -673,7 +673,7 @@ function AppRoutes() {
             <Routes>
               <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/verification-queue" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL]}><VerificationQueue /></RoleProtectedRoute>} />
+              <Route path="/verification-queue" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL, ROLES.LGU_ADMIN, ROLES.LGU_SUPERADMIN]}><VerificationQueue /></RoleProtectedRoute>} />
               <Route path="/priority-index" element={<RoleProtectedRoute allowedRoles={[ROLES.BARANGAY_OFFICIAL, ROLES.LGU_ADMIN, ROLES.LGU_SUPERADMIN]}><SmartPriorityDashboard /></RoleProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
               <Route path="/heatmap" element={<RoleProtectedRoute allowedRoles={[ROLES.LGU_SUPERADMIN, ROLES.LGU_ADMIN]}><BarangayHeatmap /></RoleProtectedRoute>} />

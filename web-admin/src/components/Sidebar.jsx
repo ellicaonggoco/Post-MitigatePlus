@@ -178,7 +178,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   // ── MAIN MENU
   const mainItems = [{ label: t.dashboard || 'Dashboard', path: '/', icon: IconlyDashboard }];
 
-  if (role === ROLES.BARANGAY_OFFICIAL) {
+  if (role === ROLES.BARANGAY_OFFICIAL || isLguAdmin || isSuperAdmin) {
     mainItems.push({ label: t.verificationQueue || 'Verification Queue', path: '/verification-queue', icon: IconlyVerification });
   }
   if (role === ROLES.BARANGAY_OFFICIAL || isLguAdmin) {

@@ -159,7 +159,7 @@ router.get('/check-address-collision', async (req, res) => {
 
 // @route   GET /api/households/pending
 // @desc    Get pending verification queue (Barangay official approval queue with Matching Address Detection)
-router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), requireBarangayScope, async (req, res) => {
+router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), requireBarangayScope, async (req, res) => {
   try {
     let baseQuery = {};
     
@@ -250,7 +250,7 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin'), r
 
 // @route   POST /api/households/:id/verify
 // @desc    Approve / Request Info / Reject a household registration
-router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'), async (req, res) => {
+router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
   try {
     const { status, verificationNotes, requestedDocType } = req.body;
     if (!['pending', 'verified', 'needs_info', 'rejected'].includes(status)) {
