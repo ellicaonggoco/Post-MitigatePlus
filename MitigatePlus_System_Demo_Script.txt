@@ -94,17 +94,21 @@ Spoken Script:
 
 Ako po si Ellica, and today I will personally conduct our live system demonstration for MitigatePlus. I will be sharing my screen to walk you through our complete software ecosystem, deployed live at post-mitigate-plus.vercel.app and connected to our cloud database on MongoDB Atlas.
 
-Our live demonstration follows a strict, end-to-end account-by-account workflow:
+Bago po natin simulan ang bawat module, nais ko munang pormal na ipakilala ang LIMANG OPISYAL NA USERS O SYSTEM ACTORS na nagpapatakbo sa buong MitigatePlus disaster mitigation ecosystem:
 
-First, we will complete all eight grassroots modules under the Barangay Official account for Barangay 291.
+Una po, ang ating BARANGAY OFFICIAL (official291@manila.gov.ph) - Ito ang ating grassroots operator na namamahala sa resident applicant verification, structural damage reports, emergency cash-for-work requests, at recovery tracking sa antas ng Barangay 291.
 
-Second, we will log in to our City LGU Admin account under the Manila DRRMO to demonstrate city-wide logistics, warehouse monitoring, and distribution events across all 897 barangays.
+Pangalawa po, ang ating CITY LGU ADMIN (admin@manila.gov.ph) sa pamumuno ng Manila DRRMO - Sila ang namamahala sa city-wide operations across all 897 barangays, central warehouse logistics, disaster risk heatmaps, at real-time anti-fraud telemetry.
 
-Third, we will access the LGU Super Admin account under City Mayor Honey Lacuna for policy configuration, system audit logs, and 1-click COA liquidation.
+Pangatlo po, ang ating LGU SUPER ADMIN (superadmin@manila.gov.ph) sa ilalim ng Tanggapan ng Punong Lungsod - Ang executive user na may ganap na kapangyarihan sa global policy configuration tulad ng relief allocation formulas, account security, system audit logs, at 1-click COA liquidation reports.
 
-And fourth, we will switch to our Mobile Applications Suite for resident self-service and field staff QR verification with live fraud interception.
+Pang-apat po, ang ating MOBILE FIELD STAFF (staff291@manila.gov.ph) - Ang ating frontline officer sa distribution covered courts na may hawak ng camera QR scanner para sa instant verification at Algorithm 2 right-sized claim release.
 
-Let us begin with our first account: the Barangay Official."
+At pang-lima po, ang ating MOBILE CITIZEN RESIDENT (juan@gmail.com) - Ang pamilyang benepisyaryo na may hawak ng dynamic cryptographic QR pass para sa ayuda, citizen damage geotagging, at 5-stage longitudinal recovery tracking.
+
+Ang ating live demonstration po ngayon ay susunod sa isang structured, end-to-end account-by-account workflow upang maipakita ang seamless coordination ng limang users na ito sa iisang centralized cloud database.
+
+Sisimulan na po natin sa ating Unang User: ang Barangay Official."
 
 ================================================================================
 PART 1: ACCOUNT 1 - BARANGAY OFFICIAL (official291@manila.gov.ph)
