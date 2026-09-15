@@ -15,6 +15,7 @@ export default function ReliefAllocationPage() {
 
   const [events, setEvents] = useState([]);
   const [duplicateAlerts, setDuplicateAlerts] = useState([]);
+  const [msg, setMsg] = useState('');
   // ── Executive Policy State (Persisted in DB & localStorage) ──
   const [policy, setPolicy] = useState(() => {
     try {
@@ -111,15 +112,7 @@ export default function ReliefAllocationPage() {
   // ── Triple Confirmation Final Execution ──
   const handleExecutePolicySave = async () => {
     if (secPin.trim().toUpperCase() !== 'CONFIRM' && secPin.trim() !== '2026') {
-      setConfirmModal({
-        isOpen: true,
-        title: 'Security Error',
-        message: 'Invalid Security Passcode. Type "CONFIRM" or "2026" to apply the new relief formula.',
-        type: 'danger',
-        confirmText: 'Okay',
-        onConfirm: () => setConfirmModal({ isOpen: false, eventData: null }),
-        onCancel: () => setConfirmModal({ isOpen: false, eventData: null }),
-      });
+      alert('Invalid Security Passcode. Type "CONFIRM" or "2026" to apply the new relief formula.');
       return;
     }
 
