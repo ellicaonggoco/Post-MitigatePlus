@@ -305,23 +305,21 @@ router.get('/demand-summary', protect, requireRole('barangay_official', 'lgu_adm
 //          city-wide for lgu_admin (same pattern as /households/pending)
 router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_staff'), async (req, res) => {
   try {
-    const isOfficialOrStaff = req.user.role === 'barangay_official' || req.user.role === 'field_staff';
-    const targetBrgy = isOfficialOrStaff ? req.user.barangayCode : req.query.barangayCode;
-
     let query = {};
-    if (targetBrgy) {
-      const households = await Household.find({ barangayCode: targetBrgy }).select('_id');
-      const householdIds = households.map(h => h._id);
-      query = {
-        $or: [
-          { householdId: { $in: householdIds } },
-          { barangayCode: targetBrgy },
-        ],
-      };
-    }
-
-    // Role guard for field staff: Only see tasks assigned to them or their team
-    if (req.user.role === 'field_staff') {
+    if (req.user.role === 'barangay_official') {
+      const targetBrgy = req.user.barangayCode;
+      if (targetBrgy) {
+        const households = await Household.find({ barangayCode: targetBrgy }).select('_id');
+        const householdIds = households.map(h => h._id);
+        query = {
+          $or: [
+            { householdId: { $in: householdIds } },
+            { barangayCode: targetBrgy },
+          ],
+        };
+      }
+    } else if (req.user.role === 'field_staff') {
+      // Field staff are mobile across any barangay: see tasks assigned to them or their team
       const staffConditions = [
         { assignedStaff: req.user._id },
       ];
@@ -334,11 +332,16 @@ router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_st
           staffConditions.push({ assignedStaffName: new RegExp(cleanTeam, 'i') });
         }
       }
-      if (query.$or) {
-        query = { $and: [{ $or: query.$or }, { $or: staffConditions }] };
-      } else {
-        query.$or = staffConditions;
-      }
+      query.$or = staffConditions;
+    } else if (req.query.barangayCode) {
+      const households = await Household.find({ barangayCode: req.query.barangayCode }).select('_id');
+      const householdIds = households.map(h => h._id);
+      query = {
+        $or: [
+          { householdId: { $in: householdIds } },
+          { barangayCode: req.query.barangayCode },
+        ],
+      };
     }
 
     const requests = await AssistanceRequest.find(query)

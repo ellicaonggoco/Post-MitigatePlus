@@ -468,8 +468,8 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         // Strictly find an event that is Ongoing or isActive: true for duty barangay (or ALL) AND matches my assigned team
         const active = events.find(e => {
           const isOngoing = e.isActive === true || String(e.status).toLowerCase() === 'ongoing';
-          if (!isOngoing) return false;
-          const brgyMatch = !dutyBrgy || String(e.barangayCode) === String(dutyBrgy) || e.barangayCode === 'ALL' || !e.barangayCode;
+          const isCityWide = !dutyBrgy || dutyBrgy.toLowerCase().includes('city') || dutyBrgy === 'ALL';
+          const brgyMatch = isCityWide || String(e.barangayCode) === String(dutyBrgy) || e.barangayCode === 'ALL' || !e.barangayCode;
           if (!brgyMatch) return false;
           return isStaffTeamMatch(myTeam, e.assignedTeam || e.staffAssigned, officerName);
         });

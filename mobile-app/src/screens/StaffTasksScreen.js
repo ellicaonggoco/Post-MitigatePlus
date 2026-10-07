@@ -31,7 +31,7 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
       setLoading(true);
       const liveEvents = await fetchDistributionEvents(activeToken);
       if (Array.isArray(liveEvents) && liveEvents.length > 0) {
-        setEvents(liveEvents.map((e, idx) => {
+        const mapped = liveEvents.map((e, idx) => {
           const rawStatus = String(e.status || (e.isActive ? 'ongoing' : e.closedAt ? 'completed' : 'scheduled')).toLowerCase();
           return {
             _id: e._id,
@@ -53,7 +53,17 @@ export default function StaffTasksScreen({ token, user, onSelectScanEvent, onNav
             completedAt: e.completedAt || e.closedAt || null,
             allocatedItems: e.itemType || 'All-in-One Family Food Pack',
           };
-        }));
+        });
+        setEvents(mapped);
+        
+        // Auto-switch to 'ongoing' if there are active ongoing events for this team
+        const myTeam = user?.teamName || staffTeam || 'Field Team Bravo';
+        const teamEvents = mapped.filter(e => isStaffTeamMatch(myTeam, e.assignedTeam || e.staffAssigned, user?.name));
+        const hasScheduled = teamEvents.some(e => e.status === 'scheduled');
+        const hasOngoing = teamEvents.some(e => e.status === 'ongoing');
+        if (!hasScheduled && hasOngoing) {
+          setFilterTab('ongoing');
+        }
       } else {
         // No events available from server: show empty state
         setEvents([]);

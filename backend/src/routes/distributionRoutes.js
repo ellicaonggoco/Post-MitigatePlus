@@ -47,15 +47,10 @@ router.get('/events', protect, async (req, res) => {
       }
 
       if (staffConditions.length > 0) {
-        if (req.user.barangayCode) {
-          query.$and = [
-            { $or: staffConditions },
-            { $or: [{ barangayCode: req.user.barangayCode }, { barangayCode: 'ALL' }, { barangayCode: null }] }
-          ];
-        } else {
-          query.$or = staffConditions;
-        }
-      } else if (req.user.barangayCode) {
+        // Field staff teams are dispatched city-wide across all barangays.
+        // If an event is assigned to their team or name, they must see it regardless of event barangayCode.
+        query.$or = staffConditions;
+      } else if (req.user.barangayCode && req.user.barangayCode !== 'City-Wide' && req.user.barangayCode !== 'ALL') {
         query.barangayCode = req.user.barangayCode;
       }
     }
