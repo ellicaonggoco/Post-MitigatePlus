@@ -494,6 +494,43 @@ router.put('/me/members', protect, requireRole('resident'), async (req, res) => 
   }
 });
 
+// @route   POST /api/households/relocation-request
+// @desc    Submit a barangay relocation request (moves household to new barangay verification queue without duplicate account)
+router.post('/relocation-request', protect, requireRole('resident'), async (req, res) => {
+  try {
+    const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
+    if (!household) {
+      return res.status(404).json({ message: 'No household record linked to this resident account.' });
+    }
+
+    const { targetBarangayCode, newAddress, proofDocument } = req.body;
+    if (!targetBarangayCode || !newAddress) {
+      return res.status(400).json({ message: 'Kailangan ang target barangay at bagong tirahan.' });
+    }
+
+    const oldBarangay = household.barangayCode;
+    household.barangayCode = targetBarangayCode;
+    household.address = newAddress;
+    household.verificationStatus = 'pending';
+    household.verificationNotes = `Relocation transfer mula Brgy ${oldBarangay} patungong Brgy ${targetBarangayCode}. Naghihintay ng beripikasyon ng bagong barangay.`;
+    if (proofDocument) household.validIdImage = proofDocument;
+
+    await household.save();
+
+    // Update user's barangay code as well
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, { barangayCode: targetBarangayCode });
+
+    res.json({
+      success: true,
+      message: `Relocation request papuntang Barangay ${targetBarangayCode} naisumite.`,
+      household,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // @route   PUT /api/households/me/resubmit-id
 // @desc    Resubmit a new or clearer Valid ID following a needs_info request
 router.put('/me/resubmit-id', protect, requireRole('resident'), async (req, res) => {

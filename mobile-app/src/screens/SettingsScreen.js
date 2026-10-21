@@ -46,6 +46,7 @@ import {
   EyeOffIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  MapPinIcon,
 } from '../components/AppIcons';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
@@ -265,6 +266,63 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [customRenewReason, setCustomRenewReason] = useState('');
   const [renewLoading, setRenewLoading] = useState(false);
   const [renewError, setRenewError] = useState('');
+
+  // Barangay Relocation Modal State
+  const [showRelocationModal, setShowRelocationModal] = useState(false);
+  const [relocationTargetBrgy, setRelocationTargetBrgy] = useState('');
+  const [relocationNewAddress, setRelocationNewAddress] = useState('');
+  const [relocationLoading, setRelocationLoading] = useState(false);
+  const [relocationError, setRelocationError] = useState('');
+
+  const handleRelocationSubmit = async () => {
+    if (!relocationTargetBrgy.trim() || !relocationNewAddress.trim()) {
+      setRelocationError(
+        lang === 'tl'
+          ? 'Pakilagay ang numero ng bagong barangay at kumpletong tirahan.'
+          : 'Please enter target barangay code and complete new address.'
+      );
+      return;
+    }
+    setRelocationLoading(true);
+    setRelocationError('');
+    try {
+      const token = await AsyncStorage.getItem('mitigateplus_token');
+      if (!token) {
+        setRelocationError(lang === 'tl' ? 'Kailangang mag-login muli.' : 'Session expired. Please sign in again.');
+        return;
+      }
+      const res = await fetch(`${API_BASE_URL}/households/relocation-request`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetBarangayCode: relocationTargetBrgy.trim(),
+          newAddress: relocationNewAddress.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowRelocationModal(false);
+        setVerificationStatus('pending');
+        Alert.alert(
+          lang === 'tl' ? 'Naisumite ang Paglipat ng Barangay' : 'Relocation Request Submitted',
+          lang === 'tl'
+            ? `Nailipat ang inyong account sa pila ng pagsusuri ng Barangay ${relocationTargetBrgy.trim()}. Ang inyong status ay 'Pending' habang bineberipika ng bagong barangay admin.`
+            : `Your relocation request to Barangay ${relocationTargetBrgy.trim()} has been forwarded for admin verification. Status is reset to Pending.`
+        );
+        setRelocationTargetBrgy('');
+        setRelocationNewAddress('');
+      } else {
+        setRelocationError(data.message || (lang === 'tl' ? 'Bigo sa pagsusumite.' : 'Failed to submit request.'));
+      }
+    } catch (err) {
+      setRelocationError(lang === 'tl' ? 'Hindi makakonekta sa server.' : 'Network connection error.');
+    } finally {
+      setRelocationLoading(false);
+    }
+  };
 
   // Privacy Policy Modal State
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -912,6 +970,43 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
               {lang === 'tl' ? 'Na-save ang contact details.' : 'Contact saved.'}
             </Text>
           )}
+        </View>
+
+        {/* ── 2.5 BARANGAY JURISDICTION & RELOCATION ── */}
+        <Text style={styles.sectionLabel}>
+          {lang === 'tl' ? 'KAPISANAN SA BARANGAY AT PAGLIPAT' : 'BARANGAY RESIDENCE & RELOCATION'}
+        </Text>
+        <View style={styles.settingCardGroup}>
+          <View style={styles.settingRowItem}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={styles.settingItemLabel}>
+                {lang === 'tl' ? 'Rehistradong Barangay' : 'Registered Barangay'}
+              </Text>
+              <Text style={styles.settingItemValue}>
+                Barangay {user?.barangayCode || '291'}, Lungsod ng Maynila
+              </Text>
+              <Text style={styles.settingItemSub}>
+                {lang === 'tl'
+                  ? 'Kung lumipat ng tirahan sa ibang barangay, magsumite ng request upang ilipat ang account nang walang duplicate UID.'
+                  : 'If permanently relocated, submit a transfer request to route your record to the new barangay without duplicate registration.'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.actionPillBtn}
+              onPress={() => {
+                setRelocationError('');
+                setShowRelocationModal(true);
+              }}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={lang === 'tl' ? 'Humiling ng Paglipat ng Barangay' : 'Request Barangay Relocation'}
+            >
+              <MapPinIcon size={12} color="#1C3F94" />
+              <Text style={styles.actionPillBtnText}>
+                {lang === 'tl' ? 'Lipat Barangay' : 'Relocate'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ── 3. ACCOUNT SECURITY & LOGIN ── */}
@@ -1897,6 +1992,99 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
             >
               <Text style={styles.cancelSheetBtnText}>{lang === 'tl' ? 'Kanselahin' : 'Cancel'}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* MODAL: BARANGAY RELOCATION REQUEST                         */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={showRelocationModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowRelocationModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.passwordModalCard}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                <View style={[styles.rosterModalIconCircle, { borderColor: '#BFDBFE', backgroundColor: '#EFF6FF' }]}>
+                  <MapPinIcon size={20} color="#1C3F94" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalMainTitle}>
+                    {lang === 'tl' ? 'Paglipat ng Barangay' : 'Barangay Relocation'}
+                  </Text>
+                  <Text style={styles.modalMainSub}>
+                    {lang === 'tl' ? 'Single Family UID Policy (Anti-Duplicate)' : 'Preserves Family UID & Clean Ledger'}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.modalCloseCircle}
+                onPress={() => setShowRelocationModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close relocation modal"
+              >
+                <CloseIcon size={18} color="#0B1525" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 12 }}>
+              <View style={{ backgroundColor: '#FEF3C7', padding: 12, borderRadius: 12, marginBottom: 14, borderWidth: 1, borderColor: '#FDE68A' }}>
+                <Text style={{ fontSize: 11, color: '#92400E', lineHeight: 16 }}>
+                  {lang === 'tl'
+                    ? "PAALALA: Upang maiwasan ang double-claiming at pekeng ayuda, ang inyong account ay ililipat sa pila ng pagsusuri ng bagong barangay. Ang QR pass ay pansamantalang magiging 'Pending' hangga't hindi naaprubahan ng opisyal ng bagong barangay."
+                    : "NOTE: To prevent duplicate relief claiming across jurisdictions, transferring resets your verification to 'Pending' until verified by your destination barangay administration."}
+                </Text>
+              </View>
+
+              <NeumorphicInput
+                label={lang === 'tl' ? 'Bagong Barangay Code (Hal. 292, 305)' : 'Target Barangay Code (e.g. 292, 305)'}
+                placeholder="292"
+                value={relocationTargetBrgy}
+                onChangeText={(val) => {
+                  setRelocationTargetBrgy(val);
+                  if (relocationError) setRelocationError('');
+                }}
+                keyboardType="numeric"
+                required
+              />
+
+              <NeumorphicInput
+                label={lang === 'tl' ? 'Bagong Kumpletong Tirahan (Kalye, Bahay)' : 'New Complete Street Address'}
+                placeholder={lang === 'tl' ? '123 Rizal Ave, Sta. Cruz, Manila' : '123 Rizal Ave, Sta. Cruz, Manila'}
+                value={relocationNewAddress}
+                onChangeText={(val) => {
+                  setRelocationNewAddress(val);
+                  if (relocationError) setRelocationError('');
+                }}
+                autoCapitalize="words"
+                required
+              />
+
+              {relocationError ? (
+                <Text style={{ color: '#DC2626', fontSize: 12, marginTop: 4, marginBottom: 8, fontWeight: '600' }}>
+                  {relocationError}
+                </Text>
+              ) : null}
+
+              <TouchableOpacity
+                style={[styles.confirmRenewBtn, relocationLoading && { opacity: 0.7 }]}
+                onPress={handleRelocationSubmit}
+                disabled={relocationLoading}
+                activeOpacity={0.85}
+              >
+                {relocationLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.confirmRenewBtnText}>
+                    {lang === 'tl' ? 'Isumite ang Kahilingan sa Paglipat' : 'Submit Relocation Request'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
