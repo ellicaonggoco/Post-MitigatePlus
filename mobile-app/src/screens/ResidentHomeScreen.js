@@ -810,7 +810,8 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
   const rawName = householdData?.name || user?.name || (lang === 'tl' ? 'Rehistradong Residente' : 'Registered Resident');
   const householdName = formatCapitalizeWords(rawName);
   const address = householdData?.address || (lang === 'tl' ? 'Barangay 291, Maynila' : 'Barangay 291, Manila');
-  const brgyCode = householdData?.barangayCode || user?.barangayCode || '291';
+  const isDormant = householdData?.verificationStatus === 'dormant' || !!householdData?.isDormant || householdData?.barangayCode === 'UNASSIGNED';
+  const brgyCode = isDormant ? 'UNASSIGNED' : (householdData?.barangayCode || user?.barangayCode || '291');
   const headcount = householdData?.memberCount || householdData?.familyHeadcount || 1;
   const priorityScore = householdData?.priorityScore || 50;
   const priorityLevel = householdData?.priorityLevel || (lang === 'tl' ? 'Mataas na Prayoridad' : 'High Priority');
@@ -953,7 +954,7 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         <View style={styles.civicLocationRow}>
           <MapPinIcon size={12} color="rgba(255,255,255,0.7)" />
           <Text style={styles.civicLocationText} numberOfLines={1}>
-            Brgy {brgyCode} · Sta Cruz, Manila
+            {isDormant ? (lang === 'tl' ? 'No Barangay Listed · Dormant' : 'No Barangay Listed · Dormant') : `Brgy ${brgyCode} · Sta Cruz, Manila`}
           </Text>
         </View>
       </View>
@@ -977,17 +978,19 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
         <TouchableOpacity
           style={[
             styles.verifCheckCircleBtn,
-            isVerified ? styles.verifCheckCircleSuccess : isRejected ? { backgroundColor: 'rgba(239, 68, 68, 0.25)', borderWidth: 1, borderColor: '#F87171' } : styles.verifCheckCirclePending,
+            isDormant ? { backgroundColor: 'rgba(234, 88, 12, 0.35)', borderWidth: 1, borderColor: '#FB923C' } : isVerified ? styles.verifCheckCircleSuccess : isRejected ? { backgroundColor: 'rgba(239, 68, 68, 0.25)', borderWidth: 1, borderColor: '#F87171' } : styles.verifCheckCirclePending,
           ]}
           onPress={() => setShowVerifInfoModal(true)}
           activeOpacity={0.7}
           accessible={true}
           accessibilityRole="button"
-          accessibilityLabel={isVerified ? (lang === 'tl' ? 'Katayuan: Beripikadong Residente' : 'Status: Verified Resident') : isRejected ? (lang === 'tl' ? 'Katayuan: Hindi Naaprubahan' : 'Status: Registration Rejected') : (lang === 'tl' ? 'Katayuan: Nakabinbing Beripikasyon' : 'Status: Pending Verification')}
+          accessibilityLabel={isDormant ? (lang === 'tl' ? 'Katayuan: Dormant / No Barangay Listed' : 'Status: Dormant / No Barangay Listed') : isVerified ? (lang === 'tl' ? 'Katayuan: Beripikadong Residente' : 'Status: Verified Resident') : isRejected ? (lang === 'tl' ? 'Katayuan: Hindi Naaprubahan' : 'Status: Registration Rejected') : (lang === 'tl' ? 'Katayuan: Nakabinbing Beripikasyon' : 'Status: Pending Verification')}
           accessibilityHint={lang === 'tl' ? 'Pindutin nang dalawang beses upang tingnan ang impormasyon sa beripikasyon' : 'Double tap to view verification info'}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          {isVerified ? (
+          {isDormant ? (
+            <AlertTriangleIcon size={14} color="#FDBA74" strokeWidth={2.8} />
+          ) : isVerified ? (
             <CheckIcon size={14} color="#FFFFFF" strokeWidth={2.8} />
           ) : isRejected ? (
             <CloseIcon size={14} color="#FCA5A5" strokeWidth={2.8} />
@@ -1049,7 +1052,14 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
                   <Text style={styles.qrTitleWhite}>{t.reliefPassTitle}</Text>
                   <Text style={styles.qrSubTextWhite}>{householdName} • Barangay {brgyCode}</Text>
                 </View>
-                {!isVerified ? (
+                {isDormant ? (
+                  <View style={[styles.pendingTagHeaderPill, { backgroundColor: '#FFF7ED', borderColor: '#FDBA74' }]}>
+                    <AlertTriangleIcon size={11} color="#EA580C" />
+                    <Text style={[styles.pendingTagHeaderText, { color: '#EA580C' }]}>
+                      {lang === 'tl' ? 'DORMANT / UNLISTED' : 'DORMANT / UNLISTED'}
+                    </Text>
+                  </View>
+                ) : !isVerified ? (
                   <View style={styles.pendingTagHeaderPill}>
                     <ClockIcon size={11} color="#FFE27A" />
                     <Text style={styles.pendingTagHeaderText}>
@@ -1101,7 +1111,40 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
               </View>
 
               {/* High-Contrast Interactive QR Block or Standby / Pending Banner */}
-              {isRejected ? (
+              {isDormant ? (
+                <View style={[styles.pendingVerificationFrame, { borderColor: '#FED7AA' }]}>
+                  <View style={[styles.pendingIconWell, { backgroundColor: '#FFF7ED', borderColor: '#FDBA74' }]}>
+                    <AlertTriangleIcon size={24} color="#EA580C" strokeWidth={2.5} />
+                  </View>
+                  <Text style={[styles.pendingNoticeTitle, { color: '#C2410C' }]}>
+                    {lang === 'tl'
+                      ? 'DORMANT ACCOUNT (NO BARANGAY LISTED)'
+                      : 'DORMANT ACCOUNT (NO BARANGAY LISTED)'}
+                  </Text>
+                  <Text style={styles.pendingNoticeSub}>
+                    {lang === 'tl'
+                      ? 'Hindi ka nakakuha ng relief sa 3 magkakasunod na major distribution events. Alinsunod sa MDRRMO demographic audit policy, inilipat ang inyong account sa "No Barangay Listed". Mangyaring magsumite ng Paglipat ng Barangay sa Settings upang muling mai-assign sa inyong kasalukuyang tinitirhan.'
+                      : 'You have missed claiming relief in three (3) consecutive major distribution drives. Per MDRRMO annual demographic audit, your profile has transitioned to "No Barangay Listed". Please submit a Barangay Relocation request in Settings to re-activate your account.'}
+                  </Text>
+
+                  <View style={[styles.pendingStatusBadgeRow, { backgroundColor: '#FFF7ED', borderColor: '#FDBA74' }]}>
+                    <AlertTriangleIcon size={12} color="#EA580C" />
+                    <Text style={[styles.pendingStatusBadgeText, { color: '#EA580C' }]}>
+                      {lang === 'tl' ? 'KATAYUAN: DORMANT / UNLISTED' : 'STATUS: DORMANT / UNLISTED'}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.refreshStatusBtn, { backgroundColor: '#EA580C' }]}
+                    onPress={() => setActiveTab('settings')}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.refreshStatusBtnText}>
+                      {lang === 'tl' ? 'Pumunta sa Lipat Barangay' : 'Go to Barangay Relocation'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : isRejected ? (
                 <View style={[styles.pendingVerificationFrame, { borderColor: '#FECDD3' }]}>
                   <View style={[styles.pendingIconWell, { backgroundColor: '#FEF0F2', borderColor: '#FECDD3' }]}>
                     <CloseIcon size={24} color="#C8102E" strokeWidth={2.5} />

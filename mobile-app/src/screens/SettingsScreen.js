@@ -47,6 +47,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   MapPinIcon,
+  AlertTriangleIcon,
 } from '../components/AppIcons';
 import NeumorphicInput from '../components/NeumorphicInput';
 import { FONT_WEIGHT, SHADOWS, RESPONSIVE, hp, TopStatusBarBlur, getStatusBarHeight } from '../theme';
@@ -103,6 +104,7 @@ function HouseholdProfileHeader({
     .slice(0, 2);
 
   const formattedName = formatCapitalizeWords(name || 'Resident Representative');
+  const isDormant = verificationStatus === 'dormant' || barangayCode === 'UNASSIGNED';
   const isVerified = verificationStatus === 'verified';
   const isNeedsInfo = verificationStatus === 'needs_info';
   const isRejected = verificationStatus === 'rejected';
@@ -155,7 +157,11 @@ function HouseholdProfileHeader({
             {formattedName}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 6 }}>
-            {isVerified ? (
+            {isDormant ? (
+              <View style={{ backgroundColor: '#FFF7ED', borderColor: 'rgba(234,88,12,0.4)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: '#C2410C', fontSize: 11, fontWeight: '800' }}>{lang === 'tl' ? 'Dormant (No Barangay Listed)' : 'Dormant (No Barangay Listed)'}</Text>
+              </View>
+            ) : isVerified ? (
               <View style={{ backgroundColor: '#E6F6EF', borderColor: 'rgba(4,120,87,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
                 <Text style={{ color: '#047857', fontSize: 11, fontWeight: '800' }}>{lang === 'tl' ? 'Beripikado' : 'Verified'}</Text>
               </View>
@@ -173,7 +179,9 @@ function HouseholdProfileHeader({
               </View>
             )}
           </View>
-          <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>Barangay {barangayCode || '291'}, Manila</Text>
+          <Text style={{ fontSize: 12, color: '#475569', fontWeight: '500' }}>
+            {isDormant ? (lang === 'tl' ? 'Walang Nakalistang Barangay' : 'No Barangay Listed') : `Barangay ${barangayCode || '291'}, Manila`}
+          </Text>
           <Text
             accessibilityLabel={`${lang === 'tl' ? 'Email sa Profile' : 'Profile Email'}: ${contact}`}
             style={{ fontSize: 12, color: '#334155', fontWeight: '600' }}
@@ -271,8 +279,55 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
   const [showRelocationModal, setShowRelocationModal] = useState(false);
   const [relocationTargetBrgy, setRelocationTargetBrgy] = useState('');
   const [relocationNewAddress, setRelocationNewAddress] = useState('');
+  const [relocationProofDoc, setRelocationProofDoc] = useState(null);
   const [relocationLoading, setRelocationLoading] = useState(false);
   const [relocationError, setRelocationError] = useState('');
+
+  const handlePickRelocationDoc = async () => {
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            lang === 'tl' ? 'Pahintulot sa Gallery' : 'Gallery Permission',
+            lang === 'tl'
+              ? 'Kailangan ng pahintulot upang pumili ng litrato ng inyong ID o Clearance.'
+              : 'Permission is required to select a photo of your ID or Clearance.'
+          );
+          return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          allowsEditing: true,
+          quality: 0.7,
+          base64: true,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const docUri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+          setRelocationProofDoc(docUri);
+          if (relocationError) setRelocationError('');
+        }
+      } else {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              setRelocationProofDoc(ev.target.result);
+              if (relocationError) setRelocationError('');
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    } catch (err) {
+      console.error('Error picking relocation document:', err);
+    }
+  };
 
   const handleRelocationSubmit = async () => {
     if (!relocationTargetBrgy.trim() || !relocationNewAddress.trim()) {
@@ -280,6 +335,14 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         lang === 'tl'
           ? 'Pakilagay ang numero ng bagong barangay at kumpletong tirahan.'
           : 'Please enter target barangay code and complete new address.'
+      );
+      return;
+    }
+    if (!relocationProofDoc) {
+      setRelocationError(
+        lang === 'tl'
+          ? 'Kinakailangang mag-upload ng Bagong Valid ID o Barangay Clearance bilang patunay ng bagong tirahan.'
+          : 'Please upload a photo of your new Valid ID or Barangay Clearance as proof of residency.'
       );
       return;
     }
@@ -300,6 +363,7 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         body: JSON.stringify({
           targetBarangayCode: relocationTargetBrgy.trim(),
           newAddress: relocationNewAddress.trim(),
+          proofDocument: relocationProofDoc,
         }),
       });
       const data = await res.json();
@@ -309,11 +373,12 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         Alert.alert(
           lang === 'tl' ? 'Naisumite ang Paglipat ng Barangay' : 'Relocation Request Submitted',
           lang === 'tl'
-            ? `Nailipat ang inyong account sa pila ng pagsusuri ng Barangay ${relocationTargetBrgy.trim()}. Ang inyong status ay 'Pending' habang bineberipika ng bagong barangay admin.`
-            : `Your relocation request to Barangay ${relocationTargetBrgy.trim()} has been forwarded for admin verification. Status is reset to Pending.`
+            ? `Nailipat ang inyong account sa pila ng pagsusuri ng Barangay ${relocationTargetBrgy.trim()}. Ang inyong status ay 'Pending' habang bineberipika ng bagong barangay admin gamit ang in-upload na dokumento.`
+            : `Your relocation request to Barangay ${relocationTargetBrgy.trim()} has been forwarded for admin verification with your attached document. Status is reset to Pending.`
         );
         setRelocationTargetBrgy('');
         setRelocationNewAddress('');
+        setRelocationProofDoc(null);
       } else {
         setRelocationError(data.message || (lang === 'tl' ? 'Bigo sa pagsusumite.' : 'Failed to submit request.'));
       }
@@ -976,6 +1041,21 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
         <Text style={styles.sectionLabel}>
           {lang === 'tl' ? 'KAPISANAN SA BARANGAY AT PAGLIPAT' : 'BARANGAY RESIDENCE & RELOCATION'}
         </Text>
+        {(verificationStatus === 'dormant' || user?.barangayCode === 'UNASSIGNED') && (
+          <View style={{ backgroundColor: '#FFF7ED', borderWidth: 1.5, borderColor: '#FDBA74', borderRadius: 14, padding: 14, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <AlertTriangleIcon size={22} color="#EA580C" strokeWidth={2.2} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#C2410C' }}>
+                {lang === 'tl' ? 'Dormant Profile (No Barangay Listed)' : 'Dormant Profile (No Barangay Listed)'}
+              </Text>
+              <Text style={{ fontSize: 11.5, color: '#9A3412', marginTop: 2, lineHeight: 16 }}>
+                {lang === 'tl'
+                  ? 'Hindi ka nakakuha ng ayuda sa 3 magkakasunod na relief operations. Pindutin ang "Lipat Barangay" upang magsumite ng inyong kasalukuyang tirahan at ma-reactivate ang account.'
+                  : 'You missed claiming relief in 3 consecutive distribution drives. Tap "Relocate" below to update your address and re-activate your profile.'}
+              </Text>
+            </View>
+          </View>
+        )}
         <View style={styles.settingCardGroup}>
           <View style={styles.settingRowItem}>
             <View style={{ flex: 1, paddingRight: 8 }}>
@@ -2063,6 +2143,59 @@ export default function SettingsScreen({ user, lang = 'en', onSelectLang, onLogo
                 autoCapitalize="words"
                 required
               />
+
+              {/* Katibayan ng Bagong Tirahan (Barangay Clearance o Valid ID) */}
+              <View style={{ marginTop: 6, marginBottom: 12 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0B1525', marginBottom: 6 }}>
+                  {lang === 'tl'
+                    ? 'Katibayan ng Bagong Tirahan (Barangay Clearance o Valid ID) *'
+                    : 'Proof of New Residence (Barangay Clearance or Valid ID) *'}
+                </Text>
+
+                {relocationProofDoc ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E6F6EF', borderWidth: 1, borderColor: '#A7F3D0', borderRadius: 12, padding: 10, gap: 10 }}>
+                    <Image source={{ uri: relocationProofDoc }} style={{ width: 44, height: 44, borderRadius: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0D8A5A' }}>
+                        {lang === 'tl' ? 'Na-upload ang Dokumento' : 'Document Attached'}
+                      </Text>
+                      <Text style={{ fontSize: 10, color: '#047857' }}>
+                        {lang === 'tl' ? 'Susuriin ng bagong barangay admin' : 'Ready for admin verification'}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={handlePickRelocationDoc}
+                      style={{ paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#FFFFFF', borderRadius: 8, borderWidth: 1, borderColor: '#D1D5DB' }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: '#374151' }}>
+                        {lang === 'tl' ? 'Palitan' : 'Change'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={handlePickRelocationDoc}
+                    activeOpacity={0.8}
+                    style={{
+                      borderWidth: 1.5,
+                      borderColor: '#1C3F94',
+                      borderStyle: 'dashed',
+                      borderRadius: 12,
+                      padding: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#EDF1FB',
+                      flexDirection: 'row',
+                      gap: 8,
+                    }}
+                  >
+                    <CameraIcon size={18} color="#1C3F94" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#1C3F94' }}>
+                      {lang === 'tl' ? 'Kumuha o Mag-upload ng ID / Clearance' : 'Take Photo or Upload ID / Clearance'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               {relocationError ? (
                 <Text style={{ color: '#DC2626', fontSize: 12, marginTop: 4, marginBottom: 8, fontWeight: '600' }}>
