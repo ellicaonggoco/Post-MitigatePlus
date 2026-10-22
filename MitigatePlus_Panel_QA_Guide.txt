@@ -1,0 +1,351 @@
+NATIONAL UNIVERSITY
+COLLEGE OF COMPUTING AND INFORMATION TECHNOLOGIES
+
+MITIGATEPLUS: A COMMUNITY DISASTER RISK MITIGATION INFORMATION SYSTEM
+CAPSTONE 2 ORAL DEFENSE - PANEL Q&A PREPARATION GUIDE
+
+Panel of Evaluators: Dean Emeliza Yabut (Chair) | Prof. Lalaine Abad | Prof. Julieanne Crystal
+Capstone Adviser: Mr. John Ivan C. Maurat
+Team: John Rafael Corpuz | John Herszel Datul | Neil Chester Mari Garcia | John Michael Nolasco | Enica Chris Onggoco
+
+================================================================================
+SECTION A: SURVEY AND DATA COLLECTION QUESTIONS
+================================================================================
+
+Q1: Ano ang basis ninyo sa pagpili ng Google Forms bilang data collection tool?
+A1 - Lead: Chester / Datul
+
+"Thank you po for that question. The use of Google Forms was a deliberate and justified methodological choice.
+
+First, our target population spans multiple locations across Manila. An online survey platform allowed us to reach residents, college students, barangay staff, and IT professionals without requiring them to gather at one location. This is especially practical given the disaster-response context of our study.
+
+Second, Google Forms automatically stores all responses in a linked, password-protected Google Sheets spreadsheet. This minimizes transcription errors that happen in paper-based data collection and ensures data accuracy for all remote participants.
+
+Third, before answering the survey, all participants were briefed on the purpose of MitigatePlus and voluntarily agreed to participate after being given the opportunity to explore the system. This informed consent process follows ethical research standards.
+
+The instrument itself is the rigorous part: 20 Likert-scale items across 4 usability categories aligned with ISO/IEC 25010, supplemented by two open-ended qualitative questions. The delivery method is simply the tool we used to reach our participants efficiently and ethically."
+
+--------------------------------------------------------------------------------
+
+Q2: Bakit 108 respondents lang? Hindi ba maliit ang sample size?
+A2 - Lead: Chester / Datul
+
+"Thank you po. Standard usability testing guidelines, such as those published by Nielsen Norman Group, recommend a minimum of 5 to 15 participants to identify the majority of usability issues. Our sample of 108 community respondents plus 2 senior IT professionals, for a total of 110 evaluators, is actually significantly larger than the standard requirement.
+
+We chose this size intentionally because we wanted our results to be statistically representative of the different stakeholder groups in Manila's disaster relief ecosystem: actual residents, youth volunteers, barangay staff, elected officials, and IT professionals.
+
+More than 76% of our evaluators are grassroots community members who directly live in the same environment where MitigatePlus would be deployed. Their ratings reflect real-world usability, not just academic or technical opinion.
+
+The diversity of our sample across 5 distinct stakeholder groups gives our results stronger validity than a larger but homogeneous sample would."
+
+--------------------------------------------------------------------------------
+
+Q3: Paano kayo nagsiguro ng confidentiality ng mga survey respondents?
+A3 - Lead: Chester
+
+"All survey responses were collected through Google Forms and automatically stored in a linked, password-protected Google Sheets spreadsheet. Access to the raw dataset was restricted exclusively to the research team.
+
+To protect participant confidentiality, identifying details were used only for internal record-keeping during the research process. They were completely excluded from all aggregated reports and analysis tables that appear in our manuscript.
+
+In our published results, we report only aggregate means and standard deviations, never individual participant data. No response can be traced back to a specific named individual in any published section of our manuscript.
+
+Raw survey data will be retained securely until the manuscript's final defense and archived thereafter for record-keeping purposes, following standard academic research data management practices."
+
+--------------------------------------------------------------------------------
+
+Q4: Bakit Likert scale ang ginamit ninyo? Hindi ba pwede pang ibang instrument?
+A4 - Lead: Chester / Datul
+
+"The 5-point Likert scale is the most widely used and validated instrument for software usability evaluation in academic research. It is the standard scale used in the System Usability Scale, the Software Usability Measurement Inventory, and ISO 25010-aligned evaluation frameworks, which is the quality model our study follows.
+
+The Likert scale allows us to quantify subjective user perceptions into numerical data that can be statistically analyzed through mean and standard deviation calculations.
+
+We also supplemented the Likert items with two open-ended qualitative questions asking respondents to identify the system's strengths and suggest improvements. This gives us both the quantitative scores and qualitative context, making our evaluation more comprehensive than a purely numerical instrument would provide.
+
+The combination of 20 quantitative Likert items and 2 open-ended qualitative questions is standard for software product evaluation in BSIT capstone research."
+
+--------------------------------------------------------------------------------
+
+Q5: Bakit 4 categories lang ang usability survey? Hindi ba pwede pang idagdag?
+A5 - Lead: Chester
+
+"Our four categories: Ease of Use, Performance and Efficiency, Learnability, and Satisfaction, are directly adapted from the Usability characteristic defined in the ISO/IEC 25010 standard. This is the same international quality model we used for our entire software evaluation framework.
+
+ISO 25010 defines Usability as having five sub-characteristics: Appropriateness Recognizability, Learnability, Operability, User Error Protection, User Interface Aesthetics, and Accessibility. We consolidated these into four practical evaluation categories that are more relatable to our target community respondents, while maintaining alignment with the standard's intent.
+
+Adding more categories beyond what ISO 25010 defines would actually make the instrument less standardized, not more rigorous. The four categories we used are sufficient, validated by international standards, and appropriate for our evaluation goals."
+
+--------------------------------------------------------------------------------
+
+Q6: Paano ninyo kinuwenta ang mean at standard deviation? Mano-mano ba?
+A6 - Lead: Chester / Datul
+
+"The mean and standard deviation were calculated from the numerically coded Likert responses exported from Google Forms to Google Sheets.
+
+Each response option was assigned a numerical value: Strongly Disagree equals 1, Disagree equals 2, Neutral equals 3, Agree equals 4, and Strongly Agree equals 5.
+
+The mean for each item is the arithmetic average of all numerical responses from our 108 respondents. The mean for each category is the average of all item means within that category. The overall composite mean is the average across all 20 items.
+
+The standard deviation measures how spread out the responses are from the mean. A low standard deviation means most respondents gave similar ratings, indicating strong consensus. A high standard deviation means responses varied more, indicating mixed opinions.
+
+We used Google Sheets built-in AVERAGE and STDEV functions to calculate these values, which are the same statistical functions used in Excel and are standard for this type of Likert-scale analysis in academic research."
+
+================================================================================
+SECTION B: TECHNICAL SYSTEM QUESTIONS
+================================================================================
+
+Q7: Paano talagang gumagana ang QR pass? Secure ba ito? Pwede bang ma-screenshot at gamitin ng ibang tao?
+A7 - Lead: Ellica / Raf
+
+"The QR Relief Pass is not a simple static image that can be screenshot and reused. It is a cryptographically signed token.
+
+When a Barangay Captain approves a resident's registration, our backend generates a unique JSON Web Token for that household, embedded with three fields: the resident's unique household ID, the distribution event ID, and an expiry timestamp.
+
+This token is encoded into the QR code displayed on the resident's phone. When a field officer scans the QR pass, the scanner app decodes the token and sends it to our API. The API validates the token's cryptographic signature and checks it against the MongoDB database to confirm: first, that the token has not expired; second, that the household ID is registered; and third, that no prior release record exists for that household in the current distribution event.
+
+If someone screenshots the QR code and a family member tries to use it at a different gate, the second scan attempt triggers the Compound Unique Index check and the transaction is rejected at the database engine level. The duplicate cannot succeed regardless of how many copies of the QR image exist."
+
+--------------------------------------------------------------------------------
+
+Q8: Ano ang gagawin kapag nawala o nasira ang phone ng isang resident? Mawawala na ba ang QR nila?
+A8 - Lead: Ellica / JM
+
+"The QR Relief Pass is tied to the resident's account in our MongoDB database, not to the physical phone device alone.
+
+If a resident loses their phone, they can log in to MitigatePlus on any other Android phone using their registered credentials: their registered email address and password. Upon login, the app automatically regenerates and displays their QR Relief Pass, because the pass is generated from their account data stored in the cloud database, not from a file saved on the original device.
+
+The Barangay Captain and the distribution coordinator can also see the resident's verified profile and status on the Web Admin portal, so even without a smartphone, an authorized barangay official can manually confirm the resident's registration and eligibility."
+
+--------------------------------------------------------------------------------
+
+Q9: What is the difference between your system and just using a regular Excel masterlist for relief distribution?
+A9 - Lead: JM / Raf
+
+"A regular Excel masterlist is a static file. It cannot update in real-time, it cannot prevent a volunteer at Gate 2 from recording the same household that Gate 1 just served, and it cannot calculate right-sized relief quantities based on verified headcounts automatically.
+
+MitigatePlus is a live, real-time system. When Officer Juan at Gate 1 confirms a release for the Santos family, the served counter on the Web Admin portal updates in the same second. If someone attempts to claim again at Gate 2 using the same QR code 30 seconds later, the database rejects the transaction before it can be saved, regardless of whether the two gates can communicate with each other over radio.
+
+An Excel sheet requires manual coordination between table operators. MitigatePlus enforces coordination at the database engine level automatically.
+
+Additionally, Excel cannot generate geotagged damage reports, cannot run priority algorithms, cannot send real-time WebSocket fraud alerts, and cannot produce a COA-formatted liquidation report in 2 seconds. These are functions that MitigatePlus performs automatically throughout the entire relief operation lifecycle."
+
+--------------------------------------------------------------------------------
+
+Q10: Paano ninyo naprotektahan ang sistema laban sa SQL injection o similar attacks?
+A10 - Lead: Datul / Raf
+
+"MitigatePlus uses MongoDB, which is a NoSQL document database, not a relational SQL database. This means traditional SQL injection attacks are not applicable to our system.
+
+However, we protect against the equivalent threats in MongoDB, specifically NoSQL injection, by using Mongoose ODM on the backend. Mongoose enforces strict schema validation on all incoming data before it reaches the database. Any data that does not match the defined schema type is automatically rejected at the application layer.
+
+Additionally, all text input fields in both the mobile app and web admin portal have input validation middleware using express-validator that sanitizes incoming strings, strips any potential script injection payloads, and enforces character limits before the data is processed.
+
+We also use JSON Web Token authentication on all protected API endpoints. Any request to a sensitive endpoint without a valid, non-expired JWT is rejected immediately with a 401 Unauthorized response, before any database query is executed."
+
+--------------------------------------------------------------------------------
+
+Q11: Paano kayo nagsiguro na tama ang mga datos ng household? Paano kung sinungaling ang resident tungkol sa bilang ng miyembro?
+A11 - Lead: JM / Ellica
+
+"Resident-submitted household data goes through a manual verification step before the QR Relief Pass is issued.
+
+When a resident submits their household registration, their profile goes into the Barangay Captain's Verification Queue on the Web Admin portal. The Captain reviews the household member list and the uploaded government ID photo. The Captain can cross-reference the submitted data against the barangay's official household census records, specifically the DSWD Listahanan household data that most barangay offices maintain.
+
+If the submitted headcount appears inflated or inconsistent with the barangay's records, the Captain can reject the registration and request a corrected submission.
+
+Only after the Captain manually approves the registration is the QR Relief Pass issued. So the relief allocation calculated by Algorithm 2 is based on a Barangay Captain-verified headcount, not simply whatever the resident typed into the form.
+
+We acknowledge that this verification is only as good as the barangay's reference data. For future versions, integration with the PhilSys National ID API would allow automated cross-referencing with official government household records."
+
+--------------------------------------------------------------------------------
+
+Q12: Kung maraming barangay ang gumagamit ng system at the same time, hindi ba mag-crash ang server?
+A12 - Lead: Raf / Datul
+
+"Our system is architected to handle this scenario. Let me explain the three layers of scalability.
+
+First, our Express.js REST API is stateless. This means it stores no user session data on the server itself. Stateless APIs can be horizontally scaled by simply running multiple identical API instances behind a load balancer. If traffic increases from simultaneous multi-barangay deployments, we can add more API instances on Render without any code changes.
+
+Second, our MongoDB Atlas cluster is hosted on Google Cloud Platform with the ability to add read replicas and sharding to distribute database load across multiple nodes. For 897 barangays in 6 legislative districts conducting simultaneous distribution events, the database architecture can be scaled to handle the concurrent read and write operations.
+
+Third, our database compound indexes reduce query execution time to under 45 milliseconds on average, which means each individual request is handled very efficiently even under high concurrent load.
+
+We have tested concurrent operation within the scope of our current infrastructure, and the system performed reliably. For city-wide deployment across all 897 barangays, a production-scale cloud infrastructure upgrade would be the appropriate step, which is covered in our Recommendations section."
+
+================================================================================
+SECTION C: SCOPE AND RESEARCH QUESTIONS
+================================================================================
+
+Q13: Bakit Manila lang? Hindi ba pwedeng gamitin sa ibang lungsod?
+A13 - Lead: JM / Chester
+
+"MitigatePlus was specifically designed for Manila because our research, field consultations, and stakeholder interviews were all conducted within the Manila context under Republic Act 10121 and the specific operational structure of Manila DRRMD.
+
+However, the system architecture is not technically limited to Manila. The barangay-level operational model is standard across all cities and municipalities in the Philippines under the Local Government Code and RA 10121. Every barangay in the Philippines, regardless of city, operates under the same BDRRMC framework.
+
+Any local government unit that adopts MitigatePlus would need to onboard their barangay data, resident population, and administrative accounts, but the core system functions: QR verification, damage reporting, priority ranking, and distribution tracking, would work in exactly the same way.
+
+For our capstone project, we delimited the scope to Manila to ensure that our system design is grounded in real, verified field data rather than generalized assumptions."
+
+--------------------------------------------------------------------------------
+
+Q14: Paano kung hindi lahat ng barangay sa Manila ay may sapat na internet connectivity?
+A14 - Lead: Ellica / Datul
+
+"This is a legitimate operational concern and one we specifically addressed in our system design.
+
+For the mobile application, the resident's QR Relief Pass is cached in local AsyncStorage upon approval. Residents can display their pass without any internet connection.
+
+For field staff scanners, the app supports an offline queue mode where scan records are stored locally and synchronized when connectivity is restored.
+
+For the Web Admin portal, it requires internet connectivity for the real-time features such as live fraud alerts and WebSocket events. However, the distribution event data, approved resident list, and release logs are periodically synchronized to local cache, allowing the portal to display the last-known state of the distribution even during brief connectivity interruptions.
+
+For barangays with consistently poor internet infrastructure, our recommendations section specifically identifies Peer-to-Peer Mesh Networking as a future technical enhancement that would allow devices to synchronize directly with each other without any internet access at all."
+
+--------------------------------------------------------------------------------
+
+Q15: Paano kung ang barangay captain ay mag-approve ng hindi legitimate na resident? May checks ba?
+A15 - Lead: JM / Chester
+
+"The system design places the verification responsibility with the Barangay Captain because the Captain is the legally accountable local executive for their barangay under the Local Government Code. They are the appropriate authority to validate who is a legitimate resident of their area.
+
+However, we did build in two practical safeguards.
+
+First, the Barangay Captain reviews both the submitted household roster AND a government ID photo. The photo must be legible and must show an address consistent with the barangay. This creates a document trail for each approval.
+
+Second, the system generates a full System Audit Log of every administrative action, including who approved which resident and at what timestamp. If a fraudulent approval is later discovered, the audit trail identifies the responsible administrator.
+
+Third, our Recommendations for Future Work specifically includes PhilSys National ID API integration, which would allow the system to automatically cross-reference every submitted ID number with the national database, removing the possibility of manual approval errors entirely.
+
+We acknowledge that the current verification is only as strong as the human reviewer, which is why automated national ID validation is on our roadmap."
+
+================================================================================
+SECTION D: ALGORITHM AND FORMULA QUESTIONS
+================================================================================
+
+Q16: Bakit hindi kayo nag-test ng actual sa isang tunay na disaster? Hindi ba mas valid yun?
+A16 - Lead: Chester / JM
+
+"Testing during an actual live disaster event presents serious ethical, safety, and logistical challenges that make it inappropriate for a capstone research study.
+
+Deploying an untested system during a real disaster could cause operational disruptions that directly harm affected families who are already in a vulnerable situation. Academic research ethics require that we do not place human participants at risk.
+
+Instead, we followed the standard software engineering validation methodology: we conducted structured functional testing, integration testing, performance testing, and usability evaluation with real human evaluators drawn from the actual user population, including actual Manila residents, barangay staff, and BDRRMC officials.
+
+Our usability evaluation with 108 community respondents and our consultation with Sir Ceasar Salvacion of Manila DRRMD provide real-world validity for our system's design and workflows, even without deploying in a live disaster.
+
+The next phase after this capstone, which is covered in our Recommendations, would be a supervised pilot deployment in coordination with Manila DRRMD during a controlled distribution event, such as a regularly scheduled barangay relief drive, before actual disaster deployment."
+
+--------------------------------------------------------------------------------
+
+Q17: Paano ninyo sinigurado na ang RPI formula ay scientifically valid?
+A17 - Lead: Chester / Raf
+
+"The RPI formula weights and scoring criteria were not invented from scratch. They were derived from two primary sources.
+
+First, the DSWD Disaster Assistance Family Access Card guidelines, which is the official Philippine government instrument used by the Department of Social Welfare and Development to assess disaster-affected household priority, formally identifies structural damage and life-safety vulnerability as the two primary relief priority criteria.
+
+Second, we presented our formula to Sir Ceasar Salvacion of Manila DRRMD for expert validation. He confirmed that the weighting distribution is consistent with how Manila DRRMD operationally prioritizes households during real disaster response.
+
+The 40-40-20 split, giving equal weight to damage and vulnerability with a smaller escalating weight for waiting time, was validated by a practicing government disaster response specialist as operationally sound for Manila's disaster relief context.
+
+We acknowledge that the formula could be further refined through empirical study of historical relief operation data. That is one area we identified for future research."
+
+================================================================================
+SECTION E: DOCUMENTATION AND MANUSCRIPT QUESTIONS
+================================================================================
+
+Q18: Paano ninyo nasiguro na original ang inyong manuscript at hindi copy-paste?
+A18 - Lead: JM / Chester
+
+"We took Prof. Crystal's Capstone 1 observation very seriously and approached the revision systematically.
+
+We went through every paragraph of our original manuscript and identified any section that used generic textbook language or content that was too closely paraphrased from a single source.
+
+We then rewrote those sections through original critical synthesis: meaning we combined multiple primary sources, added our own analysis and context specific to the Manila disaster situation, and grounded every claim in verified Philippine government data.
+
+Our literature review now draws from Republic Act 10121, DSWD-DILG Joint Memorandum Circular No. 1, PAGASA official flood hazard maps, NAMRIA geospatial data, and consultation records with Manila DRRMD, all properly cited in APA format.
+
+Our original contribution is most visible in Table 1 on Page 15, which is a Comparative Gap Analysis Matrix that we created from scratch by evaluating MitigatePlus against existing systems like PhilSys and DSWD DROMIC. This kind of original comparative analysis cannot be copied because the criteria and comparison framework were designed by us specifically for this research."
+
+--------------------------------------------------------------------------------
+
+Q19: Saan ninyo makukuha ang Appendix C compliance matrix kung tinanong kayo ng panel?
+A19 - Lead: JM
+
+"Our Appendix C, titled Panel's List of Recommendations and Compliance, is a printed document that is included as part of our manuscript submission package for this defense.
+
+It contains a formally structured compliance table with three main sections, one for each panelist: Prof. Lalaine Abad, Dean Emeliza Yabut, and Prof. Julieanne Crystal. Each row of the table lists the original Capstone 1 recommendation verbatim, followed by our specific compliance action and the corresponding section of the manuscript where the revision can be verified.
+
+If the panel would like to review it during the defense, we have physical copies available. The same compliance actions are also presented verbatim in our Slides 4, 5, and 6 of this presentation deck."
+
+================================================================================
+SECTION F: GENERAL DEFENSE QUESTIONS
+================================================================================
+
+Q20: Kung bibigyan kayo ng pagkakataon na i-improve ang system, ano ang pinaka-importante?
+A20 - Lead: Raf / JM
+
+"If we had additional development time, our highest-priority improvement would be full offline-first architecture for both the mobile app and the staff scanner.
+
+During our field research and consultation with Manila DRRMD, the most recurring operational concern was network reliability in heavily flooded areas during an active disaster. While our current system handles temporary offline scenarios through local caching and offline queues, a true offline-first architecture would allow the system to operate completely independently of the internet for extended periods and synchronize all records when connectivity is restored, without any manual intervention by barangay staff.
+
+This would be the single most impactful improvement for real-world disaster deployment, based on the actual operational conditions our target users face."
+
+--------------------------------------------------------------------------------
+
+Q21: Handa na ba ang MitigatePlus para sa actual deployment sa Manila?
+A21 - Lead: Raf / JM
+
+"MitigatePlus is technically ready for a supervised pilot deployment, which would be the next appropriate step before full production rollout.
+
+Our system has passed 100% functional testing across all 14 web modules and both mobile applications. It achieved a usability score of 4.35 out of 5.00. It passed all security audits. It has been reviewed and validated by a Manila DRRMD specialist.
+
+For an actual city-wide deployment across Manila's 897 barangays, three additional steps would be needed: First, a formal data privacy impact assessment and registration with the National Privacy Commission under Republic Act 10173. Second, a supervised pilot deployment in coordination with Manila DRRMD during a controlled, non-emergency distribution event to capture real operational feedback. Third, a production-scale cloud infrastructure upgrade to ensure reliability under simultaneous multi-barangay deployment loads.
+
+But as a capstone research prototype, MitigatePlus has met every technical and evaluation benchmark we set for this project."
+
+--------------------------------------------------------------------------------
+
+Q22: Ano ang pinaka-memorable na natutunan ninyo sa paggawa ng MitigatePlus?
+A22 - Lead: Any member (this is an open personal reflection question)
+
+Suggested answer points:
+- The importance of consulting actual government agencies before writing a single line of code. Talking to Sir Ceasar Salvacion of Manila DRRMD changed how we designed our entire priority algorithm.
+- Understanding that the real challenge in disaster relief is not the technology, it is the human and organizational behavior: palakasan, duplicate claims, and paper-based inertia.
+- Learning that accessible design matters as much as functional design. Building a system that elderly residents can use in 3 minutes was harder and more rewarding than building the backend algorithms.
+- That software engineering is not just about building something that works. It is about building something that works for the people who need it most.
+
+================================================================================
+QUICK REFERENCE: KEY NUMBERS TO REMEMBER
+================================================================================
+- 897 barangays in Manila
+- 43,000+ residents per square kilometer (Manila population density)
+- 20 tropical cyclones per year (Philippines average)
+- Republic Act 10121 (Philippine DRRM Act of 2010)
+- 108 community respondents + 2 IT professionals = 110 total evaluators
+- 20 Likert-scale items in 4 categories (Ease of Use, Performance & Efficiency, Learnability, Satisfaction)
+- 5-point Likert scale (1 = Strongly Disagree, 5 = Strongly Agree)
+- 4.35 / 5.00 = Overall Usability Score (Very High)
+- 14 web modules, 78 test cases, 100% Beta pass rate
+- 87.8% Lighthouse Performance score (web)
+- 1.72 seconds Speed Index (web)
+- React Native / Expo Performance Monitor: 5.9% - 11.4% CPU (< 15% threshold)
+- 200.77 MB - 222.42 MB RAM consumption (< 250 MB threshold)
+- 57 FPS to 108 FPS render frame rate, 1.0 ms layout execution latency
+- 0% Crash Rate across all mobile testing cycles
+- Google Accessibility Scanner: 0 suggestions across 12 mobile interfaces (100% WCAG 2.1 AA)
+- Android Studio AVD: API 31 (Android 12), API 33 (Android 13), API 34 (Android 14) all Passed
+- 93% Lighthouse Accessibility score (web)
+- 0.3 seconds QR scan-to-result time
+- 200 milliseconds resident approval to QR generation (WebSocket)
+- Bcrypt 10 salt rounds (password security)
+- Algorithm 1: RPI = (Damage x 0.40) + (Vulnerability x 0.40) + (Waiting x 0.20)
+- Algorithm 2: Base Packs = Ceiling(Headcount / 5), Extra Rice = extra members x 2.0 kg, Extra Cans = extra members x 3
+- MongoDB Compound Unique Index on { distributionEventId, householdId }
+- 45 milliseconds average MongoDB query execution
+- Sir Ceasar Salvacion, Planning and Operations Specialist, Manila DRRMD
+- Pages 1 to 76: full manuscript coverage
+- Section 1.2 Pages 4 to 5: Objectives
+- Section 1.3 Pages 5 to 6: Scope and Limitations
+- Section 3.2 Pages 25 to 33: Technical Architecture

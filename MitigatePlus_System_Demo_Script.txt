@@ -90,7 +90,7 @@ DEMONSTRATION INTRODUCTION
 Speaker: Ellica
 Spoken Script:
 
-"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Cristal, a pleasant morning po.
+"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Crystal, a pleasant morning po.
 
 Ako po si Ellica, and today I will personally conduct our live system demonstration for MitigatePlus. I will be sharing my screen to walk you through our complete software ecosystem, deployed live at post-mitigate-plus.vercel.app and connected to our cloud database on MongoDB Atlas.
 

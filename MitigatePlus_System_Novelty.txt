@@ -1,0 +1,222 @@
+NATIONAL UNIVERSITY
+COLLEGE OF COMPUTING AND INFORMATION TECHNOLOGIES
+BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY
+
+MITIGATEPLUS: A COMMUNITY DISASTER RISK MITIGATION INFORMATION SYSTEM
+OFFICIAL SYSTEM NOVELTY, MANUSCRIPT CITATION, & COMPARATIVE GAP ANALYSIS GUIDE
+Academic Year 2025-2026 | Capstone Final Defense
+
+Project Proponents:
+  - Corpuz, John Rafael P.
+  - Datul, John Herszel D.
+  - Garcia, Neil Chester Mari N.
+  - Nolasco, John Michael N.
+  - Onggoco, Enica Chris M.
+Capstone Adviser: Prof. John Ivan C. Maurat
+Panel of Evaluators:
+  - Dean Emeliza Yabut (Panel Chair, CCIT)
+  - Prof. Lalaine Abad (Technical Evaluator)
+  - Prof. Julieanne Crystal (Subject Matter Expert & Evaluator)
+
+================================================================================
+EXECUTIVE STATEMENT: ANO ANG NOVELTY NG MITIGATEPLUS AYON SA ATING THESIS?
+================================================================================
+
+Ayon sa ating opisyal na Capstone Manuscript (user_manuscript.docx / user_manuscript.txt):
+- Section 1.1: Project Context (Manuscript Page 2-3, Lines 128-134)
+- Section 2.2: Related Systems & Table 1 Gap Analysis (Manuscript Page 15-18, Lines 180-270)
+- Section 2.3: Synthesis of Related Literature and Studies (Manuscript Page 18-19, Lines 271-274)
+- Section 3.2: Features of the System & Core Algorithms (Manuscript Page 25-33, Lines 336-366)
+- Appendix C: Panel Recommendations Compliance (Focus on Mitigation After Disaster)
+
+Ang NOVELTY ng MitigatePlus ay hindi marketing buzzwords. Ito ay nakaugat sa APAT NA CORE FEATURES (4 Core Pillars) na sinusuportahan ng isang ANTI-DUPLICATE-CLAIM INTERCEPTION ENGINE, na partikular na idinisenyo upang lutasin ang operational failure ng post-disaster relief operations sa antas ng barangay sa Lungsod ng Maynila.
+
+Sa kasalukuyan, ang mga umiiral na disaster platforms sa Pilipinas ay nakatutok lamang sa macro-level reporting, hazard mapping, o pre-disaster evacuation. Pagdating sa ground-level relief distribution pagkatapos ng kalamidad (post-disaster mitigation), bumabagsak ang pamahalaan sa manual paper logbooks, subjective 'palakasan' at padrino system, flat 1-pack-per-family distribution, at talamak na double claiming.
+
+Ang MitigatePlus ang KAUNA-UNAHANG closed-loop system sa Pilipinas na nag-uugnay sa resident mobile damage reporting, barangay official account validation, algorithmic priority triage, headcount-scaled relief mathematics, assistance gap detection, at real-time anti-fraud QR interception.
+
+================================================================================
+ANG APAT NA OPISYAL NA CORE FEATURES (PILLARS OF NOVELTY) SA ATING MANUSCRIPT
+================================================================================
+
+1. CORE FEATURE 1: BARANGAY-VERIFIED HOUSEHOLD REGISTRATION
+   (Manuscript Section 1.1 Line 129, Section 2.3 Line 273, Section 3.2 Line 338)
+   
+   Ano ang Ginagawa Nito:
+   Hindi pinapayagan ng MitigatePlus ang unverified self-registration kung saan ang sinuman ay maaaring mag-claim agad ng ayuda. Bawat residenteng magpaparehistro sa Mobile App ay required magsumite ng listahan ng miyembro ng pamilya at mag-upload ng lehitimong Government ID (Barangay ID, PhilSys National ID, UMID, Voter's ID).
+   
+   Bakit Ito Novelty (Ano ang Pinagkaiba sa Iba):
+   - Sa traditional LGU system: Sinusulat lang ang pangalan sa papel na logbook o open Google Form, kaya napakadaling magpasok ng mga 'ghost beneficiaries' o mga hindi totoong residente.
+   - Sa generic systems (tulad ng KoboToolbox o RCSTAT): Static survey forms lamang ito o purely organization-level list na hindi dumadaan sa opisyal na barangay validation workflow.
+   - Sa MitigatePlus: Mayroong 'Verification Queue' sa Web Admin. Bukod sa pag-inspeksyon sa uploaded ID sa Cloudinary CDN, may built-in 'Address Overlap Detection Engine' ang system. Kung may nagtangkang magparehistro gamit ang parehong bahay o address (hal. 1959 B Oroquieta St), agad itong ifina-flag ng backend regex pattern matching. Hindi mai-isyu ang Cryptographic QR Relief Pass hangga't hindi inaprubahan ng opisyal ng barangay.
+   
+   Saan Nakikita sa Codebase:
+   - Web Admin: src/pages/VerificationQueue.jsx (/verification-queue)
+   - Mobile App: src/screens/ResidentRegisterScreen.js
+   - Backend API: src/routes/householdRoutes.js (GET /pending, PATCH /:id/verify, address overlap detection)
+
+--------------------------------------------------------------------------------
+
+2. CORE FEATURE 2: SMART RECOVERY PRIORITY INDEX (RPI) ENGINE
+   (Manuscript Section 1.1 Line 130, Section 2.3 Line 273, Section 3.2 Lines 339, 343-356)
+   
+   Ano ang Ginagawa Nito:
+   Isang mathematical, objective decision engine (ALGORITHM 1) na awtomatikong nagraranggo sa lahat ng pamilya mula 0 hanggang 100 puntos upang matukoy kung sino ang dapat unang maabutan ng ayuda at emergency relief convoys.
+   
+   Bakit Ito Novelty (Ano ang Pinagkaiba sa Iba):
+   - Sa traditional LGU system: 'First-come, first-served' o 'palakasan' (padrino system). Kung sino ang maagang pumila o kakilala ng opisyal, sila ang unang nabibigyan, habang ang mga bedridden seniors, PWDs, at mga totally damaged ang bahay sa liblib na purok ay naiiwan.
+   - Sa DSWD DROMIC at PlanSmart: Nagpapakita lamang ng regional at municipal aggregate numbers (macro totals). Walang mathematical algorithm para i-rank ang indibidwal na mga kabahayan.
+   - Sa MitigatePlus (Algorithm 1 Formula):
+       RPI Score = (Damage Points * 0.40) + (Vulnerability Points * 0.40) + (Waiting Factor * 0.20)
+       * Damage Points: Total Destruction = 100, Severe = 75, Moderate = 50, Minor = 25.
+       * Vulnerability Points: (Senior Count * 20) + (PWD Count * 25) + (Infant Count * 20) + (Pregnant Count * 15), capped at 100.
+       * Waiting Factor: min(Days Pending * 10, 100).
+       * Priority Tiers: Tier 1 High Priority (>=75), Tier 2 Medium (>=50), Tier 3 Low (<50).
+   
+   Saan Nakikita sa Codebase:
+   - Web Admin: src/pages/SmartPriorityDashboard.jsx (/priority-index)
+   - Mobile App: src/screens/ReportDamageScreen.js (Citizen damage geotagging at photo submission)
+   - Backend API: src/routes/aiTriageRoutes.js & householdRoutes.js (Algorithm 1 calculation)
+
+--------------------------------------------------------------------------------
+
+3. CORE FEATURE 3: RIGHT-SIZED RELIEF ALLOCATION ENGINE
+   (Manuscript Section 1.1 Line 131, Section 2.3 Line 273, Section 3.2 Lines 340, 357-366)
+   
+   Ano ang Ginagawa Nito:
+   Isang data-driven distribution engine (ALGORITHM 2) na nagkakalkula ng eksaktong dami ng relief goods batay sa beripikadong bilang ng miyembro ng pamilya at kanilang demographic nutritional needs, sa halip na pare-parehong 1 kahon.
+   
+   Bakit Ito Novelty (Ano ang Pinagkaiba sa Iba):
+   - Sa traditional LGU system at e-Balangay Portal: Gumagamit ng 'Flat 1-Box Rule' (1 kahon bawat pamilya). Ang 1-member household ay tumatanggap ng 1 kahon, at ang 8 o 10-member household ay tumatanggap din ng 1 kahon lamang! Nagdudulot ito ng gutom sa malalaking pamilya at wastage sa maliliit na pamilya.
+   - Sa DSWD at Red Cross: Walang automated client-side calculation sa release scanner para sa dynamic top-ups.
+   - Sa MitigatePlus (Algorithm 2 Formula):
+       * Base Food Packs = Ceil(Verified Household Headcount / 5).
+       * Extra Headcount = Max(0, Verified Household Headcount - 5).
+       * Extra Rice (kg) = Extra Headcount * 2.0 kg.
+       * Extra Canned Goods = Extra Headcount * 3.0 cans.
+       * Demographic Add-Ons: +1 Senior Maintenance & Nutrition Pack para sa mga may 60+ seniors; +1 Infant Care Pack para sa mga may 0-2 yo toddlers.
+   
+   Saan Nakikita sa Codebase:
+   - Web Admin: src/pages/DistributionEvents.jsx & src/pages/SpecialRequestRelief.jsx
+   - Mobile App: src/screens/StaffScannerScreen.js (Awtomatikong lumalabas sa camera screen ang entitlement)
+   - Backend API: src/routes/distributionRoutes.js (Automated entitlement resolver)
+
+--------------------------------------------------------------------------------
+
+4. CORE FEATURE 4: ASSISTANCE GAP DETECTION ENGINE
+   (Manuscript Section 1.1 Line 132, Section 2.3 Line 273, Section 3.2 Line 341)
+   
+   Ano ang Ginagawa Nito:
+   Awtomatikong sinusubaybayan at inihahambing ng system ang mga naipamahaging ayuda laban sa aktwal na pangangailangan ng bawat pamilya sa kabuuan ng 5 recovery stages (Displaced, In Temporary Shelter, Repairing Home, Livelihood Transition, Fully Recovered), upang matukoy ang mga pamilyang hindi pa lubusang nakakabangon.
+   
+   Bakit Ito Novelty (Ano ang Pinagkaiba sa Iba):
+   - Sa traditional LGU system: Kapag naipamigay na ang relief pack sa covered court, natatapos na ang responsibilidad ng gobyerno. Walang tracking kung sino ang may mga natirang pangangailangan tulad ng medical supplies o shelter repair kits.
+   - Sa DSWD DROMIC: Nagre-record lamang kung ilang kahon ang na-disburse, ngunit hindi sinusubaybayan ang household-level unmet recovery needs.
+   - Sa MitigatePlus: Mayroong 'Recovery Progress Tracker' at 'Analytics & Gap Module' sa Web Admin na nagpapakita ng visual telemetry kung aling mga pamilya ang may unfulfilled special requests, backlog sa pagkain, o kawalan ng trabaho (Cash-for-Work coordination), hanggang sa maideklara silang 'Fully Recovered'.
+   
+   Saan Nakikita sa Codebase:
+   - Web Admin: src/pages/RecoveryProgressTracker.jsx (/recovery-progress) & src/pages/ReportsPage.jsx
+   - Mobile App: src/screens/ResidentHomeScreen.js (5-Stage Recovery Stepper) & AssistanceRequestScreen.js
+   - Backend API: src/routes/reportRoutes.js (/reports/gap-analysis) & recoveryRoutes.js
+
+--------------------------------------------------------------------------------
+
+FOUNDATIONAL SUPPORT: ANTI-DUPLICATE-CLAIM INTERCEPTION SYSTEM
+(Manuscript Section 1.1 Line 133, Section 2.3 Line 274, Section 3.2 Line 342)
+
+Ano ang Ginagawa Nito:
+Pinipigilan ang pandaraya at double claiming sa pamamagitan ng natatanging Cryptographic QR Relief Pass na ini-scan ng Field Staff gamit ang mobile camera scanner, na konektado sa real-time Socket.io WebSockets at database-level constraints.
+
+Bakit Ito Novelty:
+- Sa traditional LGU system: Gumagamit lamang ng indelible ink sa daliri o pag-cross out sa papel na madaling mabura, mahugasan, o mapalitan ng ibang tao.
+- Sa generic QR ticketing apps: Gumagamit lamang ng UI-level checking sa screen na madaling ma-bypass kapag sabay na ini-scan sa Gate 1 at Gate 2 (race condition).
+- Sa MitigatePlus:
+  1. Database Engine Level: Mayroong MongoDB Compound Unique Index sa { distributionEventId: 1, householdId: 1 }. Kapag naitala na ang unang release, ang pangalawang write operation sa database ay pisikal na ire-reject ng database engine sa loob ng sub-milliseconds (E11000 duplicate key error).
+  2. Real-Time Hardware Alarm: Ang mobile scanner screen ay agad na magpa-flash ng high-contrast RED ALARM na may tunog: 'WARNING! DUPLICATE CLAIM DETECTED!'
+  3. Live Audit Stream: Awtomatikong ipinapadala ng Socket.io ang insidente sa Web Admin Fraud Stream kasama ang scanner ID at timestamp.
+  4. Offline Resilience: Naka-cache ang QR code sa AsyncStorage ng resident device, kaya kahit mag-collapse ang cellular network sa evacuation center, mabubuksan at maipapakita pa rin ang valid QR pass.
+
+================================================================================
+TABLE 1: GAP ANALYSIS TABLE OF RELATED SYSTEMS (FROM MANUSCRIPT CHAPTER 2, PAGE 15)
+================================================================================
+
+Narito ang opisyal na comparative table mula sa ating thesis manuscript na nagpapatunay kung bakit natatangi ang MitigatePlus:
+
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| Feature / System Capability         | MITIGATEPLUS | DSWD DROMIC | PLANSMART  | KOBOTOOLBOX | RED CROSS  | E-BALANGAY  |
+|                                     |  (PROPOSED)  |   SYSTEM    |  REBUILD   | CVA TRACKER |   RCSTAT   |   PORTAL    |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| Primary System Focus                | Post-Disaster| Post-Disaster| Post-Disaster| Field Data | Aid Distri-| Evacuation  |
+|                                     | Relief & Rec | Reporting   | Planning   | Collection  | bution     | & Relief    |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| Target Operational Scope            | Barangay     | Regional /  | Municipal  | NGO / Field | Organi-    | Barangay    |
+|                                     | Household    | Municipal   | LGU        | Survey      | zation     | Evacuation  |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 1. Barangay Official Account        |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    Verification & Address Overlap   |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 2. Smart Recovery Priority Index    |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    (Algorithm 1 Vulnerability Math) |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 3. Right-Sized Relief Allocation    |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    (Algorithm 2 Headcount Scaling)  |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 4. Assistance Gap Detection         |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    (Unfulfilled Needs Tracking)     |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 5. Anti-Duplicate QR Interception   |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    (Compound Unique DB Index)       |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 6. Resident Home Damage Photo       |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    Upload with GPS Telemetry        |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+| 7. Field Staff Relief Release       |     YES      |     NO      |     NO     |     NO      |     NO     |     NO      |
+|    Scanner with Real-Time Decrement |              |             |            |             |            |             |
++-------------------------------------+--------------+-------------+------------+-------------+------------+-------------+
+
+Pagsusuri sa Bawat Umiiral na Sistema (Bakit may Gap):
+1. DSWD DROMIC: Purong top-down macro summary reporting tool lamang. Hindi ito nakikipag-ugnayan sa mga residente sa mobile, walang QR scanning, at walang barangay-level verification.
+2. PlanSmart Ready to Rebuild (UNDP/NEDA): Nakadisenyo para sa multi-year rehabilitation planning sa lebel ng munisipyo. Hindi ito ginagamit sa aktwal na pamamahagi ng ayuda sa covered court.
+3. KoboToolbox (UN OCHA): Isa lamang general offline survey tool. Walang automated allocation logic, walang resident recovery tracker, at hindi kayang mag-intercept ng duplicate claims sa pagitan ng magkaibang distribution gates.
+4. Philippine Red Cross RCSTAT: Eksklusibo sa operasyon ng Red Cross gamit ang papel na stub o token. Hindi ito naka-integrate sa opisyal na LGU barangay governance at walang address overlap verification.
+5. e-Balangay Portal: Nagdi-digitize lamang ng paper relief sheets ngunit flat 1-box per family ang gamit, walang algorithmic vulnerability ranking, at walang real-time duplicate claim interception.
+
+================================================================================
+COMPLIANCE SA MGA PANELESTA (APPENDIX C - BAKIT NAGING MITIGATION SA DISASTER?)
+================================================================================
+
+Noong Capstone 1 Oral Examination:
+- Prof. Lalaine Abad: "Focus on mitigation after disaster. Revise objectives, scope, etc. that would align with mitigation."
+- Dean Emeliza Yabut: "Revised the whole manuscript. Focus on mitigation after disaster."
+- Prof. Julieanne Crystal: "Objectives on presentation is different with the document. Document is too obvious of copy paste. Make time to modify to become original."
+
+Paano Ito Naging Novelty sa Ilalim ng "Disaster Mitigation"?:
+Maraming nag-aakala na ang "Mitigation" ay bago pa lamang ang bagyo (tulad ng flood control walls o early warnings).
+Subalit ayon sa Republic Act No. 10121 (Philippine Disaster Risk Reduction and Management Act of 2010) at sa UNDRR Framework:
+Ang MITIGATION ay sumasaklaw din sa "POST-DISASTER RISK MITIGATION":
+1. Pag-mitigate sa panganib ng pagkagutom at malnutrisyon sa pamamagitan ng Right-Sized Relief Allocation (Algorithm 2).
+2. Pag-mitigate sa panganib ng social injustice at kaguluhan sa pamamagitan ng Smart Recovery Priority Index (Algorithm 1) upang ang pinaka-apektado ang maunang tulungan.
+3. Pag-mitigate sa katiwalian, ghost beneficiaries, at financial wastage ng gobyerno sa pamamagitan ng Barangay ID Verification, Address Overlap Detection, at Anti-Duplicate QR Interception.
+4. Pag-mitigate sa secondary disaster vulnerability ng mga pamilyang hindi lubusang nakakabangon sa pamamagitan ng Assistance Gap Detection at Cash-for-Work Livelihood Rehabilitation.
+
+================================================================================
+PAANO SASAGUTIN SA PANEL KAPAG ITINANONG: "ANO ANG NOVELTY NG SYSTEM NINYO?"
+================================================================================
+
+Spoken Response Guide (Memorize / Read by Ellica or Team Members):
+
+"Magandang umaga po sa ating panel, Dean Yabut, Prof. Abad, at Prof. Crystal.
+
+Ayon po sa Chapter 1, Section 1.1 at Chapter 2, Section 2.3 ng aming opisyal na manuscript, ang NOVELTY ng MitigatePlus ay nakabatay sa aming Apat na Core Features na sinusuportahan ng aming Real-Time Anti-Duplicate Claim Interception Engine:
+
+Una po, ang aming BARANGAY-VERIFIED HOUSEHOLD REGISTRATION. Hindi po kami open self-registration. Bawat aplikante ay kailangang dumaan sa validation ng barangay official kung saan ini-inspeksyon ang Government ID sa Cloudinary at awtomatikong ifina-flag ng aming backend regex engine ang 'Address Overlap' upang walang makapagrehistro ng dalawang beses sa iisang bahay.
+
+Pangalawa, ang aming SMART RECOVERY PRIORITY INDEX gamit ang ALGORITHM 1. Inaalis po nito ang tradisyunal na 'palakasan' o padrino system. Awtomatikong kinakalkula ng system ang 40% Structural Damage, 40% Family Vulnerability (mga seniors, PWDs, buntis, at sanggol), at 20% Waiting Time upang matiyak na ang mga pinaka-nangangailangan ang unang maabutan ng ayuda.
+
+Pangatlo, ang aming RIGHT-SIZED RELIEF ALLOCATION ENGINE gamit ang ALGORITHM 2. Binabago po nito ang maling nakagawian sa mga LGU na '1 box per household' kahit 1 tao o 10 tao ang nakatira. Sa MitigatePlus, dynamic po ang kalkulasyon batay sa headcount: Ceiling ng headcount divided by 5 para sa base packs, dagdag na 2 kilo ng bigas at 3 de-lata bawat sumobrang miyembro, kasama ang customized Senior at Infant Care packs.
+
+Pang-apat, ang aming ASSISTANCE GAP DETECTION ENGINE. Hindi po natatapos ang aming system sa pamamahagi ng kahon. Sinusubaybayan po nito ang natitirang recovery gaps ng bawat pamilya sa kabuuan ng 5 recovery stages hanggang sa sila ay ganap na makabangon.
+
+At higit sa lahat, ang mga ito ay sinusuportahan ng aming ANTI-DUPLICATE-CLAIM INTERCEPTION na pinatatakbo ng isang MongoDB Compound Unique Index sa database level. Kung may magtangkang mag-claim ulit sa ibang gate gamit ang parehong QR pass, ang write operation ay pisikal na ibinabasura ng database engine sa loob ng 0.3 seconds at nagpapatunog ng audio-visual red alert sa scanner ng field officer.
+
+Wala pong alinman sa mga kasalukuyang sistema sa Pilipinas-maging DSWD DROMIC, PlanSmart ng UNDP, KoboToolbox, Red Cross RCSTAT, o e-Balangay-ang nagtataglay ng ganitong closed-loop, data-driven, at anti-fraud post-disaster governance framework. Iyan po ang tunay at siyentipikong novelty ng MitigatePlus."

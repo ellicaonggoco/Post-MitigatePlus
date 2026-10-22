@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MitigatePlus - Oral Defense Presentation Script</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 16mm 14mm 16mm 14mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0B1525;
+      background: #FFFFFF;
+      line-height: 1.45;
+      font-size: 10.5pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Cover / Header Banner */
+    .doc-header {
+      border-bottom: 3px solid #C8102E;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .inst-title {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #1C3F94;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 3px 0;
+    }
+    .inst-sub {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #3D5070;
+      margin: 0 0 10px 0;
+    }
+    .doc-main-title {
+      font-size: 17pt;
+      font-weight: 900;
+      color: #C8102E;
+      line-height: 1.2;
+      margin: 6px 0 4px 0;
+    }
+    .project-name {
+      font-size: 12pt;
+      font-weight: 700;
+      color: #0B1525;
+      margin: 0 0 8px 0;
+    }
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 9pt;
+      color: #555555;
+      background: #F3F6FC;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 4px solid #1C3F94;
+    }
+    .meta-bar strong {
+      color: #0B1525;
+    }
+
+    /* Guidelines Section */
+    .section-title {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #1C3F94;
+      border-bottom: 1.5px solid #DDE4F0;
+      padding-bottom: 6px;
+      margin: 22px 0 12px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .guidelines-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: #FAFAFC;
+      border: 1px solid #E2E8F0;
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+    .guide-col h4 {
+      margin: 0 0 6px 0;
+      font-size: 10pt;
+      color: #1C3F94;
+      text-transform: uppercase;
+    }
+    .guide-col ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 9pt;
+      color: #333333;
+    }
+    .guide-col li {
+      margin-bottom: 4px;
+    }
+
+    /* Slide Card */
+    .slide-card {
+      background: #FFFFFF;
+      border: 1px solid #DDE4F0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #EDF1FB;
+      padding-bottom: 8px;
+    }
+    .slide-title-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    .slide-badge {
+      background: #1C3F94;
+      color: #FFFFFF;
+      font-size: 8.5pt;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .slide-title {
+      font-size: 11.5pt;
+      font-weight: 800;
+      color: #0B1525;
+      margin: 0;
+    }
+
+    /* Speaker Badges */
+    .speaker-tag {
+      font-size: 8.5pt;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .spk-1 { background: #EDF1FB; color: #1C3F94; border: 1px solid #D6DEFA; }
+    .spk-2 { background: #FEF0F2; color: #C8102E; border: 1px solid #F5E0E3; }
+    .spk-3 { background: #FBF5E4; color: #B8932A; border: 1px solid #F0DFA0; }
+    .spk-4 { background: #E6F6EF; color: #0D8A5A; border: 1px solid #B8E4D1; }
+    .spk-default { background: #F1F5F9; color: #475569; }
+
+    /* Visual Cue */
+    .visual-cue-box {
+      background: #F8FAFC;
+      border-left: 3px solid #94A3B8;
+      padding: 6px 10px;
+      font-size: 9pt;
+      color: #475569;
+      margin-bottom: 10px;
+      border-radius: 0 4px 4px 0;
+    }
+    .cue-label {
+      font-weight: 800;
+      color: #64748B;
+      font-size: 8pt;
+      margin-right: 6px;
+    }
+
+    /* Spoken Script */
+    .script-box {
+      background: #FCFCFE;
+      border-left: 4px solid #C8102E;
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 8px;
+    }
+    .script-label {
+      font-size: 8pt;
+      font-weight: 800;
+      color: #C8102E;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .script-text p {
+      margin: 0 0 6px 0;
+      font-style: italic;
+      color: #1E293B;
+      font-size: 10.5pt;
+      line-height: 1.5;
+    }
+    .script-text p:last-child {
+      margin-bottom: 0;
+    }
+    .script-text strong {
+      font-style: normal;
+      color: #0B1525;
+      font-weight: 700;
+    }
+
+    /* Footer / Next Cue */
+    .slide-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+    .next-cue {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #C8102E;
+      background: #FEF0F2;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #F5E0E3;
+      letter-spacing: 0.3px;
+    }
+
+    /* QA Section */
+    .qa-card {
+      background: #FFFFFF;
+      border: 1px solid #DDE4F0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+    .qa-q {
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #1C3F94;
+      margin-bottom: 6px;
+    }
+    .qa-a {
+      font-size: 10pt;
+      color: #334155;
+      line-height: 1.45;
+      border-left: 3px solid #C9A84C;
+      padding-left: 10px;
+      font-style: italic;
+    }
+    .qa-a strong {
+      font-style: normal;
+      color: #0B1525;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Banner -->
+  <div class="doc-header">
+    <div class="inst-title">National University</div>
+    <div class="inst-sub">College of Computing and Information Technologies · BSIT-MWA / INF235</div>
+    <div class="doc-main-title">Capstone Project 2: Official Oral Defense Presentation Script</div>
+    <div class="project-name">MitigatePlus: A Community Disaster Risk Mitigation Information System</div>
+    <div class="meta-bar">
+      <div><strong>Proponents:</strong> Corpuz, Datul, Garcia, Nolasco, Onggoco</div>
+      <div><strong>Capstone Adviser:</strong> Mr. John Ivan C. Maurat</div>
+      <div><strong>Slides:</strong> Aligned with 39 Slides (Mitigate+.pdf)</div>
+      <div><strong>Manuscript:</strong> Chapters 1 to 4 Verified</div>
+    </div>
+  </div>
+
+  <!-- Guidelines -->
+  <div class="section-title">Defense Time Management & Speaker Allocation</div>
+  <div class="guidelines-grid">
+    <div class="guide-col">
+      <h4>Delivery Parameters</h4>
+      <ul>
+        <li><strong>Target Time:</strong> 15 to 18 Minutes total presentation.</li>
+        <li><strong>Q&A Allocation:</strong> 10 to 15 Minutes panel deliberation.</li>
+        <li><strong>Language / Tone:</strong> Professional Taglish/English, authoritative, respectful.</li>
+        <li><strong>Slide Control:</strong> Use explicit [NEXT SLIDE] verbal cues for slide clicker.</li>
+      </ul>
+    </div>
+    <div class="guide-col">
+      <h4>Speaker Assignments</h4>
+      <ul>
+        <li><strong style="color:#1C3F94;">Speaker 1:</strong> Opening, Panel Compliance, Context & Objectives (Slides 1-12)</li>
+        <li><strong style="color:#C8102E;">Speaker 2:</strong> Technical Testing & Non-Functional Quality Evaluation (Slides 13-24)</li>
+        <li><strong style="color:#B8932A;">Speaker 3:</strong> System Usability Evaluation & Training Plan (Slides 25-34)</li>
+        <li><strong style="color:#0D8A5A;">Speaker 4:</strong> Summary, Conclusion, Recommendations & Live Demo Handover (Slides 35-39)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Slides -->
+  <div class="section-title">Slide-by-Slide Defense Presentation Script</div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 1</span>
+        <h3 class="slide-title">Title Slide</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Title, Group Name OnTheWay, Proponents, National University CCIT Seal.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"A pleasant morning to our respected panel of evaluators: Prof. Lalaine Abad, Dean Emeliza Yabut, Prof. Julieanne Crystal, and to our Capstone Adviser, Mr. John Ivan Maurat.</p><p>We are Team OnTheWay, and we are proud to present our Capstone 2 project titled: <strong>MitigatePlus: A Community Disaster Risk Mitigation Information System</strong>.</p><p>To begin our defense, we will first walk you through our complete compliance with the panel's recommendations from our Capstone 1 oral examination."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 2</span>
+        <h3 class="slide-title">Team Introduction / Transition</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Proponents Roster.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Our project team is composed of John Rafael Corpuz, John Herszel Datul, Neil Chester Mari Garcia, John Michael Nolasco, and Enica Chris Onggoco, under the guidance of Mr. John Ivan Maurat."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 3</span>
+        <h3 class="slide-title">Panel's List of Recommendations Compliance (Title Divider)</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Section Divider: Panel's List of Recommendations Compliance.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Following our Capstone 1 defense, we received valuable recommendations from our three panelists. We have strictly implemented all required modifications across our manuscript and system codebase."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 4</span>
+        <h3 class="slide-title">Compliance - Prof. Lalaine Abad</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Compliance Table for Prof. Lalaine Abad (2 rows).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"First, for <strong>Prof. Lalaine Abad</strong>:</p><p>1. Regarding your recommendation to <strong>'Focus on mitigation after disaster'</strong>: We refocused the system exclusively on post-disaster damage reporting, priority ranking, and relief tracking as documented in <strong>Section 1.3 (Pages 5 to 6)</strong> and <strong>Section 3.2 (Pages 25 to 33)</strong>.</p><p>2. Regarding your recommendation to <strong>'Revise objectives, scope, etc. that would align with mitigation'</strong>: We restructured our General Objective and all five Specific Objectives to center strictly on post-disaster relief governance and ISO/IEC 25010 quality evaluation in <strong>Section 1.2 (Pages 4 to 5)</strong> and <strong>Section 1.3 (Pages 5 to 6)</strong>."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 5</span>
+        <h3 class="slide-title">Compliance - Dean Emeliza Yabut</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Compliance Table for Dean Emeliza Yabut (2 rows).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Next, for <strong>Dean Emeliza Yabut</strong>:</p><p>1. For <strong>'Revised the whole manuscript'</strong>: We overhauled Chapters 1 to 4 following CCIT standards with updated gap analysis, technical modules, use cases, and process flows from <strong>Pages 1 to 76</strong>.</p><p>2. For <strong>'Focus on mitigation after disaster'</strong>: We implemented dedicated post-disaster workflows: damage triage, algorithmic vulnerability ranking, right-sized relief, and recovery tracking in <strong>Section 1.3 (Pages 5 to 6)</strong> and <strong>Section 3.2 (Pages 25 to 33)</strong>."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 6</span>
+        <h3 class="slide-title">Compliance - Prof. Julieanne Crystal (Ma'am Janne)</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Compliance Table for Prof. Julieanne Crystal (3 rows).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Finally, for <strong>Prof. Julieanne Crystal</strong>:</p><p>1. Regarding <strong>'Objectives on presentation is different with the document'</strong>: We synchronized the General Objective and all five Specific Objectives verbatim between this presentation deck and our manuscript in <strong>Section 1.2 (Pages 4 to 5) and Slide 10 to 12</strong>.</p><p>2. Regarding <strong>'Document is too obvious of copy paste. Make time to modify to become original'</strong>: We rewrote the document from the ground up through original synthesis, grounding the problem context, literature, and technical frameworks in actual Manila DRRM data across <strong>Chapters 1 to 4 (Pages 1 to 76)</strong>.</p><p>3. Regarding <strong>'Revise the whole manuscript'</strong>: We restructured the entire manuscript with verified system architecture, requirements tables, detailed use cases, and process flows in <strong>Chapters 1 to 4 (Pages 1 to 76)</strong>."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 7</span>
+        <h3 class="slide-title">Project Context (Title Divider)</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Section Divider: Project Context.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Now, let us discuss the Project Context that drove the development of MitigatePlus."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 8</span>
+        <h3 class="slide-title">Project Context - Urban Disaster Vulnerability</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Manila disaster vulnerability, RA 10121, frontline barangay challenges.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"The City of Manila is one of the most disaster-prone urban centers in the country, facing an average of 20 tropical cyclones annually. Heavy monsoon rains consistently inundate low-lying barangays and informal settlements along waterways, as highlighted by UNDRR and the World Bank.</p><p>Under Republic Act No. 10121, frontline disaster response is legally mandated to local barangay councils. However, traditional manual, paper-based relief operations break down during flooding, resulting in chaotic queues, missing beneficiary records, and critical delivery delays."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 9</span>
+        <h3 class="slide-title">Project Context - Operational Bottlenecks</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">897 barangays, damp logbooks, repeat claimants vs unserved families.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Through baseline interviews across Manila's 897 barangays, frontline disaster personnel confirmed that relief operations suffer from significant operational bottlenecks. Physical logbooks get torn and soaked, handwriting is often illegible, and without verified headcounts, repeat claimants slip past exhausted volunteers while interior families receive nothing.</p><p>This operational gap led us to design MitigatePlus."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 10</span>
+        <h3 class="slide-title">General Objective</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">General Objective statement under RA 10121.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"As stated in Section 1.2 on Page 4 of our manuscript:</p><p>Our <strong>General Objective</strong> is to develop MitigatePlus, an integrated web and mobile community disaster risk mitigation and recovery information system for the City of Manila under Republic Act No. 10121.</p><p>By combining digital resident verification, geo-tagged damage assessment, headcount-scaled relief distribution, and real-time anti-duplicate QR tracking, the platform eliminates distribution blind spots and empowers local councils across all 897 barangays with automated, data-driven recovery workflows."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 11</span>
+        <h3 class="slide-title">Specific Objectives (Part 1 - Applications)</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Resident Mobile App, Staff Scanner App, Web Admin Portal.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Our project achieved five Specific Objectives:</p><p>1. <strong>Resident Mobile App:</strong> Enables citizens to register household details, attach valid ID photos, report home structural damage with geotags, access their digital QR relief pass, and track recovery updates.</p><p>2. <strong>Field Staff Mobile Scanner:</strong> Equips field workers with a phone camera QR scanner to verify beneficiaries, inspect damage on-site, and log relief releases directly at distribution points.</p><p>3. <strong>Web Administrative Portal:</strong> Provides barangay captains and city coordinators a dashboard to review pending IDs, schedule relief drives, monitor real-time fraud alerts, and export COA-compliant liquidation reports."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 12</span>
+        <h3 class="slide-title">Specific Objectives (Part 2 - Engines &amp; Quality Evaluation)</h3>
+      </div>
+      <div class="speaker-tag spk-1">Speaker 1</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Core Engines (Algorithms 1 &amp; 2), ISO/IEC 25010 Quality Benchmark (85%).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"4. <strong>Core Business Engines:</strong> We implemented backend engines that detect address overlaps, compute the Smart Recovery Priority Index (Algorithm 1), scale food pack quantities according to verified household headcount (Algorithm 2), and push live double-claim alerts via Socket.io.</p><p>5. <strong>ISO/IEC 25010 Quality Evaluation:</strong> We evaluated the system across Functionality, Usability, Reliability, Performance, Security, and Compatibility, aiming for an 85% compliance benchmark.</p><p>I now turn the floor over to [Speaker 2] to discuss our System Testing and Quality Evaluation Results."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 13</span>
+        <h3 class="slide-title">Summary Results of System Test (Title Divider)</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Section Divider: Summary Results of System Test.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Thank you, [Speaker 1]. Good day to our panelists. We will now present the empirical test results of MitigatePlus, covering both functional and non-functional quality dimensions."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 14</span>
+        <h3 class="slide-title">Summary Result of Web Functionality Testing</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Web Functionality Test Table (Alpha vs Beta, Modules, Pass Rates).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"For our Web Administrative Application, we conducted rigorous Alpha and Beta functionality testing across 14 administrative modules, including the Verification Queue, Smart Priority Index, Warehouse Inventory, and Fraud Stream.</p><p>In the Alpha phase, modules achieved a pass rate between 91.7% and 100%. Following revisions and bug fixing, the Beta testing cycle achieved a <strong>100% pass rate</strong> across all administrative test cases."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 15</span>
+        <h3 class="slide-title">Summary Result of Mobile Functionality Testing</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Mobile Functionality Test Table (Resident App &amp; Staff Scanner).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"For our Mobile Application, encompassing both the Resident Flow and Field Staff Scanner Suite, Alpha testing recorded 92.5% to 100% execution accuracy.</p><p>During Beta testing across actual Android devices, all mobile modules-including offline QR pass rendering, camera scanning, geotagged damage photo uploads, and real-time fraud alert modals-passed with <strong>100% functionality compliance</strong>."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 16</span>
+        <h3 class="slide-title">Summary Result of Integration Testing</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Integration Testing Metrics (API endpoints, MongoDB Atlas, Socket.IO, Cloudinary).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Our Integration Testing validated end-to-end communication across our three tiers: React web clients, React Native Expo mobile apps, and our Node.js/Express REST API on Render connected to MongoDB Atlas.</p><p>All critical workflows-such as approving a resident on the web and immediately activating their mobile QR pass, as well as scanning a QR code and deducting warehouse stocks in real-time-executed reliably with zero transactional discrepancies."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 17</span>
+        <h3 class="slide-title">Non-Functional: Web Application Performance</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Web Performance Metrics (Speed Index, Load Times, Lighthouse Score).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Under ISO/IEC 25010 Performance Efficiency, the Web Admin dashboard achieved an overall performance score of <strong>87.8%</strong> with a fast <strong>Speed Index of 1.72 seconds</strong>, well within the industry standard threshold of under 2.0 seconds.</p><p>Code splitting via Vite and efficient MongoDB query indexing ensured rapid table loads even when handling hundreds of household records."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 18</span>
+        <h3 class="slide-title">Non-Functional: Mobile Application Performance</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Mobile App Startup Time, Frame Rate, Memory Consumption.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"On the mobile side, app launch latency averaged under 1.88 seconds, maintaining a consistent 60 frames-per-second UI responsiveness.</p><p>Local caching via AsyncStorage allows the resident's digital QR pass to display instantly without waiting for network round-trips."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 19</span>
+        <h3 class="slide-title">Non-Functional: Mobile Application Accessibility</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">WCAG 2.1 Accessibility compliance, high contrast ratios, touch targets.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"To ensure post-disaster inclusivity, the mobile application adheres to WCAG 2.1 accessibility standards.</p><p>We implemented minimum 48-pixel touch targets, high-contrast typography (exceeding the 4.5:1 ratio), and bilingual English and Filipino labels for seamless accessibility during stressful conditions."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 20</span>
+        <h3 class="slide-title">Non-Functional: Web Application Accessibility</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Web Accessibility Dashboard, keyboard navigation, color contrast.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"The Web Admin platform scored high across accessibility benchmarks, featuring full keyboard navigability, clear ARIA status indicators, and high-visibility alerts for color-blind accessibility."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 21</span>
+        <h3 class="slide-title">Non-Functional: Web Application Browser Compatibility</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Cross-browser matrix (Google Chrome, Microsoft Edge, Mozilla Firefox, Brave, Safari).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Cross-browser compatibility testing confirmed that all web features, interactive Leaflet maps, and responsive layouts render flawlessly across Google Chrome, Microsoft Edge, Mozilla Firefox, Brave, and Apple Safari."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 22</span>
+        <h3 class="slide-title">Non-Functional: Mobile Application OS Compatibility</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Android OS version testing (Android 10, 11, 12, 13, 14).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Mobile OS compatibility testing verified that MitigatePlus runs smoothly across Android versions 10 through 14 on multiple device screen sizes, from budget smartphones to modern high-resolution displays."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 23 &amp; 24</span>
+        <h3 class="slide-title">Web Application Vulnerability Assessments (Pre vs. Post Remediation)</h3>
+      </div>
+      <div class="speaker-tag spk-2">Speaker 2</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Security Audit Results, OWASP Top 10 checks, resolved vulnerabilities.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"In our Pre-Vulnerability Assessment, minor security risks were detected, including unoptimized session timeouts and missing rate-limiting on authentication endpoints.</p><p>In our Post-Remediation cycle shown on Slide 24, we implemented Bcrypt password hashing, JWT bearer tokens, CORS origin restrictions, strict Role-Based Access Control, and compound database unique indexing, elevating our overall security posture to a fully secure state.</p><p>I now invite [Speaker 3] to present our System Usability Evaluation and Stakeholder Engagement."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 25 &amp; 26</span>
+        <h3 class="slide-title">System Usability Evaluation - Sampling &amp; Demographics</h3>
+      </div>
+      <div class="speaker-tag spk-3">Speaker 3</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">108 survey participants + 2 IT professionals; demographic breakdown charts.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Good day, esteemed panel. As outlined on Pages 34 to 43 of our manuscript, we evaluated MitigatePlus using a robust sample of <strong>108 survey participants plus 2 industry IT professionals</strong>, far exceeding the standard 5 to 15 usability benchmark.</p><p>Our respondents represent the true user ecosystem: 49 Manila Residents (45.4%), 33 College Students (30.6%), 14 Barangay Staff (13.0%), 7 Barangay Officials (6.5%), and 5 IT Professionals (4.6%). Over 76% of our sample represents community end-users."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 27 to 31</span>
+        <h3 class="slide-title">Usability Evaluation Dimensions &amp; Overall Summary</h3>
+      </div>
+      <div class="speaker-tag spk-3">Speaker 3</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Charts for Ease of Use, Performance &amp; Efficiency, Learnability, Satisfaction, and Overall Summary.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Our Usability Evaluation was structured across the four core dimensions of the standardized System Usability Model:</p><p>1. <strong>Ease of Use (Slide 27):</strong> Scored 'Very High', with residents praising the simple 1-tap QR display and clear reporting steps.</p><p>2. <strong>Performance and Efficiency (Slide 28):</strong> Rated 'Very High' (4.35 out of 5), confirming quick camera QR scanning and instant receipt confirmation.</p><p>3. <strong>Learnability (Slide 29):</strong> Scored exceptionally high, as field staff and residents required minimal guidance to operate their respective modules.</p><p>4. <strong>User Satisfaction (Slide 30):</strong> Beneficiaries and barangay personnel expressed strong confidence in the system's ability to prevent palakasan and duplicate claims.</p><p>As shown in our Overall Summary on <strong>Slide 31</strong>, MitigatePlus garnered an overwhelming <strong>'Very High' usability rating</strong>, confirming that the platform is ready for community deployment."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 32 &amp; 33</span>
+        <h3 class="slide-title">Consultation, Knowledge Transfer &amp; Training Plan</h3>
+      </div>
+      <div class="speaker-tag spk-3">Speaker 3</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Photo documentation with Sir Ceasar Salvacion of Manila DRRMD.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"To ensure that our system directly addresses institutional realities, Team OnTheWay conducted extensive consultation and knowledge transfer sessions with the <strong>Manila Disaster Risk Reduction and Management Office (MDRRMO)</strong>, led by <strong>Sir Ceasar Salvacion</strong>.</p><p>We formulated an institutional training plan for barangay disaster committees, covering ID validation workflows, offline contingency scanning, and inventory reconciliation.</p><p>I now hand over the presentation to [Speaker 4] to deliver our Summary, Conclusions, and initiate our Live System Demonstration."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 34</span>
+        <h3 class="slide-title">IT Professionals Usability Evaluation</h3>
+      </div>
+      <div class="speaker-tag spk-4">Speaker 4</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Expert feedback from 2 Senior IT Professionals.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"Thank you, [Speaker 3]. Evaluation by Senior IT Professionals confirmed that our 3-tier architectural design, compound indexing schema, and RESTful API structures conform to modern enterprise and government software standards."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 35 &amp; 36</span>
+        <h3 class="slide-title">Summary of the Study &amp; Test Results</h3>
+      </div>
+      <div class="speaker-tag spk-4">Speaker 4</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Purpose, functions, methodology, and the complete ISO 25010 metrics summary.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"In summary, MitigatePlus was developed in direct coordination with the Manila DRRMD to resolve the operational chaos of manual disaster relief.</p><p>Our final empirical test results validate that the system achieved all target benchmarks:</p><p><strong>Functionality:</strong> 100% of modules passed testing in Beta.</p><p><strong>Usability:</strong> Rated Very High across all demographic sectors.</p><p><strong>Reliability:</strong> Confirmed through persistent integration and access testing.</p><p><strong>Performance:</strong> Scored an overall 87.8% with an average Speed Index of 1.72 seconds.</p><p><strong>Security:</strong> Fully protected against OWASP vulnerabilities with encrypted tokens and salted hashes.</p><p><strong>Compatibility:</strong> 100% verified across all major web browsers and Android versions 10 through 14."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 37</span>
+        <h3 class="slide-title">Conclusion</h3>
+      </div>
+      <div class="speaker-tag spk-4">Speaker 4</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Conclusion statement highlighting novelty and policy impact.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"In conclusion, MitigatePlus successfully digitized and reformed the post-disaster relief lifecycle for the City of Manila.</p><p>By combining algorithmic vulnerability triage, headcount-scaled food pack allocation, and real-time anti-duplicate QR verification, the system eliminates distribution blind spots, prevents double-claiming, and provides local councils with an auditable, transparent, and humane recovery governance platform under RA 10121."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 38</span>
+        <h3 class="slide-title">Recommendations &amp; System Enhancements</h3>
+      </div>
+      <div class="speaker-tag spk-4">Speaker 4</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">Future enhancements (AI satellite imagery, offline mesh networking, LGU payroll integration).</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"For future work, we recommend: integrating offline Bluetooth or Wi-Fi mesh networking for extreme zero-signal disaster zones, expanding Cash-For-Work directly to digital disbursement channels like LandBank or GCash, and connecting live automated weather feeds for localized pre-positioning alerts."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+  <div class="slide-card">
+    <div class="slide-header">
+      <div class="slide-title-area">
+        <span class="slide-badge">SLIDE 39</span>
+        <h3 class="slide-title">System Demonstration</h3>
+      </div>
+      <div class="speaker-tag spk-4">Speaker 4</div>
+    </div>
+    
+    
+    <div class="visual-cue-box">
+      <span class="cue-label">VISUAL SLIDE CUE:</span>
+      <span class="cue-text">System Demonstration Title Slide.</span>
+    </div>
+    
+    <div class="script-box">
+      <div class="script-label">SPOKEN DEFENSE SCRIPT:</div>
+      <div class="script-text">
+        <p>"We now proceed to our <strong>Live System Demonstration</strong>, where we will showcase our end-to-end lifecycle:</p><p>1. Resident Mobile Registration and ID Upload;</p><p>2. Barangay Official Verification on the Web Admin;</p><p>3. Citizen Structural Damage Reporting with GPS photo telemetry;</p><p>4. Algorithmic Quota Calculation and Distribution Scheduling;</p><p>5. Field Staff Mobile QR Scanning and Real-Time Duplicate Claim Interception; and</p><p>6. 1-Click COA Liquidation Audit Export.</p><p>Thank you very much. We are now ready to demonstrate the system and answer your questions."</p>
+      </div>
+    </div>
+    
+    <div class="slide-footer">
+      <span class="next-cue">[NEXT SLIDE]</span>
+    </div>
+  </div>
+  
+
+  <!-- Q&A Cheat Sheet -->
+  <div class="section-title">Panel Q&A Quick-Reference Cheat Sheet</div>
+  
+  <div class="qa-card">
+    <div class="qa-q">Q1: &quot;Bakit post-disaster mitigation lang? Bakit walang evacuation center tracking?&quot;</div>
+    <div class="qa-a">"As per Prof. Abad's recommendation in Capstone 1 and Section 1.3 of our manuscript, we delimited our scope exclusively to the post-disaster phase. Evacuation modeling is already handled by city sirens and barangay marshals, whereas the primary operational breakdown identified by Manila DRRMD occurs during relief distribution, damage triage, and beneficiary duplication."</div>
+  </div>
+  
+  <div class="qa-card">
+    <div class="qa-q">Q2: &quot;Paano ninyo napipigilan ang double claims sa field?&quot;</div>
+    <div class="qa-a">"At the database level, we enforce a MongoDB Compound Unique Index on `{ distributionEventId: 1, householdId: 1 }`. If a beneficiary's QR is scanned twice, the database rejects the write, and Socket.io instantly flashes an audio-visual red alert on both the staff scanner and the admin dashboard fraud stream."</div>
+  </div>
+  
+  <div class="qa-card">
+    <div class="qa-q">Q3: &quot;Bakit headcount-scaled ang relief at hindi standard 1 pack?&quot;</div>
+    <div class="qa-a">"Traditional 1-pack policies cause severe under-allocation for large households and food waste for small households. MitigatePlus implements Algorithm 2 (Page 29 of manuscript): 1 to 4 members receive 1 base pack, 5 to 8 receive 2 base packs, and 9+ receive 3 base packs, supplemented with demographic-specific add-ons for infants and seniors."</div>
+  </div>
+  
+
+</body>
+</html>

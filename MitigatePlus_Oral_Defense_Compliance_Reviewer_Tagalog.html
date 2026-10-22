@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<title>MitigatePlus - Oral Defense Compliance Reviewer & Spoken Scripts</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 18mm 15mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0F172A;
+    background: #FFFFFF;
+    line-height: 1.5;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Header Banner */
+  .header-card {
+    background: linear-gradient(135deg, #0B1D4E 0%, #1C3F94 60%, #6E071A 100%);
+    color: #FFFFFF;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border-top: 4px solid #C9A84C;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(28, 63, 148, 0.15);
+  }
+
+  .header-kicker {
+    font-size: 8.5pt;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #F8D36D;
+    margin-bottom: 4px;
+  }
+
+  .header-title {
+    font-size: 17pt;
+    font-weight: 900;
+    letter-spacing: -0.3px;
+    margin: 0 0 6px 0;
+    line-height: 1.25;
+  }
+
+  .header-sub {
+    font-size: 9.5pt;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 10px 0;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 8.5pt;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .meta-item strong {
+    color: #FFE58F;
+  }
+
+  /* Section Styles */
+  h2.section-header {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #0B1D4E;
+    border-bottom: 2.5px solid #1C3F94;
+    padding-bottom: 5px;
+    margin-top: 24px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    page-break-after: avoid;
+  }
+
+  h2.section-header.yabut { border-color: #C8102E; color: #9E0B24; }
+  h2.section-header.crystal { border-color: #1C3F94; color: #12296A; }
+  h2.section-header.abad { border-color: #0D8A5A; color: #065F46; }
+
+  /* Cheat Sheet Table */
+  table.cheat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  table.cheat-table th {
+    background: #0B1D4E;
+    color: #FFFFFF;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 800;
+    border: 1px solid #0B1D4E;
+  }
+
+  table.cheat-table td {
+    padding: 8px 10px;
+    border: 1px solid #CBD5E1;
+    vertical-align: top;
+  }
+
+  table.cheat-table tr:nth-child(even) td {
+    background: #F8FAFC;
+  }
+
+  .page-badge {
+    display: inline-block;
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FCD34D;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 8.5pt;
+    white-space: nowrap;
+  }
+
+  /* Card Blocks */
+  .compliance-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+
+  .compliance-card.yabut { border-left: 5px solid #C8102E; }
+  .compliance-card.crystal { border-left: 5px solid #1C3F94; }
+  .compliance-card.abad { border-left: 5px solid #0D8A5A; }
+
+  .card-header {
+    background: #F8FAFC;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title {
+    font-size: 10pt;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0;
+  }
+
+  .card-body {
+    padding: 12px 14px;
+  }
+
+  .speech-bubble {
+    background: #F0F4FF;
+    border: 1px solid #D6DEFA;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 9.5pt;
+    color: #1E293B;
+    line-height: 1.5;
+  }
+
+  .speech-bubble strong {
+    color: #1C3F94;
+  }
+
+  .speech-label {
+    font-size: 8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #1C3F94;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .why-box {
+    margin-top: 8px;
+    font-size: 8.5pt;
+    color: #475569;
+    background: #F8FAFC;
+    border-left: 3px solid #94A3B8;
+    padding: 6px 10px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .math-box {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: "Courier New", monospace;
+    font-size: 8.5pt;
+    color: #92400E;
+    margin: 6px 0;
+  }
+
+  /* Tips List */
+  .tips-card {
+    background: linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%);
+    border: 1.5px solid #FACC15;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 20px;
+    page-break-inside: avoid;
+  }
+
+  .tips-title {
+    font-size: 11pt;
+    font-weight: 800;
+    color: #854D0E;
+    margin: 0 0 8px 0;
+  }
+
+  .tips-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 9pt;
+    color: #713F12;
+    line-height: 1.6;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER BANNER -->
+  <div class="header-card">
+    <div class="header-kicker">National University • CCIT Capstone Final Defense 2026</div>
+    <div class="header-title">MITIGATEPLUS: DEFENSE COMPLIANCE MASTER REVIEWER</div>
+    <div class="header-sub">Opisyal na Gabay, Spoken Tagalog Scripts, at Eksaktong Pahina sa Manuscript para sa Papirmahan Bukas</div>
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Koponan:</strong> Team On The Way (Corpuz, Datul, Garcia, Nolasco, Onggoco)</div>
+      <div class="meta-item"><strong>Adviser:</strong> Prof. John Ivan C. Maurat</div>
+      <div class="meta-item"><strong>Panelists:</strong> Dean Emeliza Yabut, Prof. Julie Anne Crystal, Prof. Lalaine Abad</div>
+      <div class="meta-item"><strong>Target Manuscript:</strong> Google Docs (176 Pages) • Version 2026</div>
+    </div>
+  </div>
+
+  <!-- TABLE OF EXACT PAGES (QUICK CHEAT SHEET) -->
+  <h2 class="section-header">📌 MASTER CHEAT SHEET: Saang Pahina Hahanapin sa Manuscript?</h2>
+  <table class="cheat-table">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Panelist</th>
+        <th style="width: 38%;">Paksang Inayos / Rekomendasyon</th>
+        <th style="width: 20%;">Pahina sa Manuscript</th>
+        <th style="width: 20%;">Seksyon sa Papel</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dean Emeliza Yabut</strong><br/><em>(Panel Chair)</em></td>
+        <td>Transient Residents (< 6 months) Lockdown Humanitarian Policy</td>
+        <td><span class="page-badge">Pahina 4 at 5</span></td>
+        <td>Specific Obj 1 & Scope</td>
+      </tr>
+      <tr>
+        <td><strong>Dean Emeliza Yabut</strong><br/><em>(Panel Chair)</em></td>
+        <td>NDRRMC/DPWH 4-Level Damage Criteria (1-25%, 26-50%, 51-75%, 76-100%)</td>
+        <td><span class="page-badge">Pahina 4 at 62</span></td>
+        <td>Specific Obj 2 & Table 4.5</td>
+      </tr>
+      <tr>
+        <td><strong>Dean Emeliza Yabut</strong><br/><em>(Panel Chair)</em></td>
+        <td>Web Admin Centralized Portal vs. Mobile Frontline Boundaries</td>
+        <td><span class="page-badge">Pahina 4</span></td>
+        <td>Specific Objective 3</td>
+      </tr>
+      <tr>
+        <td><strong>Dean Emeliza Yabut</strong><br/><em>(Panel Chair)</em></td>
+        <td>Autonomous Algorithmic Entitlement Scaling (No "set up backend")</td>
+        <td><span class="page-badge">Pahina 4 at 28</span></td>
+        <td>Specific Obj 4 & Alg 2</td>
+      </tr>
+      <tr>
+        <td><strong>Dean Emeliza Yabut</strong><br/><em>(Panel Chair)</em></td>
+        <td>ISO/IEC 25010 Quality Framework (Pinalitan ang "run" ng "To evaluate")</td>
+        <td><span class="page-badge">Pahina 5</span></td>
+        <td>Specific Objective 5</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Julie Anne Crystal</strong><br/><em>(Panel Member)</em></td>
+        <td>Algorithm 2 Math Formula & Computations para sa 4, 5, 6, 10, 11 pax</td>
+        <td><span class="page-badge">Pahina 28 – 29</span></td>
+        <td>Chapter 3, Table 3.1</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Julie Anne Crystal</strong><br/><em>(Panel Member)</em></td>
+        <td>Base Pack (6kg, up to 5 pax) vs. Modular Top-Up Unit (1.5-2kg)</td>
+        <td><span class="page-badge">Pahina 29</span></td>
+        <td>Chapter 3, Definitions</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Julie Anne Crystal</strong><br/><em>(Panel Member)</em></td>
+        <td>Offline QR, Batch Sync, Compound Unique Index, Event-Scoped Rule</td>
+        <td><span class="page-badge">Pahina 30 – 31</span></td>
+        <td>Chapter 3, Section 3.2</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Julie Anne Crystal</strong><br/><em>(Panel Member)</em></td>
+        <td>Actual Concurrency Race-Condition Test Table & 2-Phone Evidence Graphic</td>
+        <td><span class="page-badge">Pahina 154 – 155</span></td>
+        <td>Section 4.5, Table 15a & Fig 31</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Lalaine P. Abad</strong><br/><em>(Panel Member)</em></td>
+        <td>Resident Mobility (1-Year Demographic Audit, 3 Missed Events = Dormant)</td>
+        <td><span class="page-badge">Pahina 5, 31, at 65</span></td>
+        <td>Scope, Sec 3.2, & Fig 17</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Lalaine P. Abad</strong><br/><em>(Panel Member)</em></td>
+        <td>Lipat Barangay Portal (May Mandatory ID Upload, Single Family UID)</td>
+        <td><span class="page-badge">Pahina 5 at 65</span></td>
+        <td>Scope & Mobile Prototype</td>
+      </tr>
+      <tr>
+        <td><strong>Prof. Lalaine P. Abad</strong><br/><em>(Panel Member)</em></td>
+        <td>Cash-for-Work Institutional Boundary & DOLE TUPAD / DSWD ECT Roadmap</td>
+        <td><span class="page-badge">Pahina 5 at 64</span></td>
+        <td>Scope & Fig 15</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 1: DEAN EMELIZA YABUT -->
+  <div class="page-break"></div>
+  <h2 class="section-header yabut">🏛️ BAHAGI 1: MGA GABAY AT SPOKEN SCRIPTS KAY DEAN EMELIZA YABUT</h2>
+
+  <!-- Item 1.1 -->
+  <div class="compliance-card yabut">
+    <div class="card-header">
+      <h3 class="card-title">1. Specific Objective 1 & Transient Occupants (< 6 Months) Lockdown Policy</h3>
+      <span class="page-badge">Pahina 4 at Pahina 5</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Dean Yabut:</strong> Linawin ang protocol para sa mga residenteng wala pang 6 na buwan sa barangay kapag may kalamidad/lockdown at isama ang emergency roster updating.</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script (Sasabihin ng Presentor):</span>
+        "Dean Yabut, na-comply po namin ang inyong rekomendasyon ukol sa mga residenteng wala pang 6 na buwan sa barangay. Sa <strong>Pahina 4 at 5</strong>, nilinaw po namin na alinsunod sa humanitarian mandate ng Manila DRRMO, kapag may deklarasyon ng State of Calamity o emergency lockdown, binibigyan po sila ng <em>Provisional Emergency Profiling</em>. Hindi po sila pababayaang magutom dahil nakatatanggap sila ng emergency advisories sa mobile app. Subalit, upang maiwasan ang panlalamang, naka-lock po ang kanilang provisional account sa kanilang government ID at litrato kaya mahaharang sila kapag nagtangkang mag-claim sa kabilang barangay."
+      </div>
+      <div class="why-box">
+        <strong>Bakit ganito ang sagot?</strong> Pinapatunayan nito na balanse ang sistema: may awa (humanitarian relief) pero may mahigpit na anti-fraud control (hindi puwedeng magpalipat-lipat ng barangay para kumuha ng dobleng ayuda).
+      </div>
+    </div>
+  </div>
+
+  <!-- Item 1.2 -->
+  <div class="compliance-card yabut">
+    <div class="card-header">
+      <h3 class="card-title">2. Specific Objective 2 & Siyentipikong Pamantayan sa Damage Assessment</h3>
+      <span class="page-badge">Pahina 4 at Pahina 62 (Table 4.5)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Dean Yabut:</strong> Palitan ang salitang "tools" ng "application" at magbigay ng obhetibo at siyentipikong pamantayan para sa structural damage classification.</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Dean, pinalitan po namin ang salitang <em>'tools'</em> ng <em>'application'</em> sa Specific Objective 2. At para po maging obhetibo at may legal na basehan ang pagtukoy kung gaano kalala ang sira ng bahay, ibinase po namin ito sa opisyal na <strong>NDRRMC at DPWH Post-Disaster Damage Assessment and Needs Analysis (RDANA) percentage standards sa Table 4.5 sa Pahina 62</strong>:  
+        • <strong>Minor Damage (1%–25%):</strong> Mababaw na sira, buo ang haligi, 1 front photo lang ang kailangan.  
+        • <strong>Moderate Damage (26%–50%):</strong> Nabutas na yero o gumuho ang ilang partition wall, 2 photos.  
+        • <strong>Severe Damage (51%–75%):</strong> Bagsak na bubong o basag na load-bearing wall, hindi na matitirhan.  
+        • <strong>Total Destruction (76%–100%):</strong> Tuluyang wasak o inanod ng baha, may mandatory GPS coords.  
+        Ito po ang dahilan kung bakit hindi puwedeng magsinungaling ang residente dahil may katumbas itong photo requirements."
+      </div>
+    </div>
+  </div>
+
+  <!-- Item 1.3 -->
+  <div class="compliance-card yabut">
+    <div class="card-header">
+      <h3 class="card-title">3. Specific Objectives 3, 4, at 5 (Wording Cleanup & ISO/IEC Standard)</h3>
+      <span class="page-badge">Pahina 4 hanggang Pahina 5</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Dean Yabut:</strong> Linawin ang Web Admin vs Mobile boundaries; tanggalin ang "set up backend"; palitan ang "run" ng "To evaluate/test".</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Sa Specific Objective 3 po sa <strong>Pahina 4</strong>, nilinaw po namin ang plataporma: ang Web Admin ay isang centralized portal para sa LGU executives at barangay chairmen para sa verification, warehouse inventory, at spatial heatmaps, habang ang field staff naman ay may mobile application para sa mabilisang scanning.  
+        Sa Specific Objective 4, tinanggal po namin ang generic na 'set up backend'; pinalitan po namin ito ng <em>'autonomous algorithmic entitlement and anti-fraud engine'</em>.  
+        At sa Specific Objective 5 sa <strong>Pahina 5</strong>, pinalitan po namin ang salitang 'run' ng <em>'Evaluate the operational quality and concurrency resilience'</em> alinsunod sa ISO/IEC 25010 framework."
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: PROF. JULIE ANNE CRYSTAL -->
+  <div class="page-break"></div>
+  <h2 class="section-header crystal">💻 BAHAGI 2: MGA GABAY AT SPOKEN SCRIPTS KAY PROF. JULIE ANNE CRYSTAL</h2>
+
+  <!-- Item 2.1 -->
+  <div class="compliance-card crystal">
+    <div class="card-header">
+      <h3 class="card-title">1. Algorithm 2 Math Formula, Sample Computations, at Base Pack vs. Top-Up</h3>
+      <span class="page-badge">Pahina 28 – 29 (Chapter 3, Table 3.1)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Prof. Crystal:</strong> Ipaliwanag ang formula ng alokasyon ng ayuda; magbigay ng sample computations para sa 4, 5, 6, 10, at 11 pax; linawin ang Base Pack vs. Top-Up.</div>
+      <div class="math-box">
+        BasePacks = max(1, floor(N / 5)) | ExcessHeadcount = max(0, N - (BasePacks * 5))<br/>
+        Total Top-Up Units = ExcessHeadcount + Vulnerability Points (Senior, Infant, PWD)
+      </div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Ma'am Janne, inilagay po namin sa <strong>Pahina 28 hanggang 29</strong> ang buong mathematical formulation ng Algorithm 2 at ang Table 3.1 para sa sample computations:  
+        • Ang <strong>Base Pack</strong> po ay standard 6kg survival family pack ng DSWD na sapat para sa hanggang 5 miyembro.  
+        • Ang <strong>Top-Up Unit</strong> naman po ay 1.5kg hanggang 2kg na modular nutritional/medical kit para sa labis na miyembro upang maiwasan ang pagkaubos at pagkasayang ng buong sako.  
+        Halimbawa po sa Table 3.1:  
+        - Kung <strong>4 o 5 members:</strong> 1 Base Pack (sakto sa 5-member threshold).  
+        - Kung <strong>6 members:</strong> 1 Base Pack + 1 Top-Up Unit (hindi na kailangan magbigay ng 2 buong Base Pack).  
+        - Kung <strong>10 members:</strong> Eksaktong 2 Base Packs (floor(10/5) = 2).  
+        - Kung <strong>11 members:</strong> 2 Base Packs + 1 Top-Up Unit.  
+        Nagdadagdag din po ang algorithm ng karagdagang nutrition packs kung may beripikadong senior citizen, sanggol, o PWD."
+      </div>
+    </div>
+  </div>
+
+  <!-- Item 2.2 -->
+  <div class="compliance-card crystal">
+    <div class="card-header">
+      <h3 class="card-title">2. Offline QR Behavior, Batch Sync, at Event-Scoped Validity Rule</h3>
+      <span class="page-badge">Pahina 30 – 31 (Chapter 3, Section 3.2)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Prof. Crystal:</strong> Paano gumagana kapag walang internet? Paano nade-detect ang duplicate pagbalik ng koneksyon? Single-use ba o per day ang QR?</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Ma'am, para po sa offline architecture: naka-cache po ang QR token sa <code>AsyncStorage</code> ng mobile app kaya mabubuksan pa rin ito ng residente kahit mag-brownout o mawalan ng signal. Ang mobile scanner naman ng field staff ay may local encrypted SQLite/AsyncStorage buffer na nagba-block ng duplicate scans sa parehong device.  
+        Pagbalik po ng internet, mag-i-invoke ito ng batch sync sa <code>/api/distributions/sync-offline-claims</code>. Sa cloud database (MongoDB Atlas), may <strong>compound unique index</strong> tayo: <code>{ distributionEventId: 1, householdId: 1 }</code>. Kapag may nagtangkang mag-claim sa ibang gate, itatapon ng MongoDB ang database error na <code>E11000</code> na agad magre-record ng fraud audit log.  
+        Nilinaw din po namin na ang QR code ay <strong>Event-Scoped (Single-Use per Calamity Drive)</strong>: kapag na-claim na sa Bagyong Carina, naka-lock ito at magiging aktibo lang muli kapag nag-publish ng bagong relief event ang LGU."
+      </div>
+    </div>
+  </div>
+
+  <!-- Item 2.3 -->
+  <div class="compliance-card crystal">
+    <div class="card-header">
+      <h3 class="card-title">3. Concurrency & Race-Condition Live Testing (TC-CONC-01)</h3>
+      <span class="page-badge">Pahina 154 – 155 (Section 4.5, Table 15a at Figure 31)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Prof. Crystal:</strong> Magpakita ng actual empirical testing ng sabay na pag-scan sa dalawang gates; maglagay ng test scenario, expected results, actual latency, at screenshot evidence.</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Ma'am Janne, nagsagawa po kami ng actual live concurrency test gamit ang dalawang magkahiwalay na Android phones na naka-login bilang Gate 1 at Gate 2. Sabay po naming in-scan ang QR pass ni Herzsel Datul ng Barangay 344 sa parehong millisecond (t = 0ms):  
+        • Ang <strong>Gate 1 (North)</strong> po ang naunang nag-commit sa database sa bilis na <strong>115 ms</strong> at naglabas ng opisyal na resibo: <code>RCPT-2026-06D64F</code>.  
+        • Ang <strong>Gate 2 (South)</strong> naman (261 ms) ay agad na-block ng database index at nagpakita ng high-contrast red warning dialog: <em>'DUPLICATE CLAIM BLOCKED'</em> kasama ang audit log <code>SEC-DUP-2026-881940</code>.  
+        Makikita po sa <strong>Pahina 155 sa Table 15a</strong> ang buong test results at sa <strong>Figure 31</strong> ang litrato ng dalawang magkatabing mobile screens bilang patunay na walang duplicate relief packs na nailabas."
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: PROF. LALAINE P. ABAD -->
+  <div class="page-break"></div>
+  <h2 class="section-header abad">📋 BAHAGI 3: MGA GABAY AT SPOKEN SCRIPTS KAY PROF. LALAINE P. ABAD</h2>
+
+  <!-- Item 3.1 -->
+  <div class="compliance-card abad">
+    <div class="card-header">
+      <h3 class="card-title">1. Resident Mobility: 1-Year Audit, 3 Missed Events, at Lipat Barangay Workflow</h3>
+      <span class="page-badge">Pahina 5 (Scope), Pahina 31, at Pahina 65 (Figure 17)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Prof. Abad:</strong> Ano ang patakaran sa residenteng hindi kumukuha ng relief o lumipat ng tirahan? Tatanggalin ba o ililipat?</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Ma'am Abad, kinumpirma po namin sa aming client sa Manila DRRMO na nagsasagawa sila ng 1-year annual demographic audit. Sa MitigatePlus, kapag ang isang registered household ay <strong>hindi kumuha ng relief sa tatlong (3) magkakasunod na major relief distributions</strong> sa loob ng audit cycle, awtomatikong inililipat ng backend ang profile sa <strong>'DORMANT' ('No Barangay Listed')</strong> upang hindi mag-allocate ng sobrang pagkain ang barangay. Bawal po kasi silang i-delete nang tuluyan dahil labag sa COA rules ang pagbura ng historical relief claims.  
+        Kapag lumipat naman po sila ng tirahan, gagamitin nila ang <strong>'Lipat Barangay' portal sa mobile app</strong>. Mag-e-enter sila ng bagong address at <strong>mandatory po ang pag-upload ng bagong Barangay Clearance o Valid ID</strong>. Diretso po itong papasok sa verification queue ng bagong barangay admin para ma-verify nang walang duplicate account creation."
+      </div>
+      <div class="why-box">
+        <strong>Bakit bagong barangay ang nagbe-verify?</strong> Dahil ang bagong barangay ang may pananagutan sa paglabas ng pagkain mula sa kanilang bodega. Sila ang may karapatang sumuri sa in-upload na Barangay Clearance.
+      </div>
+    </div>
+  </div>
+
+  <!-- Item 3.2 -->
+  <div class="compliance-card abad">
+    <div class="card-header">
+      <h3 class="card-title">2. Cash-for-Work (CFW) Budget Capability & Linkage sa City Hall</h3>
+      <span class="page-badge">Pahina 5 (Scope) at Pahina 64 (Figure 15)</span>
+    </div>
+    <div class="card-body">
+      <div><strong>Rekomendasyon ni Prof. Abad:</strong> May budget ba ang MDRRMO para sa pasahod ng CFW? Paano ang institutional linkage sa City Hall o DOLE TUPAD?</div>
+      <div class="speech-bubble">
+        <span class="speech-label">🗣️ Spoken Defense Script:</span>
+        "Ma'am, nilinaw po namin ang institutional boundary ng Cash-for-Work sa <strong>Pahina 5 at 64</strong>. Ang MDRRMO at MitigatePlus po ay nakatutok sa emergency damage triage (pagpili sa mga pinaka-nasiraan ng bahay) at digital QR daily attendance check-in/out ng mga nagtatrabaho sa clearing operations.  
+        Ang pondo po para sa pasahod ay nakakabit sa active future institutional integration roadmap ng City Government of Manila sa <strong>DOLE TUPAD</strong> at <strong>DSWD Emergency Cash Transfer (ECT)</strong>. Ang digitized attendance rosters po ng MitigatePlus ang magsisilbing opisyal na COA-compliant liquidation basis para sa mabilisang payout ng pondo ng gobyerno nang walang ghost workers."
+      </div>
+    </div>
+  </div>
+
+  <!-- TIPS FOR DEFENSE DAY -->
+  <div class="tips-card">
+    <h3 class="tips-title">💡 4 GINTONG PATAKARAN SA PAGSAGOT SA PANEL BUKAS:</h3>
+    <ol class="tips-list">
+      <li><strong>Laging Simulan sa Numero ng Pahina:</strong> Kapag nagtanong ang panel, simulan lagi sa: <em>"Nasa Pahina [X] po ito ng aming updated manuscript..."</em> — patunay ito na organized kayo at binasa ninyo ang buong papel.</li>
+      <li><strong>Ipakita ang Aktwal na Ebidensya:</strong> Kapag hinanap ang concurrency testing, buksan agad ang <strong>Pahina 155 (Figure 31)</strong> na nagpapakita ng magkatabing Gate 1 at Gate 2 phones.</li>
+      <li><strong>I-demo ang Mobile App kapag Hiniling:</strong> Kapag sinabing <em>"Patingin nga ng Lipat Barangay"</em>, buksan ang Settings sa phone -> i-tap ang Lipat Barangay -> ipakita na kailangan mag-upload ng litrato ng ID o Clearance bago makapag-submit.</li>
+      <li><strong>Maging Kalmado at Magalang:</strong> Lahat ng code, database constraints, at manuscript revisions ay 100% tapos at verified na. Kumpiyansa kayong sumagot bukas! Good luck Team On The Way! 🚀</li>
+    </ol>
+  </div>
+
+</body>
+</html>
