@@ -176,9 +176,14 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
         }).sort({ closedAt: -1, updatedAt: -1, createdAt: -1 });
 
         for (const hh of barangayHouseholds) {
-          // Count consecutive missed completed events from newest backward
+          const verificationThreshold = hh.verifiedAt || hh.createdAt;
+          // Count consecutive missed completed events from newest backward (only since household was verified)
           let missedCount = 0;
           for (const compEv of completedEvents) {
+            const eventTime = compEv.closedAt || compEv.openedAt || compEv.createdAt;
+            if (verificationThreshold && eventTime && new Date(eventTime) < new Date(verificationThreshold)) {
+              continue; // Do not penalize for events before household was verified in this barangay
+            }
             const hasClaimed = await Distribution.exists({
               distributionEventId: compEv._id,
               householdId: hh._id,

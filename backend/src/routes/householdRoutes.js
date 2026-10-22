@@ -162,24 +162,49 @@ router.get('/check-address-collision', async (req, res) => {
 router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin'), requireBarangayScope, async (req, res) => {
   try {
     let baseQuery = {};
-    
-    // Strict scoping for Barangay Official
-    if (req.user.role === 'barangay_official') {
-      baseQuery.barangayCode = req.user.barangayCode;
-    } else if (req.query.barangayCode && req.query.barangayCode !== 'ALL') {
-      baseQuery.barangayCode = req.query.barangayCode;
+    const brgyCode = req.user.role === 'barangay_official' ? req.user.barangayCode : req.query.barangayCode;
+    if (brgyCode && brgyCode !== 'ALL' && brgyCode !== 'all') {
+      baseQuery.$or = [
+        { barangayCode: brgyCode },
+        { previousBarangayCode: brgyCode, verificationStatus: 'dormant' },
+      ];
     }
 
     let query = { ...baseQuery };
+    const scopedBrgy = brgyCode && brgyCode !== 'ALL' && brgyCode !== 'all' ? brgyCode : null;
     const statusFilter = req.query.status || 'pending';
     if (statusFilter === 'all') {
       // no status filter
     } else if (statusFilter === 'pending') {
-      query.verificationStatus = { $in: ['pending', 'needs_info'] };
-    } else if (['verified', 'rejected', 'needs_info', 'dormant'].includes(statusFilter)) {
-      query.verificationStatus = statusFilter;
+      query = {
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: { $in: ['pending', 'needs_info'] },
+      };
+    } else if (statusFilter === 'verified') {
+      query = {
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: 'verified',
+      };
+    } else if (statusFilter === 'rejected') {
+      query = {
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: 'rejected',
+      };
+    } else if (statusFilter === 'dormant') {
+      query = {
+        verificationStatus: 'dormant',
+        ...(scopedBrgy ? {
+          $or: [
+            { barangayCode: scopedBrgy },
+            { previousBarangayCode: scopedBrgy },
+          ],
+        } : {}),
+      };
     } else {
-      query.verificationStatus = { $in: ['pending', 'needs_info'] };
+      query = {
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: statusFilter,
+      };
     }
 
     const pendingHouseholds = await Household.find(query)
@@ -194,10 +219,27 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin', 'l
 
     // Status counts for UI tabs
     const counts = {
-      pending: await Household.countDocuments({ ...baseQuery, verificationStatus: { $in: ['pending', 'needs_info'] } }),
-      verified: await Household.countDocuments({ ...baseQuery, verificationStatus: 'verified' }),
-      rejected: await Household.countDocuments({ ...baseQuery, verificationStatus: 'rejected' }),
-      dormant: await Household.countDocuments({ ...baseQuery, verificationStatus: 'dormant' }),
+      pending: await Household.countDocuments({
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: { $in: ['pending', 'needs_info'] },
+      }),
+      verified: await Household.countDocuments({
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: 'verified',
+      }),
+      rejected: await Household.countDocuments({
+        ...(scopedBrgy ? { barangayCode: scopedBrgy } : {}),
+        verificationStatus: 'rejected',
+      }),
+      dormant: await Household.countDocuments({
+        verificationStatus: 'dormant',
+        ...(scopedBrgy ? {
+          $or: [
+            { barangayCode: scopedBrgy },
+            { previousBarangayCode: scopedBrgy },
+          ],
+        } : {}),
+      }),
       all: await Household.countDocuments(baseQuery),
     };
 
@@ -376,6 +418,15 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
 
     await household.save();
 
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
+
     // Log audit
     await AuditLog.create({
       actorUserId: req.user._id,
@@ -467,6 +518,15 @@ router.put('/me/members', protect, requireRole('resident'), async (req, res) => 
     household.pendingMembers = members;
     await household.save();
 
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
+
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: 'resident',
@@ -524,6 +584,15 @@ router.post('/relocation-request', protect, requireRole('resident'), async (req,
     if (proofDocument) household.validIdImage = proofDocument;
 
     await household.save();
+
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
 
     // Update user's barangay code as well
     const User = require('../models/User');
@@ -583,6 +652,15 @@ router.put('/me/resubmit-id', protect, requireRole('resident'), async (req, res)
     });
 
     await household.save();
+
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
 
     // Create Audit Log
     await AuditLog.create({
@@ -656,9 +734,14 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
 
     // Real-time Consecutive Missed Events / Dormancy check (Prof. Lalaine Abad Compliance)
     if (!household.isDormant && household.verificationStatus !== 'dormant' && household.barangayCode && household.barangayCode !== 'UNASSIGNED') {
+      const verificationThreshold = household.verifiedAt || household.createdAt;
       const completedEvents = await DistributionEvent.find({
         barangayCode: household.barangayCode,
         status: 'Completed',
+        $or: [
+          { closedAt: { $gte: verificationThreshold } },
+          { openedAt: { $gte: verificationThreshold } },
+        ],
       }).sort({ closedAt: -1, updatedAt: -1, createdAt: -1 });
 
       let consecutiveMissed = 0;
@@ -701,6 +784,15 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
 
         await household.save();
 
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
+
         const User = require('../models/User');
         await User.findByIdAndUpdate(req.user._id, {
           barangayCode: 'UNASSIGNED',
@@ -708,6 +800,15 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
         });
       } else {
         await household.save();
+
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
       }
     }
 
@@ -1183,6 +1284,15 @@ router.post('/regenerate-qr', protect, async (req, res) => {
     household.lastQrRegeneratedAt = new Date();
     await household.save();
 
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
+
     await AuditLog.create({
       actorUserId: req.user._id,
       actorRole: req.user.role,
@@ -1277,6 +1387,15 @@ router.patch('/me/notifications/:id/read', protect, requireRole('resident'), asy
       const notif = household.inAppNotifications.find(n => n.id === req.params.id || n._id?.toString() === req.params.id);
       if (notif) notif.isRead = true;
       await household.save();
+
+    // Sync linked user account
+    if (household.headOfHouseholdUserId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(household.headOfHouseholdUserId, {
+        barangayCode: household.barangayCode,
+        isDormant: household.isDormant || false,
+      });
+    }
     }
 
     res.json({ success: true });
