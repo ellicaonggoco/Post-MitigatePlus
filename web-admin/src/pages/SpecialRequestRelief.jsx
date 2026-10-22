@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import {
   Heart,
   Users,
@@ -29,6 +30,8 @@ import { MotionCard } from '../components/motion';
 
 export default function SpecialRequestRelief() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const isLguAdmin = user?.role === 'lgu_admin' || user?.role === 'lgu_superadmin';
   const isBarangay = user?.role === 'barangay_official';
 
@@ -833,7 +836,7 @@ export default function SpecialRequestRelief() {
                   <span style={{ fontSize: 11.5, fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Scale size={13} color="#1E293B" /> Door-to-Door Delivery Workload Balancer
                   </span>
-                  <span style={{ fontSize: 11, color: '#64748B' }}>Pumili ng opisyal na may pinakamababang karga</span>
+                  <span style={{ fontSize: 11, color: '#64748B' }}>{isFil ? 'Pumili ng opisyal na may pinakamababang karga' : 'Select an officer with the lowest workload'}</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1108,7 +1111,7 @@ export default function SpecialRequestRelief() {
                     }}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #BFDBFE', fontSize: 13, background: '#F8FAFF', color: '#1E40AF', fontWeight: 700, boxSizing: 'border-box' }}
                   >
-                    <option value="">-- Pumili mula sa rehistradong sambahayan (o mag-type nang manu-mano) --</option>
+                    <option value="">{isFil ? '-- Pumili mula sa rehistradong sambahayan (o mag-type nang manu-mano) --' : '-- Select from registered households (or enter manually) --'}</option>
                     {households.map(h => {
                       const hName = h.headOfHouseholdUserId?.name || 'Household';
                       const hAddr = h.address ? `${h.address}` : `Purok ${h.purok || '1'}`;
@@ -1265,16 +1268,18 @@ export default function SpecialRequestRelief() {
               {/* Standardized Unified Relief Package (No Choices Dropdown) */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
-                  Opisyal na Alokasyon ng Ayuda (Kumpletong Standard Pack)
+                  {isFil ? 'Opisyal na Alokasyon ng Ayuda (Kumpletong Standard Pack)' : 'Official Relief Allocation (Complete Standard Pack)'}
                 </label>
                 <div style={{ padding: '12px 14px', borderRadius: 8, border: '1.5px solid #BFDBFE', background: '#EFF6FF', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <CheckCircle2 size={18} color="#1D4ED8" style={{ marginTop: 2, flexShrink: 0 }} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: '#1E40AF' }}>
-                      Pangunahing Family Food & Disaster Relief Pack (Standard Unified Allocation)
+                      {isFil ? 'Pangunahing Family Food & Disaster Relief Pack (Standard Unified Allocation)' : 'Standard Family Food & Disaster Relief Pack (Unified Allocation)'}
                     </div>
                     <div style={{ fontSize: 11.5, color: '#3B82F6', marginTop: 3, lineHeight: 1.4 }}>
-                      Lahat ng Door-to-Door Relief ay naglalaman ng 5kg Bigas, De-latang Ulam, Instant Noodles, Malinis na Inuming Tubig, at Essential Care Supplies. Lahat ng kailangan ay kasama na sa isang kumpletong relief package.
+                      {isFil
+                        ? 'Lahat ng Door-to-Door Relief ay naglalaman ng 5kg Bigas, De-latang Ulam, Instant Noodles, Malinis na Inuming Tubig, at Essential Care Supplies. Lahat ng kailangan ay kasama na sa isang kumpletong relief package.'
+                        : 'All Door-to-Door Relief kits include 5kg Rice, Canned Goods, Instant Noodles, Clean Potable Water, and Essential Care Supplies in one complete relief package.'}
                     </div>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import {
   FileText, ShieldAlert, AlertCircle, Download, Printer, Users, CheckCircle2,
   XOctagon, BarChart2, Filter, Globe, Building, Package, AlertTriangle, Clock,
@@ -17,6 +18,8 @@ import { canSeeCityWide } from '../utils/roleUtils';
 
 export default function ReportsPage() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const isCityWide = canSeeCityWide(user);
   const isSuperAdmin = user?.role === 'lgu_superadmin';
   const isLguAdmin = user?.role === 'lgu_admin';
@@ -1029,9 +1032,13 @@ export default function ReportsPage() {
 
             <div style={{ background: 'var(--sampaguita)', borderRadius: 'var(--radius-inner)', padding: '12px 16px', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <AlertCircle size={16} color="var(--manila-blue)" style={{ flexShrink: 0, marginTop: 1 }} />
-              <span><strong>Government Audit Compliance Note:</strong> {isBarangayOfficial
-                ? `Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap sa Barangay ${officialBrgy}, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds.`
-                : 'Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.'}</span>
+              <span><strong>Government Audit Compliance Note:</strong> {isFil
+                ? (isBarangayOfficial
+                    ? `Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap sa Barangay ${officialBrgy}, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds.`
+                    : 'Ang masterlist na ito ay naglalaman ng eksaktong tala ng mga nakatanggap, kabilang ang Receipt Reference Numbers, Head of Household Names, Family Sizes, at Disbursing Officers na kinakailangan sa liquidation ng disaster funds ng Lungsod ng Maynila.')
+                : (isBarangayOfficial
+                    ? `This masterlist contains the exact records of relief recipients in Barangay ${officialBrgy}, including Receipt Reference Numbers, Head of Household Names, Family Sizes, and Disbursing Officers required for disaster fund liquidation.`
+                    : 'This masterlist contains the exact records of relief recipients across Manila City, including Receipt Reference Numbers, Head of Household Names, Family Sizes, and Disbursing Officers required for disaster fund liquidation.')}</span>
             </div>
           </div>
         </>
@@ -1246,10 +1253,12 @@ export default function ReportsPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                           <AlertTriangle size={36} color="#CBD5E1" />
                           <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-                            Walang Naitalang Field Incident Reports
+                            {isFil ? 'Walang Naitalang Field Incident Reports' : 'No Field Incident Reports Recorded'}
                           </span>
                           <span style={{ fontSize: 12, maxWidth: 400 }}>
-                            Lahat ng reports na isusumite ng mga Field Staff at Team Leaders mula sa mobile app (Logger tab) ay awtomatikong lalabas dito nang real-time.
+                            {isFil
+                              ? 'Lahat ng reports na isusumite ng mga Field Staff at Team Leaders mula sa mobile app (Logger tab) ay awtomatikong lalabas dito nang real-time.'
+                              : 'All reports submitted by Field Staff and Team Leaders from the mobile app will automatically appear here in real time.'}
                           </span>
                         </div>
                       </td>
@@ -1694,7 +1703,7 @@ export default function ReportsPage() {
                       type="button"
                       onClick={() => {
                         setResActionType('reissue_qr');
-                        setResolutionRemarks('Nai-renew at na-reprint ang opisyal na QR Pass sa barangay command terminal. Na-invalidate ang lumang nawawalang pass.');
+                        setResolutionRemarks(isFil ? 'Nai-renew at na-reprint ang opisyal na QR Pass sa barangay command terminal. Na-invalidate ang lumang nawawalang pass.' : 'Renewed and reprinted the official QR Pass at the barangay command terminal. Invalidated the old lost pass.');
                       }}
                       style={{
                         padding: '10px 12px',
@@ -1838,10 +1847,10 @@ export default function ReportsPage() {
             {/* Resolution remarks input */}
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
-                Opisyal na Direktiba / Mensahe para sa Field Staff *
+                {isFil ? 'Opisyal na Direktiba / Mensahe para sa Field Staff *' : 'Official Directive / Message for Field Staff *'}
               </label>
               <textarea
-                placeholder="Hal. Kumuha na kayo dito sa LGU Disaster Office ng 50 packs..."
+                placeholder={isFil ? "Hal. Kumuha na kayo dito sa LGU Disaster Office ng 50 packs..." : "E.g., Please pick up 50 packs from the LGU Disaster Office..."}
                 value={resolutionRemarks}
                 onChange={(e) => setResolutionRemarks(e.target.value)}
                 rows={3}

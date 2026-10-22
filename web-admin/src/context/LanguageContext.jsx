@@ -18,7 +18,7 @@ export const TRANSLATIONS = {
     heatmap: 'Barangay Heatmap',
     distributionEvents: 'Distribution / Announcement',
     warehouseInventory: 'Warehouse Inventory',
-    reliefAllocation: 'Paglalaan ng Ayuda',
+    reliefAllocation: 'Relief Allocation',
     fraudInterception: 'Fraud Interception',
     specialRelief: 'Special Relief Requests',
     livelihoodAssistance: 'Livelihood Assistance',
@@ -39,7 +39,7 @@ export const TRANSLATIONS = {
     welcomeSubSuper: 'City-wide statistics across all 897 barangays of Manila.',
     welcomeTitleAdmin: 'Operational Command Center',
     welcomeSubAdmin: 'Manage city-wide relief distribution, field staff, and warehouse inventory.',
-    welcomeTitleBrgy: 'Magandang araw, Barangay',
+    welcomeTitleBrgy: 'Welcome, Barangay',
     welcomeSubBrgy: 'Official Operations Panel for Barangay',
 
     // Actions & Buttons

@@ -431,8 +431,8 @@ export default function SettingsPage() {
                 <Palette size={18} color="var(--manila-blue)" />
               </div>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>Appearance</h2>
-                <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '2px 0 0' }}>Theme and visual style</p>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>{t.appTitle}</h2>
+                <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '2px 0 0' }}>{t.appDesc}</p>
               </div>
             </div>
 

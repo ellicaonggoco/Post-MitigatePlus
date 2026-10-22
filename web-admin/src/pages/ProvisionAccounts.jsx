@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { UserPlus, Shield, Users, CheckCircle, AlertTriangle, UserX, Trash2, Search, Power, ShieldAlert, Crown, Edit3, Grid, List, Radio, Phone, Mail, Award, Check, Layers, UserCheck, Eye, EyeOff, Info, RefreshCw, Home, QrCode, Plus, X, AlertCircle, Printer, Download, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { MotionCard, MotionButton } from '../components/motion';
@@ -10,6 +11,8 @@ import OfflineQRCode from '../components/OfflineQRCode';
 
 export default function ProvisionAccounts() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
 
   // Default targetRole: 'lgu_admin' if SuperAdmin, 'field_staff' if LGU Admin
@@ -320,11 +323,11 @@ export default function ProvisionAccounts() {
     // Handle Resident / Citizen Account Creation OR Update
     if (targetRole === 'resident') {
       if (!name.trim() || !emailOrPhone.trim() || !address.trim() || !purok.trim()) {
-        setStatusMsg({ type: 'error', text: 'Punan ang lahat ng kinakailangang impormasyon ng residente (Pangalan, Mobile Phone, Barangay, Address, Purok).' });
+        setStatusMsg({ type: 'error', text: isFil ? 'Punan ang lahat ng kinakailangang impormasyon ng residente (Pangalan, Mobile Phone, Barangay, Address, Purok).' : 'Please fill in all required resident fields (Name, Mobile Phone, Barangay, Address, Purok).' });
         return;
       }
       if (!editingAccount && !password.trim()) {
-        setStatusMsg({ type: 'error', text: 'Kinakailangan ang password para sa bagong rehistradong resident account.' });
+        setStatusMsg({ type: 'error', text: isFil ? 'Kinakailangan ang password para sa bagong rehistradong resident account.' : 'Password is required for newly registered resident accounts.' });
         return;
       }
       let finalBrgyCode = barangayCode.trim();
@@ -333,7 +336,7 @@ export default function ProvisionAccounts() {
         if (numOnly) finalBrgyCode = numOnly;
       }
       if (!finalBrgyCode) {
-        setStatusMsg({ type: 'error', text: 'Pumili ng Barangay para sa residente mula sa suggestions.' });
+        setStatusMsg({ type: 'error', text: isFil ? 'Pumili ng Barangay para sa residente mula sa suggestions.' : 'Please select a Barangay for the resident from the suggestions.' });
         return;
       }
 
@@ -573,10 +576,11 @@ export default function ProvisionAccounts() {
     const isAct = acc.status === 'active';
     setModal({
       isOpen: true,
-      title: isAct ? 'I-suspend ang Akawnt?' : 'I-reactivate ang Akawnt?',
+      title: isFil ? (isAct ? 'I-suspend ang Akawnt?' : 'I-reactivate ang Akawnt?') : (isAct ? 'Suspend Account?' : 'Reactivate Account?'),
       message: `Are you sure you want to ${isAct ? 'suspend' : 'reactivate'} the account of ${acc.name}? ${isAct ? 'They will lose access to the system.' : 'They will regain access to the system.'}`,
       type: isAct ? 'danger' : 'success',
-      confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
+      confirmText: isFil ? (isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate') : (isAct ? 'Yes, Suspend' : 'Yes, Reactivate'),
+      cancelText: isFil ? 'Kanselahin' : 'Cancel',
       onConfirm: async () => {
         try {
           const targetId = acc.id || acc._id;
@@ -638,10 +642,13 @@ export default function ProvisionAccounts() {
     const isAct = resAcc.isActive !== false;
     setModal({
       isOpen: true,
-      title: isAct ? 'I-suspend ang Residente?' : 'I-reactivate ang Residente?',
-      message: `Sigurado ka bang nais mong ${isAct ? 'i-suspend' : 'i-reactivate'} ang resident account ni ${resAcc.name} (${resAcc.emailOrPhone})? ${isAct ? 'Hindi muna makakapag-login ang residente sa mobile app.' : 'Makakapag-login at magagamit muli ng residente ang mobile app.'}`,
+      title: isFil ? (isAct ? 'I-suspend ang Residente?' : 'I-reactivate ang Residente?') : (isAct ? 'Suspend Resident Account?' : 'Reactivate Resident Account?'),
+      message: isFil
+        ? `Sigurado ka bang nais mong ${isAct ? 'i-suspend' : 'i-reactivate'} ang resident account ni ${resAcc.name} (${resAcc.emailOrPhone})? ${isAct ? 'Hindi muna makakapag-login ang residente sa mobile app.' : 'Makakapag-login at magagamit muli ng residente ang mobile app.'}`
+        : `Are you sure you want to ${isAct ? 'suspend' : 'reactivate'} the resident account of ${resAcc.name} (${resAcc.emailOrPhone})? ${isAct ? 'The resident will temporarily lose access to the mobile app.' : 'The resident will regain access to the mobile app.'}`,
       type: isAct ? 'danger' : 'success',
-      confirmText: isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate',
+      confirmText: isFil ? (isAct ? 'Oo, I-suspend' : 'Oo, I-reactivate') : (isAct ? 'Yes, Suspend' : 'Yes, Reactivate'),
+      cancelText: isFil ? 'Kanselahin' : 'Cancel',
       onConfirm: async () => {
         try {
           const targetId = resAcc.id || resAcc._id;
@@ -670,10 +677,13 @@ export default function ProvisionAccounts() {
   const requestDeleteResident = (resAcc) => {
     setModal({
       isOpen: true,
-      title: 'Burahin ang Resident Account?',
-      message: `Sigurado ka bang nais mong permanenteng BURAHIN ang resident account at household data ni ${resAcc.name} (${resAcc.emailOrPhone})? Hindi na ito maibabalik.`,
+      title: isFil ? 'Burahin ang Resident Account?' : 'Delete Resident Account?',
+      message: isFil
+        ? `Sigurado ka bang nais mong permanenteng BURAHIN ang resident account at household data ni ${resAcc.name} (${resAcc.emailOrPhone})? Hindi na ito maibabalik.`
+        : `Are you sure you want to permanently DELETE the resident account and household data of ${resAcc.name} (${resAcc.emailOrPhone})? This action cannot be undone.`,
       type: 'danger',
-      confirmText: 'Oo, Burahin Nang Permanente',
+      confirmText: isFil ? 'Oo, Burahin Nang Permanente' : 'Yes, Delete Permanently',
+      cancelText: isFil ? 'Kanselahin' : 'Cancel',
       onConfirm: async () => {
         try {
           const targetId = resAcc.id || resAcc._id;
@@ -2130,12 +2140,14 @@ export default function ProvisionAccounts() {
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--ink-soft)' }}>
                     <div style={{ marginBottom: 6, fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-                      Walang residenteng natagpuan {selectedBarangayFilter !== 'all' ? `sa Barangay ${selectedBarangayFilter}` : ''}
+                      {isFil
+                        ? `Walang residenteng natagpuan ${selectedBarangayFilter !== 'all' ? `sa Barangay ${selectedBarangayFilter}` : ''}`
+                        : `No residents found ${selectedBarangayFilter !== 'all' ? `in Barangay ${selectedBarangayFilter}` : ''}`}
                     </div>
                     <div style={{ marginBottom: 12, fontSize: 12, color: 'var(--ink-soft)' }}>
                       {selectedBarangayFilter !== 'all'
-                        ? 'Piliin ang "Entire Manila City" upang makita ang lahat ng barangay o magrehistro ng bagong residente.'
-                        : 'Maaari kang magrehistro ng bagong residente gamit ang button sa ibaba.'}
+                        ? (isFil ? 'Piliin ang "Entire Manila City" upang makita ang lahat ng barangay o magrehistro ng bagong residente.' : 'Select "Entire Manila City" to view all barangays or register a new resident.')
+                        : (isFil ? 'Maaari kang magrehistro ng bagong residente gamit ang button sa ibaba.' : 'You can register a new resident using the button below.')}
                     </div>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
                       {selectedBarangayFilter !== 'all' && (
@@ -2144,7 +2156,7 @@ export default function ProvisionAccounts() {
                           className="clay-button-ghost"
                           style={{ fontSize: 12, padding: '6px 14px' }}
                         >
-                          Ipakita ang Lahat ng Barangay
+                          {isFil ? 'Ipakita ang Lahat ng Barangay' : 'Show All Barangays'}
                         </button>
                       )}
                       <button

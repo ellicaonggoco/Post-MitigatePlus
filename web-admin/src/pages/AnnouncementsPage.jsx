@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { ROLES } from '../utils/roleUtils';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
@@ -15,6 +16,8 @@ const MANILA_BARANGAYS = Array.from({ length: 897 }, (_, i) => ({
 
 export default function AnnouncementsPage() {
   const { user, token } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const role = user?.role;
   const isLguAdmin = role === ROLES.LGU_ADMIN;
   const isBarangay = role === ROLES.BARANGAY_OFFICIAL;
@@ -325,7 +328,7 @@ export default function AnnouncementsPage() {
               <option value="general">General Public Advisory (Standard Official Notice)</option>
             </select>
             <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 4 }}>
-              Pumili ng opisyal na kategorya para sa anunsyo.
+              {isFil ? 'Pumili ng opisyal na kategorya para sa anunsyo.' : 'Select an official announcement category.'}
             </p>
           </div>
           {/* Scope Selection */}
@@ -337,7 +340,9 @@ export default function AnnouncementsPage() {
                   Target Audience: Barangay {brgy} Residents Only
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>
-                  Awtomatikong naka-lock ang anunsyong ito para lamang sa mga residente ng Barangay {brgy}. Hindi ito makikita ng ibang mga barangay.
+                  {isFil
+                    ? `Awtomatikong naka-lock ang anunsyong ito para lamang sa mga residente ng Barangay ${brgy}. Hindi ito makikita ng ibang mga barangay.`
+                    : `This announcement is restricted to residents of Barangay ${brgy}. Other barangays cannot view it.`}
                 </div>
               </div>
             </div>
@@ -354,8 +359,8 @@ export default function AnnouncementsPage() {
                   onChange={e => setForm(p => ({ ...p, scope: e.target.value }))}
                   style={{ padding: '9px 14px', borderRadius: 'var(--radius-inner)', border: '1.5px solid var(--manila-blue)', fontSize: 13, outline: 'none', background: 'var(--card)', color: 'var(--ink)', cursor: 'pointer', fontWeight: 700, minWidth: 260 }}
                 >
-                  <option value="city-wide">City-Wide (Lahat ng 897 Barangays sa Maynila)</option>
-                  <option value="barangay">Specific Barangay Only (Pumili ng Barangay)</option>
+                  <option value="city-wide">{isFil ? 'City-Wide (Lahat ng 897 Barangays sa Maynila)' : 'City-Wide (All 897 Barangays in Manila)'}</option>
+                  <option value="barangay">{isFil ? 'Specific Barangay Only (Pumili ng Barangay)' : 'Specific Barangay Only (Select Barangay)'}</option>
                 </select>
 
                 {/* Autocomplete Typeahead Search Box when 'Specific Barangay' is selected */}
@@ -421,14 +426,14 @@ export default function AnnouncementsPage() {
             className={adminFilterBrgy === 'ALL' ? 'clay-button-primary' : 'clay-button-ghost'}
             style={{ fontSize: 12.5, padding: '6px 14px' }}
           >
-            Lahat ng Anunsyo ({announcements.length})
+            {isFil ? `Lahat ng Anunsyo (${announcements.length})` : `All Announcements (${announcements.length})`}
           </button>
           <button
             onClick={() => setAdminFilterBrgy('CITY_WIDE')}
             className={adminFilterBrgy === 'CITY_WIDE' ? 'clay-button-primary' : 'clay-button-ghost'}
             style={{ fontSize: 12.5, padding: '6px 14px' }}
           >
-            City-Wide Lamang
+            {isFil ? 'City-Wide Lamang' : 'City-Wide Only'}
           </button>
         </div>
       )}

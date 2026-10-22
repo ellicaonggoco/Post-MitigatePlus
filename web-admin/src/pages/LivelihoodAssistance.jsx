@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { ROLES } from '../utils/roleUtils';
 import {
   Briefcase,
@@ -44,6 +45,8 @@ const DEFAULT_CATEGORIES = [
 
 export default function LivelihoodAssistance() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const role = user?.role;
   const isSuperAdmin = role === ROLES.LGU_SUPERADMIN || role === 'lgu_super_admin';
   const isLguAdmin = role === ROLES.LGU_ADMIN;
@@ -1265,7 +1268,9 @@ export default function LivelihoodAssistance() {
                   </div>
                 </div>
                 <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginBottom: 8, marginTop: 0 }}>
-                  Piliin kung anong specific na trabaho ang kailangan. Tanging ang mga naka-check dito ang lalabas sa mobile app ng mga residente (iwas mismatch sa trabaho).
+                  {isFil
+                    ? 'Piliin kung anong specific na trabaho ang kailangan. Tanging ang mga naka-check dito ang lalabas sa mobile app ng mga residente (iwas mismatch sa trabaho).'
+                    : 'Select the specific job types required. Only checked categories will appear in the resident mobile app (prevents job mismatch).'}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {DEFAULT_CATEGORIES.map(cat => {

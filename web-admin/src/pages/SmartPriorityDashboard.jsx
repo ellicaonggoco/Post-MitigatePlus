@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { Shield, Filter, Search, BarChart2, Building2, Users, Truck, Bell, CheckCircle2, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
@@ -11,6 +12,8 @@ import { MotionCard, MotionNumberCounter } from '../components/motion';
 
 export default function SmartPriorityDashboard() {
   const { token, user } = useContext(AuthContext);
+  const { lang, t } = useContext(LanguageContext);
+  const isFil = lang === 'fil' || lang === 'tl';
   const navigate = useNavigate();
   const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
   const isLguAdmin = user?.role === 'lgu_admin';
@@ -216,10 +219,13 @@ export default function SmartPriorityDashboard() {
       {/* Universal Executive Directive Confirmation Modal */}
       <ConfirmModal
         isOpen={directiveModal.isOpen}
-        title="I-notify ang LGU Operations Admin?"
-        message={`Magpadala ng Executive Relief Directive sa LGU Disaster Operations Admin para sa agarang pag-deploy ng ayuda sa Barangay ${directiveModal.barangay?.code}? Makatatanggap ang Admin ng high-priority alert notification na magbubukas sa event creation.`}
+        title={isFil ? "I-notify ang LGU Operations Admin?" : "Notify LGU Operations Admin?"}
+        message={isFil
+          ? `Magpadala ng Executive Relief Directive sa LGU Disaster Operations Admin para sa agarang pag-deploy ng ayuda sa Barangay ${directiveModal.barangay?.code}? Makatatanggap ang Admin ng high-priority alert notification na magbubukas sa event creation.`
+          : `Send an Executive Relief Directive to the LGU Disaster Operations Admin for immediate relief deployment to Barangay ${directiveModal.barangay?.code}? The Admin will receive a high-priority alert notification opening event creation.`}
         type="warning"
-        confirmText="Oo, Ipadala ang Directive"
+        confirmText={isFil ? "Oo, Ipadala ang Directive" : "Yes, Send Directive"}
+        cancelText={isFil ? "Kanselahin" : "Cancel"}
         onConfirm={handleSendDirective}
         onCancel={() => setDirectiveModal({ isOpen: false, barangay: null })}
       />
@@ -227,10 +233,13 @@ export default function SmartPriorityDashboard() {
       {/* Re-evaluate Household (Return to Waiting Queue) Confirmation Modal */}
       <ConfirmModal
         isOpen={reevaluateModal.isOpen}
-        title="I-re-evaluate at Ibalik sa Waiting Queue?"
-        message={`Kasalukuyang rejected ang rehistrasyon ni ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'}. Nais mo ba itong ibalik sa Waiting Queue (Pending) upang muling masuri, maaprubahan, o mahingan ng update?`}
+        title={isFil ? "I-re-evaluate at Ibalik sa Waiting Queue?" : "Re-evaluate and Return to Waiting Queue?"}
+        message={isFil
+          ? `Kasalukuyang rejected ang rehistrasyon ni ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'}. Nais mo ba itong ibalik sa Waiting Queue (Pending) upang muling masuri, maaprubahan, o mahingan ng update?`
+          : `The registration of ${reevaluateModal.household?.headOfHouseholdUserId?.name || 'Resident'} is currently rejected. Do you want to return them to the Waiting Queue (Pending) to re-assess, approve, or request an update?`}
         type="info"
-        confirmText="Oo, Ibalik sa Waiting Queue"
+        confirmText={isFil ? "Oo, Ibalik sa Waiting Queue" : "Yes, Return to Waiting Queue"}
+        cancelText={isFil ? "Kanselahin" : "Cancel"}
         onConfirm={handleReevaluateHousehold}
         onCancel={() => setReevaluateModal({ isOpen: false, household: null })}
       />
@@ -621,7 +630,7 @@ export default function SmartPriorityDashboard() {
                                 borderRadius: 999,
                                 fontWeight: 700,
                               }}
-                              title="Natukoy ng sistema na may kaparehong address ang sambahayang ito."
+                              title={isFil ? "Natukoy ng sistema na may kaparehong address ang sambahayang ito." : "System detected a matching address for this household."}
                             >
                               <AlertTriangle size={11} color="#D97706" /> Matching Address
                             </span>
@@ -699,7 +708,7 @@ export default function SmartPriorityDashboard() {
                             </button>
                           ) : (
                             <span style={{ fontSize: '11.5px', color: '#158A64', fontWeight: 700 }}>
-                              Beripikado
+                              {isFil ? 'Beripikado' : 'Verified'}
                             </span>
                           )}
                         </div>

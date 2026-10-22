@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { Package, ShieldAlert, Shield, Plus, Calculator, Info, CheckCircle2, Zap } from 'lucide-react';
 import { IconlyPackage } from '../components/Sidebar';
 import io from 'socket.io-client';
@@ -11,6 +12,8 @@ import { MotionCard, MotionButton } from '../components/motion';
 export default function ReliefAllocationPage() {
   const navigate = useNavigate();
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const isSuperAdmin = user?.role === 'lgu_superadmin' || user?.role === 'lgu_super_admin';
 
   const [events, setEvents] = useState([]);
@@ -134,7 +137,7 @@ export default function ReliefAllocationPage() {
       if (res.ok) {
         localStorage.setItem('mitigateplus_allocation_policy', JSON.stringify(policy));
         window.dispatchEvent(new Event('mitigateplus_policy_updated'));
-        setMsg('Na-update at na-apply na ang opisyal na Relief Allocation Policy sa database at sa buong lungsod!');
+        setMsg(isFil ? 'Na-update at na-apply na ang opisyal na Relief Allocation Policy sa database at sa buong lungsod!' : 'Official Relief Allocation Policy updated and applied across the city database!');
       } else {
         const errData = await res.json().catch(() => ({}));
         setMsg(`Failed to save policy: ${errData.message || 'Server error'}`);
@@ -273,7 +276,9 @@ export default function ReliefAllocationPage() {
             Right-Sized Relief Allocation & Distribution
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '2px' }}>
-            Kalkulasyon ng tamang dami ng ayuda at pag-iwas sa paulit-ulit na pagkuha sa lahat ng distribution posts ng Maynila.
+            {isFil
+              ? 'Kalkulasyon ng tamang dami ng ayuda at pag-iwas sa paulit-ulit na pagkuha sa lahat ng distribution posts ng Maynila.'
+              : 'Calculation of proportional relief allocation and duplicate claim prevention across all distribution posts in Manila.'}
           </p>
         </div>
       </div>
@@ -324,7 +329,11 @@ export default function ReliefAllocationPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Info size={22} color="#2563EB" style={{ flexShrink: 0 }} />
             <div style={{ fontSize: '13px', color: '#1E40AF', lineHeight: 1.5 }}>
-              <strong>LGU Admin Simulation Mode:</strong> Naka-enable ang <em>Live Formula Simulation</em> sa ibaba upang makita kung ilang relief packs ang matatanggap ng bawat pamilya base sa kanilang miyembro, seniors, at PWDs. Ang pagbago at pag-save ng opisyal na City-Wide Policy Formula ay nakalaan sa <strong>LGU SuperAdmin</strong>.
+              {isFil ? (
+                <><strong>LGU Admin Simulation Mode:</strong> Naka-enable ang <em>Live Formula Simulation</em> sa ibaba upang makita kung ilang relief packs ang matatanggap ng bawat pamilya base sa kanilang miyembro, seniors, at PWDs. Ang pagbago at pag-save ng opisyal na City-Wide Policy Formula ay nakalaan sa <strong>LGU SuperAdmin</strong>.</>
+              ) : (
+                <><strong>LGU Admin Simulation Mode:</strong> <em>Live Formula Simulation</em> is enabled below to preview how many relief packs each household receives based on members, seniors, and PWDs. Changing and saving the official City-Wide Policy Formula is reserved for the <strong>LGU SuperAdmin</strong>.</>
+              )}
             </div>
           </div>
           <button
@@ -332,7 +341,7 @@ export default function ReliefAllocationPage() {
             className="clay-button-primary"
             style={{ fontSize: '12px', padding: '8px 14px', whiteSpace: 'nowrap' }}
           >
-            Pumunta sa Distribution Events &rarr;
+            {isFil ? 'Pumunta sa Distribution Events →' : 'Go to Distribution Events →'}
           </button>
         </div>
       )}
@@ -340,10 +349,14 @@ export default function ReliefAllocationPage() {
       {/* ── Main Executive Relief Allocation Policy & Math Engine (Full-Width with Detailed Field Descriptions) ── */}
       <div className="clay-card" style={{ marginBottom: '28px' }}>
         <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--manila-blue)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}>
-          <Calculator size={20} /> Opisyal na Patakaran sa Paglalaan ng Ayuda
+          <Calculator size={20} /> {isFil ? 'Opisyal na Patakaran sa Paglalaan ng Ayuda' : 'Official Relief Allocation Policy'}
         </h2>
         <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginBottom: '24px' }}>
-          Konpigurasyon ng opisyal na formula ng ayuda para sa pamilyang <strong>lumalagpas sa 5 miyembro</strong>, Senior Citizens, at PWDs sa buong Maynila.
+          {isFil ? (
+            <>Konpigurasyon ng opisyal na formula ng ayuda para sa pamilyang <strong>lumalagpas sa 5 miyembro</strong>, Senior Citizens, at PWDs sa buong Maynila.</>
+          ) : (
+            <>Official relief formula configuration for households <strong>exceeding 5 members</strong>, Senior Citizens, and PWDs across Manila.</>
+          )}
         </p>
 
         {/* 4 Parameter Configuration Inputs with Explicit Descriptions */}
@@ -380,7 +393,11 @@ export default function ReliefAllocationPage() {
               style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
-              <strong>Klaripikasyon:</strong> Rasyo ng karagdagang relief pack bawat sobrang tao sa base limit (hal. +0.5x ratio = 1 karagdagang top-up pack bawat 2 sobrang tao).
+              {isFil ? (
+                <><strong>Klaripikasyon:</strong> Rasyo ng karagdagang relief pack bawat sobrang tao sa base limit (hal. +0.5x ratio = 1 karagdagang top-up pack bawat 2 sobrang tao).</>
+              ) : (
+                <><strong>Clarification:</strong> Additional relief pack ratio per extra person beyond the base limit (e.g., +0.5x ratio = 1 additional pack per 2 extra persons).</>
+              )}
             </span>
           </div>
 
@@ -397,7 +414,11 @@ export default function ReliefAllocationPage() {
               style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
-              <strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Senior Citizen (60+ years old).
+              {isFil ? (
+                <><strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Senior Citizen (60+ years old).</>
+              ) : (
+                <><strong>Clarification:</strong> Additional provision or bonus pack for families with Senior Citizen members (60+ years old).</>
+              )}
             </span>
           </div>
 
@@ -414,7 +435,11 @@ export default function ReliefAllocationPage() {
               style={{ ...inputStyle, marginTop: 6, opacity: isSuperAdmin ? 1 : 0.85, cursor: isSuperAdmin ? 'text' : 'not-allowed' }}
             />
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 8, display: 'block', lineHeight: 1.4 }}>
-              <strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Person with Disability (PWD).
+              {isFil ? (
+                <><strong>Klaripikasyon:</strong> Karagdagang probisyon o bonus pack para sa pamilyang may kapamilyang Person with Disability (PWD).</>
+              ) : (
+                <><strong>Clarification:</strong> Additional provision or bonus pack for families with Person with Disability (PWD) members.</>
+              )}
             </span>
           </div>
         </div>
@@ -484,7 +509,11 @@ export default function ReliefAllocationPage() {
             </div>
 
             <div style={{ fontSize: '11px', color: 'var(--ink)', lineHeight: 1.4, background: 'var(--card)', padding: '8px 10px', borderRadius: 'var(--radius-inner)', border: '1px solid var(--border)' }}>
-              <strong>Klaripikasyon sa Pamamahagi:</strong> Ang pamilyang may {n} miyembro ay makakatanggap ng <strong>1 buong Standard Base Relief Pack</strong>, kasama ang <strong>{extraMemberTopUps} Supplemental Top-Up Pack(s)</strong> para sa {excessMembers} karagdagang miyembro{seniorBonusPacks > 0 ? ` + ${seniorBonusPacks} Senior Bonus` : ''}{pwdBonusPacks > 0 ? ` + ${pwdBonusPacks} PWD Bonus` : ''} - <em>hindi ito 3 buong base relief packs.</em>
+              {isFil ? (
+                <><strong>Klaripikasyon sa Pamamahagi:</strong> Ang pamilyang may {n} miyembro ay makakatanggap ng <strong>1 buong Standard Base Relief Pack</strong>, kasama ang <strong>{extraMemberTopUps} Supplemental Top-Up Pack(s)</strong> para sa {excessMembers} karagdagang miyembro{seniorBonusPacks > 0 ? ` + ${seniorBonusPacks} Senior Bonus` : ''}{pwdBonusPacks > 0 ? ` + ${pwdBonusPacks} PWD Bonus` : ''} - <em>hindi ito 3 buong base relief packs.</em></>
+              ) : (
+                <><strong>Distribution Clarification:</strong> A family of {n} members receives <strong>1 full Standard Base Relief Pack</strong>, plus <strong>{extraMemberTopUps} Supplemental Top-Up Pack(s)</strong> for the {excessMembers} additional members{seniorBonusPacks > 0 ? ` + ${seniorBonusPacks} Senior Bonus` : ''}{pwdBonusPacks > 0 ? ` + ${pwdBonusPacks} PWD Bonus` : ''} - <em>not 3 separate base packs.</em></>
+              )}
             </div>
           </div>
         </div>
@@ -507,7 +536,7 @@ export default function ReliefAllocationPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ink-soft)' }}>
               <Shield size={18} color="var(--manila-blue)" />
-              <span>Naka-lock ang opisyal na formula. <strong>LGU SuperAdmin</strong> lamang ang maaaring mag-save ng pagbabago.</span>
+              <span>{isFil ? <>Naka-lock ang opisyal na formula. <strong>LGU SuperAdmin</strong> lamang ang maaaring mag-save ng pagbabago.</> : <>The official formula is locked. Only the <strong>LGU SuperAdmin</strong> can save changes.</>}</span>
             </div>
             <button
               type="button"
@@ -515,7 +544,7 @@ export default function ReliefAllocationPage() {
               className="clay-button-primary"
               style={{ fontSize: 12, padding: '7px 14px' }}
             >
-              Pumunta sa Distribution Events
+              {isFil ? 'Pumunta sa Distribution Events' : 'Go to Distribution Events'}
             </button>
           </div>
         )}

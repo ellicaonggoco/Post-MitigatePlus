@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { isLguAdmin } from '../utils/roleUtils';
 import {
   Truck,
@@ -57,6 +58,8 @@ const FIELD_TEAMS = [
 
 export default function DistributionEvents() {
   const { user, token } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const location = useLocation();
 
   const [events, setEvents] = useState([]);
@@ -608,10 +611,13 @@ export default function DistributionEvents() {
     const evId = ev._id || ev.id;
     setConfirmModal({
       isOpen: true,
-      title: 'Tanggalin ang Distribution Event?',
-      message: `Sigurado ka bang nais mong tanggalin ang distribution event sa ${evBrgy}? Aalisin ito sa listahan, sa schedule ng mga field staff, at sa relief drive ng mga residente.`,
+      title: isFil ? 'Tanggalin ang Distribution Event?' : 'Delete Distribution Event?',
+      message: isFil
+        ? `Sigurado ka bang nais mong tanggalin ang distribution event sa ${evBrgy}? Aalisin ito sa listahan, sa schedule ng mga field staff, at sa relief drive ng mga residente.`
+        : `Are you sure you want to delete the distribution event at ${evBrgy}? This will remove it from the list, field staff schedules, and resident relief feeds.`,
       type: 'danger',
-      confirmText: 'Oo, Tanggalin ang Event',
+      confirmText: isFil ? 'Oo, Tanggalin ang Event' : 'Yes, Delete Event',
+      cancelText: isFil ? 'Kanselahin' : 'Cancel',
       onConfirm: () => handleDeleteEvent(evId),
     });
   };
@@ -2082,14 +2088,14 @@ export default function DistributionEvents() {
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Piliin ang Barangay (List-down Dropbox & Search)
+              {isFil ? 'Piliin ang Barangay (List-down Dropbox & Search)' : 'Select Barangay (Dropbox & Search)'}
             </div>
             <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 {selectedBrgy === 'all' ? (
                   <>
                     <Globe size={15} color="#2563EB" />
-                    <span>Lahat ng Barangay (Entire Manila City)</span>
+                    <span>{isFil ? 'Lahat ng Barangay (Entire Manila City)' : 'All Barangays (Entire Manila City)'}</span>
                   </>
                 ) : (
                   <>
@@ -2147,10 +2153,10 @@ export default function DistributionEvents() {
               outline: 'none',
             }}
           >
-            <option value="all">Lahat ng Barangay (All)</option>
+            <option value="all">{isFil ? 'Lahat ng Barangay (All)' : 'All Barangays (All)'}</option>
             {availableBarangaysWithClaims.map(([bCode, count]) => (
               <option key={`opt-avail-${bCode}`} value={bCode}>
-                Barangay {bCode} ({count} {count === 1 ? 'Resibo' : 'Resibo'})
+                Barangay {bCode} ({count} {isFil ? 'Resibo' : (count === 1 ? 'Receipt' : 'Receipts')})
               </option>
             ))}
             <option disabled>──────────</option>
@@ -2326,10 +2332,12 @@ export default function DistributionEvents() {
                 <MapPin size={20} color="#1557B0" />
                 <div>
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#1557B0' }}>
-                    Naka-filter sa: Barangay {String(selectedBrgy).replace(/[^0-9]/g, '')}
+                    {isFil ? `Naka-filter sa: Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}` : `Filtered by: Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}`}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-                    Ipinapakita ang {filteredClaims.length} relief distribution claims / opisyal na resibo para sa Barangay {String(selectedBrgy).replace(/[^0-9]/g, '')}.
+                    {isFil
+                      ? `Ipinapakita ang ${filteredClaims.length} relief distribution claims / opisyal na resibo para sa Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}.`
+                      : `Showing ${filteredClaims.length} relief distribution claims / official receipts for Barangay ${String(selectedBrgy).replace(/[^0-9]/g, '')}.`}
                   </div>
                 </div>
               </div>
@@ -2340,7 +2348,7 @@ export default function DistributionEvents() {
                   className="clay-button-ghost"
                   style={{ fontSize: 12, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, background: '#FFFFFF' }}
                 >
-                  Ipakita Lahat ng Barangay ({claimsRoster.length})
+                  {isFil ? `Ipakita Lahat ng Barangay (${claimsRoster.length})` : `Show All Barangays (${claimsRoster.length})`}
                 </button>
               </div>
             </div>
@@ -2361,7 +2369,11 @@ export default function DistributionEvents() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Globe size={15} color="#64748B" />
-                <span>Ipinapakita ang lahat ng claims sa buong Maynila ({filteredClaims.length} Resibo). Gamitin ang <strong>Barangay Dropbox</strong> sa itaas para mag-filter kada barangay.</span>
+                <span>
+                  {isFil
+                    ? `Ipinapakita ang lahat ng claims sa buong Maynila (${filteredClaims.length} Resibo). Gamitin ang Barangay Dropbox sa itaas para mag-filter kada barangay.`
+                    : `Showing all claims across Manila City (${filteredClaims.length} Receipts). Use the Barangay Dropbox above to filter per barangay.`}
+                </span>
               </div>
               {availableBarangaysWithClaims.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2401,14 +2413,14 @@ export default function DistributionEvents() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', color: '#475569', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Resibo / Reference #</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Benepisyaryo (Household Head)</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Tirahan & Barangay</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Ayuda / Quota</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Nagpalabas na Opisyal</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>Petsa & Oras</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Resibo / Reference #' : 'Receipt / Reference #'}</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Benepisyaryo (Household Head)' : 'Beneficiary (Household Head)'}</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Tirahan & Barangay' : 'Address & Barangay'}</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Ayuda / Quota' : 'Relief / Quota'}</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Nagpalabas na Opisyal' : 'Issuing Official'}</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800 }}>{isFil ? 'Petsa & Oras' : 'Date & Time'}</th>
                       <th style={{ padding: '14px 18px', fontWeight: 800, textAlign: 'center' }}>Status</th>
-                      <th style={{ padding: '14px 18px', fontWeight: 800, textAlign: 'right' }}>Aksyon</th>
+                      <th style={{ padding: '14px 18px', fontWeight: 800, textAlign: 'right' }}>{isFil ? 'Aksyon' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody>

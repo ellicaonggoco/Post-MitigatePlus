@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
 import io from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { Activity, ChevronDown, Users, CheckCircle, Clock, TrendingUp, ArrowUpCircle, X, Search, Layers, Filter, RotateCcw } from 'lucide-react';
@@ -277,6 +278,8 @@ const HouseholdCard = React.memo(function HouseholdCard({
 
 export default function RecoveryProgressTracker() {
   const { token, user } = useContext(AuthContext);
+  const { lang } = useContext(LanguageContext) || {};
+  const isFil = lang === 'fil' || lang === 'tl';
   const [households, setHouseholds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -562,10 +565,13 @@ export default function RecoveryProgressTracker() {
       {/* Universal Double Confirmation Modal for Calamity Bulk Reset */}
       <ConfirmModal
         isOpen={showBulkResetModal}
-        title="Declare New Calamity & Reset Barangay?"
-        message={`Sigurado ba kayo na nais ninyong i-reset ang recovery progress ng lahat ng pamilya sa Barangay ${brgy} pabalik sa "3. Allocated (Standby)"? Ito ay isinasagawa kapag may bagong bagyo o kalamidad upang ihanda ang lahat ng residente para sa panibagong relief distribution drive.`}
+        title={isFil ? "Magdeklara ng Bagong Kalamidad at I-reset ang Barangay?" : "Declare New Calamity & Reset Barangay?"}
+        message={isFil
+          ? `Sigurado ba kayo na nais ninyong i-reset ang recovery progress ng lahat ng pamilya sa Barangay ${brgy} pabalik sa "3. Allocated (Standby)"? Ito ay isinasagawa kapag may bagong bagyo o kalamidad upang ihanda ang lahat ng residente para sa panibagong relief distribution drive.`
+          : `Are you sure you want to reset the recovery progress of all families in Barangay ${brgy} back to "3. Allocated (Standby)"? This is done during a new typhoon or calamity to prepare all residents for a new relief distribution drive.`}
         type="warning"
-        confirmText={bulkResetting ? 'Nire-reset...' : 'Oo, I-reset ang Buong Barangay'}
+        confirmText={bulkResetting ? (isFil ? 'Nire-reset...' : 'Resetting...') : (isFil ? 'Oo, I-reset ang Buong Barangay' : 'Yes, Reset Entire Barangay')}
+        cancelText={isFil ? 'Kanselahin' : 'Cancel'}
         onConfirm={handleConfirmBulkReset}
         onCancel={() => setShowBulkResetModal(false)}
       />
@@ -626,10 +632,14 @@ export default function RecoveryProgressTracker() {
             </div>
             <div>
               <strong style={{ fontSize: 13.5, color: '#166534', display: 'block' }}>
-                 Real-Time Ayuda Release Detected!
+                {isFil ? ' Real-Time Ayuda Release Detected!' : ' Real-Time Relief Release Detected!'}
               </strong>
               <span style={{ fontSize: 12.5, color: '#15803D' }}>
-                Awtomatikong na-update ang recovery stage ni <strong>{liveToast.headName}</strong> (Barangay {liveToast.barangay}) sa "<strong>Relief Claimed</strong>" mula sa QR scan ng Field Staff! Hindi na kailangang i-adjust nang manu-mano.
+                {isFil ? (
+                  <>Awtomatikong na-update ang recovery stage ni <strong>{liveToast.headName}</strong> (Barangay {liveToast.barangay}) sa "<strong>Relief Claimed</strong>" mula sa QR scan ng Field Staff! Hindi na kailangang i-adjust nang manu-mano.</>
+                ) : (
+                  <>Recovery stage for <strong>{liveToast.headName}</strong> (Barangay {liveToast.barangay}) was automatically updated to "<strong>Relief Claimed</strong>" via Field Staff QR scan! No manual adjustment needed.</>
+                )}
               </span>
             </div>
           </div>
@@ -753,7 +763,9 @@ export default function RecoveryProgressTracker() {
                   No Households in "{currentStageObj?.label}"
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 16px' }}>
-                  Walang pamilya sa Barangay {brgy} ang kasalukuyang nasa yugtong ito ng recovery.
+                  {isFil
+                    ? `Walang pamilya sa Barangay ${brgy} ang kasalukuyang nasa yugtong ito ng recovery.`
+                    : `No families in Barangay ${brgy} are currently in this recovery stage.`}
                 </p>
                 <button
                   onClick={() => { setSelectedStage('all'); setSearchQuery(''); setCurrentPage(1); }}
@@ -770,7 +782,9 @@ export default function RecoveryProgressTracker() {
                   {searchQuery ? 'No Matching Households Found' : 'No Household Records Found'}
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: searchQuery ? '0 0 16px' : 0 }}>
-                  {searchQuery ? `Walang natagpuang household para sa "${searchQuery}".` : `All registered households in Barangay ${brgy} will appear here.`}
+                  {searchQuery
+                    ? (isFil ? `Walang natagpuang household para sa "${searchQuery}".` : `No households found matching "${searchQuery}".`)
+                    : (isFil ? `Lahat ng rehistradong sambahayan sa Barangay ${brgy} ay lalabas dito.` : `All registered households in Barangay ${brgy} will appear here.`)}
                 </p>
                 {searchQuery && (
                   <button

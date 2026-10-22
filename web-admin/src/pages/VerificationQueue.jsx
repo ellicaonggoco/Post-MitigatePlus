@@ -1029,14 +1029,23 @@ export default function VerificationQueue() {
                         <AlertTriangle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 800, color: '#B45309', marginBottom: '3px', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>KATUGMANG ADDRESS NG RESIDENTE</span>
+                            <span>{isFil ? 'KATUGMANG ADDRESS NG RESIDENTE' : 'MATCHING RESIDENT ADDRESS'}</span>
                             <span style={{ fontSize: '10.5px', background: '#FDE68A', color: '#78350F', padding: '1px 7px', borderRadius: 999, fontWeight: 700 }}>
-                              Pagsusuri ng Address
+                              {isFil ? 'Pagsusuri ng Address' : 'Address Check'}
                             </span>
                           </div>
                           <div>
-                            Natukoy ng sistema na ang tirahang ito (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) ay may katugmang rehistradong sambahayan sa ilalim ni <strong>{matchedHeadName}</strong>.
-                            Suriin kung ito ay lehitimong hiwalay na pamilya o nangungupahan bago aprubahan.
+                            {isFil ? (
+                              <>
+                                Natukoy ng sistema na ang tirahang ito (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) ay may katugmang rehistradong sambahayan sa ilalim ni <strong>{matchedHeadName}</strong>.
+                                Suriin kung ito ay lehitimong hiwalay na pamilya o nangungupahan bago aprubahan.
+                              </>
+                            ) : (
+                              <>
+                                The system detected that this address (<strong>{matchedAddress}, Purok {matchedPurok}</strong>) matches an already registered household under <strong>{matchedHeadName}</strong>.
+                                Verify whether this is a legitimate separate family or tenant before approving.
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
