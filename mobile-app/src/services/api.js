@@ -218,14 +218,15 @@ export const releaseDistribution = confirmDistribution;
  */
 export async function fetchOfflineHouseholds(token, barangayCode) {
   try {
-    const url = barangayCode
-      ? `${API_BASE_URL}/households?barangayCode=${encodeURIComponent(barangayCode)}&limit=200`
-      : `${API_BASE_URL}/households?limit=200`;
-    const res = await request(url, {
+    const queryParam = barangayCode && barangayCode !== 'ALL' && barangayCode !== 'City-Wide'
+      ? `?barangayCode=${encodeURIComponent(barangayCode)}`
+      : '';
+    const res = await request(`${API_BASE_URL}/households/offline-cache${queryParam}`, {
       headers: getAuthHeaders(token),
     });
-    return Array.isArray(res) ? res : (res.households || []);
+    return res?.households || (Array.isArray(res) ? res : []);
   } catch (e) {
+    console.warn('fetchOfflineHouseholds error:', e);
     return [];
   }
 }

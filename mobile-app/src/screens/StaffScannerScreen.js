@@ -538,9 +538,9 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
         const queue = await AsyncStorage.getItem('mitigateplus_offline_claims');
         if (queue) setOfflineClaimsQueue(JSON.parse(queue));
 
-        // Background preload latest households for duty barangay
-        if (token && dutyBrgy) {
-          fetchOfflineHouseholds(token, dutyBrgy)
+        // Background preload latest households across all barangays
+        if (token) {
+          fetchOfflineHouseholds(token, 'ALL')
             .then(data => {
               if (Array.isArray(data) && data.length > 0) {
                 setOfflineCache(data);
@@ -688,14 +688,27 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
   const downloadOfflineCache = async () => {
     setCachingLoading(true);
     try {
-      const data = await fetchOfflineHouseholds(token, dutyBrgy);
-      if (Array.isArray(data)) {
+      const data = await fetchOfflineHouseholds(token, 'ALL');
+      if (Array.isArray(data) && data.length > 0) {
         setOfflineCache(data);
         await AsyncStorage.setItem('mitigateplus_offline_households', JSON.stringify(data));
-        Alert.alert('Offline Cache Ready', `${data.length} household records cached locally.`);
+        Alert.alert(
+          lang === 'tl' ? 'Offline Cache Handa Na' : 'Offline Cache Ready',
+          lang === 'tl'
+            ? `${data.length} talaan ng mga pamilya ang nai-save sa inyong phone para sa offline scanning.`
+            : `${data.length} household records cached locally across Manila for offline scanning.`
+        );
+      } else {
+        Alert.alert(
+          lang === 'tl' ? 'Paunawa' : 'Notice',
+          lang === 'tl' ? 'Walang natagpuang verified records para i-cache.' : 'No verified records found to cache.'
+        );
       }
     } catch (e) {
-      Alert.alert('Download Error', 'Could not sync records from cloud.');
+      Alert.alert(
+        lang === 'tl' ? 'Error sa Pag-cache' : 'Download Error',
+        lang === 'tl' ? 'Hindi ma-sync ang mga talaan mula sa server.' : 'Could not sync records from cloud.'
+      );
     } finally {
       setCachingLoading(false);
     }
@@ -2638,7 +2651,32 @@ export default function StaffScannerScreen({ token, user, lang = 'en', onSelectL
             </View>
 
             {/* Diagnostics and Action */}
-            <View style={[styles.dutyInfoCard, { marginTop: 14, padding: 14 }]}>
+            <View style={[styles.dutyInfoCard, { marginTop: 14, padding: 14, gap: 10 }]}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#1C3F94',
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onPress={downloadOfflineCache}
+                disabled={cachingLoading}
+                activeOpacity={0.85}
+              >
+                {cachingLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <RefreshCwIcon size={16} color="#FFFFFF" />
+                )}
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                  {cachingLoading ? (lang === 'tl' ? 'Nagda-download...' : 'Downloading Cache...') : (lang === 'tl' ? 'I-download ang Offline Cache (Roster)' : 'Download Offline Cache (All Roster)')}
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.logoutBtnFull}
                 onPress={onLogout}

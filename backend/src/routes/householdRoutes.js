@@ -1190,7 +1190,7 @@ router.get('/qr/:code', protect, requireRole('field_staff', 'barangay_official',
 
 // @route   GET /api/households
 // @desc    Get all households (with optional filters)
-router.get('/', protect, requireRole('barangay_official', 'lgu_admin'), requireBarangayScope, async (req, res) => {
+router.get('/', protect, requireRole('barangay_official', 'lgu_admin', 'field_staff', 'lgu_superadmin', 'lgu_super_admin'), requireBarangayScope, async (req, res) => {
   try {
     let query = {};
     if (req.user.role === 'barangay_official') {
@@ -1325,7 +1325,7 @@ router.post('/regenerate-qr', protect, async (req, res) => {
 
 // @route   GET /api/households/offline-cache
 // @desc    Pre-download verified households for Field Staff Offline Mode scanning
-router.get('/offline-cache', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin'), async (req, res) => {
+router.get('/offline-cache', protect, requireRole('field_staff', 'barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
   try {
     const { barangayCode } = req.query;
     let query = { verificationStatus: 'verified' };
@@ -1346,6 +1346,7 @@ router.get('/offline-cache', protect, requireRole('field_staff', 'barangay_offic
       address: `${h.address}, ${h.purok ? `Purok ${h.purok}, ` : ''}Brgy ${h.barangayCode}`,
       barangayCode: h.barangayCode,
       memberCount: h.memberCount || 1,
+      familyHeadcount: h.memberCount || 1,
       priorityLevel: h.priorityLevel || 'High',
       isVerified: true,
     }));
