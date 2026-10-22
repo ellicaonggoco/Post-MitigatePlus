@@ -176,7 +176,7 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin', 'l
       // no status filter
     } else if (statusFilter === 'pending') {
       query.verificationStatus = { $in: ['pending', 'needs_info'] };
-    } else if (['verified', 'rejected', 'needs_info'].includes(statusFilter)) {
+    } else if (['verified', 'rejected', 'needs_info', 'dormant'].includes(statusFilter)) {
       query.verificationStatus = statusFilter;
     } else {
       query.verificationStatus = { $in: ['pending', 'needs_info'] };
@@ -197,6 +197,7 @@ router.get('/pending', protect, requireRole('barangay_official', 'lgu_admin', 'l
       pending: await Household.countDocuments({ ...baseQuery, verificationStatus: { $in: ['pending', 'needs_info'] } }),
       verified: await Household.countDocuments({ ...baseQuery, verificationStatus: 'verified' }),
       rejected: await Household.countDocuments({ ...baseQuery, verificationStatus: 'rejected' }),
+      dormant: await Household.countDocuments({ ...baseQuery, verificationStatus: 'dormant' }),
       all: await Household.countDocuments(baseQuery),
     };
 
@@ -280,6 +281,9 @@ router.post('/:id/verify', protect, requireRole('barangay_official', 'lgu_admin'
         household.pendingMembers = [];
       }
       household.idResubmitted = false;
+      household.isDormant = false;
+      household.consecutiveMissedEvents = 0;
+      household.dormantAt = null;
     } else if (status === 'rejected') {
       // Revert any pending member update requests
       household.memberCountPendingUpdate = null;
@@ -509,9 +513,13 @@ router.post('/relocation-request', protect, requireRole('resident'), async (req,
     }
 
     const oldBarangay = household.barangayCode;
+    household.previousBarangayCode = oldBarangay !== 'UNASSIGNED' ? oldBarangay : household.previousBarangayCode;
     household.barangayCode = targetBarangayCode;
     household.address = newAddress;
     household.verificationStatus = 'pending';
+    household.isDormant = false;
+    household.consecutiveMissedEvents = 0;
+    household.dormantAt = null;
     household.verificationNotes = `Relocation transfer mula Brgy ${oldBarangay} patungong Brgy ${targetBarangayCode}. Naghihintay ng beripikasyon ng bagong barangay.`;
     if (proofDocument) household.validIdImage = proofDocument;
 
@@ -644,6 +652,63 @@ router.get('/me', protect, requireRole('resident'), async (req, res) => {
     const household = await Household.findOne({ headOfHouseholdUserId: req.user._id });
     if (!household) {
       return res.status(404).json({ message: 'No household record linked to this resident account.' });
+    }
+
+    // Real-time Consecutive Missed Events / Dormancy check (Prof. Lalaine Abad Compliance)
+    if (!household.isDormant && household.verificationStatus !== 'dormant' && household.barangayCode && household.barangayCode !== 'UNASSIGNED') {
+      const completedEvents = await DistributionEvent.find({
+        barangayCode: household.barangayCode,
+        status: 'Completed',
+      }).sort({ closedAt: -1, updatedAt: -1, createdAt: -1 });
+
+      let consecutiveMissed = 0;
+      for (const ev of completedEvents) {
+        const hasClaimed = await Distribution.exists({
+          distributionEventId: ev._id,
+          householdId: household._id,
+        });
+        if (hasClaimed) {
+          break;
+        } else {
+          consecutiveMissed++;
+        }
+      }
+
+      household.consecutiveMissedEvents = consecutiveMissed;
+
+      if (consecutiveMissed >= 3) {
+        household.verificationStatus = 'dormant';
+        household.isDormant = true;
+        household.dormantAt = household.dormantAt || new Date();
+        household.previousBarangayCode = household.barangayCode;
+        household.barangayCode = 'UNASSIGNED';
+        household.verificationNotes = `Dormant: Hindi kumuha ng relief sa ${consecutiveMissed} magkakasunod na major distribution events sa Brgy ${household.previousBarangayCode}. Inilipat sa "No Barangay Listed" alinsunod sa MDRRMO demographic audit.`;
+
+        if (!Array.isArray(household.inAppNotifications)) {
+          household.inAppNotifications = [];
+        }
+        const hasDormantNotif = household.inAppNotifications.some(n => n.title && n.title.includes('Dormant'));
+        if (!hasDormantNotif) {
+          household.inAppNotifications.unshift({
+            id: Date.now().toString(),
+            title: 'Profile Status: Dormant (No Barangay Listed)',
+            message: 'Ayon sa MDRRMO demographic audit, hindi ka nakakuha ng ayuda sa huling 3 relief distribution operations. Ang inyong account ay pansamantalang minarkahang Dormant (No Barangay Listed). Mangyaring magsumite ng Lipat Barangay sa Settings o magtungo sa barangay hall para ma-reactivate.',
+            type: 'needs_info',
+            createdAt: new Date(),
+            isRead: false,
+          });
+        }
+
+        await household.save();
+
+        const User = require('../models/User');
+        await User.findByIdAndUpdate(req.user._id, {
+          barangayCode: 'UNASSIGNED',
+          isDormant: true,
+        });
+      } else {
+        await household.save();
+      }
     }
 
     const pastRequests = await AssistanceRequest.find({ householdId: household._id });
@@ -1295,6 +1360,180 @@ router.post('/decode-qr-image', protect, async (req, res) => {
   } catch (error) {
     console.error('Error decoding QR image:', error);
     res.status(500).json({ success: false, message: 'Error sa pagsusuri ng QR code', error: error.message });
+  }
+});
+
+// @route   POST /api/households/audit-dormant-check
+// @desc    Run demographic audit: Flag households that missed 3 consecutive completed distribution events as DORMANT ("No Barangay Listed")
+router.post('/audit-dormant-check', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const targetBrgy = req.body.barangayCode || (req.user.role === 'barangay_official' ? req.user.barangayCode : null);
+    const query = {};
+    if (targetBrgy && targetBrgy !== 'ALL') {
+      query.barangayCode = targetBrgy;
+    }
+
+    // Find the last 3 completed distribution events for the scope
+    const eventQuery = { status: 'Completed' };
+    if (targetBrgy && targetBrgy !== 'ALL') eventQuery.barangayCode = targetBrgy;
+
+    const last3Events = await DistributionEvent.find(eventQuery)
+      .sort({ closedAt: -1, createdAt: -1 })
+      .limit(3);
+
+    if (last3Events.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: `Kulang pa sa 3 natapos na distribution events (${last3Events.length}/3) para mapatupad ang automated 3-consecutive-missed-events audit sa napiling barangay.`,
+        completedEventsCount: last3Events.length,
+      });
+    }
+
+    const eventIds = last3Events.map(e => e._id);
+    const candidateHouseholds = await Household.find({
+      ...query,
+      verificationStatus: { $in: ['verified', 'needs_info'] },
+    });
+
+    let auditedCount = candidateHouseholds.length;
+    let transitionedCount = 0;
+    const transitionedList = [];
+
+    for (const hh of candidateHouseholds) {
+      // Check claims across the last 3 events
+      const claimCount = await Distribution.countDocuments({
+        distributionEventId: { $in: eventIds },
+        householdId: hh._id,
+      });
+
+      if (claimCount === 0) {
+        // Missed all 3 consecutive events -> Transition to DORMANT
+        hh.consecutiveMissedEvents = 3;
+        hh.verificationStatus = 'dormant';
+        hh.isDormant = true;
+        hh.dormantAt = new Date();
+        hh.previousBarangayCode = hh.barangayCode;
+        hh.barangayCode = 'UNASSIGNED';
+        hh.verificationNotes = `Dormant: Hindi kumuha ng relief sa 3 magkakasunod na major distribution events. Status: No Barangay Listed ayon sa MDRRMO demographic audit.`;
+
+        if (!Array.isArray(hh.inAppNotifications)) {
+          hh.inAppNotifications = [];
+        }
+        hh.inAppNotifications.unshift({
+          id: Date.now().toString(),
+          title: 'Profile Status: Dormant (No Barangay Listed)',
+          message: 'Ayon sa MDRRMO demographic audit, hindi ka nakakuha ng ayuda sa huling 3 relief distribution operations. Ang inyong account ay pansamantalang minarkahang Dormant (No Barangay Listed). Mangyaring magsumite ng Lipat Barangay sa Settings o magtungo sa barangay hall para ma-reactivate.',
+          type: 'needs_info',
+          createdAt: new Date(),
+          isRead: false,
+        });
+
+        await hh.save();
+
+        await AuditLog.create({
+          actorUserId: req.user._id,
+          actorRole: req.user.role,
+          action: 'HOUSEHOLD_MARKED_DORMANT',
+          targetType: 'Household',
+          targetId: hh._id.toString(),
+          notes: `Household ${hh._id} flagged as DORMANT (No Barangay Listed) during demographic audit. Missed 3 consecutive events.`,
+        });
+
+        transitionedCount++;
+        transitionedList.push({
+          id: hh._id,
+          headOfHouseholdName: hh.headOfHouseholdName,
+          previousBarangay: hh.previousBarangayCode,
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Audit tapos: ${auditedCount} sambahayan ang sinuri, ${transitionedCount} ang inilipat sa DORMANT (No Barangay Listed).`,
+      auditedCount,
+      transitionedCount,
+      transitionedList,
+    });
+  } catch (err) {
+    console.error('Error in audit-dormant-check:', err);
+    res.status(500).json({ success: false, message: 'Server error during dormancy audit.', error: err.message });
+  }
+});
+
+// @route   POST /api/households/:id/simulate-dormant
+// @desc    Oral Defense / Testing: Instantly simulate a household missing 3 consecutive events and becoming Dormant
+router.post('/:id/simulate-dormant', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const hh = await Household.findById(req.params.id);
+    if (!hh) return res.status(404).json({ message: 'Household record not found.' });
+
+    hh.consecutiveMissedEvents = 3;
+    hh.verificationStatus = 'dormant';
+    hh.isDormant = true;
+    hh.dormantAt = new Date();
+    hh.previousBarangayCode = hh.barangayCode !== 'UNASSIGNED' ? hh.barangayCode : (hh.previousBarangayCode || '291');
+    hh.barangayCode = 'UNASSIGNED';
+    hh.verificationNotes = `SIMULATION / TEST: Hindi kumuha ng relief sa 3 magkakasunod na major distribution events. Status: No Barangay Listed ayon sa MDRRMO demographic audit.`;
+
+    if (!Array.isArray(hh.inAppNotifications)) {
+      hh.inAppNotifications = [];
+    }
+    hh.inAppNotifications.unshift({
+      id: Date.now().toString(),
+      title: 'Profile Status: Dormant (No Barangay Listed)',
+      message: 'Ayon sa MDRRMO demographic audit, hindi ka nakakuha ng ayuda sa huling 3 relief distribution operations. Ang inyong account ay pansamantalang minarkahang Dormant (No Barangay Listed). Mangyaring magsumite ng Lipat Barangay sa Settings o magtungo sa barangay hall para ma-reactivate.',
+      type: 'needs_info',
+      createdAt: new Date(),
+      isRead: false,
+    });
+
+    await hh.save();
+
+    await AuditLog.create({
+      actorUserId: req.user._id,
+      actorRole: req.user.role,
+      action: 'HOUSEHOLD_MARKED_DORMANT',
+      targetType: 'Household',
+      targetId: hh._id.toString(),
+      notes: `TEST / DEFENSE DEMO: Household ${hh._id} transitioned to DORMANT (No Barangay Listed).`,
+    });
+
+    res.json({
+      success: true,
+      message: `Household ${hh._id} is now DORMANT (No Barangay Listed) with 3 missed events.`,
+      household: hh,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   POST /api/households/:id/simulate-active
+// @desc    Oral Defense / Testing: Revert a dormant household back to active verified status
+router.post('/:id/simulate-active', protect, requireRole('barangay_official', 'lgu_admin', 'lgu_superadmin', 'lgu_super_admin'), async (req, res) => {
+  try {
+    const hh = await Household.findById(req.params.id);
+    if (!hh) return res.status(404).json({ message: 'Household record not found.' });
+
+    hh.consecutiveMissedEvents = 0;
+    hh.verificationStatus = 'verified';
+    hh.isDormant = false;
+    hh.dormantAt = null;
+    if (hh.barangayCode === 'UNASSIGNED') {
+      hh.barangayCode = hh.previousBarangayCode || '291';
+    }
+    hh.verificationNotes = `Reactivated by official: status restored to Verified in Barangay ${hh.barangayCode}.`;
+
+    await hh.save();
+
+    res.json({
+      success: true,
+      message: `Household ${hh._id} restored to VERIFIED in Barangay ${hh.barangayCode}.`,
+      household: hh,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

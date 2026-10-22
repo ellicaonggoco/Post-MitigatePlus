@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   },
   fcmToken: { type: String, default: null },
   isActive: { type: Boolean, default: true },
+  isDormant: { type: Boolean, default: false },
   failedLoginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
   passwordChangedAt: { type: Date, default: null },

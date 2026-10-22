@@ -38,7 +38,8 @@ export default function RecoveryPhaseStepper({
   let calculatedPercent = 0;
 
   const statusLower = (currentStatus || 'waiting').toLowerCase();
-  const isClaimCompleted = isClaimed || statusLower.includes('claim') || statusLower.includes('recover') || statusLower.includes('received') || statusLower.includes('ongoing');
+  // Only mark Stage 5 (Claimed) if explicitly claimed in the active event or status is claimed
+  const isClaimCompleted = isClaimed || statusLower === 'claimed' || statusLower === 'assistance_received';
 
   if (!isVerified) {
     // Stage 1 pending verification in queue

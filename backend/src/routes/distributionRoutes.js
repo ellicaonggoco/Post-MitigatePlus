@@ -9,6 +9,7 @@ const ReliefItemType = require('../models/ReliefItemType');
 const PolicyConfig = require('../models/PolicyConfig');
 const WarehouseItem = require('../models/WarehouseItem');
 const WarehouseLog = require('../models/WarehouseLog');
+const User = require('../models/User');
 const { protect, requireRole } = require('../middleware/auth');
 const { calculateReliefAllocation } = require('../utils/reliefAllocation');
 const { isStaffTeamMatch } = require('../utils/teamHelper');
@@ -158,6 +159,85 @@ router.patch('/events/:id', protect, requireRole('field_staff', 'barangay_offici
     }
 
     await event.save();
+
+    // 3-Consecutive-Missed-Events Dormancy Trigger (Prof. Lalaine Abad Compliance)
+    // If a distribution drive is Completed/closed, evaluate attendance for all verified households in the barangay.
+    if ((event.status === 'Completed' || event.isActive === false) && event.barangayCode && event.barangayCode !== 'ALL') {
+      try {
+        const barangayHouseholds = await Household.find({
+          barangayCode: event.barangayCode,
+          verificationStatus: { $in: ['verified', 'needs_info'] },
+        });
+
+        // Get all completed events in this barangay, sorted newest first
+        const completedEvents = await DistributionEvent.find({
+          barangayCode: event.barangayCode,
+          status: 'Completed',
+        }).sort({ closedAt: -1, updatedAt: -1, createdAt: -1 });
+
+        for (const hh of barangayHouseholds) {
+          // Count consecutive missed completed events from newest backward
+          let missedCount = 0;
+          for (const compEv of completedEvents) {
+            const hasClaimed = await Distribution.exists({
+              distributionEventId: compEv._id,
+              householdId: hh._id,
+            });
+            if (hasClaimed) {
+              break; // Resident claimed at this event, stop consecutive count
+            } else {
+              missedCount++;
+            }
+          }
+
+          hh.consecutiveMissedEvents = missedCount;
+
+          // If resident misses 3 consecutive major disaster distribution events -> transition to DORMANT
+          if (missedCount >= 3) {
+            hh.verificationStatus = 'dormant';
+            hh.isDormant = true;
+            hh.dormantAt = new Date();
+            hh.previousBarangayCode = hh.barangayCode !== 'UNASSIGNED' ? hh.barangayCode : (hh.previousBarangayCode || event.barangayCode);
+            hh.barangayCode = 'UNASSIGNED';
+            hh.verificationNotes = `Dormant: Hindi kumuha ng relief sa ${missedCount} magkakasunod na major distribution events sa Brgy ${event.barangayCode}. Inilipat sa "No Barangay Listed" alinsunod sa MDRRMO demographic audit.`;
+
+            if (!Array.isArray(hh.inAppNotifications)) {
+              hh.inAppNotifications = [];
+            }
+            const hasDormantNotif = hh.inAppNotifications.some(n => n.title && n.title.includes('Dormant'));
+            if (!hasDormantNotif) {
+              hh.inAppNotifications.unshift({
+                id: Date.now().toString(),
+                title: 'Profile Status: Dormant (No Barangay Listed)',
+                message: 'Ayon sa MDRRMO demographic audit, hindi ka nakakuha ng ayuda sa huling 3 relief distribution operations. Ang inyong account ay pansamantalang minarkahang Dormant (No Barangay Listed). Mangyaring magsumite ng Lipat Barangay sa Settings o magtungo sa barangay hall para ma-reactivate.',
+                type: 'needs_info',
+                createdAt: new Date(),
+                isRead: false,
+              });
+            }
+
+            if (hh.headOfHouseholdUserId) {
+              await User.findByIdAndUpdate(hh.headOfHouseholdUserId, {
+                barangayCode: 'UNASSIGNED',
+                isDormant: true,
+              });
+            }
+
+            await AuditLog.create({
+              actorUserId: req.user._id,
+              actorRole: req.user.role,
+              action: 'HOUSEHOLD_MARKED_DORMANT',
+              targetType: 'Household',
+              targetId: hh._id.toString(),
+              notes: `Household ${hh._id} flagged as DORMANT (No Barangay Listed) after missing ${missedCount} consecutive events in Brgy ${event.barangayCode}.`,
+            });
+          }
+          await hh.save();
+        }
+      } catch (dormancyErr) {
+        console.error('Error updating household dormancy on event completion:', dormancyErr);
+      }
+    }
 
     // Log update
     await AuditLog.create({

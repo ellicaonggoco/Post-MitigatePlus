@@ -65,7 +65,7 @@ export default function VerificationQueue() {
   const [activeQueueTab, setActiveQueueTab] = useState('households'); // 'households' | 'damage_reports'
   const [households, setHouseholds] = useState([]);
   const [householdStatusFilter, setHouseholdStatusFilter] = useState('pending'); // 'pending' | 'verified' | 'rejected' | 'all'
-  const [householdCounts, setHouseholdCounts] = useState({ pending: 0, verified: 0, rejected: 0, all: 0 });
+  const [householdCounts, setHouseholdCounts] = useState({ pending: 0, verified: 0, dormant: 0, rejected: 0, all: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedNotes, setSelectedNotes] = useState({});
   const [requestedDocType, setRequestedDocType] = useState('id_blurry');
@@ -596,6 +596,7 @@ export default function VerificationQueue() {
             {[
               { key: 'pending', labelEn: 'Waiting / Pending', labelFil: 'Naghihintay', count: householdCounts.pending, color: '#D97706', bg: '#FFFBEB' },
               { key: 'verified', labelEn: 'Verified', labelFil: 'Beripikado', count: householdCounts.verified, color: '#0D8A5A', bg: '#E6F6EF' },
+              { key: 'dormant', labelEn: 'Dormant (Unlisted)', labelFil: 'Dormant (Unlisted)', count: householdCounts.dormant || 0, color: '#EA580C', bg: '#FFF7ED' },
               { key: 'rejected', labelEn: 'Rejected', labelFil: 'Tinanggihan', count: householdCounts.rejected, color: '#DC2626', bg: '#FEF2F2' },
               { key: 'all', labelEn: 'All Records', labelFil: 'Lahat', count: householdCounts.all, color: 'var(--manila-blue)', bg: '#EEF2FF' },
             ].map((st) => {
@@ -817,18 +818,24 @@ export default function VerificationQueue() {
                                 ? '#E6F6EF'
                                 : hh.verificationStatus === 'rejected'
                                 ? '#FEE2E2'
+                                : hh.verificationStatus === 'dormant'
+                                ? '#FFF7ED'
                                 : '#FEF3C7',
                             color:
                               hh.verificationStatus === 'verified'
                                 ? '#0D8A5A'
                                 : hh.verificationStatus === 'rejected'
                                 ? '#DC2626'
+                                : hh.verificationStatus === 'dormant'
+                                ? '#C2410C'
                                 : '#92400E',
                             border:
                               hh.verificationStatus === 'verified'
                                 ? '1px solid #A7F3D0'
                                 : hh.verificationStatus === 'rejected'
                                 ? '1px solid #FCA5A5'
+                                : hh.verificationStatus === 'dormant'
+                                ? '1px solid #FDBA74'
                                 : '1px solid #FCD34D',
                           }}
                         >
@@ -836,6 +843,8 @@ export default function VerificationQueue() {
                             ? (isFil ? 'BERIPIKADO' : 'VERIFIED')
                             : hh.verificationStatus === 'rejected'
                             ? (isFil ? 'TINANGGIHAN (REJECTED)' : 'REJECTED')
+                            : hh.verificationStatus === 'dormant'
+                            ? (isFil ? 'DORMANT (NO BARANGAY LISTED)' : 'DORMANT (UNLISTED)')
                             : hh.verificationStatus === 'needs_info'
                             ? (isFil ? 'HUMIHINGI NG IMPORMASYON' : 'NEEDS INFO')
                             : (isFil ? 'NAGHIHINTAY NG PAGSUSURI' : 'PENDING REVIEW')}
