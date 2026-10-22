@@ -2274,13 +2274,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
           <View style={styles.verifInfoCard}>
             <View style={[
               styles.verifInfoIconCircle,
-              isVerified
+              isDormant
+                ? { backgroundColor: '#FFF7ED', borderColor: '#FDBA74' }
+                : isVerified
                 ? { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' }
                 : isRejected
                 ? { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }
                 : { backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }
             ]}>
-              {isVerified ? (
+              {isDormant ? (
+                <AlertTriangleIcon size={24} color="#EA580C" strokeWidth={2.5} />
+              ) : isVerified ? (
                 <CheckIcon size={24} color="#16A34A" strokeWidth={2.5} />
               ) : isRejected ? (
                 <CloseIcon size={24} color="#DC2626" strokeWidth={2.5} />
@@ -2290,7 +2294,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             </View>
 
             <Text style={styles.verifInfoTitle}>
-              {isVerified
+              {isDormant
+                ? (lang === 'tl' ? 'Dormant Account (No Barangay Listed)' : 'Dormant Account (No Barangay Listed)')
+                : isVerified
                 ? (lang === 'tl' ? 'Beripikadong Residente' : 'Verified Household')
                 : isRejected
                 ? (lang === 'tl' ? 'Hindi Naaprubahan ang Rehistrasyon' : 'Registration Rejected')
@@ -2299,7 +2305,9 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
 
             <View style={[
               styles.verifStatusTag,
-              isVerified
+              isDormant
+                ? { backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FDBA74' }
+                : isVerified
                 ? { backgroundColor: '#DCFCE7' }
                 : isRejected
                 ? { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FCA5A5' }
@@ -2307,13 +2315,17 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             ]}>
               <Text style={[
                 styles.verifStatusTagText,
-                isVerified
+                isDormant
+                  ? { color: '#C2410C' }
+                  : isVerified
                   ? { color: '#15803D' }
                   : isRejected
                   ? { color: '#B91C1C' }
                   : { color: '#B45309' }
               ]}>
-                {isVerified
+                {isDormant
+                  ? (lang === 'tl' ? 'KATAYUAN: DORMANT / UNLISTED' : 'STATUS: DORMANT / UNLISTED')
+                  : isVerified
                   ? (lang === 'tl' ? 'KATAYUAN: BERIPIKADO NA' : 'STATUS: VERIFIED')
                   : isRejected
                   ? (lang === 'tl' ? 'KATAYUAN: HINDI NAAPRUBAHAN' : 'STATUS: REJECTED')
@@ -2322,7 +2334,11 @@ export default function ResidentHomeScreen({ token, user, household, onLogout, l
             </View>
 
             <Text style={styles.verifInfoDesc}>
-              {isVerified
+              {isDormant
+                ? (lang === 'tl'
+                    ? 'Hindi nakakuha ng ayuda ang inyong pamilya sa tatlong (3) magkakasunod na major relief distributions. Alinsunod sa MDRRMO demographic audit, inilipat ang inyong account sa "No Barangay Listed". Mangyaring magsumite ng Lipat Barangay sa Settings upang muling mai-assign sa inyong kasalukuyang tinitirhan.'
+                    : 'You have missed claiming relief in three (3) consecutive major distribution operations. Per MDRRMO demographic audit, your account transitioned to "No Barangay Listed". Please submit a Barangay Relocation request in Settings to re-activate your profile.')
+                : isVerified
                 ? (lang === 'tl'
                     ? 'Ang inyong pamilya ay opisyal nang beripikado ng Barangay 291 at LGU Maynila. Aktibo ang inyong QR Pass para sa agarang pagtanggap ng ayuda at emergency services.'
                     : 'Your household is officially verified by Barangay 291 and City Government of Manila. Your Digital Relief Pass is fully active.')
