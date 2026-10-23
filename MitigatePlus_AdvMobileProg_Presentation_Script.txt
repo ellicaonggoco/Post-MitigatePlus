@@ -1,0 +1,258 @@
+# NATIONAL UNIVERSITY
+## College of Computing and Information Technologies
+### Course: Advanced Mobile Programming
+### Project: MitigatePlus: A Community Disaster Risk Mitigation Information System
+
+================================================================================
+OFFICIAL ORAL DEFENSE / PRESENTATION SCRIPT
+================================================================================
+
+SPEAKER ASSIGNMENTS:
+- Speaker 1: Nolasco -> Slides 1 & 2 (Title & The Problem)
+- Speaker 2: Herzsel -> Slides 3 & 4 (The Insight & What is MitigatePlus?)
+- Speaker 3: Chester -> Slides 5 & 6 (Core Features & How It Works)
+- Speaker 4: Ellica  -> Slides 7 & 8 (Who It's For & The Experience)
+- Speaker 5: Raf     -> Slides 9, 10, & 11 (User Interface, Technology Stack, & Closing / Live Demo Transition)
+
+LANGUAGE STYLE:
+Predominantly professional academic English, with occasional strategic Tagalog phrasing to highlight community context and disaster scenarios clearly.
+
+================================================================================
+PART 1: NOLASCO (Slides 1 & 2)
+================================================================================
+
+[SLIDE 1: Title Slide]
+Visual: MitigatePlus: A Community Disaster Risk Mitigation Information System
+Presenter: John Michael Nolasco
+
+SPOKEN SCRIPT:
+"Good day to our distinguished professor, and to our fellow classmates.
+
+We are the group from the College of Computing and Information Technologies at National University, and we are proud to present our final project for Advanced Mobile Programming: MitigatePlus: A Community Disaster Risk Mitigation Information System.
+
+My name is John Michael Nolasco, and together with my co-developers John Herszel Datul, Neil Chester Garcia, John Rafael Corpuz, and Ellica Onggoco, under the academic guidance of our adviser, Prof. John Ivan Maurat, we designed and engineered this mobile application.
+
+MitigatePlus is a high-performance, mobile-first disaster management ecosystem specifically engineered to address the critical logistical and operational breakdowns during post-disaster relief and community rehabilitation, particularly within the urban setting of the City of Manila."
+
+
+[SLIDE 2: The Problem]
+Visual: The Problem (Manual Lists, One-Size-Fits-All, Ghost Beneficiaries & Double-Dipping)
+Presenter: John Michael Nolasco
+
+SPOKEN SCRIPT:
+"Moving to Slide 2, we present the pressing real-world challenges that served as the primary motivation for developing this mobile application.
+
+Whenever severe typhoons or sudden urban flooding hit low-lying areas in Metro Manila, local barangays serve as the immediate frontline of defense. However, traditional disaster response operations are crippled by three major bottlenecks:
+
+First, Manual and Paper-Based Roster Systems.
+During an active crisis, barangay marshals and tanods rely on physical clipboards, handwritten logs, and printed paper masterlists. Sa totoo lang po, kapag libu-libong evacuees na ang sabay-sabay na pumipila sa covered court, napakabagal mag-browse ng papel. This manual lookup causes extreme bottlenecks, chaotic queues, and even crowd stampedes during relief operations.
+
+Second, One-Size-Fits-All Relief Packaging.
+Current government distribution protocols issue identical family food packs regardless of actual household composition. A two-member household receives the exact same relief box as a ten-member family caring for infants, pregnant mothers, and bedridden seniors. Hindi po ito patas, resulting in severe under-nourishment for large, vulnerable households.
+
+And Third, Ghost Beneficiaries and Double-Dipping Fraud.
+Without synchronized, real-time mobile verification on the ground, fraudulent individuals exploit the confusion by claiming multiple food packs across different distribution sites or barangay checkpoints, which deprives genuine displaced victims of essential survival supplies.
+
+To explain our foundational approach and the core concept of MitigatePlus, I now turn the floor over to Herzsel."
+
+
+================================================================================
+PART 2: HERZSEL (Slides 3 & 4)
+================================================================================
+
+[SLIDE 3: The Insight]
+Visual: The Insight (Data-Driven Entitlements, Sub-Second Verification, Immutable Audit)
+Presenter: John Herszel Datul
+
+SPOKEN SCRIPT:
+"Thank you, Nolasco. Good day, Professor. My name is John Herszel Datul.
+
+On Slide 3, we establish our Core Insight: Post-disaster response and relief distribution must never depend on guesswork, patronage, or fragile paper documents.
+
+By harnessing modern mobile architecture, we can transform disaster logistics into a data-driven, transparent, and cryptographically auditable digital workflow.
+
+Our insight is built on three core pillars:
+
+1. Data-Driven Entitlements: Instead of generic rationing, our mobile client computes the exact relief volume required based on verified household demographics and vulnerability indicators.
+2. Sub-Second Frontline Verification: Frontline validation should not take minutes of paper searching. Dapat po within one to two seconds lang gamit ang smartphone camera barcode scanner, eliminating friction and keeping crowd movement fast and orderly.
+3. Immutable Real-Time Audit Trails: Every verified scan and every fraudulent attempt must immediately synchronize with our cloud database with an exact millisecond timestamp to guarantee complete civic accountability."
+
+
+[SLIDE 4: What is MitigatePlus?]
+Visual: What is MitigatePlus? (Post-Disaster Response and Recovery, UN SDG 11 & NDRP 2024)
+Presenter: John Herszel Datul
+
+SPOKEN SCRIPT:
+"Proceeding to Slide 4, we define: What exactly is MitigatePlus?
+
+MitigatePlus is an integrated Mobile-First Disaster Information and Operations System dedicated exclusively to the Post-Disaster Response and Early Recovery Phase.
+
+We would like to clarify the defined scope of our research: MitigatePlus is NOT a weather radar, and it is NOT a generic GPS navigation map. Rather, our platform was purpose-built to solve the messy, high-friction operational phase that occurs immediately after impact: from rapid structural damage reporting, to algorithmic relief calculation, secure contactless distribution, and structured community rehabilitation.
+
+Our system directly aligns with United Nations Sustainable Development Goal 11 for Sustainable Cities and Resilient Communities, as well as the Philippine National Disaster Response Plan (NDRP 2024).
+
+To walk us through the technical core features of our mobile application, I now pass the floor to Chester."
+
+
+================================================================================
+PART 3: CHESTER (Slides 5 & 6)
+================================================================================
+
+[SLIDE 5: Core Features]
+Visual: Core Features (Damage Geotagging, Digital QR Pass, Cash-for-Work, Scanner Hub, Integrated Operations)
+Presenter: Neil Chester Garcia
+
+SPOKEN SCRIPT:
+"Thank you, Herzsel. Good day, Professor. I am Neil Chester Garcia, and I will be discussing the five core features engineered into our mobile application, directly based on our academic manuscript.
+
+1. Structural Damage Geotagging (Report Damage):
+Using the smartphone's native camera hardware and GPS location services, residents can capture real-time photographic evidence of structural damage to their homes. The app automatically embeds their exact latitude and longitude coordinates, preventing spoofed submissions and giving city engineers verified field data for rapid triage.
+
+2. Digital Relief QR Pass (Algorithm 2 - Proportional Allocation):
+This represents one of our primary academic novelties. Instead of static, identical relief, each household receives an encrypted, offline-capable digital QR pass. Our algorithm automatically assigns 1 Base Family Food Pack per 5 household members, and dynamically adds tailored Top-Up units for vulnerable family members: including infant nutrition kits for children aged two and below, maternal hygiene packs for pregnant mothers, and specialized medical assistance for senior citizens and Persons with Disabilities.
+
+3. Post-Disaster Cash-for-Work Livelihood:
+To accelerate economic rehabilitation, the mobile app enables affected residents to apply for local emergency jobs, such as debris clearing and community kitchen support. It incorporates a standardized 500 pesos daily wage computation and digital QR attendance tracking.
+
+4. Staff Scanner Hub (Anti-Double-Dipping Engine):
+This is the dedicated mobile interface for barangay field marshals. Using the mobile camera viewfinder, staff scan the resident's QR pass. If an individual attempts to claim relief a second time at another station, our engine immediately intercepts the attempt, rejects the scan with an audible error, and logs the security violation to prevent duplicate claims.
+
+5. Integrated Field Operations:
+The field staff application features five integrated operational tabs: Tasks for daily assignments, Delivery for house-to-house aid to bedridden residents, QR Scan for relief release, Logger for geotagged field incident reporting, and Duty profile for offline state synchronization."
+
+
+[SLIDE 6: How It Works]
+Visual: 4-Stage Operational Lifecycle (Registration, Verification, Dynamic Release, Audit Tracking)
+Presenter: Neil Chester Garcia
+
+SPOKEN SCRIPT:
+"On Slide 6, we illustrate the 4-Stage Operational Lifecycle of our mobile platform:
+
+- Step 1: Registration and Profiling. The resident registers via the mobile app, inputs their complete household demographic roster, and captures their government-issued ID using the camera.
+- Step 2: Verification and Priority Scoring. The LGU verifies residency to eliminate ghost beneficiaries. The system then computes a dynamic 0 to 100 Priority Score based on housing damage severity, household income, and vulnerable dependents.
+- Step 3: Dynamic QR Release. At the evacuation covered court, field staff scan the resident's mobile QR pass. The scanner immediately displays the exact entitlement checklist: showing base packs plus any required senior, infant, or PWD top-up units.
+- Step 4: Real-Time Audit and Recovery Tracking. Upon release confirmation, the transaction is committed to the cloud database, the pass status transitions to 'Claimed', and any subsequent duplicate claim attempt is instantly blocked.
+
+To discuss our target mobile users and human-centered mobile user experience, I now turn the floor over to Ellica."
+
+
+================================================================================
+PART 4: ELLICA (Slides 7 & 8)
+================================================================================
+
+[SLIDE 7: Who It's For]
+Visual: Who It's For (Residents, Vulnerable Families, Frontline Staff, LGU Teams)
+Presenter: Ellica Onggoco
+
+SPOKEN SCRIPT:
+"Thank you, Chester. Good day, Professor. I am Ellica Onggoco.
+
+In Slide 7, because our presentation is focused on Advanced Mobile Programming, we want to highlight the physical users who actively hold, operate, and depend on our mobile application in the field:
+
+1. Displaced Residents (Heads of Households):
+Everyday citizens across low-lying barangays in Manila who hold an Android smartphone. They use our mobile app to view their official Digital Relief QR Pass, submit geotagged damage assessments, and track their relief allocation status without having to stand for hours in chaotic inquiry lines.
+
+2. Vulnerable Families and Dependents:
+The extended family members who rely on the head of household: our grandparents, bedridden seniors, infants, and pregnant mothers. Sila po ang dahilan kung bakit demographic-driven ang aming mobile algorithm. The app ensures their special medical and nutritional requirements are automatically included in the family's relief package.
+
+3. Frontline Barangay Staff and Marshals:
+Field personnel deployed at evacuation covered courts who operate the mobile scanner hub. They rely on our high-speed camera viewfinder to rapidly process hundreds of evacuees within minutes, eliminating the friction of manual paper registries.
+
+4. LGU Rapid Deployment Teams:
+Mobile field responders who utilize the app's incident logging module to capture real-time photos and GPS coordinates during emergencies, such as flash floods, road blockages, or on-site medical emergencies."
+
+
+[SLIDE 8: The Experience]
+Visual: The Experience (Bilingual Accessibility, Offline Resilience, Zero Alert Fatigue)
+Presenter: Ellica Onggoco
+
+SPOKEN SCRIPT:
+"On Slide 8, we emphasize our Human-Centered Mobile Design principles, specifically engineered for high-stress crisis environments:
+
+First, Bilingual Accessibility.
+During an active calamity, evacuees experience intense cognitive stress. Overly complex technical English terms can cause confusion. Therefore, our mobile app includes a seamless, one-tap language toggle, instantly translating the entire mobile interface into natural, clear conversational Tagalog.
+
+Second, Offline Resilience.
+In real-world disaster zones, cellular towers frequently experience brownouts or network congestion. To address this, the resident's generated QR pass is persistently cached on the device, allowing it to be displayed offline or saved directly to their photo gallery as a backup screenshot. Furthermore, our frontline mobile scanner can temporarily buffer scans locally when connectivity drops and automatically synchronize once the network reconnects.
+
+And Third, Zero Alert Fatigue and Visual Transparency.
+Instead of leaving residents in the dark, the home screen features a 5-Stage Longitudinal Stepper (advancing through Waiting, Assessed, Allocated, Ready for Pickup, to Claimed). Malinaw po sa bawat pamilya kung anong status ng kanilang ayuda, which prevents rumors, anxiety, and overcrowding at distribution gates.
+
+To demonstrate the actual mobile user interface and explain the architectural technology stack powering our application, I now turn the presentation over to Raf."
+
+
+================================================================================
+PART 5: RAF (Slides 9, 10, & 11)
+================================================================================
+
+[SLIDE 9: User Interface]
+Visual: User Interface Showcase (Resident Home, Damage Geotagging, Staff Scanner, Cash-for-Work)
+Presenter: John Rafael Corpuz
+
+SPOKEN SCRIPT:
+"Thank you, Ellica. Good day, Professor. I am John Rafael Corpuz, and I will be presenting the mobile interface implementation shown here on Slide 9.
+
+In designing our mobile UI, we strictly adhered to mobile ergonomic guidelines, establishing interactive touch targets of at least 48 density-independent pixels (dp) to ensure comfortable, single-handed operation even in harsh outdoor or evacuation environments.
+
+Looking at our four primary mobile screens:
+
+- Screen 1: The Resident Home Screen.
+Features our high-contrast Official Digital Relief QR Pass hero card, complete with household classification, computed Priority Score, and the visual 5-stage relief progression stepper.
+- Screen 2: The Damage Geotagging Interface.
+Integrates an interactive camera viewfinder with dynamic severity classification buttons (from Minor to Total Destruction), displaying real-time GPS coordinate overlays before submission.
+- Screen 3: The Frontline Staff QR Scanner View.
+Built directly on native camera hardware, featuring an active target reticle that executes sub-second barcode parsing, immediately rendering the tailored breakdown of base and top-up relief items.
+- Screen 4: Cash-for-Work Livelihood and Attendance.
+Displays active community rehabilitation projects, digital wage computation at 500 pesos per day, and real-time QR time-in and time-out attendance logging."
+
+
+[SLIDE 10: The Technology Behind]
+Visual: Technology Behind (React Native, Expo SDK, Native Sensors, WebSockets, MongoDB Atlas)
+Presenter: John Rafael Corpuz
+
+SPOKEN SCRIPT:
+"On Slide 10, we break down the Mobile Architecture and Technology Stack engineered for this Advanced Mobile Programming project:
+
+- Client-Side Framework:
+Our mobile application is developed using React Native and Expo, delivering native Android performance with smooth, 60-frames-per-second UI transitions and native hardware acceleration.
+- Native Device APIs:
+We leverage expo-camera with the modern CameraView component for high-performance, real-time QR code barcode detection. We integrate expo-location to retrieve high-accuracy hardware GPS coordinates, and AsyncStorage for secure on-device persistence of user authentication tokens and offline relief state.
+- Real-Time Client Telemetry:
+The mobile client connects via Socket.io WebSockets, enabling instantaneous bi-directional communication. When a field marshal scans a relief pass in a covered court, the claim status updates across the cloud in under 500 milliseconds, ensuring instant duplicate-claim interception.
+- Cloud Data Layer:
+Backing our mobile client is a Node.js Express REST API connected to a MongoDB Atlas cloud database, enforcing compound unique indexes to guarantee cryptographic and transactional integrity at the database level."
+
+
+[SLIDE 11: Thank You & Live Demo Transition]
+Visual: Thank You Slide (National University CCIT Credits)
+Presenter: John Rafael Corpuz
+
+SPOKEN SCRIPT:
+"In conclusion, on Slide 11, on behalf of my entire team, we would like to extend our sincere gratitude to our professor and our peers for your time and attention today.
+
+MitigatePlus demonstrates that through sound mobile engineering, native sensor integration, algorithmic fairness, and human-centered design, we can revolutionize disaster relief operations and protect vulnerable communities across the City of Manila.
+
+We are now ready to proceed with the Live Mobile Application Demonstration on our compiled Android APK, after which we will be glad to answer any questions from the panel.
+
+Thank you very much, and good day!"
+
+
+================================================================================
+PANEL DEFENSE CHEAT SHEET (Q&A Preparation)
+================================================================================
+
+Q1: "Why is MitigatePlus better than just using Google Forms or Excel sheets?"
+A1 (Chester / Herzsel):
+"Sir, Google Forms and Excel cannot prevent double-dipping in real time, cannot operate smoothly with sub-second camera barcode scanning on mobile devices, and lack algorithmic demographic calculations for customized infant and senior relief top-ups."
+
+Q2: "How does the app handle intermittent or zero internet connection in evacuation centers?"
+A2 (Ellica / Raf):
+"We utilize persistent offline caching via AsyncStorage. The resident's QR pass and verification token remain stored locally on the device, allowing the QR to be displayed without internet. In addition, the resident can export a high-resolution screenshot directly to their device gallery as a physical fail-safe."
+
+Q3: "What native device hardware features did you implement?"
+A3 (Raf):
+"We implemented two primary hardware sensors via Expo APIs: expo-camera for sub-second QR code parsing and viewfinder rendering, and expo-location for hardware GPS coordinates geotagging in structural damage reports."
+
+Q4: "How does your algorithm calculate proportional relief?"
+A4 (Chester / Nolasco):
+"Under Algorithm 2, our system allocates 1 Base Family Food Pack for every 5 household members. Then, it evaluates the demographic roster: if there are infants aged 2 or below, it adds Infant Top-Up packs; if there are pregnant mothers, seniors, or PWDs, it adds medical and hygiene top-up kits."

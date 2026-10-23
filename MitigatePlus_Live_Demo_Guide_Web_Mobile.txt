@@ -1,0 +1,199 @@
+NATIONAL UNIVERSITY
+College of Computing and Information Technologies
+MITIGATEPLUS: A COMMUNITY DISASTER RISK MITIGATION INFORMATION SYSTEM
+OFFICIAL LIVE DEMO MASTER GUIDE (WEB & MOBILE)
+Target Readers: Ellica, Nolasco, Herzsel, Chester, Raf
+
+================================================================================
+QUICK REFERENCE: 5 DEMO USER ACCOUNTS & LOGINS
+================================================================================
+
+1. BARANGAY OFFICIAL (Grassroots Operations - Brgy 291)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: official291@manila.gov.ph
+   - Password: official123
+   - Key Tasks: Verification Queue, Damage Reports, CFW Applicants, Recovery Tracker
+
+2. CITY LGU ADMIN (City Operations & Logistics)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: admin@manila.gov.ph
+   - Password: admin123
+   - Key Tasks: Command Center, Risk Heatmap, Warehouse Inventory, Event Dispatcher
+
+3. LGU SUPER ADMIN (Executive Governance & Mayor Level)
+   - Portal: Web Admin (https://post-mitigate-plus.vercel.app/)
+   - Email: superadmin@manila.gov.ph
+   - Password: superadmin123
+   - Key Tasks: Global Policy Config, COA Audit Reports, System Audit Logs
+
+4. MOBILE CITIZEN RESIDENT (Displaced Beneficiary)
+   - Portal: Android Mobile App APK
+   - Email: juan@gmail.com
+   - Password: resident123
+   - Key Tasks: QR Relief Pass, Report Damage Geotagging, Cash-for-Work Apply
+
+5. MOBILE FIELD STAFF (Covered Court Marshall)
+   - Portal: Android Mobile App APK
+   - Email: staff291@manila.gov.ph
+   - Password: staff123
+   - Key Tasks: Hardware QR Scanner, Algorithm 2 Pack Release, Anti-Double Dipping
+
+================================================================================
+PRE-DEMO SETUP & SCREEN LAYOUT
+================================================================================
+- Left Half of Screen: Chrome Browser open at https://post-mitigate-plus.vercel.app/
+- Right Half of Screen: Physical Android Phone or Emulator running MitigatePlus APK.
+- Ensure laptop and phone are connected to the same stable WiFi or mobile hotspot.
+- Tip: Keep the Resident QR code screenshot saved on phone gallery as quick backup!
+
+================================================================================
+ACT 1: THE RESIDENT MOBILE EXPERIENCE (3-4 MINUTES)
+================================================================================
+Actor: Resident John Paul Cruz (juan@gmail.com / resident123)
+
+STEP 1.1: Log in to Mobile App
+- Open MitigatePlus APK.
+- Log in with juan@gmail.com / resident123.
+- What to Highlight to Panel:
+  * "Notice our responsive layout and clean civic color identity."
+  * "Notice the touch targets are all at least 48dp for one-handed operation."
+
+STEP 1.2: The Digital Relief QR Pass Hero Card
+- Point out the large QR Pass (MNL-291-CRUZ-8402).
+- Highlight:
+  1. Offline Capability: Cached in AsyncStorage; works even without internet.
+  2. High-Contrast Design: Readable under glaring sunlight inside evacuation covered courts.
+  3. Computed Priority Score: 79 points (Totally Damaged house + 2 seniors + 1 infant).
+
+STEP 1.3: 5-Stage Longitudinal Recovery Stepper
+- Point to the stepper: Waiting -> Assessed -> Allocated -> Ready -> Claimed.
+- Talking Point: "This stepper eliminates anxiety and false rumors. Evacuees see their live status instead of crowding barangay halls."
+
+STEP 1.4: Structural Damage Photo & Geotagging
+- Tap 'Report Damage' tab.
+- Show the 4-level severity selector (Minor, Moderate, Severe, Total Destruction).
+- Tap Camera button: shows live hardware viewfinder (expo-camera).
+- Point to GPS Box: hardware latitude & longitude coordinates (expo-location).
+- Talking Point: "We embed exact GPS telemetry so city engineers can verify structural damage without fake or duplicate submissions."
+
+STEP 1.5: Cash-for-Work Emergency Livelihood
+- Tap 'Livelihood' tab.
+- Show active project: 'Brgy 291 Post-Disaster Debris Clearing & Sanitation'.
+- Point out: Standardized 500 pesos daily emergency wage.
+- Show 'Apply for Project' and QR Attendance Time-In/Time-Out card.
+
+STEP 1.6: 1-Tap Bilingual Toggle
+- Go to Settings -> Tap 'Tagalog'.
+- Show how the entire UI seamlessly switches to natural Filipino.
+
+================================================================================
+ACT 2: BARANGAY GRASSROOTS OPERATIONS (WEB ADMIN) (3 MINUTES)
+================================================================================
+Actor: Barangay 291 Official (official291@manila.gov.ph / official123)
+
+STEP 2.1: Log in to Web Admin
+- Log in as official291@manila.gov.ph / official123.
+- Point out: The dashboard automatically scopes to Barangay 291, District 3, Sta. Cruz, Manila.
+
+STEP 2.2: Verification Queue (Eliminating Ghost Beneficiaries)
+- Click 'Verification Queue'.
+- Show pending applicant (Ellica Onggoco).
+- Inspect uploaded ID and household roster (4 members, 2 seniors).
+- Click 'Approve & Verify': Immediately generates their unique QR code and computes priority.
+
+STEP 2.3: Damage Reports Review
+- Click 'Damage Reports'.
+- Show the submitted geotagged photo from Resident Juan Paul Cruz.
+- Point out verified GPS coordinates and housing assessment status.
+
+STEP 2.4: Cash-for-Work Roster
+- Click 'Livelihood Assistance'.
+- Show the registered applicants and live attendance logs.
+
+================================================================================
+ACT 3: CITY LOGISTICS & EXECUTIVE GOVERNANCE (WEB ADMIN) (3 MINUTES)
+================================================================================
+Actor: City Admin (admin@manila.gov.ph) & Super Admin (superadmin@manila.gov.ph)
+
+STEP 3.1: Log in as City LGU Admin (admin@manila.gov.ph / admin123)
+- Point out: City-wide view covering all 897 barangays across 6 districts.
+
+STEP 3.2: Barangay Risk Heatmap & Incident Triage
+- Click 'Barangay Risk Heatmap'.
+- Locate Barangay 291: Highlighted in Amber/Red due to 0.5m flood depth.
+- Show incident summary: 2 Critical road blockages, high vulnerable headcount.
+- Click 'Schedule Relief Event for Brgy 291'.
+
+STEP 3.3: Central Warehouse Inventory
+- Click 'Warehouse Inventory'.
+- Show real-time stock levels:
+  * Family Food Packs: 2,350 units
+  * Senior Nutritional Packs: 750 units
+  * Infant Care Kits: 600 units
+  * Medical First-Aid Kits: 950 units
+- Talking Point: "We track specialized supplies separately to support our dynamic demographic top-up algorithm."
+
+STEP 3.4: Super Admin Governance (superadmin@manila.gov.ph / superadmin123)
+- Log out and log in as Mayor Honey Lacuna (superadmin@manila.gov.ph).
+- Show Global Policy Config:
+  * Base Pack threshold: 5 members
+  * Senior top-up ratio: +0.5 pack per senior
+  * Infant top-up ratio: +0.5 pack per infant
+  * Fraud strike threshold: 2 attempts
+- Show 1-Click COA Liquidation Reports: Instant transparent audit trail for national compliance.
+
+================================================================================
+ACT 4: COVERED COURT RELIEF RELEASE & FRAUD INTERCEPTION (4 MINUTES)
+================================================================================
+**THIS IS THE CLIMAX OF YOUR DEMONSTRATION!**
+Actors: Field Staff (staff291@manila.gov.ph) + Resident (juan@gmail.com)
+
+STEP 4.1: Log in as Field Staff on Mobile App
+- Open Mobile App, switch/log in as staff291@manila.gov.ph / staff123.
+- Active duty: Team Leader Alpha, Brgy 291 Covered Court.
+- Tap 'Scanner' tab: Activates native camera hardware (expo-camera CameraView).
+
+STEP 4.2: First Scan - Legitimate Dynamic Release
+- Point camera at Resident Juan Paul Cruz's QR Pass (or manual entry code MNL-291-CRUZ-8402).
+- Sub-second scan succeeds!
+- Algorithm 2 Entitlement Breakdown Popup appears:
+  * 1 Base Family Food Pack (up to 5 members)
+  * +1 Top-Up Pack (Household headcount = 7)
+  * +2 Senior Packs (Larry & Bibeng Masangkay)
+  * +1 Infant Pack (Baby Leo)
+  * TOTAL: 2 Base Packs + 3 Specialized Packs!
+- Tap 'CONFIRM RELEASE':
+  * Success sound & green checkmark.
+  * In the background, status transitions to 'Claimed'.
+  * Mobile Resident app stepper immediately jumps to 'Claimed'.
+
+STEP 4.3: Second Scan - The Live Fraud Interception!
+- Scan the EXACT SAME QR code a second time!
+- Result: RED ERROR SCREEN & ALERT!
+  * Message: "ALREADY CLAIMED - DUPLICATE SCAN INTERCEPTED!"
+  * The system instantly rejects the release.
+- Switch to Web Admin -> 'Fraud Interception' page:
+  * Point to the live feed: A new red fraud event row appears with exact millisecond timestamp, device ID, officer name, and resident code!
+- Talking Point to Panel: "This proves our sub-second anti-double-dipping engine. Even if someone runs to another gate or another volunteer, they are permanently blocked!"
+
+================================================================================
+ACT 5: FIELD OPERATIONS & SPECIAL HOME DELIVERIES (2 MINUTES)
+================================================================================
+STEP 5.1: Special Request Delivery (Bedridden Beneficiaries)
+- In Field Staff app, tap 'Delivery' tab.
+- Show house-to-house task list for bedridden seniors who cannot physically walk to covered courts.
+- Tap 'Confirm Home Delivery' with recipient digital signature or photo proof.
+
+STEP 5.2: Field Incident Logger
+- Tap 'Logger' tab.
+- Quick report of on-site incident (e.g., 'Supply line delayed at North gate').
+- Automatically geotags with current GPS location.
+
+================================================================================
+SUMMARY OF TECHNICAL HIGHLIGHTS FOR PROFESSOR / PANEL
+================================================================================
+1. Mobile Hardware APIs: expo-camera (sub-second scanning) and expo-location (GPS geotagging).
+2. Offline Architecture: AsyncStorage caches QR passes and credentials during network blackouts.
+3. Demographic Equity: Algorithm 2 gives customized food packs based on seniors, infants, and PWDs.
+4. Cryptographic Security: Unique compound indexes and WebSocket telemetry block double-dipping.
+5. Role-Based Scoping: Strict separation between Resident, Field Staff, Barangay Official, City Admin, and Super Admin.

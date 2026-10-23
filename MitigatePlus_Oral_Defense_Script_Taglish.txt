@@ -8,7 +8,7 @@ Total Defense Time: 60 Minutes (1 Hour)
 Slide Deck Reference: 39 Slides
 Manuscript Reference: Capstone 2 Final Manuscript (Chapters 1 to 4)
 Capstone Adviser: Mr. John Ivan C. Maurat
-Panel of Evaluators: Dean Emeliza Yabut (Chair) | Prof. Lalaine Abad | Prof. Julieanne Cristal
+Panel of Evaluators: Dean Emeliza Yabut (Chair) | Prof. Lalaine Abad | Prof. Julieanne Crystal
 
 ================================================================================
 OFFICIAL SPEAKER ROSTER AND ASSIGNED SLIDES
@@ -36,7 +36,7 @@ Heavenly Father, we come before You with grateful hearts. Thank You po for this 
 
 Lord, guide our words. Remind us of everything we have prepared, and help us explain our ideas clearly and honestly.
 
-We also ask that You bless our respected panel of evaluators: our Panel Chair, Dean Emeliza Yabut; Prof. Lalaine Abad; and Prof. Julieanne Cristal. May they be given wisdom and fairness as they evaluate our work, and may their feedback continue to make us better.
+We also ask that You bless our respected panel of evaluators: our Panel Chair, Dean Emeliza Yabut; Prof. Lalaine Abad; and Prof. Julieanne Crystal. May they be given wisdom and fairness as they evaluate our work, and may their feedback continue to make us better.
 
 Bless our Capstone Adviser, Mr. John Ivan Maurat, for his patience and guidance throughout this entire journey.
 
@@ -52,7 +52,7 @@ SLIDE 1: Title Slide
 Visual Cue: Title, Group Name OnTheWay, Proponents, NU CCIT Seal.
 Speaker: JM
 Spoken Script:
-"A pleasant morning po to our respected panel of evaluators. To our Panel Chair, Dean Emeliza Yabut; to Prof. Lalaine Abad; to Prof. Julieanne Cristal; and to our Capstone Adviser, Mr. John Ivan Maurat. Good morning po.
+"A pleasant morning po to our respected panel of evaluators. To our Panel Chair, Dean Emeliza Yabut; to Prof. Lalaine Abad; to Prof. Julieanne Crystal; and to our Capstone Adviser, Mr. John Ivan Maurat. Good morning po.
 
 We are Group OnTheWay from the College of Computing and Information Technologies, National University. And we are honored to present our Capstone 2 Project: MitigatePlus: A Community Disaster Risk Mitigation Information System.
 
@@ -149,11 +149,11 @@ These are explained in full in Section 1.3 and Section 3.2 of our manuscript."
 
 --------------------------------------------------------------------------------
 
-SLIDE 6: Compliance - Prof. Julieanne Cristal
-Visual Cue: Compliance Table for Prof. Julieanne Cristal (3 rows).
+SLIDE 6: Compliance - Prof. Julieanne Crystal
+Visual Cue: Compliance Table for Prof. Julieanne Crystal (3 rows).
 Speaker: JM
 Spoken Script:
-"Finally, for Prof. Julieanne Cristal, who gave us three very specific directives.
+"Finally, for Prof. Julieanne Crystal, who gave us three very specific directives.
 
 Recommendation 1: The objectives on the presentation are different from the document.
 
@@ -810,7 +810,7 @@ DEMONSTRATION INTRODUCTION
 Speaker: Ellica
 Spoken Script:
 
-"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Cristal, a pleasant morning po.
+"Respected members of our panel, our Panel Chair Dean Emeliza Yabut, Prof. Lalaine Abad, and Prof. Julieanne Crystal, a pleasant morning po.
 
 Ako po si Ellica, and today I will personally conduct our live system demonstration for MitigatePlus. I will be sharing my screen to walk you through our complete software ecosystem, deployed live at post-mitigate-plus.vercel.app and connected to our cloud database on MongoDB Atlas.
 
@@ -1382,7 +1382,7 @@ Because our API is stateless, it can be horizontally scaled by deploying additio
 
 --------------------------------------------------------------------------------
 
-QUESTION 3 (For Prof. Julieanne Cristal - Originality & Verbatim Objectives):
+QUESTION 3 (For Prof. Julieanne Crystal - Originality & Verbatim Objectives):
 "Noong Capstone 1, magkaiba ang objectives sa presentation at sa document, at halatang copy-paste ang ilang bahagi. Paano ninyo ito inayos?"
 Lead Responder: JM / Chester
 Spoken Defense:
@@ -1464,7 +1464,7 @@ Every allocation is based on verified household headcount stored in our database
 
 --------------------------------------------------------------------------------
 
-QUESTION 9 (System Novelty & Gap Analysis - Dean Yabut / Prof. Abad / Prof. Cristal):
+QUESTION 9 (System Novelty & Gap Analysis - Dean Yabut / Prof. Abad / Prof. Crystal):
 "Ano ang novelty ng MitigatePlus at paano ito naging novelty? Ano ang pinagkaiba nito sa mga umiiral na sistema tulad ng DSWD DROMIC, PlanSmart, o KoboToolbox?"
 Lead Responder: Ellica / John Michael / Herszel
 Spoken Defense:
@@ -1494,7 +1494,7 @@ MitigatePlus is the first closed-loop, data-driven post-disaster mitigation plat
 CLOSING STATEMENT:
 Speaker: Raf
 Spoken Script:
-"Respected members of the panel: Dean Emeliza Yabut, Prof. Lalaine Abad, Prof. Julieanne Cristal, and Adviser Maurat.
+"Respected members of the panel: Dean Emeliza Yabut, Prof. Lalaine Abad, Prof. Julieanne Crystal, and Adviser Maurat.
 
 We cannot stop typhoons from making landfall in Manila. But the chaos, the palakasan, the lost paper records, and the inequity of disaster relief can be solved through software.
 
